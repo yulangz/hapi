@@ -51,7 +51,7 @@ import {
 } from '../modules/common/copilotModels'
 import type { SpawnSessionOptions, SpawnSessionResult } from '../modules/common/rpcTypes'
 import { applyVersionedAck } from './versionedUpdate'
-import { archiveLocalCodexSession, listLocalCodexSessionSummaries, listLocalCodexSessionsWithMessagesByIds } from '../modules/common/codexSessions'
+import { archiveLocalCodexSession, listLocalCodexSessionSummariesAsync, listLocalCodexSessionsWithMessagesByIdsAsync } from '../modules/common/codexSessions'
 import { listLocalPiSessionSummaries, listLocalPiSessionsWithMessagesByIds } from '../modules/common/piSessions'
 import { buildSocketIoExtraHeaderOptions } from './hubExtraHeaders'
 import { collectMachineHealth } from '@/utils/machineHealth'
@@ -322,8 +322,8 @@ export class ApiMachineClient {
                     ? new Set(parsed.data.sessionIds)
                     : null
                 const allSessions = requestedIds
-                    ? listLocalCodexSessionsWithMessagesByIds(requestedIds)
-                    : listLocalCodexSessionSummaries()
+                    ? await listLocalCodexSessionsWithMessagesByIdsAsync(requestedIds)
+                    : await listLocalCodexSessionSummariesAsync()
                 const sessions = []
                 for (const session of allSessions) {
                     if (await this.isLocalSessionWithinWorkspaceRoots(session)) {

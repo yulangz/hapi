@@ -185,6 +185,8 @@ export class SharedCodexRoot {
     async bind(threadId: string, response: Record<string, unknown>, subscribe: boolean): Promise<void> {
         if (this.threadId && this.threadId !== threadId) throw new Error('Cannot retarget a shared HAPI session');
         this.threadId = threadId;
+        // Cold history can take longer than the hub's session expiry window.
+        this.heartbeat ??= setInterval(() => this.alive(), 2_000);
         this.queue = new SharedCodexQueue(this.client, threadId, join(this.host.directory, `${this.session.sessionId}.queue.json`),
             (ids, steered) => this.session.emitMessagesConsumed(ids, { steered }), ids => this.session.emitSteerIndeterminate(ids),
             (id, input) => this.session.syncNativeQueuedMessage(id, input === null ? null : inputText(input)),
@@ -210,7 +212,7 @@ export class SharedCodexRoot {
         await this.initialSettings(options);
         if (this.stopping) throw new Error('Codex execution is stopping');
         this.registerControls(); this.ready();
-        this.heartbeat = setInterval(() => this.alive(), 2_000); this.alive(); this.session.emitSessionReady();
+        this.heartbeat ??= setInterval(() => this.alive(), 2_000); this.alive(); this.session.emitSessionReady();
     }
     private publishSteering(): void {
         const active = Boolean(this.currentTurn) && !this.stopping && !this.closed && !this.reconnecting && this.client.isInitialized();

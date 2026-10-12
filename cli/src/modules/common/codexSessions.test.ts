@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync, openSync, closeSync, ftruncateSync, writeSync, utimesSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { archiveLocalCodexSession, listLocalCodexSessionSummaries, listLocalCodexSessionsWithMessagesByIds } from './codexSessions'
+import { archiveLocalCodexSession, listLocalCodexSessionSummaries, listLocalCodexSessionsWithMessagesByIds, listLocalCodexSessionSummariesAsync, listLocalCodexSessionsWithMessagesByIdsAsync } from './codexSessions'
 
 describe('archiveLocalCodexSession', () => {
     const originalCodexHome = process.env.CODEX_HOME
@@ -179,5 +179,71 @@ describe('listLocalCodexSessionSummaries', () => {
         expect(sessions.map((session) => session.id)).toEqual(['wanted-session-id'])
         expect(sessions[0]?.messages).toHaveLength(1)
         rmSync(root, { recursive: true, force: true })
+    })
+})
+
+describe('asynchronous Codex history picker', () => {
+    const originalCodexHome = process.env.CODEX_HOME
+    const roots: string[] = []
+    afterEach(() => {
+        if (originalCodexHome === undefined) delete process.env.CODEX_HOME
+        else process.env.CODEX_HOME = originalCodexHome
+        for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+    })
+    function fixture() {
+        const root = mkdtempSync(join(tmpdir(), 'codex-picker-'))
+        roots.push(root); process.env.CODEX_HOME = root
+        const directory = join(root, 'sessions', '2026', '10', '12')
+        mkdirSync(directory, { recursive: true })
+        return { root, directory }
+    }
+    const user = (text: string) => JSON.stringify({ type: 'response_item', payload: {
+        type: 'message', role: 'user', content: [{ type: 'input_text', text }]
+    } })
+
+    it('reads metadata and the latest prompt from an 80 MiB rollout while allowing event-loop work', async () => {
+        const { root, directory } = fixture()
+        const file = join(directory, 'large.jsonl')
+        const head = [JSON.stringify({ type: 'session_meta', payload: {
+            id: 'large-session', cwd: '/tmp/project', source: 'cli', cli_version: '0.160.0'
+        } }), user('First prompt')].join('\n') + '\n'
+        const tail = '\n' + user('最新任务') + '\n'
+        const fd = openSync(file, 'w')
+        try {
+            ftruncateSync(fd, 80 * 1024 * 1024)
+            writeSync(fd, Buffer.from(head), 0, Buffer.byteLength(head), 0)
+            writeSync(fd, Buffer.from(tail), 0, Buffer.byteLength(tail), 80 * 1024 * 1024 - Buffer.byteLength(tail))
+        } finally { closeSync(fd) }
+        writeFileSync(join(root, 'session_index.jsonl'), JSON.stringify({ id: 'large-session', thread_name: 'Indexed title', updated_at: '2026-10-12' }))
+        let yielded = false
+        const timer = setImmediate(() => { yielded = true })
+        const sessions = await listLocalCodexSessionSummariesAsync()
+        clearImmediate(timer)
+        expect(yielded).toBe(true)
+        expect(sessions).toHaveLength(1)
+        expect(sessions[0]).toMatchObject({ id: 'large-session', title: 'Indexed title', lastUserMessage: '最新任务', cwd: '/tmp/project' })
+        expect(sessions[0]).not.toHaveProperty('messages')
+    })
+
+    it('excludes subagents and applies the limit to newest root sessions', async () => {
+        const { directory } = fixture()
+        for (const [id, source, time] of [['old', 'cli', 1], ['new', 'cli', 2], ['child', { subagent: 'worker' }, 3]] as const) {
+            const file = join(directory, id + '.jsonl')
+            writeFileSync(file, JSON.stringify({ type: 'session_meta', payload: { id, cwd: '/tmp/project', source } }) + '\n' + user(id))
+            utimesSync(file, time, time)
+        }
+        expect((await listLocalCodexSessionSummariesAsync(1)).map(s => s.id)).toEqual(['new'])
+        expect(await listLocalCodexSessionSummariesAsync(0)).toEqual([])
+    })
+
+    it('loads full transcript bodies only for explicitly requested root sessions', async () => {
+        const { directory } = fixture()
+        for (const id of ['wanted', 'other']) {
+            writeFileSync(join(directory, id + '.jsonl'), JSON.stringify({ type: 'session_meta', payload: { id, cwd: '/tmp/project' } }) + '\n' + user(id))
+        }
+        const sessions = await listLocalCodexSessionsWithMessagesByIdsAsync(new Set(['wanted']))
+        expect(sessions.map(s => s.id)).toEqual(['wanted'])
+        expect(sessions[0]?.messages).toHaveLength(1)
+        expect(await listLocalCodexSessionsWithMessagesByIdsAsync(new Set())).toEqual([])
     })
 })

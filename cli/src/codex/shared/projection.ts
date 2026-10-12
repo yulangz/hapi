@@ -167,12 +167,17 @@ export class SharedCodexProjection {
     async history(thread: unknown): Promise<void> {
         const turns = record(thread).turns;
         if (!Array.isArray(turns)) return;
+        // Pace cold history replay for small hubs, yielding to socket I/O and
+        // keepalives instead of accumulating every child transcript at once.
+        const configuredDelay = Number(process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS ?? 0);
+        const replayDelay = Number.isFinite(configuredDelay) ? Math.max(0, Math.min(1000, configuredDelay)) : 0;
         const titleRevision = this.titleRevision;
         let latestTitle: string | undefined;
         for (const value of turns) {
             const turn = record(value);
             if (!Array.isArray(turn.items)) continue;
             for (const item of turn.items) {
+                if (replayDelay) await new Promise(resolve => setTimeout(resolve, replayDelay));
                 const params = { threadId: this.threadId, turnId: turn.id, item };
                 const titleKey = `${string(turn.id) ?? 'thread'}:${record(item).id}`;
                 const pendingTitle = requestedTitle(record(item));

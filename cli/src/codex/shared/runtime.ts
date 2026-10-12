@@ -201,6 +201,9 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         await control.request('thread/metadata/update', { threadId, gitInfo: gitInfo(string(record(response.thread).cwd) ?? root.bootstrap.workingDirectory) });
         assertRunning();
         roots.set(threadId, root);
+        // Report the owned process before a potentially long history replay.
+        // Readiness remains gated by activate(), so queued input still waits.
+        await notifyRunnerSessionStarted(root.session.sessionId, root.session.getMetadata() ?? root.bootstrap.metadata);
         await root.bind(threadId, response, subscribe);
         assertRunning();
         // Cold-resumed threads predate the control connection's automatic
@@ -209,7 +212,6 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         await root.activate(initialOptions);
         await root.session.flush();
         await persist();
-        await notifyRunnerSessionStarted(root.session.sessionId, root.session.getMetadata() ?? root.bootstrap.metadata);
     };
     const create = (method: 'thread/start' | 'thread/fork', params: Record<string, unknown>, parent?: SharedCodexRoot, initialOptions?: SharedLaunchOptions): Promise<SharedCodexRoot> => operation(async () => {
         const root = await prepare(string(params.cwd) ?? launch.cwd, undefined, parent);

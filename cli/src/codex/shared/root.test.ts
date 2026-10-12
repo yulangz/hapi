@@ -53,7 +53,7 @@ afterEach(async () => {
     finally { vi.useRealTimers(); }
 });
 
-async function fixture() {
+async function fixture(historyTurns: NativeTurn[] = [], keepAlive = vi.fn()) {
     const directory = await mkdtemp('/tmp/hapi-shared-root-');
     let state: AgentState = { steeringActive: true };
     let metadata: Metadata = { path: directory, host: 'test', flavor: 'codex' };
@@ -64,7 +64,7 @@ async function fixture() {
     const session = {
         sessionId: 'sid', getMetadata: () => metadata,
         updateMetadata: (fn: (value: Metadata) => Metadata) => { metadata = fn(metadata); },
-        updateAgentState: updateState, keepAlive() {},
+        updateAgentState: updateState, keepAlive,
         onUserMessage() {}, onCancelQueuedMessage() {}, onRetryQueuedMessage() {},
         onReconnect: (fn: (() => void) | null) => { reconnect = fn; },
         rpcHandlerManager: { registerHandler: (name: string, handler: (raw: unknown) => Promise<unknown>) => rpc.set(name, handler) },
@@ -79,7 +79,7 @@ async function fixture() {
     } satisfies RootHost);
     cleanups.push(async () => { await root.close(false); await rm(directory, { recursive: true, force: true }); });
     await root.prepare();
-    await root.bind('thread', { model: 'mock', thread: { turns: [] } }, false);
+    await root.bind('thread', { model: 'mock', thread: { turns: historyTurns } }, false);
     const native = root.client as unknown as {
         initialized: boolean;
         thread: { id: string; turns: NativeTurn[] };
@@ -104,6 +104,25 @@ async function completePlan(f: Awaited<ReturnType<typeof fixture>>, status = 'co
 }
 
 describe('shared plan actions', () => {
+    it('keeps the session alive before a paced cold-history bind has finished', async () => {
+        const previous = process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS;
+        process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS = '20';
+        const keepAlive = vi.fn();
+        let finished = false;
+        const items = Array.from({ length: 160 }, (_, i) => ({ id: `message-${i}`, type: 'agentMessage', text: `History ${i}` }));
+        const binding = fixture([{ id: 'history-turn', status: 'completed', items }], keepAlive)
+            .then(value => { finished = true; return value; });
+        try {
+            await vi.waitFor(() => expect(keepAlive).toHaveBeenCalled(), { timeout: 3000, interval: 50 });
+            expect(finished).toBe(false);
+            await binding;
+        } finally {
+            await binding;
+            if (previous === undefined) delete process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS;
+            else process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS = previous;
+        }
+    });
+
     it('persists remote title tools while retaining native terminal rename events', async () => {
         const f = await fixture();
         const item = { id: 'title', type: 'mcpToolCall', server: 'hapi', tool: 'change_title',

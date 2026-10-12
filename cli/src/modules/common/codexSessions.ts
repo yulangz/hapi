@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync } from 'node:fs'
+import { open, readdir, readFile, stat } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { basename, dirname, join, relative } from 'node:path'
 import { homedir } from 'node:os'
@@ -118,6 +119,10 @@ function readCodexSessionIndexTitles(): Map<string, CodexSessionIndexTitle> {
         return new Map()
     }
 
+    return parseCodexSessionIndexTitles(content)
+}
+
+function parseCodexSessionIndexTitles(content: string): Map<string, CodexSessionIndexTitle> {
     const titles = new Map<string, CodexSessionIndexTitle>()
     for (const line of content.split(/\r?\n/).filter(Boolean)) {
         try {
@@ -302,10 +307,11 @@ function deduplicateAdjacentImportedMessages(messages: CodexImportedMessageConte
 function parseCodexLocalSession(
     filePath: string,
     includeMessages: boolean,
-    sessionIndexTitles = new Map<string, CodexSessionIndexTitle>()
+    sessionIndexTitles = new Map<string, CodexSessionIndexTitle>(),
+    snapshot?: { content: string; modifiedAt: number }
 ): LocalCodexSessionWithMessages | LocalCodexSessionSummary | null {
     let content: string
-    try { content = readFileSync(filePath, 'utf-8') } catch { return null }
+    try { content = snapshot?.content ?? readFileSync(filePath, 'utf-8') } catch { return null }
     const lines = content.split(/\r?\n/).filter(Boolean)
     const headLines = lines.slice(0, 200)
     let sessionId: string | null = null
@@ -358,8 +364,8 @@ function parseCodexLocalSession(
     const sessionIndexTitle = sessionIndexTitles.get(sessionId)?.threadName ?? null
     const changedTitle = getLatestCodexChangedTitle(lines)
     const lastUserMessage = getLatestCodexUserMessage(lines)
-    let modifiedAt = Date.now()
-    try { modifiedAt = statSync(filePath).mtimeMs } catch {}
+    let modifiedAt = snapshot?.modifiedAt ?? Date.now()
+    if (!snapshot) try { modifiedAt = statSync(filePath).mtimeMs } catch {}
     const summary = {
         id: sessionId,
         title: getCodexSessionTitle(cwd, sessionId, sessionIndexTitle, changedTitle, firstUserMessage),
@@ -407,6 +413,94 @@ export function listLocalCodexSessionsWithMessagesByIds(ids: Set<string>): Local
         .filter((session) => ids.has(session.id))
         .map((session) => parseCodexLocalSession(session.file, true, sessionIndexTitles))
         .filter((session): session is LocalCodexSessionWithMessages => Boolean(session))
+}
+
+// The history picker only needs metadata. Read bounded windows, asynchronously,
+// so large rollout files and network storage cannot block Runner heartbeats.
+const SUMMARY_WINDOW_BYTES = 128 * 1024
+
+async function collectJsonlFilesAsync(root: string, files: string[]): Promise<void> {
+    const entries = await readdir(root, { withFileTypes: true }).catch(() => [])
+    for (const entry of entries) {
+        const path = join(root, entry.name)
+        if (entry.isDirectory()) await collectJsonlFilesAsync(path, files)
+        else if (entry.isFile() && path.toLowerCase().endsWith('.jsonl')) files.push(path)
+    }
+}
+
+async function readCodexSummaryAsync(
+    file: string,
+    modifiedAt: number,
+    titles: Map<string, CodexSessionIndexTitle>
+): Promise<LocalCodexSessionSummary | null> {
+    const handle = await open(file, 'r').catch(() => null)
+    if (!handle) return null
+    try {
+        const size = (await handle.stat()).size
+        const headBuffer = Buffer.alloc(Math.min(size, SUMMARY_WINDOW_BYTES))
+        const headRead = await handle.read(headBuffer, 0, headBuffer.length, 0)
+        let head = headBuffer.subarray(0, headRead.bytesRead).toString('utf8')
+        if (size > headRead.bytesRead) head = head.slice(0, Math.max(0, head.lastIndexOf('\n')))
+        const summary = parseCodexLocalSession(file, false, titles, { content: head, modifiedAt })
+        if (!summary || size <= SUMMARY_WINDOW_BYTES) return summary
+        const offset = Math.max(headRead.bytesRead, size - SUMMARY_WINDOW_BYTES)
+        const tailBuffer = Buffer.alloc(size - offset)
+        const tailRead = await handle.read(tailBuffer, 0, tailBuffer.length, offset)
+        const tail = tailBuffer.subarray(0, tailRead.bytesRead).toString('utf8')
+        // Discard a partial JSONL record at the boundary, including partial UTF-8.
+        const completeTail = tail.slice(tail.indexOf('\n') + 1)
+        const sampled = parseCodexLocalSession(file, false, titles, { content: head + '\n' + completeTail, modifiedAt })
+        // A preview outside the tail window is unknown, rather than an old
+        // prompt from the header incorrectly labelled as the latest prompt.
+        if (sampled) sampled.lastUserMessage = getLatestCodexUserMessage(completeTail.split(/\r?\n/))
+        return sampled
+    } catch {
+        return null
+    } finally {
+        await handle.close()
+    }
+}
+
+export async function listLocalCodexSessionSummariesAsync(limit = DEFAULT_CODEX_SESSION_SCAN_LIMIT, requestedIds?: Set<string>): Promise<LocalCodexSessionSummary[]> {
+    if (limit <= 0) return []
+    const files: string[] = []
+    for (const root of getCodexSessionRoots()) await collectJsonlFilesAsync(root, files)
+    const titles = parseCodexSessionIndexTitles(await readFile(getCodexSessionIndexPath(), 'utf8').catch(() => ''))
+    const candidates: Array<{ file: string; modifiedAt: number }> = []
+    const candidatesToRead = requestedIds ? files.filter(file => {
+        const id = inferSessionIdFromFileName(basename(file))
+        return !id || requestedIds.has(id)
+    }) : files
+    for (let offset = 0; offset < candidatesToRead.length; offset += 16) {
+        const batch = await Promise.all(candidatesToRead.slice(offset, offset + 16).map(async file => {
+            const info = await stat(file).catch(() => null)
+            return info?.isFile() ? { file, modifiedAt: info.mtimeMs } : null
+        }))
+        for (const item of batch) if (item) candidates.push(item)
+    }
+    candidates.sort((a, b) => b.modifiedAt - a.modifiedAt)
+    const sessions = new Map<string, LocalCodexSessionSummary>()
+    for (const { file, modifiedAt } of candidates) {
+        const summary = await readCodexSummaryAsync(file, modifiedAt, titles)
+        if (summary && (!requestedIds || requestedIds.has(summary.id)) && !sessions.has(summary.id)) sessions.set(summary.id, summary)
+        if (sessions.size >= limit) break
+    }
+    return Array.from(sessions.values())
+}
+
+export async function listLocalCodexSessionsWithMessagesByIdsAsync(ids: Set<string>): Promise<LocalCodexSessionWithMessages[]> {
+    if (!ids.size) return []
+    const summaries = await listLocalCodexSessionSummariesAsync(Number.MAX_SAFE_INTEGER, ids)
+    const titles = parseCodexSessionIndexTitles(await readFile(getCodexSessionIndexPath(), 'utf8').catch(() => ''))
+    const sessions: LocalCodexSessionWithMessages[] = []
+    for (const summary of summaries) {
+        if (!ids.has(summary.id)) continue
+        const content = await readFile(summary.file, 'utf8').catch(() => null)
+        if (content === null) continue
+        const parsed = parseCodexLocalSession(summary.file, true, titles, { content, modifiedAt: summary.modifiedAt })
+        if (parsed && 'messages' in parsed) sessions.push(parsed)
+    }
+    return sessions
 }
 
 
