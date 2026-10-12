@@ -4,6 +4,23 @@ Get notified when sessions need input, request permissions, fail, or complete â€
 
 Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow notifications. The channels below are optional.
 
+## Web Push while HAPI is visible
+
+By default, a visible web client in your namespace receives an in-page toast
+instead of a system push notification. To receive both, start the Hub with:
+
+```bash
+export HAPI_WEB_PUSH_FOREGROUND=true
+hapi hub
+```
+
+You can also set `"webPushForeground": true` in the Hub's `settings.json` and
+restart the Hub. Environment values override file values and are persisted on
+first use. The default remains `false`. This option does not override browser
+permissions, operating-system Focus/Do Not Disturb, or native-delivery deduplication.
+It applies to ready, permission/input-request, and background-task notifications.
+The Hub still needs to reach the push service in each browser's subscription.
+
 ## Native app notifications
 
 See [Native apps](./native-apps.md) for build, pairing and platform requirements.

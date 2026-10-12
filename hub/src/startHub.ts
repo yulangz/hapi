@@ -247,7 +247,8 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
             pushService,
             sseManager,
             visibilityTracker,
-            config.publicUrl
+            config.publicUrl,
+            config.webPushForeground
         )
     )
 

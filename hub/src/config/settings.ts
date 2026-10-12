@@ -19,6 +19,7 @@ export interface Settings {
     serverChanSendKey?: string
     serverChanNotification?: boolean
     serverChanBackgroundOnly?: boolean
+    webPushForeground?: boolean
     listenHost?: string
     listenPort?: number
     publicUrl?: string

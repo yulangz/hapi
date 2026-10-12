@@ -45,6 +45,50 @@ describe('PushNotificationChannel', () => {
         expect(pushed).toHaveLength(0)
     })
 
+    it.each(['ready', 'permission', 'task'] as const)('sends foreground %s notifications through both toast and Web Push when enabled', async kind => {
+        const pushed: PushPayload[] = []
+        const toasts: unknown[] = []
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_namespace: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: async (_namespace: string, event: unknown) => { toasts.push(event); return 1 } } as never,
+            { hasVisibleConnection: () => true } as never,
+            '', true
+        )
+        const session = createSession({ agentState: { requests: { 'req-1': { tool: 'Bash', arguments: {} } } } })
+        if (kind === 'ready') await channel.sendReady(session)
+        else if (kind === 'permission') await channel.sendPermissionRequest(session)
+        else await channel.sendTaskNotification(session, { status: 'completed', summary: 'Done' })
+        expect(toasts).toHaveLength(1)
+        expect(pushed).toHaveLength(1)
+        expect(pushed[0].data?.sessionId).toBe(session.id)
+    })
+
+    it('retains native-delivery deduplication even when foreground Web Push is enabled', async () => {
+        const pushed: PushPayload[] = []
+        const toasts: unknown[] = []
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_namespace: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: async (_namespace: string, event: unknown) => { toasts.push(event); return 1 } } as never,
+            { hasVisibleConnection: () => true } as never,
+            '', true
+        )
+        await channel.sendReady(createSession(), { nativeGate: { sent: true } })
+        expect(toasts).toHaveLength(0)
+        expect(pushed).toHaveLength(0)
+    })
+
+    it('falls back to Web Push when a visible connection cannot receive the toast', async () => {
+        const pushed: PushPayload[] = []
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_namespace: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: async () => 0 } as never,
+            { hasVisibleConnection: () => true } as never,
+            ''
+        )
+        await channel.sendReady(createSession())
+        expect(pushed).toHaveLength(1)
+    })
+
     it('does not reuse one replacement tag for all task notifications in a session', async () => {
         const pushed: Array<{ namespace: string; payload: PushPayload }> = []
         const channel = new PushNotificationChannel(

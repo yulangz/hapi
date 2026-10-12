@@ -37,6 +37,7 @@ export interface ServerSettings {
     serverChanSendKey: string | null
     serverChanNotification: boolean
     serverChanBackgroundOnly: boolean
+    webPushForeground: boolean
     listenHost: string
     listenPort: number
     publicUrl: string
@@ -60,6 +61,7 @@ export interface ServerSettingsResult {
         serverChanSendKey: 'env' | 'file' | 'default'
         serverChanNotification: 'env' | 'file' | 'default'
         serverChanBackgroundOnly: 'env' | 'file' | 'default'
+        webPushForeground: 'env' | 'file' | 'default'
         listenHost: 'env' | 'file' | 'default'
         listenPort: 'env' | 'file' | 'default'
         publicUrl: 'env' | 'file' | 'default'
@@ -131,6 +133,7 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
             serverChanSendKey: 'default',
             serverChanNotification: 'default',
             serverChanBackgroundOnly: 'default',
+            webPushForeground: 'default',
             listenHost: 'default',
             listenPort: 'default',
             publicUrl: 'default',
@@ -215,6 +218,25 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
             sources.serverChanBackgroundOnly = 'file'
         } else if (settings.serverChanBackgroundOnly !== undefined) {
             throw new Error('serverChanBackgroundOnly must be a boolean')
+        }
+
+        // webPushForeground: env > file > false
+        let webPushForeground = false
+        if (process.env.HAPI_WEB_PUSH_FOREGROUND !== undefined) {
+            if (!['true', 'false'].includes(process.env.HAPI_WEB_PUSH_FOREGROUND)) {
+                throw new Error('HAPI_WEB_PUSH_FOREGROUND must be true or false')
+            }
+            webPushForeground = process.env.HAPI_WEB_PUSH_FOREGROUND === 'true'
+            sources.webPushForeground = 'env'
+            if (settings.webPushForeground === undefined) {
+                settings.webPushForeground = webPushForeground
+                needsSave = true
+            }
+        } else if (typeof settings.webPushForeground === 'boolean') {
+            webPushForeground = settings.webPushForeground
+            sources.webPushForeground = 'file'
+        } else if (settings.webPushForeground !== undefined) {
+            throw new Error('webPushForeground must be a boolean')
         }
 
         // listenHost: env > file > default
@@ -317,6 +339,7 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
                     serverChanSendKey,
                     serverChanNotification,
                     serverChanBackgroundOnly,
+                    webPushForeground,
                     listenHost,
                     listenPort,
                     publicUrl,

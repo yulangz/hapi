@@ -19,6 +19,7 @@
  * - HAPI_RELAY_API: Relay API domain for tunwg (default: relay.hapi.run)
  * - HAPI_RELAY_AUTH: Relay auth key override (default: per-hub key issued by the relay)
  * - HAPI_RELAY_FORCE_TCP: Force TCP relay mode when UDP is unavailable (true/1)
+ * - HAPI_WEB_PUSH_FOREGROUND: Also send Web Push while a web client is visible (default: false)
  * - VAPID_SUBJECT: Contact email or URL for Web Push (defaults to mailto:admin@hapi.run)
  * - FCM_SERVICE_ACCOUNT_PATH: Firebase service-account JSON for Android push (settings: fcmServiceAccountPath;
  *   the project id comes from the JSON itself)
@@ -47,6 +48,7 @@ export interface ConfigSources {
     serverChanSendKey: ConfigSource
     serverChanNotification: ConfigSource
     serverChanBackgroundOnly: ConfigSource
+    webPushForeground: ConfigSource
     listenHost: ConfigSource
     listenPort: ConfigSource
     publicUrl: ConfigSource
@@ -81,6 +83,9 @@ class Configuration {
 
     /** Only send Server酱 notifications when no visible HAPI client exists */
     public readonly serverChanBackgroundOnly: boolean
+
+    /** Send Web Push alongside foreground in-page toasts */
+    public readonly webPushForeground: boolean
 
     /** CLI auth token (shared secret) */
     public cliApiToken: string
@@ -145,6 +150,7 @@ class Configuration {
         this.serverChanSendKey = serverSettings.serverChanSendKey
         this.serverChanNotification = serverSettings.serverChanNotification
         this.serverChanBackgroundOnly = serverSettings.serverChanBackgroundOnly
+        this.webPushForeground = serverSettings.webPushForeground
         this.listenHost = serverSettings.listenHost
         this.listenPort = serverSettings.listenPort
         this.publicUrl = serverSettings.publicUrl

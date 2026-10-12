@@ -12,7 +12,8 @@ export class PushNotificationChannel implements NotificationChannel {
         private readonly pushService: PushService,
         private readonly sseManager: SSEManager,
         private readonly visibilityTracker: VisibilityTracker,
-        _appUrl: string
+        _appUrl: string,
+        private readonly pushInForeground = false
     ) {}
 
     /**
@@ -125,9 +126,10 @@ export class PushNotificationChannel implements NotificationChannel {
             })
             if (delivered > 0) {
                 this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
-                return
+                if (!this.pushInForeground) return
+            } else {
+                this.logBranch(method, session.namespace, 'sse-toast-zero', 'visible but delivered=0')
             }
-            this.logBranch(method, session.namespace, 'sse-toast-zero', 'visible but delivered=0')
         } else {
             this.logBranch(method, session.namespace, 'not-visible')
         }

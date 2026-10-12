@@ -10,13 +10,17 @@ function makeTempDir(): string {
 
 describe('loadServerSettings', () => {
     let dir: string | null = null
+    const originalForegroundPush = process.env.HAPI_WEB_PUSH_FOREGROUND
     const originalBackgroundOnly = process.env.SERVERCHAN_BACKGROUND_ONLY
 
     beforeEach(() => {
+        delete process.env.HAPI_WEB_PUSH_FOREGROUND
         delete process.env.SERVERCHAN_BACKGROUND_ONLY
     })
 
     afterEach(() => {
+        if (originalForegroundPush === undefined) delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        else process.env.HAPI_WEB_PUSH_FOREGROUND = originalForegroundPush
         if (dir) {
             rmSync(dir, { recursive: true, force: true })
             dir = null
@@ -101,6 +105,37 @@ describe('loadServerSettings', () => {
         }))
 
         await expect(loadServerSettings(dir)).rejects.toThrow('serverChanBackgroundOnly must be a boolean')
+    })
+
+    it('keeps foreground Web Push disabled by default', async () => {
+        dir = makeTempDir()
+        const result = await loadServerSettings(dir)
+        expect(result.settings.webPushForeground).toBe(false)
+        expect(result.sources.webPushForeground).toBe('default')
+    })
+
+    it('persists foreground Web Push and honors an environment override without replacing the saved value', async () => {
+        dir = makeTempDir()
+        process.env.HAPI_WEB_PUSH_FOREGROUND = 'true'
+        expect((await loadServerSettings(dir)).settings.webPushForeground).toBe(true)
+        expect(JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8')).webPushForeground).toBe(true)
+        process.env.HAPI_WEB_PUSH_FOREGROUND = 'false'
+        const overridden = await loadServerSettings(dir)
+        expect(overridden.settings.webPushForeground).toBe(false)
+        expect(overridden.sources.webPushForeground).toBe('env')
+        delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        const restored = await loadServerSettings(dir)
+        expect(restored.settings.webPushForeground).toBe(true)
+        expect(restored.sources.webPushForeground).toBe('file')
+    })
+
+    it('rejects invalid foreground Web Push configuration instead of treating it as enabled', async () => {
+        dir = makeTempDir()
+        process.env.HAPI_WEB_PUSH_FOREGROUND = 'yes'
+        await expect(loadServerSettings(dir)).rejects.toThrow('HAPI_WEB_PUSH_FOREGROUND must be true or false')
+        delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        writeFileSync(join(dir, 'settings.json'), JSON.stringify({ webPushForeground: 'false' }))
+        await expect(loadServerSettings(dir)).rejects.toThrow('webPushForeground must be a boolean')
     })
 
     it('defaults push settings to null', async () => {
