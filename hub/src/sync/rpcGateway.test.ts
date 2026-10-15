@@ -3,7 +3,7 @@ import type { Server } from 'socket.io'
 import type { RpcRegistry } from '../socket/rpcRegistry'
 import { RpcGateway, RpcTargetMissingError } from './rpcGateway'
 
-function createGateway() {
+function createGateway(reply?: unknown) {
     const timeouts: number[] = []
     const calls: Array<{ method: string; params: string }> = []
     const socket = {
@@ -12,6 +12,7 @@ function createGateway() {
             return {
                 async emitWithAck(_event: string, payload: { method: string; params: string }) {
                     calls.push(payload)
+                    if (reply !== undefined) return reply
                     if (payload.method.endsWith(':cursor-chat-store-status')) {
                         return JSON.stringify({ onDisk: false, store: null })
                     }
@@ -111,6 +112,29 @@ describe('RpcGateway RPC timeouts', () => {
                 homeDir: '/home/recorded-owner'
             })
         }])
+    })
+})
+
+describe('RpcGateway archive acknowledgements', () => {
+    it('accepts an explicit successful close acknowledgement', async () => {
+        const { gateway } = createGateway(JSON.stringify({ success: true }))
+        await expect(gateway.killSession('session-1')).resolves.toBeUndefined()
+    })
+
+    it.each([
+        JSON.stringify({ error: 'Native thread could not be archived' }),
+        { error: 'Native thread could not be archived' }
+    ])('propagates CLI handler failures instead of reporting archive success (%j)', async reply => {
+        const { gateway } = createGateway(reply)
+        const error = await gateway.killSession('session-1').catch(error => error)
+        expect(error).toBeInstanceOf(Error)
+        expect(error.message).toContain('Native thread could not be archived')
+        expect(error).not.toBeInstanceOf(RpcTargetMissingError)
+    })
+
+    it.each([null, {}, { success: false }, 'invalid response'])('rejects a missing or negative acknowledgement (%j)', async reply => {
+        const { gateway } = createGateway(reply)
+        await expect(gateway.killSession('session-1')).rejects.toThrow('archive')
     })
 })
 

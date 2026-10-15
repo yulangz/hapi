@@ -156,7 +156,19 @@ export class RpcGateway {
     }
 
     async killSession(sessionId: string): Promise<void> {
-        await this.sessionRpc(sessionId, RPC_METHODS.KillSession, {})
+        const result = await this.sessionRpc(sessionId, RPC_METHODS.KillSession, {})
+        // RpcHandlerManager serializes handler exceptions as { error }, so a
+        // transport acknowledgement alone does not mean the CLI accepted the
+        // archive. Otherwise the Hub marks it inactive while it keeps running,
+        // and the next session-alive makes the supposedly archived row online.
+        if (result && typeof result === 'object') {
+            const response = result as { success?: unknown; error?: unknown }
+            if (typeof response.error === 'string') {
+                throw new Error(`Failed to archive session: ${response.error}`)
+            }
+            if (response.success === true && response.error === undefined) return
+        }
+        throw new Error('Failed to archive session: invalid kill-session acknowledgement')
     }
 
     async stopRunnerSession(machineId: string, sessionId: string): Promise<'stopped' | 'already_gone' | 'still_alive'> {

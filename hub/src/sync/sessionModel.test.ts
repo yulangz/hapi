@@ -7,6 +7,7 @@ import { registerSessionHandlers } from '../socket/handlers/cli/sessionHandlers'
 import type { EventPublisher } from './eventPublisher'
 import { SessionCache } from './sessionCache'
 import { SyncEngine } from './syncEngine'
+import type { Server } from 'socket.io'
 
 function createPublisher(events: SyncEvent[]): EventPublisher {
     return {
@@ -147,6 +148,33 @@ async function runCodexResumeScenario(
 }
 
 describe('session model', () => {
+    it('keeps a session live when the CLI rejects archive because another writer owns the thread', async () => {
+        const store = new Store(':memory:')
+        const socket = {
+            timeout() {
+                return {
+                    async emitWithAck() {
+                        return JSON.stringify({ error: 'thread child-thread already has an active writer' })
+                    }
+                }
+            }
+        }
+        const io = { of: () => ({ sockets: new Map([['socket-1', socket]]) }) } as unknown as Server
+        const registry = { getSocketIdForMethod: () => 'socket-1' } as unknown as RpcRegistry
+        const engine = new SyncEngine(store, io, registry, { broadcast() {} } as never)
+        try {
+            const session = engine.getOrCreateSession('archive-rejected', {
+                path: '/tmp/project', host: 'localhost', flavor: 'codex', lifecycleState: 'running'
+            }, null, 'default')
+            engine.handleSessionAlive({ sid: session.id, time: Date.now() })
+            await expect(engine.archiveSession(session.id)).rejects.toThrow('already has an active writer')
+            expect(engine.getSession(session.id)?.active).toBe(true)
+            expect(engine.getSession(session.id)?.metadata?.lifecycleState).toBe('running')
+        } finally {
+            engine.stop()
+        }
+    })
+
     it('includes explicit model in session summaries', () => {
         const store = new Store(':memory:')
         const events: SyncEvent[] = []
