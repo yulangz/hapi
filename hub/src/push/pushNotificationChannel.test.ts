@@ -77,6 +77,47 @@ describe('PushNotificationChannel', () => {
         expect(pushed).toHaveLength(0)
     })
 
+    it.each(['ready', 'permission', 'task'] as const)('does not let a stalled toast block foreground %s Web Push', async kind => {
+        const pushed: PushPayload[] = []
+        let releaseToast!: (count: number) => void
+        const toast = new Promise<number>(resolve => { releaseToast = resolve })
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_namespace: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: () => toast } as never,
+            { hasVisibleConnection: () => true } as never,
+            '', true
+        )
+        const session = createSession()
+        const delivery = kind === 'ready' ? channel.sendReady(session)
+            : kind === 'permission' ? channel.sendPermissionRequest(session)
+            : channel.sendTaskNotification(session, { status: 'completed', summary: 'Done' })
+        let timer: ReturnType<typeof setTimeout> | undefined
+        try {
+            const completed = await Promise.race([
+                delivery.then(() => true),
+                new Promise<boolean>(resolve => { timer = setTimeout(() => resolve(false), 100) })
+            ])
+            expect(completed).toBe(true)
+            expect(pushed).toHaveLength(1)
+        } finally {
+            clearTimeout(timer)
+            releaseToast(1)
+            await delivery
+        }
+    })
+
+    it('still sends foreground Web Push if toast delivery rejects', async () => {
+        const pushed: PushPayload[] = []
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_namespace: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: async () => { throw new Error('Closed SSE stream') } } as never,
+            { hasVisibleConnection: () => true } as never,
+            '', true
+        )
+        await channel.sendReady(createSession())
+        expect(pushed).toHaveLength(1)
+    })
+
     it('falls back to Web Push when a visible connection cannot receive the toast', async () => {
         const pushed: PushPayload[] = []
         const channel = new PushNotificationChannel(

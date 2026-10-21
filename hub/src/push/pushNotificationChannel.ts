@@ -115,7 +115,7 @@ export class PushNotificationChannel implements NotificationChannel {
 
         const url = payload.data?.url ?? this.buildSessionPath(session.id)
         if (this.visibilityTracker.hasVisibleConnection(session.namespace)) {
-            const delivered = await this.sseManager.sendToast(session.namespace, {
+            const toastDelivery = this.sseManager.sendToast(session.namespace, {
                 type: 'toast',
                 data: {
                     title: payload.title,
@@ -123,12 +123,21 @@ export class PushNotificationChannel implements NotificationChannel {
                     sessionId: session.id,
                     url
                 }
+            }).then(delivered => {
+                if (delivered > 0) {
+                    this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
+                } else {
+                    this.logBranch(method, session.namespace, 'sse-toast-zero', 'visible but delivered=0')
+                }
+                return delivered
+            }).catch(() => {
+                this.logBranch(method, session.namespace, 'sse-toast-failed')
+                return 0
             })
-            if (delivered > 0) {
-                this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
-                if (!this.pushInForeground) return
-            } else {
-                this.logBranch(method, session.namespace, 'sse-toast-zero', 'visible but delivered=0')
+            // A slow visible SSE client must not hold up system notifications
+            // when foreground Web Push is enabled. The toast has its own catch.
+            if (!this.pushInForeground && (await toastDelivery) > 0) {
+                return
             }
         } else {
             this.logBranch(method, session.namespace, 'not-visible')
