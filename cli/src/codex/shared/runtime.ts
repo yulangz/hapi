@@ -203,7 +203,10 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         roots.set(threadId, root);
         // Report the owned process before a potentially long history replay.
         // Readiness remains gated by activate(), so queued input still waits.
-        await notifyRunnerSessionStarted(root.session.sessionId, root.session.getMetadata() ?? root.bootstrap.metadata);
+        // The versioned metadata update may still be pending: getMetadata()
+        // can contain the previous execution's PID. The startup handshake
+        // must identify this child, or Runner will time out and kill it.
+        await notifyRunnerSessionStarted(root.session.sessionId, root.bootstrap.metadata);
         await root.bind(threadId, response, subscribe);
         assertRunning();
         // Cold-resumed threads predate the control connection's automatic
