@@ -274,6 +274,8 @@ describe('shared steering availability', () => {
         vi.useFakeTimers();
 
         await f.root.activate();
+        await vi.advanceTimersByTimeAsync(0); // Initial descendant discovery is background startup work.
+        requests.mockClear();
         await vi.advanceTimersByTimeAsync(5 * 60_000);
 
         expect(heartbeat).toHaveBeenCalled();
@@ -326,5 +328,22 @@ describe('shared steering availability', () => {
         expect(requests).not.toHaveBeenCalledWith('thread/read', { threadId: 'thread', includeTurns: true });
         expect(requests).toHaveBeenCalledWith('thread/turns/list', expect.objectContaining({ itemsView: 'summary', limit: 20 }));
         expect(requests).toHaveBeenCalledWith('thread/items/list', expect.objectContaining({ turnId: 'old-turn', limit: 20 }));
+    });
+
+    it('makes restored root controls available while descendant backfill is pending', async () => {
+        const f = await fixture();
+        let release!: (value: unknown) => void;
+        const blocked = new Promise(resolve => { release = resolve; });
+        const original = f.root.client.request.bind(f.root.client);
+        const requests = vi.spyOn(f.root.client, 'request').mockImplementation((method, params) => {
+            if (method === 'thread/list') return blocked as never;
+            return original(method, params);
+        });
+        try {
+            await f.root.activate();
+            expect(f.rpc.has(RPC_METHODS.SetSessionConfig)).toBe(true);
+            expect(await f.rpc.get(RPC_METHODS.SetSessionConfig)!({})).toHaveProperty('applied');
+            await vi.waitFor(() => expect(requests).toHaveBeenCalledWith('thread/list', expect.any(Object)));
+        } finally { release({ data: [] }); }
     });
 });

@@ -185,7 +185,7 @@ export class SharedCodexProjection {
         }
     }
 
-    async history(thread: unknown): Promise<void> {
+    async history(thread: unknown, shouldStop: () => boolean = () => false): Promise<void> {
         const turns = record(thread).turns;
         if (!Array.isArray(turns)) return;
         // Pace cold history replay for small hubs, yielding to socket I/O and
@@ -198,6 +198,7 @@ export class SharedCodexProjection {
             const turn = record(value);
             if (!Array.isArray(turn.items)) continue;
             for (const item of turn.items) {
+                if (shouldStop()) return;
                 const emittedBefore = this.emitted.size;
                 const params = { threadId: this.threadId, turnId: turn.id, item };
                 const titleKey = `${string(turn.id) ?? 'thread'}:${record(item).id}`;

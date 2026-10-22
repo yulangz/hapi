@@ -62,6 +62,7 @@ export class SharedCodexRoot {
     private turnRevision = 0;
     private settingsRevision = 0;
     private refreshing?: Promise<void>;
+    private childHistory: Promise<void> = Promise.resolve();
     private interrupted = false;
     private closed = false;
     private stopping = false;
@@ -206,7 +207,7 @@ export class SharedCodexRoot {
         }));
         if (subscribe) response = record(await this.client.request('thread/resume', { threadId, excludeTurns: true }));
         this.acceptSettings(response); this.acceptSettings(this.host.settingsFor(threadId) ?? {});
-        await this.projection.history(response.thread); await this.refresh(); await this.refreshChildren(true);
+        await this.projection.history(response.thread, () => this.stopping || this.closed); await this.refresh();
     }
     async activate(options: SharedLaunchOptions = {}): Promise<void> {
         // Restored input cannot run before the cold-resume settings are applied.
@@ -214,6 +215,9 @@ export class SharedCodexRoot {
         if (this.stopping) throw new Error('Codex execution is stopping');
         this.registerControls(); this.ready();
         this.heartbeat ??= setInterval(() => this.alive(), 2_000); this.alive(); this.session.emitSessionReady();
+        // Completed descendants are transcript backfill, not an admission
+        // barrier for the restored root or its durable input queue.
+        void this.refreshChildren(true).catch(error => logger.debug('[Codex shared] child history unavailable', error));
     }
     private publishSteering(): void {
         const active = Boolean(this.currentTurn) && !this.stopping && !this.closed && !this.reconnecting && this.client.isInitialized();
@@ -301,11 +305,18 @@ export class SharedCodexRoot {
             const id = string(last?.id);
             this.latestTurn = id && last ? { id, status: string(last.status) ?? 'unknown', planId: planProposalForTurn(this.threadId, last) } : undefined;
         }
-        await this.projection.history(thread); await this.queue.reconcile(); this.alive();
+        await this.projection.history(thread, () => this.stopping || this.closed); await this.queue.reconcile(); this.alive();
     }
-    private async refreshChildren(subscribe: boolean): Promise<void> {
+    private refreshChildren(subscribe: boolean): Promise<void> {
+        const pending = this.childHistory.catch(() => {}).then(() => this.refreshChildrenNow(subscribe));
+        this.childHistory = pending;
+        return pending;
+    }
+    private async refreshChildrenNow(subscribe: boolean): Promise<void> {
+        if (this.stopping || this.closed) return;
         let cursor: string | undefined;
         do {
+            if (this.stopping || this.closed) return;
             const page = record(await this.client.request('thread/list', { ancestorThreadId: this.threadId, cursor,
                 sourceKinds: ['subAgent', 'subAgentReview', 'subAgentCompact', 'subAgentThreadSpawn', 'subAgentOther'] }));
             for (const value of Array.isArray(page.data) ? page.data : []) {
@@ -324,10 +335,11 @@ export class SharedCodexRoot {
             cursor = string(page.nextCursor);
         } while (cursor);
         for (const [id, projection] of this.children) {
+            if (this.stopping || this.closed) return;
             // Replaying a completed/unloaded child must not start its engine.
             try {
                 if (subscribe && loaded.has(id)) await this.client.request('thread/resume', { threadId: id, excludeTurns: true });
-                projection.reset(); await projection.history(await this.readThread(id));
+                projection.reset(); await projection.history(await this.readThread(id), () => this.stopping || this.closed);
             } catch (error) { logger.debug('[Codex shared] child history unavailable', { id, error }); }
         }
     }
@@ -556,7 +568,7 @@ export class SharedCodexRoot {
         return this.closing ??= (async () => {
             this.stopAccepting(); this.closed = true; clearInterval(this.heartbeat);
             this.permissions?.close();
-            await this.client.disconnect(); await this.notifications; await this.queue?.flush(); this.bridge?.server.stop();
+            await this.client.disconnect(); await this.notifications; await this.childHistory.catch(() => {}); await this.queue?.flush(); this.bridge?.server.stop();
             if (archived) this.session.updateMetadata(metadata => ({ ...metadata, lifecycleState: 'archived', lifecycleStateSince: Date.now() }));
             // Inactive is resumable; uploads referenced by pending input must survive.
             this.session.sendSessionDeath(undefined, { preserveUploads: !archived });

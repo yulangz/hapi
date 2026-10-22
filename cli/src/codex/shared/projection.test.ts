@@ -4,6 +4,12 @@ import { SharedCodexProjection, inputText } from './projection';
 import { codexPlanProposalId } from './plan';
 
 describe('shared history projection', () => {
+    it('stops historical backfill when its owning session closes', async () => {
+        const send = vi.fn();
+        const projection = new SharedCodexProjection({ getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient, 'child', async () => {});
+        await projection.history({ turns: [{ id: 'turn', status: 'completed', items: [{ id: 'item', type: 'agentMessage', text: 'Old content' }] }] }, () => true);
+        expect(send).not.toHaveBeenCalled();
+    });
     it('paces only new outbound history, without delaying ignored or duplicate items', async () => {
         vi.useFakeTimers(); vi.stubEnv('HAPI_CODEX_HISTORY_ITEM_DELAY_MS', '20');
         try {
