@@ -4,6 +4,10 @@ const { spawnSyncMock } = vi.hoisted(() => ({
     spawnSyncMock: vi.fn()
 }))
 
+vi.mock('node:fs', () => ({
+    readFileSync: vi.fn(() => '9124 (hapi) S 1 1 1 0')
+}))
+
 vi.mock('cross-spawn', () => ({
     default: {
         sync: spawnSyncMock

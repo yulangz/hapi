@@ -12,7 +12,7 @@ type NativeTurn = { id: string; status: string; items: unknown[] };
 vi.mock('../codexAppServerClient', () => ({
     CodexAppServerClient: class {
         initialized = false;
-        thread = { id: 'thread', turns: [] as NativeTurn[] };
+        thread = { id: 'thread', historyMode: undefined as string | undefined, turns: [] as NativeTurn[] };
         settings: Record<string, unknown> = { model: 'mock', collaborationMode: { mode: 'default' } };
         queue: Array<{ id: string; clientUserMessageId: unknown; input: unknown }> = [];
         notify?: (method: string, params: unknown) => void;
@@ -26,6 +26,8 @@ vi.mock('../codexAppServerClient', () => ({
         async disconnect() { this.initialized = false; }
         async request(method: string, params: Record<string, unknown> = {}) {
             if (method === 'thread/read' || method === 'thread/resume') return { ...this.settings, thread: structuredClone(this.thread) };
+            if (method === 'thread/turns/list') return { data: this.thread.turns.map(turn => ({ ...turn, items: [] })) };
+            if (method === 'thread/items/list') return { data: this.thread.turns.find(turn => turn.id === params.turnId)?.items ?? [] };
             if (method === 'thread/list') return { data: [] };
             if (method === 'thread/queue/list') return { data: this.queue };
             if (method === 'thread/settings/update') {
@@ -82,7 +84,7 @@ async function fixture(historyTurns: NativeTurn[] = [], keepAlive = vi.fn()) {
     await root.bind('thread', { model: 'mock', thread: { turns: historyTurns } }, false);
     const native = root.client as unknown as {
         initialized: boolean;
-        thread: { id: string; turns: NativeTurn[] };
+        thread: { id: string; historyMode?: string; turns: NativeTurn[] };
         queue: Array<{ id: string; clientUserMessageId: string; input: unknown }>;
         notify(method: string, params: unknown): void;
         abandoned(): void;
@@ -297,6 +299,7 @@ describe('shared steering availability', () => {
 
     it('reconciles native and Hub reconnects without publishing on every refresh', async () => {
         const f = await fixture();
+        const requests = vi.spyOn(f.root.client, 'request');
         const updates = f.updateState.mock.calls.length;
         await f.root.refresh(); await f.root.refresh();
         expect(f.updateState).toHaveBeenCalledTimes(updates);
@@ -306,8 +309,22 @@ describe('shared steering availability', () => {
         f.native.initialized = false; f.native.abandoned();
         expect(f.state().steeringActive).toBe(false);
         await vi.waitFor(() => expect(f.state().steeringActive).toBe(true));
+        expect(requests).toHaveBeenCalledWith('thread/resume', { threadId: 'thread', excludeTurns: true });
         f.native.thread.turns = [{ id: 'busy', status: 'completed', items: [] }];
         f.reconnect();
         await vi.waitFor(() => expect(f.state().steeringActive).toBe(false));
+    });
+
+    it('reads paginated history through turn summaries and bounded item pages', async () => {
+        const f = await fixture();
+        f.native.thread.historyMode = 'paginated';
+        f.native.thread.turns = [{ id: 'old-turn', status: 'completed', items: [{ id: 'old-message', type: 'agentMessage', text: 'Saved history' }] }];
+        const requests = vi.spyOn(f.root.client, 'request');
+        const thread = await f.root.readThread();
+        expect(thread.turns).toEqual(f.native.thread.turns);
+        expect(requests).toHaveBeenCalledWith('thread/read', { threadId: 'thread', includeTurns: false });
+        expect(requests).not.toHaveBeenCalledWith('thread/read', { threadId: 'thread', includeTurns: true });
+        expect(requests).toHaveBeenCalledWith('thread/turns/list', expect.objectContaining({ itemsView: 'summary', limit: 20 }));
+        expect(requests).toHaveBeenCalledWith('thread/items/list', expect.objectContaining({ turnId: 'old-turn', limit: 20 }));
     });
 });

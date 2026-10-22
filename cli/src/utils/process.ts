@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'node:child_process';
 import spawn from 'cross-spawn';
+import { readFileSync } from 'node:fs';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 
@@ -10,10 +11,26 @@ export function isProcessAlive(pid: number): boolean {
 
   try {
     process.kill(pid, 0);
-    return true;
   } catch {
     return false;
   }
+
+  if (process.platform === 'linux') {
+    try {
+      // kill(pid, 0) also succeeds for an unreaped child. A zombie cannot
+      // serve requests and must not keep resume deduplication/ownership alive.
+      // comm may contain spaces or ')', so read the state after its final ')'.
+      const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+      const state = stat.slice(stat.lastIndexOf(')') + 1).trimStart().split(/\s/, 1)[0];
+      if (state === 'Z' || state === 'X' || state === 'x') return false;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT' || code === 'ESRCH') return false;
+      // An unreadable /proc entry is not evidence of exit. Keep ownership
+      // when the signal probe succeeded but procfs is restricted/unavailable.
+    }
+  }
+  return true;
 }
 
 /** Stable marker for one OS PID generation; null means the platform probe failed. */
