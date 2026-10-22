@@ -198,7 +198,7 @@ export class SharedCodexProjection {
             const turn = record(value);
             if (!Array.isArray(turn.items)) continue;
             for (const item of turn.items) {
-                if (replayDelay) await new Promise(resolve => setTimeout(resolve, replayDelay));
+                const emittedBefore = this.emitted.size;
                 const params = { threadId: this.threadId, turnId: turn.id, item };
                 const titleKey = `${string(turn.id) ?? 'thread'}:${record(item).id}`;
                 const pendingTitle = requestedTitle(record(item));
@@ -220,6 +220,11 @@ export class SharedCodexProjection {
                         this.pendingTitles.delete(titleKey);
                     }
                     await this.project('item/completed', params);
+                }
+                // Throttle actual outbound work, not ignored native item
+                // types or events already projected by an earlier snapshot.
+                if (replayDelay && (this.emitted.size > emittedBefore || record(item).type === 'userMessage')) {
+                    await new Promise(resolve => setTimeout(resolve, replayDelay));
                 }
             }
         }

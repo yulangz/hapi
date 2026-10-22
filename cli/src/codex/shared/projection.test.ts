@@ -4,6 +4,22 @@ import { SharedCodexProjection, inputText } from './projection';
 import { codexPlanProposalId } from './plan';
 
 describe('shared history projection', () => {
+    it('paces only new outbound history, without delaying ignored or duplicate items', async () => {
+        vi.useFakeTimers(); vi.stubEnv('HAPI_CODEX_HISTORY_ITEM_DELAY_MS', '20');
+        try {
+            const send = vi.fn();
+            const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
+            const projection = new SharedCodexProjection(session, 'thread', async () => {});
+            const item = { id: 'message', type: 'agentMessage', text: 'Saved answer' };
+            await projection.notification('item/completed', { threadId: 'thread', turnId: 'turn', item });
+            await projection.history({ turns: [{ id: 'turn', status: 'completed', items: [item, { id: 'unknown', type: 'unsupportedNativeItem' }] }] });
+            expect(send).toHaveBeenCalledTimes(1);
+            expect(vi.getTimerCount()).toBe(0);
+            const fresh = projection.history({ turns: [{ id: 'next', status: 'completed', items: [{ ...item, id: 'new-message' }] }] });
+            await vi.runAllTimersAsync(); await fresh;
+            expect(send).toHaveBeenCalledTimes(2);
+        } finally { vi.useRealTimers(); vi.unstubAllEnvs(); }
+    });
     it('preserves async questions as durable, non-blocking cards through live delivery and replay', async () => {
         const send = vi.fn();
         const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
