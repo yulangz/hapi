@@ -11,6 +11,8 @@ import { PermissionFooter } from '@/components/ToolCard/PermissionFooter'
 import { CodexPlanFooter } from '@/components/ToolCard/CodexPlanFooter'
 import { AskUserQuestionFooter } from '@/components/ToolCard/AskUserQuestionFooter'
 import { RequestUserInputFooter } from '@/components/ToolCard/RequestUserInputFooter'
+import { CodexAsyncQuestionFooter } from '@/components/ToolCard/CodexAsyncQuestionFooter'
+import { codexAsyncReplyLocalId } from '@/components/ToolCard/codexAsyncQuestion'
 import { isAskUserQuestionToolName } from '@/components/ToolCard/askUserQuestion'
 import { isRequestUserInputToolName } from '@/components/ToolCard/requestUserInput'
 import { getToolPresentation } from '@/components/ToolCard/knownTools'
@@ -447,7 +449,8 @@ function ToolCardInner(props: ToolCardProps) {
         permission.status === 'resolved' || permission.status === 'pending'
         || ((permission.status === 'denied' || permission.status === 'canceled') && Boolean(permission.reason))
     ))
-    const hasBody = showInline || taskSummary !== null || showsPermissionFooter
+    const isAsyncQuestion = codexAsyncReplyLocalId(props.block.tool, props.sessionId) !== null
+    const hasBody = showInline || taskSummary !== null || showsPermissionFooter || isAsyncQuestion
     // Header/content padding already supplies 12-16px below timing; add only
     // the remainder needed to match the detail dialog's 16px section gap.
     const inlineBodySpacing = props.block.tool.state === 'pending'
@@ -612,7 +615,11 @@ function ToolCardInner(props: ToolCardProps) {
                     {(toolName === 'ExitPlanMode' || toolName === 'exit_plan_mode') && !permission ? (
                         <CodexPlanFooter planId={props.block.tool.id} />
                     ) : null}
-                    {isAskUserQuestion && permission?.status === 'pending' ? (
+                    {isAsyncQuestion ? (
+                        <CodexAsyncQuestionFooter key={`${props.sessionId}:${props.block.tool.id}`}
+                            api={props.api} sessionId={props.sessionId} tool={props.block.tool}
+                            disabled={props.disabled} onDone={props.onDone} />
+                    ) : isAskUserQuestion && permission?.status === 'pending' ? (
                         <AskUserQuestionFooter
                             api={props.api}
                             sessionId={props.sessionId}

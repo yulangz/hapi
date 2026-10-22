@@ -14,7 +14,8 @@ import {
     requestUserInputOptions,
     selectRequestUserInputOption,
     type RequestUserInputOption,
-    type RequestUserInputQuestion
+    type RequestUserInputQuestion,
+    type RequestUserInputAnswers
 } from '@/components/ToolCard/requestUserInput'
 import { cn } from '@/lib/utils'
 import { usePlatform } from '@/hooks/usePlatform'
@@ -74,6 +75,8 @@ export function RequestUserInputFooter(props: {
     tool: ChatToolCall
     disabled: boolean
     onDone: () => void
+    submitAnswers?: (answers: RequestUserInputAnswers) => Promise<void>
+    lockAnswers?: boolean
 }) {
     const { t } = useTranslation()
     const { haptic } = usePlatform()
@@ -99,7 +102,7 @@ export function RequestUserInputFooter(props: {
         setError(null)
     }, [props.tool.id])
 
-    if (!permission || permission.status !== 'pending') return null
+    if (!props.submitAnswers && (!permission || permission.status !== 'pending')) return null
     if (!isRequestUserInputToolName(props.tool.name)) return null
 
     const run = async (action: () => Promise<void>, hapticType: 'success' | 'error') => {
@@ -152,7 +155,9 @@ export function RequestUserInputFooter(props: {
         }
 
         setLoading(true)
-        await run(() => props.api.approvePermission(props.sessionId, permission.id, formattedAnswers), 'success')
+        await run(() => props.submitAnswers
+            ? props.submitAnswers(formattedAnswers.answers)
+            : props.api.approvePermission(props.sessionId, permission!.id, formattedAnswers), 'success')
         setLoading(false)
     }
 
@@ -231,7 +236,7 @@ export function RequestUserInputFooter(props: {
                         <textarea
                             value={currentState?.userNote ?? ''}
                             onChange={(e) => updateUserNote(currentQuestion.id, e.target.value)}
-                            disabled={props.disabled || loading}
+                            disabled={props.disabled || loading || props.lockAnswers}
                             placeholder={currentQuestion.placeholder ?? t('tool.requestUserInput.textPlaceholder')}
                             className="mt-3 w-full min-h-[88px] resize-y rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2 text-sm text-[var(--app-fg)] placeholder:text-[var(--app-hint)] focus:outline-none focus:ring-2 focus:ring-[var(--app-button)] focus:border-transparent disabled:opacity-50"
                         />
@@ -245,7 +250,7 @@ export function RequestUserInputFooter(props: {
                                         <OptionRow
                                             key={optIdx}
                                             checked={isSelected}
-                                            disabled={props.disabled || loading}
+                                            disabled={props.disabled || loading || Boolean(props.lockAnswers)}
                                             title={opt.isOther ? t('tool.requestUserInput.otherLabel') : opt.label}
                                             description={opt.isOther ? t('tool.requestUserInput.otherDescription') : opt.description}
                                             onClick={() => selectOption(currentQuestion, opt)}
@@ -264,7 +269,7 @@ export function RequestUserInputFooter(props: {
                                     aria-label={t('tool.requestUserInput.noteLabel')}
                                     value={currentState?.userNote ?? ''}
                                     onChange={(e) => updateUserNote(currentQuestion.id, e.target.value)}
-                                    disabled={props.disabled || loading}
+                                    disabled={props.disabled || loading || props.lockAnswers}
                                     placeholder={t('tool.requestUserInput.notePlaceholder')}
                                     className="w-full min-h-[60px] resize-y rounded-md border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2 text-sm text-[var(--app-fg)] placeholder:text-[var(--app-hint)] focus:outline-none focus:ring-2 focus:ring-[var(--app-button)] focus:border-transparent disabled:opacity-50"
                                 />

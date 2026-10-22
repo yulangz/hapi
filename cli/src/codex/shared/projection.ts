@@ -114,7 +114,28 @@ export class SharedCodexProjection {
         for (const event of events) {
             const callId = string(event.call_id);
             const key = `${turnId ?? 'thread'}:${itemId ?? callId ?? createHash('sha256').update(JSON.stringify(event)).digest('hex')}:${event.type}`;
-            if (event.type === 'agent_message') this.send({ type: 'message', message: event.message }, key);
+            if (event.type === 'agent_message') {
+                // Codex >= 0.163 carries non-blocking questions on agentMessage,
+                // not as item/tool/requestUserInput server requests. Do not
+                // manufacture an approval or block the native turn for these.
+                const questions = Array.isArray(item.questions) ? item.questions : [];
+                if (!this.parentThreadId && item.delivery === 'async' && itemId && questions.length > 0
+                    && questions.every(q => typeof record(q).title === 'string')) {
+                    const callId = `codex-async:${this.threadId}:${itemId}`;
+                    const input = {
+                        hapiAsyncQuestion: { threadId: this.threadId, callId: itemId },
+                        questions: questions.map((q, index) => ({
+                            id: String(index), question: record(q).title, isOther: true,
+                            options: Array.isArray(record(q).options)
+                                ? (record(q).options as unknown[]).filter((x): x is string => typeof x === 'string')
+                                    .map(label => ({ label, description: '' })) : []
+                        }))
+                    };
+                    this.send({ type: 'tool-call', name: 'request_user_input', callId, input }, `${key}:async-question`);
+                    this.send({ type: 'tool-call-result', callId, output: { status: 'non-blocking' } }, `${key}:async-question:result`);
+                } else this.send({ type: 'message', message: event.message,
+                    ...(questions.length ? { questions, questionCallId: itemId } : {}) }, key);
+            }
             else if (event.type === 'agent_reasoning') this.send({ type: 'reasoning', message: event.text }, key);
             else if (event.type === 'exec_command_begin' && callId) {
                 this.send({ type: 'tool-call', name: 'CodexBash', callId, input: event }, key);
@@ -187,7 +208,9 @@ export class SharedCodexProjection {
                 await this.project('item/started', params);
                 // Active snapshots can contain partial assistant text. Do not
                 // settle it under the final stable id and suppress completion.
-                if (turn.status !== 'inProgress' || record(item).status === 'completed' || record(item).type === 'userMessage') {
+                const asyncQuestions = record(item).delivery === 'async' && Array.isArray(record(item).questions)
+                    && (record(item).questions as unknown[]).length > 0;
+                if (turn.status !== 'inProgress' || record(item).status === 'completed' || record(item).type === 'userMessage' || asyncQuestions) {
                     if (!this.parentThreadId) {
                         const title = successfulTitle(record(item));
                         if (title && string(record(item).id)) {

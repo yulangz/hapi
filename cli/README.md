@@ -2,6 +2,16 @@
 
 Choose a supported coding agent from your terminal and control its sessions remotely through the hapi hub. See the [supported agents](../docs/guide/agents.md).
 
+Codex 0.163 async questions (`agentMessage.delivery = "async"` with `questions`)
+are projected as durable question cards for the root conversation. They do not
+create an approval request or block the running turn. The web form submits the
+question text and chosen/free-text answers as a normal queued user message,
+using one stable client message ID per question batch to prevent duplicate
+replies after reconnect or uncertain HTTP outcomes. Refreshing checks the Hub's
+authoritative message state before enabling the form. Child-thread questions
+remain visible in their agent trace; their answers must be sent to that native
+child thread rather than routed to the root conversation.
+
 ## What it does
 
 - Starts Claude Code sessions and registers them with hapi-hub.

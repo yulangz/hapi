@@ -599,6 +599,8 @@ export default {
   'tool.askUserQuestion.placeholder': '输入您的答案…',
   'tool.askUserQuestion.otherPlaceholder': '或输入您自己的答案…',
   'tool.requestUserInput.textPlaceholder': '输入您的答案…',
+  'tool.asyncQuestion.sent': '答案已提交，可在消息队列中查看投递状态。',
+  'tool.asyncQuestion.checkFailed': '暂时无法确认是否已经回答，请先重试检查。',
   'tool.requestUserInput.noteLabel': '补充说明（可选）',
   'tool.requestUserInput.notePlaceholder': '添加备注…',
   'tool.requestUserInput.otherLabel': '以上都不是',

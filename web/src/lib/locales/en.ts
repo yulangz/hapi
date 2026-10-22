@@ -601,6 +601,8 @@ export default {
   'tool.askUserQuestion.placeholder': 'Type your answer…',
   'tool.askUserQuestion.otherPlaceholder': 'Or type your own answer…',
   'tool.requestUserInput.textPlaceholder': 'Type your answer…',
+  'tool.asyncQuestion.sent': 'Answer submitted. Check the message queue for delivery status.',
+  'tool.asyncQuestion.checkFailed': 'Could not check whether this question was already answered. Retry before submitting.',
   'tool.requestUserInput.noteLabel': 'Additional note (optional)',
   'tool.requestUserInput.notePlaceholder': 'Add a note…',
   'tool.requestUserInput.otherLabel': 'None of the above',

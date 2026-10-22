@@ -4,6 +4,41 @@ import { SharedCodexProjection, inputText } from './projection';
 import { codexPlanProposalId } from './plan';
 
 describe('shared history projection', () => {
+    it('preserves async questions as durable, non-blocking cards through live delivery and replay', async () => {
+        const send = vi.fn();
+        const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
+        const projection = new SharedCodexProjection(session, 'thread', async () => {});
+        const item = { id: 'call_ask', type: 'agentMessage', text: 'Choose a configuration', delivery: 'async',
+            questions: [{ title: 'Which setup?', options: ['Run', 'Prepare'] }, { title: 'Any constraints?', options: null }] };
+        await projection.notification('item/completed', { threadId: 'thread', turnId: 'turn', item });
+        expect(send.mock.calls[0][0]).toMatchObject({ type: 'tool-call', name: 'request_user_input',
+            input: { hapiAsyncQuestion: { threadId: 'thread', callId: 'call_ask' }, questions: [
+                { id: '0', question: 'Which setup?', isOther: true, options: [{ label: 'Run' }, { label: 'Prepare' }] },
+                { id: '1', question: 'Any constraints?', options: [] }
+            ] } });
+        expect(send.mock.calls[1][0]).toMatchObject({ type: 'tool-call-result', output: { status: 'non-blocking' } });
+        const original = [...send.mock.calls];
+        await projection.notification('item/completed', { threadId: 'thread', turnId: 'turn', item });
+        expect(send).toHaveBeenCalledTimes(2);
+        projection.reset(); send.mockClear();
+        await projection.history({ turns: [{ id: 'turn', status: 'completed', items: [item] }] });
+        expect(send.mock.calls).toEqual(original);
+        projection.reset(); send.mockClear();
+        await projection.history({ turns: [{ id: 'turn', status: 'inProgress', items: [item] }] });
+        expect(send.mock.calls).toEqual(original);
+    });
+
+    it('keeps child async questions visible without routing answers to the parent thread', async () => {
+        const send = vi.fn();
+        const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
+        const projection = new SharedCodexProjection(session, 'child', async () => {}, 'parent');
+        await projection.notification('item/completed', { threadId: 'child', turnId: 'turn', item: {
+            id: 'ask', type: 'agentMessage', text: 'Question', delivery: 'async', questions: [{ title: 'Question?', options: null }]
+        } });
+        expect(send.mock.calls[0][0]).toMatchObject({ type: 'agent-run-trace', message: {
+            type: 'message', questions: [{ title: 'Question?', options: null }], questionCallId: 'ask'
+        } });
+    });
     it.each([undefined, 'root'])('persists proposals without approval and replays the same IDs (parent: %s)', async parentThreadId => {
         const send = vi.fn();
         const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
