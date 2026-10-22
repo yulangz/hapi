@@ -27,7 +27,7 @@ vi.mock('../codexAppServerClient', () => ({
         async request(method: string, params: Record<string, unknown> = {}) {
             if (method === 'thread/read' || method === 'thread/resume') return { ...this.settings, thread: structuredClone(this.thread) };
             if (method === 'thread/turns/list') return { data: this.thread.turns.map(turn => ({ ...turn, items: [] })) };
-            if (method === 'thread/items/list') return { data: this.thread.turns.find(turn => turn.id === params.turnId)?.items ?? [] };
+            if (method === 'thread/items/list') return { data: (this.thread.turns.find(turn => turn.id === params.turnId)?.items ?? []).map(item => ({ turnId: params.turnId, item })) };
             if (method === 'thread/list') return { data: [] };
             if (method === 'thread/queue/list') return { data: this.queue };
             if (method === 'thread/settings/update') {

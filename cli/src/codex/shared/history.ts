@@ -22,7 +22,11 @@ export async function readPagedTurns(client: HistoryClient, threadId: string): P
                     threadId, turnId, cursor: itemCursor, limit: 20, sortDirection: 'asc'
                 }));
                 if (!Array.isArray(itemPage.data)) throw new Error('Invalid Codex item history page');
-                items.push(...itemPage.data);
+                for (const entry of itemPage.data) {
+                    const item = record(entry).item;
+                    if (typeof record(item).type !== 'string') throw new Error('Invalid Codex item history entry');
+                    items.push(item);
+                }
                 itemCursor = string(itemPage.nextCursor);
             } while (itemCursor);
             turns.push({ ...turn, items });

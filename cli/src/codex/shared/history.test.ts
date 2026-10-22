@@ -9,12 +9,12 @@ describe('paged native history', () => {
                 : { data: [{ id: 't1', status: 'completed' }], nextCursor: 'next-turn' };
             if (method === 'thread/items/list') return params.turnId === 't2'
                 ? { data: [], nextCursor: null }
-                : params.cursor ? { data: [{ id: 'b' }], nextCursor: null }
-                    : { data: [{ id: 'a' }], nextCursor: 'next-item' };
+                : params.cursor ? { data: [{ turnId: 't1', item: { id: 'b', type: 'agentMessage' }, completedAtMs: 123 }], nextCursor: null }
+                    : { data: [{ turnId: 't1', item: { id: 'a', type: 'userMessage' }, startedAtMs: 100 }], nextCursor: 'next-item' };
             throw new Error('Unbounded history request');
         });
         expect(await readPagedTurns({ request }, 'root')).toEqual([
-            { id: 't1', status: 'completed', items: [{ id: 'a' }, { id: 'b' }] },
+            { id: 't1', status: 'completed', items: [{ id: 'a', type: 'userMessage' }, { id: 'b', type: 'agentMessage' }] },
             { id: 't2', status: 'inProgress', items: [] }
         ]);
         expect(request).toHaveBeenCalledWith('thread/turns/list', { threadId: 'root', cursor: 'next-turn', limit: 20, sortDirection: 'asc', itemsView: 'summary' });
@@ -35,5 +35,10 @@ describe('paged native history', () => {
     it('rejects an invalid item page', async () => {
         const request = vi.fn().mockResolvedValueOnce({ data: [{ id: 'turn' }] }).mockResolvedValueOnce({});
         await expect(readPagedTurns({ request }, 'root')).rejects.toThrow('item history page');
+    });
+
+    it('rejects malformed entries instead of replaying empty items', async () => {
+        const request = vi.fn().mockResolvedValueOnce({ data: [{ id: 'turn' }] }).mockResolvedValueOnce({ data: [{ id: 'bare-item', type: 'agentMessage' }] });
+        await expect(readPagedTurns({ request }, 'root')).rejects.toThrow('item history entry');
     });
 });
