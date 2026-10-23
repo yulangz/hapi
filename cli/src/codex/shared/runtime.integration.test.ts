@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createServer } from 'node:http';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AgentState, Metadata } from '@/api/types';
@@ -48,6 +48,38 @@ vi.mock('../utils/buildHapiMcpBridge', () => ({ buildHapiMcpBridge: async () => 
 // Explicit opt-in: installed official binary, entirely isolated CODEX_HOME, mock Responses API only.
 describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Codex shared runtime', () => {
     afterEach(() => { vi.unstubAllEnvs(); state.sessions.clear(); state.beforeBootstrap = undefined; });
+    it('materializes new empty roots before resume without making model requests', async () => {
+        const home = await mkdtemp('/tmp/hapi-shared-empty-'); state.home = home;
+        const ch = join(home, 'codex'); await mkdir(ch);
+        await writeFile(join(ch, 'config.toml'), 'model = "mock-model"\nmodel_provider = "mock"\n[model_providers.mock]\nname = "No inference"\nbase_url = "http://127.0.0.1:1/v1"\nwire_api = "responses"\nrequires_openai_auth = false\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n');
+        vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home);
+        const { runSharedRuntime } = await import('./runtime');
+        let ready!: (value: import('./runtime').RuntimeReady) => void;
+        const readiness = new Promise<import('./runtime').RuntimeReady>(resolve => { ready = resolve; });
+        const abort = new AbortController();
+        const running = runSharedRuntime({ workingDirectory: home }, ready, abort.signal);
+        let client: CodexAppServerClient | undefined;
+        try {
+            const { runtime, sessionId } = await Promise.race([readiness, running.then(() => { throw new Error('Runtime stopped before ready'); })]);
+            client = new CodexAppServerClient({ endpoint: runtime.endpoint, token: runtime.token });
+            client.setServerRequestHandler(() => {}); await initializeSharedClient(client);
+            const threadId = runtime.sessions[sessionId].threadId;
+            const initial = record(record(await client.request('thread/resume', { threadId, excludeTurns: true })).thread);
+            expect(initial.historyMode).toBe('legacy');
+            expect((await stat(String(initial.path))).isFile()).toBe(true);
+            expect(record(await client.request('thread/turns/list', { threadId, limit: 1 })).data).toEqual([]);
+            // Native /new uses the gateway path rather than host.create().
+            const next = record(record(await client.request('thread/start', { cwd: home })).thread);
+            expect(next.historyMode).toBe('legacy');
+            expect((await stat(String(next.path))).isFile()).toBe(true);
+            expect(state.sessions.size).toBe(2);
+            await client.request('thread/resume', { threadId: next.id, excludeTurns: true });
+            expect([...state.sessions.values()].every(session => session.consumed.length === 0)).toBe(true);
+        } finally {
+            await client?.disconnect(); abort.abort(); await running.catch(() => {});
+            await rm(home, { recursive: true, force: true, maxRetries: 3 });
+        }
+    }, 45_000);
     it('rejects a child ID before creating a HAPI binding or calling native resume', async () => {
         const home = await mkdtemp('/tmp/hapi-shared-child-'); state.home = home;
         const ch = join(home, 'codex'); await mkdir(ch);

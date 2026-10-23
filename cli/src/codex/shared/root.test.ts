@@ -106,6 +106,16 @@ async function completePlan(f: Awaited<ReturnType<typeof fixture>>, status = 'co
 }
 
 describe('shared plan actions', () => {
+    it.each(['legacy', 'paginated'])('pages %s history without requesting an unbounded snapshot', async historyMode => {
+        const f = await fixture();
+        f.native.thread.historyMode = historyMode;
+        f.native.thread.turns = [{ id: 'large-turn', status: 'completed', items: [{ id: 'answer', type: 'agentMessage', text: 'Preserved answer' }] }];
+        const requests = vi.spyOn(f.root.client, 'request');
+        await f.root.refresh();
+        expect(requests).toHaveBeenCalledWith('thread/items/list', expect.objectContaining({ threadId: 'thread', turnId: 'large-turn', limit: 20 }));
+        expect(requests.mock.calls.some(([method, params]) => method === 'thread/read' && (params as { includeTurns?: boolean })?.includeTurns === true)).toBe(false);
+        expect(f.send).toHaveBeenCalledWith(expect.objectContaining({ type: 'message', message: 'Preserved answer' }), expect.any(String));
+    });
     it('keeps the session alive before a paced cold-history bind has finished', async () => {
         const previous = process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS;
         process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS = '20';

@@ -12,7 +12,7 @@ import { logger } from '@/ui/logger';
 import { CodexAppServerClient, isIndeterminateError } from '../codexAppServerClient';
 import { codexHome, saveRuntime, runtimeDirectory, runtimeAuthHash, findColdBinding, withThreadOwnership, type CodexRuntimeRecord } from './registry';
 import { startCodexGateway, record, string, type Envelope } from './gateway';
-import { resolveSharedCodex, sharedLaunchConfig, initializeSharedClient, checkSharedCapabilities, type SharedLaunchOptions } from './launch';
+import { resolveSharedCodex, sharedLaunchConfig, initializeSharedClient, checkSharedCapabilities, newThreadParams, type SharedLaunchOptions } from './launch';
 import { SharedCodexRoot } from './root';
 
 export type RuntimeReady = { sessionId: string; runtime: CodexRuntimeRecord };
@@ -221,7 +221,8 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         let nativeSucceeded = false;
         try {
             runtime.pendingCreations = [...runtime.pendingCreations ?? [], root.session.sessionId]; await persist();
-            const response = record(await root.client.request(method, root.config({ ...params, ...(method === 'thread/fork' ? { deferGoalContinuation: true } : {}) })));
+            const response = record(await root.client.request(method, root.config(method === 'thread/start'
+                ? newThreadParams(params) : { ...params, deferGoalContinuation: true })));
             nativeSucceeded = true;
             await bind(root, response, true, initialOptions); return root;
         } catch (error) {
@@ -272,7 +273,8 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
                 runtime.pendingCreations = [...runtime.pendingCreations ?? [], root.session.sessionId]; await persist();
             }
             reservations.set(key(connection, request), { root, resumeId: request.method === 'thread/resume' ? threadId : undefined });
-            return { ...request, params: root.config({ ...params, ...(request.method === 'thread/fork' ? { deferGoalContinuation: true } : {}) }) };
+            return { ...request, params: root.config(request.method === 'thread/start' ? newThreadParams(params)
+                : { ...params, ...(request.method === 'thread/fork' ? { deferGoalContinuation: true } : {}) }) };
         } catch (error) { prepared.delete(root); await root.close(true); throw error; }
     });
     const after = (request: Envelope, response: Envelope, connection: string): Promise<void | Envelope[]> => operation(async () => {

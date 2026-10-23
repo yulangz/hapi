@@ -285,7 +285,7 @@ export class SharedCodexRoot {
     }
     async readThread(threadId = this.threadId): Promise<Record<string, unknown>> {
         let thread = record(record(await this.client.request('thread/read', { threadId, includeTurns: false })).thread);
-        if (thread.historyMode === 'paginated') {
+        if (thread.historyMode === 'paginated' || thread.historyMode === 'legacy') {
             thread.turns = await readPagedTurns(this.client, threadId);
         } else thread = record(record(await this.client.request('thread/read', { threadId, includeTurns: true })).thread);
         return thread;

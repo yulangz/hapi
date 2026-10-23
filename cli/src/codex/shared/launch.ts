@@ -18,6 +18,14 @@ export const SharedLaunchSchema = z.object({
 });
 export type SharedLaunchOptions = z.infer<typeof SharedLaunchSchema>;
 
+/** New roots must be resumable before their first user message. Native 0.160
+ * paginated roots are lazy: metadata/update can create a lineage pointing at
+ * a rollout that does not exist yet. Legacy is a supported per-thread format;
+ * stored paginated roots and explicitly selected formats remain unchanged. */
+export function newThreadParams(params: Record<string, unknown>): Record<string, unknown> {
+    return { ...params, historyMode: params.historyMode ?? 'legacy' };
+}
+
 /** Resolve once: a desktop server and a different PATH TUI are never mixed. */
 export function resolveSharedCodex(): CodexCommand {
     const command = resolveCodexCommand();
