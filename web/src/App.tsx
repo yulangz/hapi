@@ -22,6 +22,7 @@ import { clearMessageWindow, rewindMessageWindow, syncTailMessages } from '@/lib
 import { useAppGoBack } from '@/hooks/useAppGoBack'
 import { useTranslation } from '@/lib/use-translation'
 import { translateInputRequestTitle } from '@/lib/input-request-toast'
+import { showLocalNotification } from '@/lib/localNotifications'
 import { VoiceProvider } from '@/lib/voice-context'
 import { requireHubUrlForLogin } from '@/lib/runtime-config'
 import { getAppGlobalSseSubscription, getAppSessionSseSubscription } from '@/lib/appSseSubscriptions'
@@ -383,13 +384,16 @@ function AppInner() {
 
     const handleToast = useCallback((event: ToastEvent) => {
         const localized = translateIncomingToast(event.data.title, event.data.body)
-        addToast({
-            title: localized.title,
-            body: localized.body,
-            sessionId: event.data.sessionId,
-            url: event.data.url
-        })
-    }, [addToast, translateIncomingToast])
+        if (document.visibilityState === 'visible') {
+            addToast({
+                title: localized.title,
+                body: localized.body,
+                sessionId: event.data.sessionId,
+                url: event.data.url
+            })
+        }
+        void showLocalNotification(event.data, localized, baseUrl)
+    }, [addToast, translateIncomingToast, baseUrl])
 
     const globalEventSubscription = useMemo(() => getAppGlobalSseSubscription(), [])
     const sessionEventSubscription = useMemo(

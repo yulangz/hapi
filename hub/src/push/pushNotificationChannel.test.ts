@@ -15,6 +15,26 @@ function createSession(overrides: Partial<Session> = {}): Session {
 }
 
 describe('PushNotificationChannel', () => {
+    it('sends distinct live fallback events while all browser tabs are hidden and still sends remote Push', async () => {
+        const toasts: Array<{ data: { notificationId: string; notificationAt: number } }> = []
+        const pushed: PushPayload[] = []
+        const channel = new PushNotificationChannel(
+            { sendToNamespace: async (_ns: string, payload: PushPayload) => { pushed.push(payload) } } as never,
+            { sendToast: async (_ns: string, event: typeof toasts[number], options: { includeHidden: boolean }) => {
+                expect(options.includeHidden).toBe(true)
+                toasts.push(event)
+                return 0
+            } } as never,
+            { hasVisibleConnection: () => false } as never, '', false
+        )
+        await channel.sendReady(createSession())
+        await channel.sendReady(createSession())
+        expect(toasts).toHaveLength(2)
+        expect(pushed).toHaveLength(2)
+        expect(toasts[0].data.notificationId).not.toBe(toasts[1].data.notificationId)
+        expect(toasts[0].data.notificationAt).toBeGreaterThan(0)
+    })
+
     it('sends task notifications to visible web clients before falling back to push', async () => {
         const pushed: Array<{ namespace: string; payload: PushPayload }> = []
         const toasts: unknown[] = []

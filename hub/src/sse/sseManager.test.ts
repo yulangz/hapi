@@ -120,6 +120,31 @@ describe('SSEManager namespace filtering', () => {
     })
 })
 
+describe('SSEManager local notifications', () => {
+    it('reaches hidden global streams in the same namespace without counting them as visible delivery', async () => {
+        const manager = new SSEManager(0, new VisibilityTracker())
+        const received: string[] = []
+        for (const [id, namespace, all] of [
+            ['hidden-global', 'alpha', true],
+            ['hidden-detail', 'alpha', false],
+            ['other-namespace', 'beta', true]
+        ] as const) {
+            manager.subscribe({ id, namespace, all, visibility: 'hidden',
+                send: () => { received.push(id) }, sendHeartbeat: () => {} })
+        }
+        const event: Extract<SyncEvent, { type: 'toast' }> = { type: 'toast', namespace: 'alpha', data: {
+            title: 'Ready', body: 'Done', sessionId: 's1', url: '/sessions/s1',
+            notificationId: 'dispatch-1', notificationAt: Date.now()
+        } }
+        expect(await manager.sendToast('alpha', event, { includeHidden: true })).toBe(0)
+        expect(received).toEqual(['hidden-global'])
+        // Toasts remain live-only, so reconnect cannot replay an old banner.
+        const resumed = manager.subscribe({ id: 'fresh', namespace: 'alpha', all: true,
+            send: () => {}, sendHeartbeat: () => {} })
+        expect(resumed.replay).toEqual([])
+    })
+})
+
 describe('SSEManager reconnect replay', () => {
     type Sent = { event: SyncEvent; eventId: string | undefined }
 

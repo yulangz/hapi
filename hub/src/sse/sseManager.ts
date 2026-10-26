@@ -214,20 +214,27 @@ export class SSEManager {
         return this.connections.has(id)
     }
 
-    async sendToast(namespace: string, event: Extract<SyncEvent, { type: 'toast' }>): Promise<number> {
-        const deliveries: Array<Promise<{ id: string; ok: boolean }>> = []
+    async sendToast(
+        namespace: string,
+        event: Extract<SyncEvent, { type: 'toast' }>,
+        options: { includeHidden?: boolean } = {}
+    ): Promise<number> {
+        const deliveries: Array<Promise<{ id: string; ok: boolean; visible: boolean }>> = []
         for (const connection of this.connections.values()) {
             if (connection.namespace !== namespace) {
                 continue
             }
-            if (!this.visibilityTracker.isVisibleConnection(connection.id)) {
+            const visible = this.visibilityTracker.isVisibleConnection(connection.id)
+            // Hidden global streams keep the local notification fallback alive.
+            // Detail streams do not need a second copy of the same alert.
+            if (!visible && !(options.includeHidden && connection.all)) {
                 continue
             }
 
             deliveries.push(
                 Promise.resolve(connection.send(event))
-                    .then(() => ({ id: connection.id, ok: true }))
-                    .catch(() => ({ id: connection.id, ok: false }))
+                    .then(() => ({ id: connection.id, ok: true, visible }))
+                    .catch(() => ({ id: connection.id, ok: false, visible }))
             )
         }
 
@@ -239,7 +246,8 @@ export class SSEManager {
         let successCount = 0
         for (const result of results) {
             if (result.ok) {
-                successCount += 1
+                // A hidden SSE recipient must never suppress remote Web Push.
+                if (result.visible) successCount += 1
                 continue
             }
             this.unsubscribe(result.id)

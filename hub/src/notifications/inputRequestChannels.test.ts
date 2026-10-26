@@ -75,11 +75,14 @@ describe('input-request notification channels', () => {
         } } as never, { hasVisibleConnection: () => visible } as never, '')
         await channel.sendPermissionRequest(session, { nativeGate: { sent: nativeSent } })
         expect(pushed).toHaveLength(delivery === 'push' ? 1 : 0)
-        expect(toasts).toHaveLength(visible && !nativeSent ? 1 : 0)
+        // Hidden global web streams now receive the local-notification fallback
+        // too; only the manager's visible delivery count suppresses remote Push.
+        expect(toasts).toHaveLength(!nativeSent ? 1 : 0)
         if (pushed[0]) expect(pushed[0]).toEqual({ title: expected.title, body: expected.body, tag: expected.tag,
             data: { type: 'input-request', sessionId: session.id, requestId: 'request-input', url: expected.url } })
         if (toasts[0]) expect(toasts[0].data).toEqual({ title: expected.title, body: expected.body,
-            sessionId: session.id, url: expected.url })
+            sessionId: session.id, url: expected.url,
+            notificationId: expect.any(String), notificationAt: expect.any(Number) })
     })
 
     it('gives Telegram the same summary with only an Open Session button', () => {

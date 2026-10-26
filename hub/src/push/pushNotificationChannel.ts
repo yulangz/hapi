@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Session } from '../sync/syncEngine'
 import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
@@ -114,32 +115,38 @@ export class PushNotificationChannel implements NotificationChannel {
         }
 
         const url = payload.data?.url ?? this.buildSessionPath(session.id)
-        if (this.visibilityTracker.hasVisibleConnection(session.namespace)) {
-            const toastDelivery = this.sseManager.sendToast(session.namespace, {
-                type: 'toast',
-                data: {
-                    title: payload.title,
-                    body: payload.body,
-                    sessionId: session.id,
-                    url
-                }
-            }).then(delivered => {
-                if (delivered > 0) {
-                    this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
-                } else {
-                    this.logBranch(method, session.namespace, 'sse-toast-zero', 'visible but delivered=0')
-                }
-                return delivered
-            }).catch(() => {
-                this.logBranch(method, session.namespace, 'sse-toast-failed')
-                return 0
-            })
-            // A slow visible SSE client must not hold up system notifications
-            // when foreground Web Push is enabled. The toast has its own catch.
-            if (!this.pushInForeground && (await toastDelivery) > 0) {
-                return
+        const visible = this.visibilityTracker.hasVisibleConnection(session.namespace)
+        // Send live notification metadata to hidden global streams too: browsers
+        // without a Push subscription can display a local system notification.
+        // sendToast only counts visible recipients for remote-push suppression.
+        const toastDelivery = this.sseManager.sendToast(session.namespace, {
+            type: 'toast',
+            namespace: session.namespace,
+            data: {
+                title: payload.title,
+                body: payload.body,
+                sessionId: session.id,
+                url,
+                notificationId: randomUUID(),
+                notificationAt: Date.now()
             }
-        } else {
+        }, { includeHidden: true }).then(delivered => {
+            if (delivered > 0) {
+                this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
+            } else {
+                this.logBranch(method, session.namespace, 'sse-toast-zero', 'no visible delivery')
+            }
+            return delivered
+        }).catch(() => {
+            this.logBranch(method, session.namespace, 'sse-toast-failed')
+            return 0
+        })
+        // A slow visible SSE client must not hold up system notifications
+        // when foreground Web Push is enabled. The toast has its own catch.
+        if (visible && !this.pushInForeground && (await toastDelivery) > 0) {
+            return
+        }
+        if (!visible) {
             this.logBranch(method, session.namespace, 'not-visible')
         }
 

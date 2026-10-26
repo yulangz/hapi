@@ -21,6 +21,21 @@ permissions, operating-system Focus/Do Not Disturb, or native-delivery deduplica
 It applies to ready, permission/input-request, and background-task notifications.
 The Hub still needs to reach the push service in each browser's subscription.
 
+## Local system notification fallback
+
+When notification permission is already allowed but the browser has no Web Push
+subscription (for example, its push service cannot be reached), an open HAPI page
+can display system notifications directly from its live Hub connection. This works
+for visible and hidden tabs without minimizing the window. Multiple tabs share
+notification receipts so one event produces one local notification per browser
+profile. Permission requests, ready-for-input, and task notifications are covered.
+
+This fallback does not request or override permission and stops displaying local
+alerts once a Web Push subscription exists. It requires an active service worker,
+Web Locks, and local storage. A closed, suspended, sleeping, or disconnected page
+cannot receive live events; remote Web Push is still needed in those cases. Focus /
+Do Not Disturb can still suppress system banners.
+
 ## Native app notifications
 
 See [Native apps](./native-apps.md) for build, pairing and platform requirements.

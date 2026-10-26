@@ -595,7 +595,10 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             title: z.string(),
             body: z.string(),
             sessionId: z.string(),
-            url: z.string()
+            url: z.string(),
+            // One live dispatch, shared across tabs; never replay old alerts.
+            notificationId: z.string().optional(),
+            notificationAt: z.number().optional()
         })
     }),
     SessionChangedSchema.extend({
