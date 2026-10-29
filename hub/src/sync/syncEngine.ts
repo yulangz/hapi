@@ -404,6 +404,11 @@ export class SyncEngine {
         return this.machineCache.renameMachine(machineId, displayName)
     }
 
+    /** Bounded transcript tail for internal observers, without UI queue hydration. */
+    getRecentMessages(sessionId: string, limit: number = 50): DecryptedMessage[] {
+        return this.messageService.getMessages(sessionId, limit)
+    }
+
     getMessagesPage(
         sessionId: string,
         options: {

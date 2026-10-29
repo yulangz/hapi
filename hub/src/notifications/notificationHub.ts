@@ -207,7 +207,7 @@ export class NotificationHub {
         if (!known || known.threadId !== threadId) {
             // Seed after a Hub restart/reconnect without loading the full
             // transcript. New live goal updates keep this cache current.
-            const recent = this.syncEngine.getMessagesPage(session.id, { limit: 50 }).messages
+            const recent = this.syncEngine.getRecentMessages(session.id, 50)
             let status: string | null = null
             for (let i = recent.length - 1; i >= 0; i--) {
                 const candidate = extractCodexGoalStatus(recent[i].content, threadId)

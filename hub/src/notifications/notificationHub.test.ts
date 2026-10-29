@@ -12,9 +12,10 @@ class FakeSyncEngine {
     readonly history = new Map<string, Extract<SyncEvent, { type: 'message-received' }>['message'][]>()
     historyReads = 0
 
-    getMessagesPage(sessionId: string, options: { limit: number }) {
+    getRecentMessages(sessionId: string, limit: number) {
         this.historyReads++
-        return { messages: (this.history.get(sessionId) ?? []).slice(-options.limit) }
+        expect(limit).toBeLessThanOrEqual(50)
+        return (this.history.get(sessionId) ?? []).slice(-limit)
     }
 
     subscribe(listener: SyncEventListener): () => void {
