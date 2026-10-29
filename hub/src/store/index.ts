@@ -107,6 +107,13 @@ export class Store {
         this.db.exec('PRAGMA foreign_keys = ON')
         this.db.exec('PRAGMA busy_timeout = 5000')
         this.initSchema()
+        // Latest-page hydration asks for all uninvoked local inputs, including
+        // scheduled/uncertain rows. The immediate-queued index only covers a
+        // subset, so without this index a reconnect scans the full transcript.
+        // Additive and safe for older binaries; no data/schema-version change.
+        this.db.exec(`CREATE INDEX IF NOT EXISTS idx_messages_uninvoked_local
+            ON messages(session_id, seq)
+            WHERE invoked_at IS NULL AND local_id IS NOT NULL`)
 
         if (dbPath !== ':memory:' && !dbPath.startsWith('file::memory:')) {
             for (const path of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
