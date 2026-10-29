@@ -102,6 +102,7 @@ export type SessionHandlersDeps = {
 
 export function registerSessionHandlers(socket: CliSocketWithData, deps: SessionHandlersDeps): void {
     const { store, resolveSessionAccess, emitAccessError, onSessionAlive, onSessionReady, onSessionEnd, onWebappEvent, onBackgroundTaskDelta, onSessionActivity, onSweepImmediateQueued, onMessagesConsumed } = deps
+    let skippedAgentReplays = 0
 
     socket.on('native-queue-message', data => {
         const parsed = z.object({ sid: z.string(), localId: z.string().min(1), text: z.string().nullable() }).safeParse(data)
@@ -149,6 +150,21 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
         const session = sessionAccess.value
 
         if (isRedundantGoalStatusEventContent(content)) {
+            return
+        }
+
+        // Shared runtimes replay stable IDs after reconnect for durability.
+        // addMessage already deduplicates storage, but rebroadcasting the
+        // returned historical row floods every SSE client with the full replay.
+        // The separate messages-consumed ACK still runs; user queue retries
+        // retain their existing delivery path.
+        if (localId && content !== null && typeof content === 'object'
+            && (content as { role?: unknown }).role === 'agent'
+            && store.messages.getLocalMessageStates(sid, [localId]).length > 0) {
+            skippedAgentReplays++
+            if (process.env.HAPI_NOTIFY_DEBUG === '1' && (skippedAgentReplays === 1 || skippedAgentReplays % 1000 === 0)) {
+                console.log(`[CLI] Skipped stored agent replay session=${sid} count=${skippedAgentReplays}`)
+            }
             return
         }
 

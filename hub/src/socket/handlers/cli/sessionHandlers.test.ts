@@ -53,6 +53,30 @@ function reasoningTextOf(message: { content: unknown }): string {
 }
 
 describe('cli session handlers', () => {
+    it('does not rebroadcast stored agent replay, while preserving ACKs and new messages', () => {
+        const store = new Store(':memory:')
+        try {
+            const session = store.sessions.getOrCreateSession('replay', {}, null, 'default')
+            const socket = new FakeSocket(), events: SyncEvent[] = []
+            registerSessionHandlers(socket as unknown as CliSocketWithData, { store,
+                resolveSessionAccess: () => ({ ok: true, value: session as StoredSession }),
+                emitAccessError: () => {}, onWebappEvent: event => { events.push(event) } })
+            const message = { role: 'agent', content: { type: AGENT_MESSAGE_PAYLOAD_TYPE, data: { type: 'message', message: 'final answer' } } }
+            const packet = { sid: session.id, localId: 'codex:root:stable-final', message }
+            socket.trigger('message', packet)
+            socket.trigger('messages-consumed', { sid: session.id, localIds: [packet.localId] })
+            for (let i = 0; i < 20; i++) socket.trigger('message', packet)
+            socket.trigger('messages-consumed', { sid: session.id, localIds: [packet.localId] })
+            expect(events.filter(event => event.type === 'message-received')).toHaveLength(1)
+            expect(socket.roomEvents.filter(event => event.event === 'update')).toHaveLength(1)
+            expect(store.messages.getMessages(session.id)).toHaveLength(1)
+            expect(store.messages.getMessages(session.id)[0].invokedAt).not.toBeNull()
+            socket.trigger('message', { ...packet, localId: 'codex:root:new-final' })
+            expect(events.filter(event => event.type === 'message-received')).toHaveLength(2)
+            expect(store.messages.getMessages(session.id)).toHaveLength(2)
+        } finally { store.close() }
+    })
+
     it.each([undefined, 'terminated', 'error'] as const)('preserves shared Codex pending input on execution exit (%s)', reason => {
         const store = new Store(':memory:')
         const session = store.sessions.getOrCreateSession('shared-end', { flavor: 'codex', capabilities: { concurrentClients: true } }, null, 'default')
