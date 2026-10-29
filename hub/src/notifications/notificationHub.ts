@@ -2,7 +2,7 @@ import type { Session, SyncEngine, SyncEvent } from '../sync/syncEngine'
 import type { SessionEndReason } from '@hapi/protocol'
 import type { NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
 import type { NotificationSendContext } from './notificationSendContext'
-import { extractMessageEventType, extractTaskNotification } from './eventParsing'
+import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
 
 export class NotificationHub {
     private readonly channels: NotificationChannel[]
@@ -11,6 +11,8 @@ export class NotificationHub {
     private readonly lastKnownRequests: Map<string, Set<string>> = new Map()
     private readonly notificationDebounce: Map<string, NodeJS.Timeout> = new Map()
     private readonly lastReadyNotificationAt: Map<string, number> = new Map()
+    private readonly codexGoals = new Map<string, { threadId: string | undefined; status: string | null }>()
+    private readonly pendingGoalReady = new Set<string>()
     private unsubscribeSyncEvents: (() => void) | null = null
 
     constructor(
@@ -38,6 +40,8 @@ export class NotificationHub {
         this.notificationDebounce.clear()
         this.lastKnownRequests.clear()
         this.lastReadyNotificationAt.clear()
+        this.codexGoals.clear()
+        this.pendingGoalReady.clear()
     }
 
     private handleSyncEvent(event: SyncEvent): void {
@@ -66,6 +70,24 @@ export class NotificationHub {
         }
 
         if (event.type === 'message-received' && event.sessionId) {
+            const session = this.syncEngine.getSession(event.sessionId)
+            if (session?.metadata?.flavor === 'codex') {
+                const threadId = session.metadata.codexSessionId
+                const status = extractCodexGoalStatus(event.message.content, threadId)
+                if (status !== undefined) {
+                    const previous = this.codexGoals.get(session.id)
+                    if (previous && previous.threadId !== threadId) this.pendingGoalReady.delete(session.id)
+                    this.codexGoals.set(session.id, { threadId, status })
+                    // Goal updates and turn completion may arrive in either
+                    // order. Release one suppressed ready on the terminal
+                    // update; the existing cooldown merges a subsequent ready.
+                    if (status !== 'active' && this.pendingGoalReady.has(session.id)) {
+                        this.sendReadyNotification(session.id).catch(error => {
+                            console.error('[NotificationHub] Failed to send goal-ready notification:', error)
+                        })
+                    }
+                }
+            }
             const eventType = extractMessageEventType(event)
             if (eventType === 'ready') {
                 this.sendReadyNotification(event.sessionId).catch((error) => {
@@ -90,6 +112,8 @@ export class NotificationHub {
         }
         this.lastKnownRequests.delete(sessionId)
         this.lastReadyNotificationAt.delete(sessionId)
+        this.codexGoals.delete(sessionId)
+        this.pendingGoalReady.delete(sessionId)
     }
 
     private getNotifiableSession(sessionId: string): Session | null {
@@ -154,6 +178,18 @@ export class NotificationHub {
             return
         }
 
+        // Codex goals may automatically start another turn. A per-turn `ready`
+        // from older clients is not a request for user input while the goal is
+        // still active. Permission/input requests use their own channel below.
+        if (this.hasActiveCodexGoal(session)) {
+            this.pendingGoalReady.add(sessionId)
+            if (process.env.HAPI_NOTIFY_DEBUG === '1') {
+                console.log(`[NotificationHub] Suppressed intermediate ready session=${session.id} goal=active`)
+            }
+            return
+        }
+        this.pendingGoalReady.delete(sessionId)
+
         const now = Date.now()
         const last = this.lastReadyNotificationAt.get(sessionId) ?? 0
         if (now - last < this.readyCooldownMs) {
@@ -162,6 +198,25 @@ export class NotificationHub {
         this.lastReadyNotificationAt.set(sessionId, now)
 
         await this.notifyReady(session)
+    }
+
+    private hasActiveCodexGoal(session: Session): boolean {
+        if (session.metadata?.flavor !== 'codex') return false
+        const threadId = session.metadata.codexSessionId
+        let known = this.codexGoals.get(session.id)
+        if (!known || known.threadId !== threadId) {
+            // Seed after a Hub restart/reconnect without loading the full
+            // transcript. New live goal updates keep this cache current.
+            const recent = this.syncEngine.getMessagesPage(session.id, { limit: 50 }).messages
+            let status: string | null = null
+            for (let i = recent.length - 1; i >= 0; i--) {
+                const candidate = extractCodexGoalStatus(recent[i].content, threadId)
+                if (candidate !== undefined) { status = candidate; break }
+            }
+            known = { threadId, status }
+            this.codexGoals.set(session.id, known)
+        }
+        return known.status === 'active'
     }
 
     private async sendTaskNotification(sessionId: string, notification: TaskNotification): Promise<void> {

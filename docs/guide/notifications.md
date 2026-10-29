@@ -21,6 +21,11 @@ permissions, operating-system Focus/Do Not Disturb, or native-delivery deduplica
 It applies to ready, permission/input-request, and background-task notifications.
 The Hub still needs to reach the push service in each browser's subscription.
 
+For Codex sessions with an active Goal, intermediate turn completions do not
+produce ready-for-input notifications: the Goal is still running automatically.
+Ready notifications resume after the Goal completes, pauses, becomes blocked, or
+reaches a budget/usage limit. Permission and user-input requests are unaffected.
+
 ## Local system notification fallback
 
 When notification permission is already allowed but the browser has no Web Push

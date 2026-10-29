@@ -9,6 +9,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 class FakeSyncEngine {
     private readonly listeners: Set<SyncEventListener> = new Set()
     private readonly sessions: Map<string, Session> = new Map()
+    readonly history = new Map<string, Extract<SyncEvent, { type: 'message-received' }>['message'][]>()
+    historyReads = 0
+
+    getMessagesPage(sessionId: string, options: { limit: number }) {
+        this.historyReads++
+        return { messages: (this.history.get(sessionId) ?? []).slice(-options.limit) }
+    }
 
     subscribe(listener: SyncEventListener): () => void {
         this.listeners.add(listener)
@@ -24,6 +31,11 @@ class FakeSyncEngine {
     }
 
     emit(event: SyncEvent): void {
+        if (event.type === 'message-received') {
+            const messages = this.history.get(event.sessionId) ?? []
+            messages.push(event.message)
+            this.history.set(event.sessionId, messages)
+        }
         for (const listener of this.listeners) {
             listener(event)
         }
@@ -75,6 +87,101 @@ function createSession(overrides: Partial<Session> = {}): Session {
         ...overrides
     }
 }
+
+function messageEvent(content: unknown, id = 'message'): Extract<SyncEvent, { type: 'message-received' }> {
+    return { type: 'message-received', sessionId: 'session-1', message: {
+        id, seq: 1, localId: null, createdAt: Date.now(), content
+    } }
+}
+
+function goalEvent(status: string | null, threadId = 'root'): Extract<SyncEvent, { type: 'message-received' }> {
+    return messageEvent({ role: 'agent', content: { type: 'codex', data: {
+        type: status === null ? 'thread_goal_cleared' : 'thread_goal_updated', thread_id: threadId,
+        ...(status === null ? {} : { goal: { threadId, status } })
+    } } })
+}
+
+const readyMessage = () => messageEvent({ role: 'agent', content: { type: 'event', data: { type: 'ready' } } })
+
+describe('Codex Goal ready notifications', () => {
+    it('suppresses repeated intermediate completions while the Goal remains active, without a history scan per update', () => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' } }))
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel], { readyCooldownMs: 0 })
+        try {
+            engine.emit(goalEvent('active'))
+            for (let i = 0; i < 6; i++) engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(0)
+            expect(engine.historyReads).toBe(0)
+        } finally { hub.stop() }
+    })
+
+    it.each(['complete', 'paused', 'blocked', 'budgetLimited', 'usageLimited', null])('allows ready once the Goal is %s', (status) => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' } }))
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])
+        try {
+            engine.emit(goalEvent('active')); engine.emit(readyMessage())
+            engine.emit(goalEvent(status))
+            // A terminal update arriving after the final ready still notifies.
+            expect(channel.readySessions).toHaveLength(1)
+            engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(1)
+        } finally { hub.stop() }
+    })
+
+    it('seeds the latest persisted root Goal after a Hub restart and ignores other threads', () => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' } }))
+        engine.history.set('session-1', [goalEvent('paused').message, goalEvent('active').message, goalEvent('complete', 'child').message])
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel], { readyCooldownMs: 0 })
+        try {
+            engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(0)
+            expect(engine.historyReads).toBe(1)
+            engine.emit(goalEvent('complete', 'child')); engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(0)
+            expect(engine.historyReads).toBe(1)
+        } finally { hub.stop() }
+    })
+
+    it('does not retain an old root Goal when the native thread binding changes', () => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' } }))
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel], { readyCooldownMs: 0 })
+        try {
+            engine.emit(goalEvent('active')); engine.emit(readyMessage())
+            engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'new-root' } }))
+            engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(1)
+        } finally { hub.stop() }
+    })
+
+    it('keeps permission/input notifications enabled during active Goals', async () => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        const session = createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' },
+            agentState: { requests: { question: { tool: 'request_user_input', arguments: {} } } } })
+        engine.setSession(session)
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel], { permissionDebounceMs: 1 })
+        try {
+            engine.emit(goalEvent('active')); engine.emit(readyMessage())
+            engine.emit({ type: 'session-updated', sessionId: session.id })
+            await sleep(15)
+            expect(channel.readySessions).toHaveLength(0)
+            expect(channel.permissionSessions).toHaveLength(1)
+        } finally { hub.stop() }
+    })
+
+    it('retains normal ready notifications for Codex sessions without a Goal', () => {
+        const engine = new FakeSyncEngine(), channel = new StubChannel()
+        engine.setSession(createSession({ metadata: { path: '/project', host: 'test', flavor: 'codex', codexSessionId: 'root' } }))
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])
+        try {
+            engine.emit(readyMessage())
+            expect(channel.readySessions).toHaveLength(1)
+        } finally { hub.stop() }
+    })
+})
 
 describe('NotificationHub', () => {
     it('debounces permission notifications and triggers when request IDs change', async () => {

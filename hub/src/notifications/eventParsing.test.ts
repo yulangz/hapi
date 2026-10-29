@@ -1,6 +1,26 @@
 import { describe, expect, it } from 'bun:test'
 import type { SyncEvent } from '../sync/syncEngine'
-import { extractMessageEventType, extractTaskNotification } from './eventParsing'
+import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
+
+describe('extractCodexGoalStatus', () => {
+    const content = (status: string, overrides: Record<string, unknown> = {}) => ({ role: 'agent', content: {
+        type: 'codex', data: { type: 'thread_goal_updated', thread_id: 'root', goal: { status }, ...overrides }
+    } })
+    it('accepts structured root goals and explicit goal clearing', () => {
+        expect(extractCodexGoalStatus(content('active'), 'root')).toBe('active')
+        expect(extractCodexGoalStatus(content('active', { type: 'thread_goal_cleared' }), 'root')).toBeNull()
+    })
+    it('ignores child goals, other roots, and user-authored lookalikes', () => {
+        expect(extractCodexGoalStatus(content('active', { scope_role: 'child' }), 'root')).toBeUndefined()
+        expect(extractCodexGoalStatus(content('active', { scope: { role: 'child' } }), 'root')).toBeUndefined()
+        expect(extractCodexGoalStatus(content('active', { thread_id: 'other' }), 'root')).toBeUndefined()
+        expect(extractCodexGoalStatus({ ...content('active'), role: 'user' }, 'root')).toBeUndefined()
+    })
+    it('does not interpret malformed or plain text content as Goal state', () => {
+        expect(extractCodexGoalStatus(content('active', { goal: {} }), 'root')).toBeUndefined()
+        expect(extractCodexGoalStatus({ role: 'agent', content: { type: 'message', message: 'goal active' } }, 'root')).toBeUndefined()
+    })
+})
 
 describe('extractMessageEventType', () => {
     it('returns the event type from a role-wrapped envelope', () => {

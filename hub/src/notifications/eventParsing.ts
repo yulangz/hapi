@@ -6,6 +6,22 @@ type EventEnvelope = {
     data?: unknown
 }
 
+/** undefined = unrelated/malformed; null = this root's goal was cleared. */
+export function extractCodexGoalStatus(message: unknown, rootThreadId?: string): string | null | undefined {
+    if (!isObject(message) || (message.role !== undefined && message.role !== 'agent')) return undefined
+    const body = isObject(message.content) ? message.content : message
+    if (body.type !== 'codex' || !isObject(body.data)) return undefined
+    const data = body.data
+    if (data.type !== 'thread_goal_updated' && data.type !== 'thread_goal_cleared') return undefined
+    const scope = isObject(data.scope) ? data.scope : null
+    if (data.scope_role === 'child' || scope?.role === 'child') return undefined
+    const goal = isObject(data.goal) ? data.goal : null
+    const threadId = data.thread_id ?? data.threadId ?? goal?.threadId ?? scope?.threadId
+    if (rootThreadId && threadId !== rootThreadId) return undefined
+    if (data.type === 'thread_goal_cleared') return null
+    return typeof goal?.status === 'string' ? goal.status : undefined
+}
+
 function extractEventEnvelope(message: unknown): EventEnvelope | null {
     if (!isObject(message)) {
         return null

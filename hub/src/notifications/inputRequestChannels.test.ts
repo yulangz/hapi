@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
-import type { Session } from '../sync/syncEngine'
+import type { Session, SyncEvent } from '../sync/syncEngine'
 import { Store } from '../store'
 import { FcmNotificationChannel } from '../fcm/fcmNotificationChannel'
 import { AndroidRelayService } from '../fcm/androidRelayService'
@@ -65,7 +65,7 @@ describe('input-request notification channels', () => {
         { visible: true, toastCount: 1, nativeSent: true, delivery: 'native' }
     ])('keeps Web fallback and toast routing for $delivery (visible=$visible, count=$toastCount)', async ({ visible, toastCount, nativeSent, delivery }) => {
         const pushed: PushPayload[] = []
-        const toasts: Array<{ data: { title: string; body: string; sessionId: string; url: string } }> = []
+        const toasts: Array<Extract<SyncEvent, { type: 'toast' }>> = []
         const channel = new PushNotificationChannel({ sendToNamespace: async (namespace: string, payload: PushPayload) => {
             expect(namespace).toBe(session.namespace)
             pushed.push(payload)
