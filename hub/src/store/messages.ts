@@ -654,7 +654,7 @@ export function countFutureScheduledLocalMessages(
 ): number {
     const row = db.prepare(`
         SELECT COUNT(*) AS count
-        FROM messages
+        FROM messages INDEXED BY idx_messages_scheduled_pending
         WHERE session_id = ?
           AND invoked_at IS NULL
           AND local_id IS NOT NULL
@@ -665,7 +665,8 @@ export function countFutureScheduledLocalMessages(
     return row?.count ?? 0
 }
 
-/** Batch variant for GET /sessions — one query for all session IDs in a namespace. */
+/** Batch variant for GET /sessions. Pin the pending index: the unique local-ID
+ * index can otherwise make SQLite scan consumed history on every list refresh. */
 export function countFutureScheduledBySessionIds(
     db: Database,
     sessionIds: string[],
@@ -679,7 +680,7 @@ export function countFutureScheduledBySessionIds(
     const placeholders = sessionIds.map(() => '?').join(',')
     const rows = db.prepare(`
         SELECT session_id, COUNT(*) AS count
-        FROM messages
+        FROM messages INDEXED BY idx_messages_scheduled_pending
         WHERE session_id IN (${placeholders})
           AND invoked_at IS NULL
           AND local_id IS NOT NULL
@@ -709,7 +710,7 @@ export function minFutureScheduledAtBySessionIds(
     const placeholders = sessionIds.map(() => '?').join(',')
     const rows = db.prepare(`
         SELECT session_id, MIN(scheduled_at) AS next_at
-        FROM messages
+        FROM messages INDEXED BY idx_messages_scheduled_pending
         WHERE session_id IN (${placeholders})
           AND invoked_at IS NULL
           AND local_id IS NOT NULL

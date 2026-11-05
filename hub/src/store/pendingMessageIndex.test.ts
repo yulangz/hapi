@@ -1,11 +1,41 @@
 import { Database } from 'bun:sqlite'
-import { describe, expect, it } from 'bun:test'
+import { describe, expect, it, spyOn } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Store } from './index'
+import { countFutureScheduledLocalMessages, countFutureScheduledBySessionIds, minFutureScheduledAtBySessionIds } from './messages'
 
 describe('pending local message lookup index', () => {
+    it('keeps all scheduled-list statistics on the small pending index without relying on planner statistics', () => {
+        const directory = mkdtempSync(join(tmpdir(), 'hapi-scheduled-index-'))
+        const path = join(directory, 'test.db')
+        const store = new Store(path)
+        let db: Database | undefined
+        try {
+            const session = store.sessions.getOrCreateSession('test', { path: '/tmp', host: 'test' }, null, 'default')
+            const now = Date.now()
+            for (let i = 0; i < 100; i++) store.messages.addMessage(session.id, { role: 'agent', content: 'history' }, `history-${i}`)
+            store.messages.addMessage(session.id, { role: 'user', content: 'later' }, 'future', now + 60_000)
+            db = new Database(path)
+            const prepare = spyOn(db, 'prepare')
+            expect(countFutureScheduledLocalMessages(db, session.id, now)).toBe(1)
+            expect(countFutureScheduledBySessionIds(db, [session.id], now).get(session.id)).toBe(1)
+            expect(minFutureScheduledAtBySessionIds(db, [session.id], now).get(session.id)).toBe(now + 60_000)
+            const queries = prepare.mock.calls.map(([sql]) => sql)
+            prepare.mockRestore()
+            expect(queries).toHaveLength(3)
+            for (const sql of queries) {
+                const plan = JSON.stringify(db.query(`EXPLAIN QUERY PLAN ${sql}`).all(session.id, now))
+                expect(plan).toContain('idx_messages_scheduled_pending')
+                expect(plan).not.toContain('idx_messages_local_id')
+            }
+        } finally {
+            db?.close()
+            store.close()
+            rmSync(directory, { recursive: true, force: true })
+        }
+    })
     it('backfills an existing database and avoids a transcript scan without changing queue semantics', () => {
         const directory = mkdtempSync(join(tmpdir(), 'hapi-pending-index-'))
         const path = join(directory, 'test.db')
