@@ -28,7 +28,7 @@ import { CopyIcon, CheckIcon, WrapIcon } from '@/components/icons'
 import { useTranslation } from '@/lib/use-translation'
 import { useOptionalHappyChatContext } from '@/components/AssistantChat/context'
 import { decodeFilePathCandidateHref, decodeFilePathHref, remarkFilePathLinks } from '@/lib/remark-file-path-links'
-import { classifyNoSchemeHref } from '@/lib/markdown-href-policy'
+import { classifyNoSchemeHref, hasKnownFileExtension, splitHrefMeta } from '@/lib/markdown-href-policy'
 import { remarkSessionPathLinks } from '@/lib/remark-session-path-links'
 import { buildSessionReferencePath, parseSessionPathHref } from '@/lib/sessionReference'
 import { UriConfirmDialog } from '@/components/UriConfirmDialog'
@@ -507,6 +507,37 @@ function Code(props: ComponentPropsWithoutRef<'code'>) {
     )
 }
 
+function FilePathDetails(props: { path: string; label?: ReactNode; children?: ReactNode; copyLabel?: boolean }) {
+    const { copied, copy } = useCopyToClipboard()
+    const { t } = useTranslation()
+    return (
+        <span className="aui-md-file-reference inline-flex max-w-full flex-wrap items-center gap-x-1.5 align-baseline">
+            {props.copyLabel ? (
+                <button
+                    type="button"
+                    title={t('file.page.copyPath')}
+                    className="text-left text-[var(--app-text)] underline decoration-dotted underline-offset-3"
+                    onClick={(event) => { event.stopPropagation(); void copy(props.path) }}
+                >
+                    {props.children}
+                </button>
+            ) : props.children}
+            <button
+                type="button"
+                aria-label={t('file.page.copyPath')}
+                title={t('file.page.copyPath')}
+                className="inline-flex shrink-0 rounded p-1 text-[var(--app-hint)] hover:bg-[var(--app-secondary-bg)] hover:text-[var(--app-text)]"
+                onClick={(event) => { event.stopPropagation(); void copy(props.path) }}
+            >
+                {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
+            </button>
+            {props.label !== props.path && (
+                <span className="w-full select-text break-all font-mono text-xs text-[var(--app-hint)]">{props.path}</span>
+            )}
+        </span>
+    )
+}
+
 function FilePathAnchor(props: ComponentPropsWithoutRef<'a'> & { filePath: string; sessionId: string }) {
     const { filePath, sessionId, ...anchorProps } = props
     const navigate = useNavigate()
@@ -532,13 +563,16 @@ function FilePathAnchor(props: ComponentPropsWithoutRef<'a'> & { filePath: strin
     }
 
     return (
-        <a
-            {...anchorProps}
-            href={href}
-            rel={rel}
-            onClick={handleClick}
-            className={cn('aui-md-a font-medium text-[var(--app-link)] underline decoration-[color:var(--app-link-muted)] underline-offset-3', anchorProps.className)}
-        />
+        <FilePathDetails path={filePath} label={anchorProps.children}>
+            <a
+                {...anchorProps}
+                href={href}
+                title={anchorProps.title ?? filePath}
+                rel={rel}
+                onClick={handleClick}
+                className={cn('aui-md-a font-medium text-[var(--app-link)] underline decoration-[color:var(--app-link-muted)] underline-offset-3', anchorProps.className)}
+            />
+        </FilePathDetails>
     )
 }
 
@@ -594,7 +628,7 @@ function SessionPathAnchor(props: ComponentPropsWithoutRef<'a'> & { targetSessio
 function InertMarkdownHref(props: { href: string; children?: ReactNode; className?: string }) {
     // Plain/muted — intentionally not an <a>, so middle-click / copy-link can't
     // invent a dead SPA route either.
-    return (
+    const label = (
         <span
             title={props.href}
             className={cn('aui-md-a-inert text-[var(--app-hint)]', props.className)}
@@ -602,6 +636,12 @@ function InertMarkdownHref(props: { href: string; children?: ReactNode; classNam
             {props.children}
         </span>
     )
+    let path: string
+    try { path = decodeURIComponent(splitHrefMeta(props.href).path) } catch { return label }
+    if (!path.startsWith('//') && (!hasScheme(path) || /^[A-Za-z]:[\\/]/.test(path)) && hasKnownFileExtension(path)) {
+        return <FilePathDetails path={path} label={props.children} copyLabel><span className="aui-md-a-inert" title={props.href}>{props.children}</span></FilePathDetails>
+    }
+    return label
 }
 
 function A(props: ComponentPropsWithoutRef<'a'>) {
@@ -625,7 +665,7 @@ function A(props: ComponentPropsWithoutRef<'a'>) {
 
     if (filePath) {
         if (!chat) {
-            return <>{props.children}</>
+            return <FilePathDetails path={filePath} label={props.children}>{props.children}</FilePathDetails>
         }
         return <FilePathAnchor {...props} filePath={filePath} sessionId={chat.sessionId} />
     }

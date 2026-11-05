@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { I18nProvider } from '@/lib/i18n-context'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 describe('MarkdownRenderer', () => {
+    it('keeps the path and copy control visible for a labeled absolute file link', () => {
+        const path = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-35b-to-8b-middle-resumable/trajectories/630/transcript.json'
+        render(<I18nProvider><MarkdownRenderer standalone content={`[完整交互 transcript.json](${path})`} /></I18nProvider>)
+        expect(screen.getByText(path)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /copy path/i })).toBeInTheDocument()
+    })
     afterEach(() => {
         cleanup()
     })

@@ -67,6 +67,28 @@ function chatContext(overrides: Partial<HappyChatContextValue> = {}): HappyChatC
 
 const STORAGE_KEY = 'hapi-allowed-schemes'
 
+describe('visible local file references', () => {
+    it('shows and copies the complete path even when the file is outside the workspace', async () => {
+        const path = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-35b-to-8b-middle-resumable/trajectories/630/transcript.json'
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+        renderA({ href: path, children: '完整交互 transcript.json' }, chatContext())
+        expect(screen.getByText(path)).toBeInTheDocument()
+        expect(screen.queryByRole('link')).toBeNull()
+        fireEvent.click(screen.getByRole('button', { name: /copy path/i }))
+        await waitFor(() => expect(writeText).toHaveBeenCalledWith(path))
+        expect(navigate).not.toHaveBeenCalled()
+    })
+
+    it('keeps in-workspace files clickable while displaying their full path', () => {
+        const path = '/home/ada/coding/hapi/runs/transcript.json'
+        renderA({ href: path, children: '完整交互 transcript.json' }, chatContext())
+        expect(screen.getByText(path)).toBeInTheDocument()
+        fireEvent.click(screen.getByRole('link', { name: '完整交互 transcript.json' }))
+        expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ to: '/sessions/$sessionId/file' }))
+    })
+})
+
 beforeEach(() => {
     localStorage.clear()
     cleanup()
