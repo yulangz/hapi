@@ -626,8 +626,8 @@ function SessionPathAnchor(props: ComponentPropsWithoutRef<'a'> & { targetSessio
  * - Session citation paths (`/sessions/<id>`): SessionPathAnchor SPA navigation.
  */
 function InertMarkdownHref(props: { href: string; children?: ReactNode; className?: string }) {
-    // Plain/muted — intentionally not an <a>, so middle-click / copy-link can't
-    // invent a dead SPA route either.
+    // Unpreviewable local paths remain copyable, including directory links.
+    // Never turn them into a dead SPA route.
     const label = (
         <span
             title={props.href}
@@ -638,7 +638,8 @@ function InertMarkdownHref(props: { href: string; children?: ReactNode; classNam
     )
     let path: string
     try { path = decodeURIComponent(splitHrefMeta(props.href).path) } catch { return label }
-    if (!path.startsWith('//') && (!hasScheme(path) || /^[A-Za-z]:[\\/]/.test(path)) && hasKnownFileExtension(path)) {
+    const looksLikeLocalPath = hasKnownFileExtension(path) || /[\\/]/.test(path)
+    if (!path.startsWith('//') && (!hasScheme(path) || /^[A-Za-z]:[\\/]/.test(path)) && looksLikeLocalPath) {
         return <FilePathDetails path={path} label={props.children} copyLabel><span className="aui-md-a-inert" title={props.href}>{props.children}</span></FilePathDetails>
     }
     return label

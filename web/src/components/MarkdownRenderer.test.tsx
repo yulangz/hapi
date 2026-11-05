@@ -4,6 +4,15 @@ import { I18nProvider } from '@/lib/i18n-context'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 describe('MarkdownRenderer', () => {
+    it('shows full paths and copy controls for extensionless directory citations in historical markdown', () => {
+        const first = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-eval-25'
+        const second = `${first}-50/`
+        render(<I18nProvider><MarkdownRenderer standalone content={`- [25% 评测目录](${first})\n- [50% 评测目录](${second})`} /></I18nProvider>)
+        expect(screen.getByText(first)).toBeInTheDocument()
+        expect(screen.getByText(second)).toBeInTheDocument()
+        expect(screen.getAllByRole('button', { name: /copy path/i })).toHaveLength(2)
+        expect(screen.getByRole('button', { name: '25% 评测目录' })).toBeInTheDocument()
+    })
     it('keeps the path and copy control visible for a labeled absolute file link', () => {
         const path = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-35b-to-8b-middle-resumable/trajectories/630/transcript.json'
         render(<I18nProvider><MarkdownRenderer standalone content={`[完整交互 transcript.json](${path})`} /></I18nProvider>)
