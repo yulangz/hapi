@@ -36,6 +36,7 @@ import type { SSEManager } from '../sse/sseManager'
 import type { VisibilityTracker } from '../visibility/visibilityTracker'
 import type { Server as BunServer, ServerWebSocket } from 'bun'
 import { applyDefaultWsCompression } from './wsCompression'
+import { SOCKET_IDLE_TIMEOUT_SECONDS } from '../socket/socketLimits'
 import { acceptsGzip } from './sseCompression'
 import type { Server as SocketEngine } from '@socket.io/bun-engine'
 import { jwtVerify } from 'jose'
@@ -451,7 +452,10 @@ export async function startWebServer(options: {
     const server = (Bun.serve as any)({
         hostname: configuration.listenHost,
         port: configuration.listenPort,
-        idleTimeout: Math.max(30, socketHandler.idleTimeout),
+        // bun-engine derives its idle timeout from pingInterval alone. Include
+        // the heartbeat grace period so Bun cannot close a slow media transfer
+        // before Engine.IO's own deadline.
+        idleTimeout: Math.max(30, socketHandler.idleTimeout, SOCKET_IDLE_TIMEOUT_SECONDS),
         maxRequestBodySize: Math.max(socketHandler.maxRequestBodySize, 68 * 1024 * 1024),
         websocket: {
             ...originalWsHandler,

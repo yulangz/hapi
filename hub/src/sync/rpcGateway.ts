@@ -40,9 +40,16 @@ import type {
 } from '@hapi/protocol/apiTypes'
 import type { Server } from 'socket.io'
 import type { RpcRegistry } from '../socket/rpcRegistry'
+import { GENERATED_MEDIA_RPC_TIMEOUT_MS } from '../socket/socketLimits'
 
 const DEFAULT_RPC_TIMEOUT_MS = 30_000
 const MODEL_LIST_RPC_TIMEOUT_MS = 120_000
+// Generated image IDs are immutable (the HTTP route uses them as ETags).
+// Coalesce readers and retain a small, bounded cache so browser remounts do
+// not repeatedly saturate a slow CLI uplink. Count the encoded payload size.
+const GENERATED_MEDIA_CACHE_MAX_BYTES = 8 * 1024 * 1024
+const GENERATED_MEDIA_CACHE_MAX_ENTRIES = 64
+const GENERATED_MEDIA_CACHE_TTL_MS = 10 * 60_000
 
 /**
  * tiann/hapi#916: thrown by {@link RpcGateway.rpcCall} when the target CLI is
@@ -97,6 +104,10 @@ export type RpcListAgyModelsResponse = AgyModelsResponse
 export type RpcListPiModelsResponse = PiModelsResponse
 
 export class RpcGateway {
+    private readonly generatedMediaReads = new Map<string, Promise<RpcGeneratedImageResponse>>()
+    private readonly generatedMediaCache = new Map<string, { response: RpcGeneratedImageResponse; expiresAt: number; bytes: number }>()
+    private generatedMediaCacheBytes = 0
+
     constructor(
         private readonly io: Server,
         private readonly rpcRegistry: RpcRegistry
@@ -351,7 +362,41 @@ export class RpcGateway {
     }
 
     async readGeneratedImage(sessionId: string, imageId: string): Promise<RpcGeneratedImageResponse> {
-        return await this.sessionRpc(sessionId, RPC_METHODS.ReadGeneratedImage, { id: imageId }) as RpcGeneratedImageResponse
+        const key = JSON.stringify([sessionId, imageId])
+        const cached = this.generatedMediaCache.get(key)
+        if (cached) {
+            this.generatedMediaCache.delete(key)
+            if (cached.expiresAt > Date.now()) {
+                this.generatedMediaCache.set(key, cached)
+                return cached.response
+            }
+            this.generatedMediaCacheBytes -= cached.bytes
+        }
+        const pending = this.generatedMediaReads.get(key)
+        if (pending) return await pending
+
+        const read = this.sessionRpc(sessionId, RPC_METHODS.ReadGeneratedImage, { id: imageId }, GENERATED_MEDIA_RPC_TIMEOUT_MS)
+            .then(value => {
+                const response = value as RpcGeneratedImageResponse
+                if (response?.success && response.content && response.content.length <= GENERATED_MEDIA_CACHE_MAX_BYTES) {
+                    const bytes = response.content.length
+                    this.generatedMediaCache.set(key, { response, expiresAt: Date.now() + GENERATED_MEDIA_CACHE_TTL_MS, bytes })
+                    this.generatedMediaCacheBytes += bytes
+                    while (this.generatedMediaCache.size > GENERATED_MEDIA_CACHE_MAX_ENTRIES || this.generatedMediaCacheBytes > GENERATED_MEDIA_CACHE_MAX_BYTES) {
+                        const oldestKey = this.generatedMediaCache.keys().next().value!
+                        const oldest = this.generatedMediaCache.get(oldestKey)!
+                        this.generatedMediaCache.delete(oldestKey)
+                        this.generatedMediaCacheBytes -= oldest.bytes
+                    }
+                }
+                return response
+            })
+        this.generatedMediaReads.set(key, read)
+        try {
+            return await read
+        } finally {
+            this.generatedMediaReads.delete(key)
+        }
     }
 
     async listDirectory(sessionId: string, path: string): Promise<RpcListDirectoryResponse> {

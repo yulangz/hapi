@@ -8,3 +8,14 @@ export const MAX_GENERATED_IMAGE_BYTES = 25 * 1024 * 1024
 // the MCP tool happily accepts can never reach the browser (issue #927). Size the buffer to carry
 // the largest allowed image after base64 + framing, with headroom.
 export const SOCKET_MAX_HTTP_BUFFER_SIZE = 48 * 1024 * 1024
+
+// An image ACK can occupy the transport for more than the default 20-second
+// heartbeat deadline on a lossy uplink. Pongs cannot overtake a WebSocket
+// message already being sent. Keep the connection alive for the media RPC's
+// full deadline; otherwise increasing only the RPC timeout cannot help.
+export const GENERATED_MEDIA_RPC_TIMEOUT_MS = 120_000
+export const SOCKET_PING_INTERVAL_MS = 25_000
+export const SOCKET_PING_TIMEOUT_MS = GENERATED_MEDIA_RPC_TIMEOUT_MS
+export const SOCKET_IDLE_TIMEOUT_SECONDS = Math.ceil(
+    (SOCKET_PING_INTERVAL_MS + SOCKET_PING_TIMEOUT_MS) / 1000
+)

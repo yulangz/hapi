@@ -9,7 +9,7 @@ import { parseAccessToken } from '../utils/accessToken'
 import { registerCliHandlers } from './handlers/cli'
 import { registerTerminalHandlers } from './handlers/terminal'
 import { RpcRegistry } from './rpcRegistry'
-import { SOCKET_MAX_HTTP_BUFFER_SIZE } from './socketLimits'
+import { SOCKET_MAX_HTTP_BUFFER_SIZE, SOCKET_PING_INTERVAL_MS, SOCKET_PING_TIMEOUT_MS } from './socketLimits'
 import type { SyncEvent } from '../sync/syncEngine'
 import { TerminalRegistry } from './terminalRegistry'
 import { clearUserTerminalBuffer } from './userTerminalBuffer'
@@ -65,13 +65,17 @@ export function createSocketServer(deps: SocketServerDeps): {
 
     const io = new Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>({
         cors: corsOptions,
-        maxHttpBufferSize: SOCKET_MAX_HTTP_BUFFER_SIZE
+        maxHttpBufferSize: SOCKET_MAX_HTTP_BUFFER_SIZE,
+        pingInterval: SOCKET_PING_INTERVAL_MS,
+        pingTimeout: SOCKET_PING_TIMEOUT_MS
     })
 
     const engine = new Engine({
         path: '/socket.io/',
         cors: corsOptions,
         maxHttpBufferSize: SOCKET_MAX_HTTP_BUFFER_SIZE,
+        pingInterval: SOCKET_PING_INTERVAL_MS,
+        pingTimeout: SOCKET_PING_TIMEOUT_MS,
         allowRequest: async (req) => {
             const origin = req.headers.get('origin')
             if (!origin || allowAllOrigins || corsOrigins.includes(origin)) {

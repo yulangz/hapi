@@ -52,6 +52,20 @@ function createGateway(reply?: unknown) {
 }
 
 describe('RpcGateway RPC timeouts', () => {
+    it('allows slow image ACKs without extending ordinary file RPC deadlines', async () => {
+        const image = { success: true, content: 'aW1hZ2U=', mimeType: 'image/png' }
+        const { gateway, calls, timeouts } = createGateway(JSON.stringify(image))
+
+        expect(await gateway.readGeneratedImage('session-1', 'image-1')).toEqual(image)
+        await gateway.readSessionFile('session-1', 'README.md')
+
+        expect(calls[0]).toEqual({
+            method: 'session-1:readGeneratedImage',
+            params: JSON.stringify({ id: 'image-1' })
+        })
+        expect(timeouts).toEqual([120_000, 30_000])
+    })
+
     it('uses the default RPC timeout for regular machine RPCs', async () => {
         const { gateway, timeouts } = createGateway()
 
@@ -112,6 +126,53 @@ describe('RpcGateway RPC timeouts', () => {
                 homeDir: '/home/recorded-owner'
             })
         }])
+    })
+})
+
+describe('RpcGateway generated media reads', () => {
+    it('shares one pending upload across readers and reuses the immutable result', async () => {
+        let resolve!: (value: string) => void
+        const reply = new Promise<string>(done => { resolve = done })
+        const { gateway, calls } = createGateway(reply)
+        const first = gateway.readGeneratedImage('session-1', 'image-1')
+        const second = gateway.readGeneratedImage('session-1', 'image-1')
+        expect(calls).toHaveLength(1)
+        const image = { success: true, content: 'aW1hZ2U=', mimeType: 'image/png' }
+        resolve(JSON.stringify(image))
+        expect(await Promise.all([first, second])).toEqual([image, image])
+        expect(await gateway.readGeneratedImage('session-1', 'image-1')).toEqual(image)
+        expect(calls).toHaveLength(1)
+        await gateway.readGeneratedImage('session-2', 'image-1')
+        expect(calls).toHaveLength(2)
+    })
+
+    it('does not cache failures and releases a rejected in-flight request for retry', async () => {
+        let reject!: (error: Error) => void
+        const reply = new Promise<string>((_resolve, fail) => { reject = fail })
+        const { gateway, calls } = createGateway(reply)
+        const results = Promise.allSettled([
+            gateway.readGeneratedImage('session-1', 'image-1'),
+            gateway.readGeneratedImage('session-1', 'image-1')
+        ])
+        reject(new Error('temporary disconnect'))
+        expect((await results).map(result => result.status)).toEqual(['rejected', 'rejected'])
+        await expect(gateway.readGeneratedImage('session-1', 'image-1')).rejects.toThrow('temporary disconnect')
+        expect(calls).toHaveLength(2)
+
+        const failed = createGateway(JSON.stringify({ success: false, error: 'not found' }))
+        await failed.gateway.readGeneratedImage('session-1', 'image-1')
+        await failed.gateway.readGeneratedImage('session-1', 'image-1')
+        expect(failed.calls).toHaveLength(2)
+    })
+
+    it('evicts the least recently used payload when the byte budget is exhausted', async () => {
+        const { gateway, calls } = createGateway(JSON.stringify({ success: true, content: 'A'.repeat(5 * 1024 * 1024), mimeType: 'image/png' }))
+        await gateway.readGeneratedImage('session-1', 'image-1')
+        await gateway.readGeneratedImage('session-1', 'image-2')
+        await gateway.readGeneratedImage('session-1', 'image-2')
+        expect(calls).toHaveLength(2)
+        await gateway.readGeneratedImage('session-1', 'image-1')
+        expect(calls).toHaveLength(3)
     })
 })
 
