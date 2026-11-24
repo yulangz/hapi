@@ -43,7 +43,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         const contextPlan = voiceHooks.prepareVoiceSession(sessionId)
         storeVoiceContextNotice(contextPlan.notice)
 
-        const voiceLang = localStorage.getItem('hapi-voice-lang')
+        const voiceLang = localStorage.getItem('hamlet-voice-lang')
         const elevenLabsLang = getElevenLabsCodeFromPreference(voiceLang)
         const voiceId = readStoredVoiceSelection('elevenlabs') ?? undefined
 

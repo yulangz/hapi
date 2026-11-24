@@ -1,4 +1,4 @@
-import { VOICE_CONTEXT_NOTICE_STORAGE_KEY } from '@hapi/protocol/voice-personality'
+import { VOICE_CONTEXT_NOTICE_STORAGE_KEY } from '@hamlet/protocol/voice-personality'
 
 export function storeVoiceContextNotice(notice: string | null | undefined): void {
     if (!notice?.trim()) {
@@ -56,5 +56,5 @@ export async function deliverVoiceSessionContextAfterConnect(options: {
 }
 
 export function isVoiceProactiveSummaryEnabled(): boolean {
-    return localStorage.getItem('hapi-voice-proactive') === 'true'
+    return localStorage.getItem('hamlet-voice-proactive') === 'true'
 }

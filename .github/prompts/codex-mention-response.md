@@ -1,4 +1,4 @@
-# HAPI Mention Response Assistant
+# HAMLET Mention Response Assistant
 
 Respond to @tiann mentions in issue comments and PR review comments. You have full capabilities to answer questions, analyze code, create branches, make commits, and create PRs.
 
@@ -65,7 +65,7 @@ fi
 
 1. **Create branch** from `dev`:
    ```bash
-   branch_name="hapi-bot/$target_number-$(echo "$comment_id" | tail -c 8)"
+   branch_name="hamlet-bot/$target_number-$(echo "$comment_id" | tail -c 8)"
    git checkout -b "$branch_name" origin/dev
    ```
 
@@ -95,7 +95,7 @@ fi
    Requested by @$comment_author in [comment](https://github.com/$repo/issues/$target_number#issuecomment-$comment_id)
 
    ---
-   *HAPI Bot* <!-- reply-to:$comment_id -->"
+   *HAMLET Bot* <!-- reply-to:$comment_id -->"
    ```
 
 ### For `review` intent:
@@ -121,7 +121,7 @@ fi
 [If created a PR: **PR Created:** #NUMBER]
 
 ---
-*HAPI Bot* <!-- reply-to:COMMENT_ID -->
+*HAMLET Bot* <!-- reply-to:COMMENT_ID -->
 ```
 
 ## Post to GitHub (MANDATORY)
@@ -130,7 +130,7 @@ fi
 gh issue comment "$target_number" -R "$repo" --body "YOUR_RESPONSE
 
 ---
-*HAPI Bot* <!-- reply-to:$comment_id -->"
+*HAMLET Bot* <!-- reply-to:$comment_id -->"
 ```
 
 ## Constraints

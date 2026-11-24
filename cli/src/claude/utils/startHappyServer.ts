@@ -1,8 +1,9 @@
 /**
- * HAPI MCP server
- * Provides HAPI CLI specific tools including chat session title management
+ * HAMLET MCP server
+ * Provides HAMLET CLI specific tools including chat session title management
  */
 
+import { forSession, managedTools } from '@/hamlet/client';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createServer, type IncomingMessage } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -25,7 +26,7 @@ import {
     INSPECT_PEER_TOOL_DESCRIPTION,
     PING_PEER_TOOL_DESCRIPTION,
     SESSION_ID_PREFIX_PARAM_DESCRIPTION,
-} from '@hapi/protocol/sessionCitation'
+} from '@hamlet/protocol/sessionCitation'
 import { PingPeerError, formatInspectPeerReport, formatPeerSessionsList, inspectPeer, listPeerSessions, peerListFetchLimit, pingPeer } from "@/modules/pingPeer/pingPeer";
 
 type StartHappyServerOptions = {
@@ -38,7 +39,7 @@ type StartHappyServerOptions = {
 };
 
 /** Registered on the MCP server, but never pre-approved via Claude --allowedTools. */
-const CLAUDE_MANUAL_APPROVAL_HAPI_TOOLS = new Set([
+const CLAUDE_MANUAL_APPROVAL_HAMLET_TOOLS = new Set([
     'display_media',
     'display_video',
     'ping_peer',
@@ -46,25 +47,25 @@ const CLAUDE_MANUAL_APPROVAL_HAPI_TOOLS = new Set([
 ]);
 
 /**
- * Map HAPI MCP tool names to Claude `--allowedTools` entries.
+ * Map HAMLET MCP tool names to Claude `--allowedTools` entries.
  * Keeps `display_media` / `display_video` (arbitrary local-path readers), `ping_peer`, and
  * `inspect_peer` off the auto-allow list so they still prompt.
  * `list_peers` stays allowed (discovery shortlist only).
  */
-export function toClaudeAllowedHapiMcpTools(toolNames: string[]): string[] {
+export function toClaudeAllowedHamletMcpTools(toolNames: string[]): string[] {
     return toolNames
-        .filter((toolName) => !CLAUDE_MANUAL_APPROVAL_HAPI_TOOLS.has(toolName))
-        .map((toolName) => `mcp__hapi__${toolName}`);
+        .filter((toolName) => !CLAUDE_MANUAL_APPROVAL_HAMLET_TOOLS.has(toolName))
+        .map((toolName) => `mcp__hamlet__${toolName}`);
 }
 
-function createHapiMcpServer(
+function createHamletMcpServer(
     client: ApiSessionClient,
     emitTitleSummary: boolean,
     enableChangeTitle: boolean,
     skillLookup: StartHappyServerOptions['skillLookup']
 ): McpServer {
     const handler = async (title: string) => {
-        logger.debug('[hapiMCP] Changing title to:', title);
+        logger.debug('[hamletMCP] Changing title to:', title);
         try {
             if (emitTitleSummary) {
                 client.sendClaudeSessionMessage({
@@ -81,7 +82,7 @@ function createHapiMcpServer(
     };
 
     const mcp = new McpServer({
-        name: "HAPI MCP",
+        name: "HAMLET MCP",
         version: "1.0.0",
     });
 
@@ -95,7 +96,7 @@ function createHapiMcpServer(
     });
 
     const skillLookupInputSchema: z.ZodTypeAny = z.object({
-        name: z.string().trim().min(1).max(128).describe('Exact skill name shown by HAPI skill autocomplete'),
+        name: z.string().trim().min(1).max(128).describe('Exact skill name shown by HAMLET skill autocomplete'),
     });
 
     const displayVideoInputSchema: z.ZodTypeAny = z.object({
@@ -169,12 +170,12 @@ function createHapiMcpServer(
     }
     if (enableChangeTitle) {
         mcp.registerTool<any, any>('change_title', {
-            description: 'Change the title of the current HAPI chat session. Call once when the user\'s primary objective is clear; use a concise task title.',
+            description: 'Change the title of the current HAMLET chat session. Call once when the user\'s primary objective is clear; use a concise task title.',
             title: 'Change Chat Title',
             inputSchema: changeTitleInputSchema,
         }, async (args: { title: string }) => {
             const response = await handler(args.title);
-            logger.debug('[hapiMCP] Response:', response);
+            logger.debug('[hamletMCP] Response:', response);
 
             if (response.success) {
                 return {
@@ -200,12 +201,17 @@ function createHapiMcpServer(
         });
     }
 
+    const managed = forSession(client.sessionId);
+    if (managed) {
+        managed.register(mcp, client, skillLookup?.workingDirectory ?? process.cwd());
+        return mcp;
+    }
     mcp.registerTool<any, any>('display_image', {
-        description: `Display a local image file to the human user inline in the current HAPI chat session. ${DISPLAY_IMAGE_PROMPT_CURSOR}`,
+        description: `Display a local image file to the human user inline in the current HAMLET chat session. ${DISPLAY_IMAGE_PROMPT_CURSOR}`,
         title: 'Display Image',
         inputSchema: displayImageInputSchema,
     }, async (args: { path: string; title?: string }) => {
-        logger.debug('[hapiMCP] Display image:', args.path);
+        logger.debug('[hamletMCP] Display image:', args.path);
 
         try {
             const image = await displayInlineMedia(args, 'image', 'display_image');
@@ -221,7 +227,7 @@ function createHapiMcpServer(
             };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            logger.debug('[hapiMCP] Failed to display image:', message);
+            logger.debug('[hamletMCP] Failed to display image:', message);
             return {
                 content: [
                     {
@@ -235,11 +241,11 @@ function createHapiMcpServer(
     });
 
     mcp.registerTool<any, any>('display_video', {
-        description: `Display a local mp4 or webm file inline in the current HAPI chat session. ${DISPLAY_VIDEO_PROMPT_CURSOR}`,
+        description: `Display a local mp4 or webm file inline in the current HAMLET chat session. ${DISPLAY_VIDEO_PROMPT_CURSOR}`,
         title: 'Display Video',
         inputSchema: displayVideoInputSchema,
     }, async (args: { path: string; title?: string }) => {
-        logger.debug('[hapiMCP] Display video:', args.path);
+        logger.debug('[hamletMCP] Display video:', args.path);
 
         try {
             const video = await displayInlineMedia(args, 'video', 'display_video');
@@ -255,7 +261,7 @@ function createHapiMcpServer(
             };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            logger.debug('[hapiMCP] Failed to display video:', message);
+            logger.debug('[hamletMCP] Failed to display video:', message);
             return {
                 content: [
                     {
@@ -269,11 +275,11 @@ function createHapiMcpServer(
     });
 
     mcp.registerTool<any, any>('display_media', {
-        description: `Send a local image, video, audio, or other file to the current HAPI chat session. Recognized media is shown inline; other files use a download card. ${DISPLAY_MEDIA_PROMPT_CURSOR}`,
+        description: `Send a local image, video, audio, or other file to the current HAMLET chat session. Recognized media is shown inline; other files use a download card. ${DISPLAY_MEDIA_PROMPT_CURSOR}`,
         title: 'Display Media',
         inputSchema: displayMediaInputSchema,
     }, async (args: { path: string; title?: string }) => {
-        logger.debug('[hapiMCP] Display media:', args.path);
+        logger.debug('[hamletMCP] Display media:', args.path);
 
         try {
             const media = await displayInlineMedia(args, 'media', 'display_media');
@@ -283,7 +289,7 @@ function createHapiMcpServer(
             };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            logger.debug('[hapiMCP] Failed to display media:', message);
+            logger.debug('[hamletMCP] Failed to display media:', message);
             return {
                 content: [{ type: 'text' as const, text: `Failed to display media: ${message}` }],
                 isError: true,
@@ -296,7 +302,7 @@ function createHapiMcpServer(
         title: 'Ping Peer Session',
         inputSchema: pingPeerInputSchema,
     }, async (args: { sessionIdPrefix: string; message: string }) => {
-        logger.debug('[hapiMCP] ping_peer:', args.sessionIdPrefix);
+        logger.debug('[hamletMCP] ping_peer:', args.sessionIdPrefix);
         try {
             const result = await pingPeer({
                 sessionIdPrefix: args.sessionIdPrefix,
@@ -317,7 +323,7 @@ function createHapiMcpServer(
                 : error instanceof Error
                     ? error.message
                     : String(error);
-            logger.debug('[hapiMCP] ping_peer failed:', message);
+            logger.debug('[hamletMCP] ping_peer failed:', message);
             return {
                 content: [
                     {
@@ -335,7 +341,7 @@ function createHapiMcpServer(
         title: 'Inspect Peer Session',
         inputSchema: inspectPeerInputSchema,
     }, async (args: { sessionIdPrefix: string; messageLimit?: number }) => {
-        logger.debug('[hapiMCP] inspect_peer:', args.sessionIdPrefix);
+        logger.debug('[hamletMCP] inspect_peer:', args.sessionIdPrefix);
         try {
             const result = await inspectPeer({
                 sessionIdPrefix: args.sessionIdPrefix,
@@ -356,7 +362,7 @@ function createHapiMcpServer(
                 : error instanceof Error
                     ? error.message
                     : String(error);
-            logger.debug('[hapiMCP] inspect_peer failed:', message);
+            logger.debug('[hamletMCP] inspect_peer failed:', message);
             return {
                 content: [
                     {
@@ -370,11 +376,11 @@ function createHapiMcpServer(
     });
 
     mcp.registerTool<any, any>('list_peers', {
-        description: 'List peer HAPI sessions on the same hub/namespace (id prefix, active, flavor, name). Uses this session\'s hub credentials - works from runner-spawned agents without being on the hub host. Prefer this over shelling `hapi ping-peer --list`. Then call inspect_peer / ping_peer with a listed id.',
+        description: 'List peer HAMLET sessions on the same hub/namespace (id prefix, active, flavor, name). Uses this session\'s hub credentials - works from runner-spawned agents without being on the hub host. Prefer this over shelling `hamlet ping-peer --list`. Then call inspect_peer / ping_peer with a listed id.',
         title: 'List Peer Sessions',
         inputSchema: listPeersInputSchema,
     }, async (args: { limit?: number }) => {
-        logger.debug('[hapiMCP] list_peers');
+        logger.debug('[hamletMCP] list_peers');
         try {
             const limit = args.limit ?? 30;
             const sessions = await listPeerSessions({
@@ -400,7 +406,7 @@ function createHapiMcpServer(
                 : error instanceof Error
                     ? error.message
                     : String(error);
-            logger.debug('[hapiMCP] list_peers failed:', message);
+            logger.debug('[hamletMCP] list_peers failed:', message);
             return {
                 content: [
                     {
@@ -416,11 +422,11 @@ function createHapiMcpServer(
 
     if (skillLookup) {
         mcp.registerTool<any, any>('skill_lookup', {
-            description: 'Load a HAPI skill by exact name. When a user message starts with $name, call this tool with that name before acting.',
+            description: 'Load a HAMLET skill by exact name. When a user message starts with $name, call this tool with that name before acting.',
             title: 'Look Up Skill',
             inputSchema: skillLookupInputSchema,
         }, async (args: { name: string }) => {
-            logger.debug('[hapiMCP] Looking up skill:', args.name);
+            logger.debug('[hamletMCP] Looking up skill:', args.name);
             try {
                 const skill = await resolveSkill(args.name, skillLookup.workingDirectory, {
                     flavor: skillLookup.flavor
@@ -444,7 +450,7 @@ function createHapiMcpServer(
                 };
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
-                logger.debug('[hapiMCP] Failed to look up skill:', message);
+                logger.debug('[hamletMCP] Failed to look up skill:', message);
                 return {
                     content: [
                         {
@@ -479,7 +485,7 @@ export async function startHappyServer(client: ApiSessionClient, options: StartH
     const mcps = new Map<string, McpServer>();
 
     const createMcpTransport = () => {
-        const mcp = createHapiMcpServer(client, emitTitleSummary, enableChangeTitle, options.skillLookup);
+        const mcp = createHamletMcpServer(client, emitTitleSummary, enableChangeTitle, options.skillLookup);
         const transport = new StreamableHTTPServerTransport({
             sessionIdGenerator: () => randomUUID(),
             onsessioninitialized: (sessionId) => {
@@ -497,7 +503,10 @@ export async function startHappyServer(client: ApiSessionClient, options: StartH
         return transport;
     };
 
+    const managed = forSession(client.sessionId);
+    const route = managed ? '/' + randomUUID() : '/';
     const server = createServer(async (req, res) => {
+        if (managed && req.url !== route) { res.writeHead(404).end(); return; }
         try {
             const sessionId = readMcpSessionId(req);
             const transport = sessionId
@@ -527,16 +536,16 @@ export async function startHappyServer(client: ApiSessionClient, options: StartH
         });
     });
 
-    const mcpUrl = baseUrl.toString();
-    client.updateMetadata((metadata) => ({
+    const mcpUrl = new URL(route, baseUrl).toString();
+    if (!managed) client.updateMetadata((metadata) => ({
         ...metadata,
-        hapiMcpUrl: mcpUrl,
+        hamletMcpUrl: mcpUrl,
     }));
 
-    const toolNames = enableChangeTitle
+    const toolNames = managed ? ['change_title', ...Object.keys(managedTools).filter(n => n !== 'machine_exec' || process.env.HAMLET_MAIN === '1')] : enableChangeTitle
         ? ['change_title', 'display_image', 'display_video', 'display_media', 'list_peers', 'ping_peer', 'inspect_peer']
         : ['display_image', 'display_video', 'display_media', 'list_peers', 'ping_peer', 'inspect_peer'];
-    if (options.skillLookup) {
+    if (!managed && options.skillLookup) {
         toolNames.push('skill_lookup');
     }
 
@@ -544,7 +553,7 @@ export async function startHappyServer(client: ApiSessionClient, options: StartH
         url: mcpUrl,
         toolNames,
         stop: () => {
-            logger.debug('[hapiMCP] Stopping server');
+            logger.debug('[hamletMCP] Stopping server');
             for (const mcp of mcps.values()) {
                 mcp.close();
             }

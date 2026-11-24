@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { RPC_TARGET_MISSING_ERROR_CODE } from '@hapi/protocol/rpcMethods'
+import { RPC_TARGET_MISSING_ERROR_CODE } from '@hamlet/protocol/rpcMethods'
 import { ApiError, type ApiClient } from '@/api/client'
 import type { CodexModelSummary } from '@/types/api'
 import { queryKeys } from '@/lib/query-keys'

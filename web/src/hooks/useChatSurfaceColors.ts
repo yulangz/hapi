@@ -8,8 +8,8 @@ export type ChatSurfaceColorPreference = 'default' | 'preset:soft-blue' | 'prese
 
 export const DEFAULT_CHAT_SURFACE_COLOR_PREFERENCE: ChatSurfaceColorPreference = 'default'
 
-const TOOL_GROUP_BG_STORAGE_KEY = 'hapi-tool-group-bg'
-const USER_MESSAGE_BG_STORAGE_KEY = 'hapi-user-message-bg'
+const TOOL_GROUP_BG_STORAGE_KEY = 'hamlet-tool-group-bg'
+const USER_MESSAGE_BG_STORAGE_KEY = 'hamlet-user-message-bg'
 const TOOL_GROUP_BG_CSS_VAR = '--app-tool-group-bg'
 const USER_MESSAGE_BG_CSS_VAR = '--app-chat-user-surface-bg'
 const DEFAULT_PICKER_COLOR = '#f2f4f6'

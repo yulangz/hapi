@@ -6,7 +6,7 @@ import { spawn } from 'child_process';
 import { createInterface } from 'readline';
 import { join, resolve } from 'path';
 import { platform } from 'os';
-import { matchesSearchQuery } from '@hapi/protocol';
+import { matchesSearchQuery } from '@hamlet/protocol';
 import { runtimePath } from '@/projectPath';
 import { withBunRuntimeEnv } from '@/utils/bunRuntime';
 

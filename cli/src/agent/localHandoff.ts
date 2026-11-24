@@ -1,5 +1,5 @@
-import type { SessionEndReason } from '@hapi/protocol'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import type { SessionEndReason } from '@hamlet/protocol'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 
 type RpcHandlerManagerLike = {
     registerHandler<TRequest = unknown, TResponse = unknown>(

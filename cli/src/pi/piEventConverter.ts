@@ -41,7 +41,7 @@ export function convertPiCompactionUsage(estimatedTokensAfter: number | undefine
     };
 }
 
-/** Converts validated Pi lifecycle events to HAPI chat messages. */
+/** Converts validated Pi lifecycle events to HAMLET chat messages. */
 export function convertPiEvent(event: PiAgentEvent): AgentMessage[] {
     switch (event.type) {
         case 'tool_execution_start': {

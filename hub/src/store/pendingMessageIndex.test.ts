@@ -8,7 +8,7 @@ import { countFutureScheduledLocalMessages, countFutureScheduledBySessionIds, mi
 
 describe('pending local message lookup index', () => {
     it('keeps all scheduled-list statistics on the small pending index without relying on planner statistics', () => {
-        const directory = mkdtempSync(join(tmpdir(), 'hapi-scheduled-index-'))
+        const directory = mkdtempSync(join(tmpdir(), 'hamlet-scheduled-index-'))
         const path = join(directory, 'test.db')
         const store = new Store(path)
         let db: Database | undefined
@@ -37,7 +37,7 @@ describe('pending local message lookup index', () => {
         }
     })
     it('backfills an existing database and avoids a transcript scan without changing queue semantics', () => {
-        const directory = mkdtempSync(join(tmpdir(), 'hapi-pending-index-'))
+        const directory = mkdtempSync(join(tmpdir(), 'hamlet-pending-index-'))
         const path = join(directory, 'test.db')
         let store: Store | undefined
         let db: Database | undefined

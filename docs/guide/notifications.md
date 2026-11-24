@@ -4,14 +4,14 @@ Get notified when sessions need input, request permissions, fail, or complete �
 
 Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow notifications. The channels below are optional.
 
-## Web Push while HAPI is visible
+## Web Push while HAMLET is visible
 
 By default, a visible web client in your namespace receives an in-page toast
 instead of a system push notification. To receive both, start the Hub with:
 
 ```bash
-export HAPI_WEB_PUSH_FOREGROUND=true
-hapi hub
+export HAMLET_WEB_PUSH_FOREGROUND=true
+hamlet hub
 ```
 
 You can also set `"webPushForeground": true` in the Hub's `settings.json` and
@@ -29,7 +29,7 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 ## Local system notification fallback
 
 When notification permission is already allowed but the browser has no Web Push
-subscription (for example, its push service cannot be reached), an open HAPI page
+subscription (for example, its push service cannot be reached), an open HAMLET page
 can display system notifications directly from its live Hub connection. This works
 for visible and hidden tabs without minimizing the window. Multiple tabs share
 notification receipts so one event produces one local notification per browser
@@ -69,9 +69,9 @@ Enable Telegram notifications and Mini App access:
 
 ```bash
 export TELEGRAM_BOT_TOKEN="your-bot-token"
-export HAPI_PUBLIC_URL="https://your-public-url"
+export HAMLET_PUBLIC_URL="https://your-public-url"
 
-hapi hub
+hamlet hub
 ```
 
 Then message your bot with `/start`, open the app, and bind using
@@ -83,7 +83,7 @@ Related environment variables:
 
 **Troubleshooting:**
 
-- If binding fails, verify `HAPI_PUBLIC_URL` is accessible from the internet
+- If binding fails, verify `HAMLET_PUBLIC_URL` is accessible from the internet
 - Telegram Mini App requires HTTPS (not HTTP)
 
 ## ServerChan (Server酱) Setup
@@ -95,19 +95,19 @@ Server酱 pushes notifications to WeChat and other channels. The hub sends Serve
 
 ```bash
 export SERVERCHAN_SENDKEY="your-sendkey"
-export HAPI_PUBLIC_URL="https://your-public-url"
+export HAMLET_PUBLIC_URL="https://your-public-url"
 
-hapi hub
+hamlet hub
 ```
 
-Messages include a link back to the session, built from `HAPI_PUBLIC_URL`.
+Messages include a link back to the session, built from `HAMLET_PUBLIC_URL`.
 
 Related environment variables:
 
 - `SERVERCHAN_NOTIFICATION` - Enable/disable ServerChan notifications (default: `true`)
-- `SERVERCHAN_BACKGROUND_ONLY` - Only send ServerChan notifications when the namespace has no visible HAPI connection (default: `false`)
+- `SERVERCHAN_BACKGROUND_ONLY` - Only send ServerChan notifications when the namespace has no visible HAMLET connection (default: `false`)
 
-When `SERVERCHAN_BACKGROUND_ONLY=true`, a visible HAPI connection suppresses ServerChan for the entire namespace. Hidden, disconnected, or closed HAPI pages do not count as visible, so ServerChan can act as a background fallback. This is namespace-wide and does not select a particular device.
+When `SERVERCHAN_BACKGROUND_ONLY=true`, a visible HAMLET connection suppresses ServerChan for the entire namespace. Hidden, disconnected, or closed HAMLET pages do not count as visible, so ServerChan can act as a background fallback. This is namespace-wide and does not select a particular device.
 
 These values can also be set in `settings.json` (`serverChanSendKey`, `serverChanNotification`, `serverChanBackgroundOnly`).
 
@@ -120,7 +120,7 @@ Enable voice control:
 
 ```bash
 export ELEVENLABS_API_KEY="your-api-key"
-hapi hub --relay
+hamlet hub --relay
 ```
 
 See [Voice Assistant](./voice-assistant.md) for usage details.

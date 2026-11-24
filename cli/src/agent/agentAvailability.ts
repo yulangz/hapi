@@ -5,7 +5,7 @@ import {
     type AgentAvailabilityEntry,
     type AgentAvailabilityResponse,
     type AgentFlavor,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import { getDefaultClaudeCodePath } from '@/claude/sdk/utils'
 import { resolveCodexCommand } from '@/codex/utils/codexExecutable'
 import { resolveDshAcpCommand } from '@/dsh/utils/dshBackend'
@@ -27,8 +27,8 @@ function resolveLaunchSpec(agent: AgentFlavor, env: LaunchEnvironment, context: 
         // Remote Codex sessions launch app-server through this explicit
         // override. Validate the same command the session will actually use,
         // rather than falling back to an unrelated PATH/Desktop install.
-        if (context === 'runner' && env.HAPI_CODEX_APP_SERVER_BIN) {
-            return { command: env.HAPI_CODEX_APP_SERVER_BIN.trim(), args: [] }
+        if (context === 'runner' && env.HAMLET_CODEX_APP_SERVER_BIN) {
+            return { command: env.HAMLET_CODEX_APP_SERVER_BIN.trim(), args: [] }
         }
         return resolveCodexCommand(env)
     }
@@ -39,7 +39,7 @@ function resolveLaunchSpec(agent: AgentFlavor, env: LaunchEnvironment, context: 
 }
 
 function hasValidDshConfiguration(env: LaunchEnvironment): boolean {
-    const config = env.HAPI_DSH_ACP_CONFIG?.trim()
+    const config = env.HAMLET_DSH_ACP_CONFIG?.trim()
     if (!config) return true
     if (!isAbsolute(config)) return false
     try {
@@ -99,7 +99,7 @@ export function getAgentAvailability(
     return {
         agent,
         available: false,
-        reason: context === 'runner' && agent === 'codex' && Boolean(env.HAPI_CODEX_APP_SERVER_BIN)
+        reason: context === 'runner' && agent === 'codex' && Boolean(env.HAMLET_CODEX_APP_SERVER_BIN)
             ? 'invalid_configuration'
             : 'not_found',
     }

@@ -113,11 +113,11 @@ describe('buildCliArgs', () => {
         expect(args).not.toContain('--service-tier')
     })
 
-    it('passes existing Hapi session id separately from Codex resume thread', () => {
+    it('passes existing Hamlet session id separately from Codex resume thread', () => {
         const args = buildCliArgs('codex', {
             directory: '/tmp',
             resumeSessionId: 'codex-thread-1',
-            existingSessionId: 'hapi-session-1',
+            existingSessionId: 'hamlet-session-1',
             model: 'gpt-5.5',
             modelReasoningEffort: 'low',
         })
@@ -128,7 +128,7 @@ describe('buildCliArgs', () => {
             '--started-by',
             'runner',
             '--existing-session-id',
-            'hapi-session-1',
+            'hamlet-session-1',
             '--model',
             'gpt-5.5',
             '--model-reasoning-effort',
@@ -138,38 +138,38 @@ describe('buildCliArgs', () => {
 
 
 
-    it('passes the preallocated HAPI id to OpenCode without resuming its native session', () => {
+    it('passes the preallocated HAMLET id to OpenCode without resuming its native session', () => {
         const args = buildCliArgs('opencode', {
             directory: '/tmp',
-            existingSessionId: 'fresh-hapi-session',
+            existingSessionId: 'fresh-hamlet-session',
         })
 
         expect(args).toContain('--existing-session-id')
-        expect(args).toContain('fresh-hapi-session')
+        expect(args).toContain('fresh-hamlet-session')
         expect(args).not.toContain('--resume')
     })
 
-    it('passes the existing HAPI row id when resuming OpenCode', () => {
+    it('passes the existing HAMLET row id when resuming OpenCode', () => {
         const args = buildCliArgs('opencode', {
             directory: '/tmp',
             resumeSessionId: 'opencode-session-1',
-            existingSessionId: 'hapi-session-1',
+            existingSessionId: 'hamlet-session-1',
         })
         expect(args).toContain('--resume')
         expect(args).toContain('opencode-session-1')
         expect(args).toContain('--existing-session-id')
-        expect(args).toContain('hapi-session-1')
-        expect(args).not.toContain('--hapi-session-id')
+        expect(args).toContain('hamlet-session-1')
+        expect(args).not.toContain('--hamlet-session-id')
     })
 
     it('passes --existing-session-id for cursor resume when sessionId is set (#991)', () => {
         const args = buildCliArgs('cursor', {
             directory: '/tmp',
             resumeSessionId: 'cursor-csid-1',
-            sessionId: 'hapi-session-991',
+            sessionId: 'hamlet-session-991',
         })
         expect(args).toContain('--existing-session-id')
-        expect(args).toContain('hapi-session-991')
+        expect(args).toContain('hamlet-session-991')
         expect(args).toContain('--resume')
         expect(args).toContain('cursor-csid-1')
     })
@@ -213,8 +213,8 @@ describe('buildCliArgs', () => {
     })
 
     it('skips --cursor-worktree when directory is already a linked git worktree', () => {
-        const main = mkdtempSync(join(tmpdir(), 'hapi-cliargs-main-'))
-        const linkedParent = mkdtempSync(join(tmpdir(), 'hapi-cliargs-wt-'))
+        const main = mkdtempSync(join(tmpdir(), 'hamlet-cliargs-main-'))
+        const linkedParent = mkdtempSync(join(tmpdir(), 'hamlet-cliargs-wt-'))
         const linked = join(linkedParent, 'feature')
         const gitEnv = {
             ...process.env,
@@ -266,17 +266,17 @@ describe('buildCliArgs', () => {
         expect(args[0]).toBe('pi')
     })
 
-    it('reuses the original HAPI row for Pi native resume', () => {
+    it('reuses the original HAMLET row for Pi native resume', () => {
         const args = buildCliArgs('pi', {
             directory: '/tmp',
             resumeSessionId: 'pi-native-session-1',
-            existingSessionId: 'hapi-session-pi-1',
+            existingSessionId: 'hamlet-session-pi-1',
         })
 
         expect(args).toContain('--session-id')
         expect(args).toContain('pi-native-session-1')
         expect(args).toContain('--existing-session-id')
-        expect(args).toContain('hapi-session-pi-1')
+        expect(args).toContain('hamlet-session-pi-1')
     })
 
     it('still passes --resume for claude when resumeSessionId is provided', () => {
@@ -294,7 +294,7 @@ describe('buildCliArgs', () => {
         const args = buildCliArgs('claude', {
             directory: '/tmp',
             resumeSessionId: 'claude-source-id',
-            existingSessionId: 'hapi-child-id',
+            existingSessionId: 'hamlet-child-id',
             forkSession: true,
         })
         expect(args).toContain('--resume')
@@ -302,7 +302,7 @@ describe('buildCliArgs', () => {
         expect(args).toContain('--fork-session')
         expect(args.indexOf('--fork-session')).toBeGreaterThan(args.indexOf('--resume'))
         expect(args).toContain('--existing-session-id')
-        expect(args).toContain('hapi-child-id')
+        expect(args).toContain('hamlet-child-id')
     })
 
     it('passes --effort for pi agent', () => {
@@ -335,7 +335,7 @@ describe('buildCliArgs', () => {
         expect(args).toEqual([
             'grok',
             '--resume', 'grok-session-1',
-            '--hapi-starting-mode', 'remote',
+            '--hamlet-starting-mode', 'remote',
             '--started-by', 'runner',
             '--model', 'grok-4.5',
             '--effort', 'low',
@@ -350,7 +350,7 @@ describe('buildCliArgs', () => {
         })
         expect(args).toContain('--existing-session-id')
         expect(args[args.indexOf('--existing-session-id') + 1]).toBe('existing-hub-id')
-        expect(args).not.toContain('--hapi-session-id')
+        expect(args).not.toContain('--hamlet-session-id')
     })
 
     it('builds a remote DSH ACP runner command without unsupported policy flags', () => {
@@ -362,19 +362,19 @@ describe('buildCliArgs', () => {
         }, true)
         expect(args).toEqual([
             'dsh',
-            '--hapi-starting-mode', 'remote',
+            '--hamlet-starting-mode', 'remote',
             '--started-by', 'runner',
             '--existing-session-id', 'existing-hub-id'
         ])
     })
 
-    it('does not emit --hapi-session-id for a non-pty flavor', () => {
+    it('does not emit --hamlet-session-id for a non-pty flavor', () => {
         const args = buildCliArgs('opencode', {
             directory: '/tmp',
             existingSessionId: 'existing-hub-id',
             startingMode: 'remote',
         })
-        expect(args).not.toContain('--hapi-session-id')
+        expect(args).not.toContain('--hamlet-session-id')
     })
 
 })
@@ -388,13 +388,13 @@ describe('createSpawnDeduplicator', () => {
             return { type: 'success' as const, sessionId: 'duplicate' }
         })
 
-        dedupe.recoverChild('fresh-hapi-session', {
+        dedupe.recoverChild('fresh-hamlet-session', {
             type: 'error',
-            errorMessage: 'Session fresh-hapi-session is still starting'
+            errorMessage: 'Session fresh-hamlet-session is still starting'
         })
 
-        await expect(dedupe({ directory: '/tmp', existingSessionId: 'fresh-hapi-session' })).resolves.toEqual({
-            type: 'error', errorMessage: 'Session fresh-hapi-session is still starting'
+        await expect(dedupe({ directory: '/tmp', existingSessionId: 'fresh-hamlet-session' })).resolves.toEqual({
+            type: 'error', errorMessage: 'Session fresh-hamlet-session is still starting'
         })
         expect(calls).toBe(0)
     })
@@ -409,15 +409,15 @@ describe('createSpawnDeduplicator', () => {
             })
         })
 
-        const first = dedupe({ directory: '/tmp', existingSessionId: 'fresh-hapi-session' })
-        const concurrentRetry = dedupe({ directory: '/tmp', existingSessionId: 'fresh-hapi-session' })
+        const first = dedupe({ directory: '/tmp', existingSessionId: 'fresh-hamlet-session' })
+        const concurrentRetry = dedupe({ directory: '/tmp', existingSessionId: 'fresh-hamlet-session' })
         expect(calls).toBe(1)
-        resolveSpawn?.({ type: 'success', sessionId: 'fresh-hapi-session' })
-        await expect(first).resolves.toEqual({ type: 'success', sessionId: 'fresh-hapi-session' })
-        await expect(concurrentRetry).resolves.toEqual({ type: 'success', sessionId: 'fresh-hapi-session' })
+        resolveSpawn?.({ type: 'success', sessionId: 'fresh-hamlet-session' })
+        await expect(first).resolves.toEqual({ type: 'success', sessionId: 'fresh-hamlet-session' })
+        await expect(concurrentRetry).resolves.toEqual({ type: 'success', sessionId: 'fresh-hamlet-session' })
 
-        await expect(dedupe({ directory: '/tmp', existingSessionId: 'fresh-hapi-session' })).resolves.toEqual({
-            type: 'success', sessionId: 'fresh-hapi-session'
+        await expect(dedupe({ directory: '/tmp', existingSessionId: 'fresh-hamlet-session' })).resolves.toEqual({
+            type: 'success', sessionId: 'fresh-hamlet-session'
         })
         expect(calls).toBe(1)
     })
@@ -426,12 +426,12 @@ describe('createSpawnDeduplicator', () => {
         let calls = 0
         const dedupe = createSpawnDeduplicator(async () => {
             calls += 1
-            return { type: 'error' as const, errorMessage: 'Failed to spawn HAPI process - no PID returned' }
+            return { type: 'error' as const, errorMessage: 'Failed to spawn HAMLET process - no PID returned' }
         })
 
-        const options = { directory: '/tmp', existingSessionId: 'fresh-hapi-session' }
-        await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Failed to spawn HAPI process - no PID returned' })
-        await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Failed to spawn HAPI process - no PID returned' })
+        const options = { directory: '/tmp', existingSessionId: 'fresh-hamlet-session' }
+        await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Failed to spawn HAMLET process - no PID returned' })
+        await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Failed to spawn HAMLET process - no PID returned' })
 
         expect(calls).toBe(2)
     })
@@ -445,12 +445,12 @@ describe('createSpawnDeduplicator', () => {
             return { type: 'error' as const, errorMessage: 'Session webhook timeout' }
         })
 
-        const options = { directory: '/tmp', existingSessionId: 'fresh-hapi-session' }
+        const options = { directory: '/tmp', existingSessionId: 'fresh-hamlet-session' }
         await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Session webhook timeout' })
         await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Session webhook timeout' })
         expect(calls).toBe(1)
 
-        dedupe.onChildExited('fresh-hapi-session')
+        dedupe.onChildExited('fresh-hamlet-session')
         await expect(dedupe(options)).resolves.toEqual({ type: 'error', errorMessage: 'Session webhook timeout' })
         expect(calls).toBe(2)
     })
@@ -461,19 +461,19 @@ describe('createSpawnDeduplicator', () => {
         dedupe = createSpawnDeduplicator(async (options) => {
             calls += 1
             dedupe.markChildAlive(options.existingSessionId!)
-            return { type: 'success' as const, sessionId: 'fresh-hapi-session' }
+            return { type: 'success' as const, sessionId: 'fresh-hamlet-session' }
         })
 
-        const options = { directory: '/tmp', existingSessionId: 'fresh-hapi-session' }
-        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hapi-session' })
+        const options = { directory: '/tmp', existingSessionId: 'fresh-hamlet-session' }
+        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hamlet-session' })
 
         // stopSession() has only requested termination; the child can still be alive.
-        dedupe.markChildStopping('fresh-hapi-session')
-        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hapi-session' })
+        dedupe.markChildStopping('fresh-hamlet-session')
+        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hamlet-session' })
         expect(calls).toBe(1)
 
-        dedupe.onChildExited('fresh-hapi-session')
-        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hapi-session' })
+        dedupe.onChildExited('fresh-hamlet-session')
+        await expect(dedupe(options)).resolves.toEqual({ type: 'success', sessionId: 'fresh-hamlet-session' })
         expect(calls).toBe(2)
     })
 })
@@ -495,13 +495,13 @@ describe('releaseRecoveredSpawnDedupe', () => {
         let calls = 0
         const dedupe = createSpawnDeduplicator(async () => {
             calls += 1
-            return { type: 'success' as const, sessionId: 'fresh-hapi-session' }
+            return { type: 'success' as const, sessionId: 'fresh-hamlet-session' }
         })
-        dedupe.recoverChild('fresh-hapi-session', { type: 'success', sessionId: 'fresh-hapi-session' })
-        const recovered = new Map([[123, 'fresh-hapi-session']])
+        dedupe.recoverChild('fresh-hamlet-session', { type: 'success', sessionId: 'fresh-hamlet-session' })
+        const recovered = new Map([[123, 'fresh-hamlet-session']])
 
         releaseRecoveredSpawnDedupe(123, recovered, dedupe)
-        await dedupe({ directory: '/tmp', existingSessionId: 'fresh-hapi-session' })
+        await dedupe({ directory: '/tmp', existingSessionId: 'fresh-hamlet-session' })
 
         expect(calls).toBe(1)
         expect(recovered.has(123)).toBe(false)

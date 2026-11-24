@@ -14,7 +14,7 @@ import tempfile
 import uuid
 from pathlib import Path
 
-CATALOG = Path(__file__).resolve().parents[1] / "Hapi/Resources/Localizable.xcstrings"
+CATALOG = Path(__file__).resolve().parents[1] / "Hamlet/Resources/Localizable.xcstrings"
 
 
 def parse_catalog(content):
@@ -47,7 +47,7 @@ def normalize(data):
     for entry in expected["strings"].values():
         entry["extractionState"] = "manual"
 
-    with tempfile.TemporaryDirectory(prefix="hapi-localizations-") as directory:
+    with tempfile.TemporaryDirectory(prefix="hamlet-localizations-") as directory:
         directory = Path(directory)
         catalog = directory / "Localizable.xcstrings"
         empty_extraction = directory / "Empty.stringsdata"
@@ -56,7 +56,7 @@ def normalize(data):
         # sync does not serialize an unchanged catalog. An untranslated automatic
         # placeholder is removed by the empty extraction, forcing a native save.
         # This only exists in the temporary copy, never in the source catalog.
-        placeholder = f"__hapi_format_{uuid.uuid4()}__"
+        placeholder = f"__hamlet_format_{uuid.uuid4()}__"
         temporary["strings"][placeholder] = {}
         catalog.write_text(json.dumps(temporary, ensure_ascii=False), encoding="utf-8")
         subprocess.run([

@@ -60,18 +60,18 @@ export class ApnsJwtProvider {
 /**
  * APNs request body. The generic alert is the no-decrypt fallback: if the
  * device's Notification Service Extension cannot run (or decryption fails),
- * iOS still shows "HAPI / New activity" instead of leaking nothing at all.
+ * iOS still shows "HAMLET / New activity" instead of leaking nothing at all.
  * `mutable-content: 1` is what invokes the extension so it can decrypt
- * `hapi.e` and replace title/body with the real content.
+ * `hamlet.e` and replace title/body with the real content.
  */
 export function buildApnsRequestBody(envelope: string): Record<string, unknown> {
     return {
         aps: {
             'mutable-content': 1,
-            alert: { title: 'HAPI', body: 'New activity' },
+            alert: { title: 'HAMLET', body: 'New activity' },
             sound: 'default'
         },
-        hapi: { v: 1, e: envelope }
+        hamlet: { v: 1, e: envelope }
     }
 }
 

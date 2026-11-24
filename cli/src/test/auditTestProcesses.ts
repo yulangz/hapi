@@ -5,7 +5,7 @@
  * the per-test registry (see `processRegistry.ts`), an orphan whose runner was
  * already killed, or a child that escaped a crashing test, can survive the
  * suite. This module is the last-resort backstop: it scans the live process
- * table for the run's unique marker (`HAPI_TEST_MARKER=<tmpHome>`, injected by
+ * table for the run's unique marker (`HAMLET_TEST_MARKER=<tmpHome>`, injected by
  * `integrationEnv.ts` into every test child) and force-reaps whatever remains.
  *
  * The marker lives in the process environment, which survives reparenting to

@@ -109,7 +109,7 @@ function readWmicCommandLine(stdout: string): string | null {
  */
 export type RunnerProcessIdentity = 'runner' | 'foreign' | 'unknown' | 'dead';
 
-export function getHapiRunnerProcessIdentity(pid: number): RunnerProcessIdentity {
+export function getHamletRunnerProcessIdentity(pid: number): RunnerProcessIdentity {
   if (!isProcessAlive(pid)) {
     return 'dead';
   }

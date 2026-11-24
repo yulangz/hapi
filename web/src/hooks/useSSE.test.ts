@@ -185,7 +185,7 @@ function makeSummary(overrides: Partial<SessionSummary> = {}): SessionSummary {
     } as SessionSummary
 }
 
-describe('canApplyVersionedSummaryPatch (PR #897 review, HAPI Bot 2026-07-23 Major)', () => {
+describe('canApplyVersionedSummaryPatch (PR #897 review, HAMLET Bot 2026-07-23 Major)', () => {
     it('allows non-versioned patches without a detail cache', () => {
         expect(canApplyVersionedSummaryPatch({}, false)).toBe(true)
         expect(canApplyVersionedSummaryPatch({ metadata: undefined, agentState: undefined }, false)).toBe(true)
@@ -237,7 +237,7 @@ describe('canApplyVersionedSummaryPatch (PR #897 review, HAPI Bot 2026-07-23 Maj
     })
 })
 
-describe('isNewerVersionedPatch (PR #897 review, HAPI Bot 2026-06-16 Major)', () => {
+describe('isNewerVersionedPatch (PR #897 review, HAMLET Bot 2026-06-16 Major)', () => {
     // Pin the version-monotonicity contract for structured metadata /
     // agentState patches. Without this gate, an SSE reconnect that replays
     // a buffered older patch after a fresh REST refetch would regress the

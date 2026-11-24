@@ -4,10 +4,18 @@ import type { HappyChatMessageMetadata } from '@/lib/assistant-runtime'
 import { MessageStatusIndicator } from '@/components/AssistantChat/messages/MessageStatusIndicator'
 import { MessageAttachments } from '@/components/AssistantChat/messages/MessageAttachments'
 import { UserBubbleContent, getUserBubbleClassName, shouldShowMessageStatus } from '@/components/AssistantChat/messages/user-bubble'
+import { GeneratedImageCard } from './ToolMessage'
 import { CliOutputBlock } from '@/components/CliOutputBlock'
 import { getConversationMessageAnchorId } from '@/chat/outline'
 import { MessageActions } from '@/components/AssistantChat/messages/MessageActions'
 import { useTranslation } from '@/lib/use-translation'
+
+const inputAccents = {
+    initial: 'border-violet-500 bg-violet-500/10',
+    message: 'border-sky-500 bg-sky-500/10',
+    doorbell: 'border-emerald-500 bg-emerald-500/10',
+    timer: 'border-amber-500 bg-amber-500/10',
+}
 
 export function HappyUserMessage() {
     const ctx = useHappyChatContext()
@@ -34,6 +42,7 @@ export function HappyUserMessage() {
         const custom = s.message.metadata.custom as Partial<HappyChatMessageMetadata> | undefined
         return custom?.attachments
     })
+    const source = useAuiState(({ message }) => (message.metadata.custom as Partial<HappyChatMessageMetadata> | undefined)?.hamlet)
     const isCliOutput = useAuiState((s) => {
         const custom = s.message.metadata.custom as Partial<HappyChatMessageMetadata> | undefined
         return custom?.kind === 'cli-output'
@@ -77,11 +86,33 @@ export function HappyUserMessage() {
         && ctx.onRewindConversation
     )
 
+    if (source) {
+        return (
+            <MessagePrimitive.Root id={elementId} data-hamlet-message-role="user" data-hamlet-input={source.kind}
+                className="happy-message flex flex-col items-start scroll-mt-4">
+                <div className={`min-w-0 max-w-[92%] rounded-r-lg border-l-2 px-3 py-2 ${inputAccents[source.kind]}`}>
+                    <div className="mb-1 break-words text-xs font-semibold">
+                        {[t(`hamlet.input.${source.kind}`), source.sender, source.group].filter(Boolean).join(' · ')}
+                    </div>
+                    {text && <div className="happy-chat-text whitespace-pre-wrap break-words">{text}</div>}
+                    {source.images.map((image, index) => (
+                        <figure key={index} className="mt-2">
+                            <GeneratedImageCard block={{ kind: 'generated-image', id: image.id, localId: null,
+                                imageId: 'hamlet:' + image.id, createdAt: 0, fileName: image.name, mimeType: image.mime }} />
+                            {image.caption && <figcaption className="text-sm">{image.caption}</figcaption>}
+                        </figure>
+                    ))}
+                </div>
+                <MessageActions align="start" copyText={text} messageElementId={elementId} />
+            </MessagePrimitive.Root>
+        )
+    }
+
     if (isCliOutput) {
         return (
             <MessagePrimitive.Root
                 id={elementId}
-                data-hapi-message-role="user"
+                data-hamlet-message-role="user"
                 className="happy-message scroll-mt-4 px-1 min-w-0 max-w-full overflow-x-hidden"
             >
                 <div className="ml-auto w-full max-w-[92%]">
@@ -98,7 +129,7 @@ export function HappyUserMessage() {
     return (
         <MessagePrimitive.Root
             id={elementId}
-            data-hapi-message-role="user"
+            data-hamlet-message-role="user"
             className="happy-message flex flex-col items-end scroll-mt-4"
         >
             <div className={getUserBubbleClassName(status)}>

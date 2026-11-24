@@ -26,7 +26,7 @@ function launchOptions() {
 }
 
 const baseUrl = 'http://127.0.0.1:3006'
-const storageKey = `hapi_access_token::${baseUrl}`
+const storageKey = `hamlet_access_token::${baseUrl}`
 const url = `${baseUrl}/sessions/${sessionId}`
 const browser = await chromium.launch(launchOptions())
 const context = await browser.newContext({

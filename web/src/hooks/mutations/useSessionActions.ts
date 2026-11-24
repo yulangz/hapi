@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { isPermissionModeAllowedForFlavor } from '@hapi/protocol'
+import { isPermissionModeAllowedForFlavor } from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import type { CodexCollaborationMode, CopilotAgentMode, PermissionMode, SessionResponse, SessionsResponse } from '@/types/api'
-import type { ReopenSessionResponse } from '@hapi/protocol/apiTypes'
+import type { ReopenSessionResponse } from '@hamlet/protocol/apiTypes'
 import { queryKeys } from '@/lib/query-keys'
 import { clearMessageWindow } from '@/lib/message-window-store'
-import { isKnownFlavor } from '@hapi/protocol'
+import { isKnownFlavor } from '@hamlet/protocol'
 
 export const sessionModelMutationKey = (sessionId: string) => ['session-model', sessionId] as const
 

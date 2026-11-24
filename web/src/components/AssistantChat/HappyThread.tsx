@@ -34,7 +34,7 @@ import { formatSessionHeaderTimestamp } from '@/lib/sessionHeaderTimestamp'
 import { getShareTurnReasoningLabel, selectShareTurnMetadata } from '@/lib/shareTurnMetadata'
 import { useMinuteTick } from '@/hooks/useMinuteTick'
 import { queryKeys } from '@/lib/query-keys'
-import { matchesSearchQuery } from '@hapi/protocol'
+import { matchesSearchQuery } from '@hamlet/protocol'
 
 type ScrollAnchor = {
     id: string
@@ -79,7 +79,7 @@ export function isNestedScrollEvent(event: Event): boolean {
         : typeof Node !== 'undefined' && target instanceof Node
             ? target.parentElement
             : null
-    return element?.closest('[data-hapi-nested-scroll="true"]') != null
+    return element?.closest('[data-hamlet-nested-scroll="true"]') != null
 }
 
 function findNearestMessageElement(content: HTMLElement, clientY?: number): HTMLElement | null {
@@ -112,7 +112,7 @@ export function prependMissingUserSnapshot(
     fallbackSnapshot?: ShareTurnSnapshot
 ): ShareTurnSnapshot[] {
     const hasUser = snapshots.some((snapshot) =>
-        snapshot.role === 'user' || snapshot.html.includes('data-hapi-message-role="user"')
+        snapshot.role === 'user' || snapshot.html.includes('data-hamlet-message-role="user"')
     )
     if (hasUser || fallbackSnapshot?.role !== 'user' || fallbackSnapshot.text.trim().length === 0) {
         return snapshots
@@ -1653,20 +1653,20 @@ export function HappyThread(props: {
         }
 
         let start: Element | null = target
-        while (start?.previousElementSibling && start.getAttribute('data-hapi-message-role') !== 'user') {
+        while (start?.previousElementSibling && start.getAttribute('data-hamlet-message-role') !== 'user') {
             start = start.previousElementSibling
         }
-        if (!start || start.getAttribute('data-hapi-message-role') !== 'user') {
+        if (!start || start.getAttribute('data-hamlet-message-role') !== 'user') {
             start = target
         }
 
         const snapshots: ShareTurnSnapshot[] = []
         let current: Element | null = start
         while (current instanceof HTMLElement) {
-            if (current !== start && current.getAttribute('data-hapi-message-role') === 'user') {
+            if (current !== start && current.getAttribute('data-hamlet-message-role') === 'user') {
                 break
             }
-            const role = current.getAttribute('data-hapi-message-role')
+            const role = current.getAttribute('data-hamlet-message-role')
             if (role === 'user' || role === 'assistant') {
                 snapshots.push({
                     html: current.outerHTML,

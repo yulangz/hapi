@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { WORK_GRAPH_MAX_STRING, WORK_GRAPH_MAX_SUMMARY } from '@hapi/protocol'
-import type { SyncEvent } from '@hapi/protocol/types'
+import { WORK_GRAPH_MAX_STRING, WORK_GRAPH_MAX_SUMMARY } from '@hamlet/protocol'
+import type { SyncEvent } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import type { EventPublisher } from './eventPublisher'
 import { SessionCache } from './sessionCache'
@@ -101,7 +101,7 @@ describe('buildWorkAdFromNotify field mapping', () => {
                 summary: 'Opened PR',
                 action: 'review diff',
                 agent: 'peer-a',
-                project: 'hapi'
+                project: 'hamlet'
             }
         })
 
@@ -116,12 +116,12 @@ describe('buildWorkAdFromNotify field mapping', () => {
             id: 'session:sess-1',
             on_behalf_of: '42'
         })
-        expect(create.tags).toContain('project:hapi')
+        expect(create.tags).toContain('project:hamlet')
         expect(create.tags).toContain('agent:peer-a')
         expect(create.payload_json).toMatchObject({
             status: 'done',
             action: 'review diff',
-            project: 'hapi',
+            project: 'hamlet',
             agent: 'peer-a',
             messageId: 'msg-1'
         })
@@ -149,7 +149,7 @@ describe('ingestNotifySummaryFromMessage', () => {
         const store = new Store(':memory:')
         const session = store.sessions.getOrCreateSession('sess-ingest', {}, null, 'alpha')
         const content = assistantOutput(
-            'All good.\n\nAGENT_NOTIFY_SUMMARY {"version":1,"status":"done","action":"ship it","summary":"Tests green","agent":"worker","project":"hapi"}'
+            'All good.\n\nAGENT_NOTIFY_SUMMARY {"version":1,"status":"done","action":"ship it","summary":"Tests green","agent":"worker","project":"hamlet"}'
         )
 
         const result = ingestNotifySummaryFromMessage({

@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 
 export type AskUserQuestionOption = {
     /** Stable option id from agent protocol (Cursor ACP); falls back to label in UI submit. */

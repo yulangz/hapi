@@ -1,4 +1,4 @@
-import { isClaudeModelPreset } from '@hapi/protocol'
+import { isClaudeModelPreset } from '@hamlet/protocol'
 
 /**
  * Context windows vary by model/provider and may change over time.

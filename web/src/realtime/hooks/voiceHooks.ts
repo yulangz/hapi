@@ -11,7 +11,7 @@ import {
 } from './contextFormatters'
 import { VOICE_CONFIG } from '../voiceConfig'
 import { buildSessionVoiceContextPlan, type SessionVoiceContextPlan } from './voiceContextPlan'
-import { getFlavorLabel, isKnownFlavor } from '@hapi/protocol'
+import { getFlavorLabel, isKnownFlavor } from '@hamlet/protocol'
 import type { DecryptedMessage, Session, SessionMetadataSummary } from '@/types/api'
 
 interface SessionMetadata {
@@ -170,7 +170,7 @@ export const voiceHooks = {
         const messages = messagesGetter?.(sessionId) ?? []
         const lastAssistantText = extractLastAssistantSpeakable(messages)
         const update = formatReadyEvent(sessionId, lastAssistantText)
-        const proactive = localStorage.getItem('hapi-voice-proactive') === 'true'
+        const proactive = localStorage.getItem('hamlet-voice-proactive') === 'true'
         if (proactive) {
             reportTextUpdate(update)
         } else {

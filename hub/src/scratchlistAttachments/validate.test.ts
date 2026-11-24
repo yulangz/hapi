@@ -8,7 +8,7 @@ import {
     SCRATCHLIST_ATTACHMENT_DEFAULT_MAX_BYTES_PER_FILE,
     SCRATCHLIST_ATTACHMENT_DEFAULT_MAX_BYTES_PER_SESSION,
     SCRATCHLIST_ATTACHMENT_DEFAULT_MAX_PER_ENTRY,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 
 const limits = {
     maxAttachmentsPerEntry: SCRATCHLIST_ATTACHMENT_DEFAULT_MAX_PER_ENTRY,
@@ -37,7 +37,7 @@ describe('scratchlistSessionBytesBeforeForPut', () => {
                 filename: 'new.png',
                 mimeType: 'image/png',
                 size: eightMb,
-                path: 'hapi-hub:scratchlist/default/s/11111111-1111-4111-8111-111111111111-new.png',
+                path: 'hamlet-hub:scratchlist/default/s/11111111-1111-4111-8111-111111111111-new.png',
             }],
             { ...limits, maxBytesPerSession: 10 * 1024 * 1024 },
             sessionBytesBefore,
@@ -51,7 +51,7 @@ describe('scratchlistSessionBytesBeforeForPut', () => {
                 filename: 'new.png',
                 mimeType: 'image/png',
                 size: eightMb,
-                path: 'hapi-hub:scratchlist/default/s/11111111-1111-4111-8111-111111111111-new.png',
+                path: 'hamlet-hub:scratchlist/default/s/11111111-1111-4111-8111-111111111111-new.png',
             }],
             { ...limits, maxBytesPerSession: 10 * 1024 * 1024 },
             naiveBefore,
@@ -73,7 +73,7 @@ describe('scratchlistSessionBytesBeforeForPut', () => {
                 filename: 'big.png',
                 mimeType: 'image/png',
                 size: eightMb,
-                path: 'hapi-hub:scratchlist/default/s/22222222-2222-4222-8222-222222222222-big.png',
+                path: 'hamlet-hub:scratchlist/default/s/22222222-2222-4222-8222-222222222222-big.png',
             }],
             { ...limits, maxBytesPerSession: 10 * 1024 * 1024 },
             sessionBytesBefore,

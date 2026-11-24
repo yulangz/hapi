@@ -193,17 +193,17 @@ vi.mock('@/agent/permissionAdapter', () => ({
     }
 }));
 
-vi.mock('@/codex/utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async () => ({
+vi.mock('@/codex/utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async () => ({
         server: { stop: () => {} },
         mcpServers: {
-            hapi: { command: 'hapi', args: ['mcp', '--url', 'http://127.0.0.1:1/'] },
+            hamlet: { command: 'hamlet', args: ['mcp', '--url', 'http://127.0.0.1:1/'] },
         },
     }),
 }));
 
 vi.mock('./utils/cursorMcpOverlay', () => ({
-    cursorHapiMcpServerId: (sessionId: string) => `hapi-${sessionId}`,
+    cursorHamletMcpServerId: (sessionId: string) => `hamlet-${sessionId}`,
     installCursorMcpOverlay: () => {
         harness.overlayCleanup = vi.fn();
         return { cleanup: harness.overlayCleanup };
@@ -220,7 +220,7 @@ vi.mock('@/ui/logger', () => ({
 
 import { classifyCursorAcpLoadError, cursorAcpRemoteLauncher } from './cursorAcpRemoteLauncher';
 import { createCursorAcpBackend } from './utils/cursorAcpBackend';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { CursorSession } from './session';
 import { ApiSessionClient } from '@/api/apiSession';
 import {

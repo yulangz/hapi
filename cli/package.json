@@ -1,5 +1,5 @@
 {
-  "name": "@twsxtd/hapi",
+  "name": "@twsxtd/hamlet",
   "version": "0.30.7",
   "description": "App for agentic coding - access coding agent anywhere",
   "author": "Kirill Dubovitskiy & weishu",
@@ -13,10 +13,10 @@
     "directory": "cli"
   },
   "bin": {
-    "hapi": "bin/hapi.cjs"
+    "hamlet": "bin/hamlet.cjs"
   },
   "files": [
-    "bin/hapi.cjs",
+    "bin/hamlet.cjs",
     "NOTICE"
   ],
   "imports": {
@@ -25,15 +25,8 @@
       "default": "./src/runtime/embeddedAssets.stub.ts"
     }
   },
-  "optionalDependencies": {
-    "@twsxtd/hapi-darwin-arm64": "0.30.7",
-    "@twsxtd/hapi-darwin-x64": "0.30.7",
-    "@twsxtd/hapi-linux-arm64": "0.30.7",
-    "@twsxtd/hapi-linux-x64": "0.30.7",
-    "@twsxtd/hapi-win32-x64": "0.30.7"
-  },
   "scripts": {
-    "postinstall": "node -e \"try{require('fs').chmodSync(require('path').join(__dirname,'bin','hapi.cjs'),0o755)}catch(e){}\"",
+    "postinstall": "node -e \"try{require('fs').chmodSync(require('path').join(__dirname,'bin','hamlet.cjs'),0o755)}catch(e){}\"",
     "typecheck": "tsc --noEmit",
     "build:exe": "bun run scripts/build-executable.ts",
     "build:exe:all": "bun run scripts/build-executable.ts --all",
@@ -45,7 +38,7 @@
     "update-homebrew-formula": "bun run scripts/update-homebrew-formula.ts",
     "test": "bun run tools:unpack && vitest run",
     "test:integration": "bun run tools:unpack && vitest run --config vitest.integration.config.ts",
-    "test:integration:stress": "bun run tools:unpack && HAPI_RUN_STRESS_TESTS=true vitest run --config vitest.integration.config.ts",
+    "test:integration:stress": "bun run tools:unpack && HAMLET_RUN_STRESS_TESTS=true vitest run --config vitest.integration.config.ts",
     "test:win": "vitest run",
     "dev": "bun src/index.ts",
     "dev:local-server": "bun --env-file .env.dev-local-server src/index.ts",
@@ -53,7 +46,7 @@
     "release-all": "bun run scripts/release-all.ts"
   },
   "dependencies": {
-    "@hapi/protocol": "workspace:*",
+    "@hamlet/protocol": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.1",
     "@types/cross-spawn": "^6.0.6",
     "@types/ps-list": "^6.2.1",
@@ -63,7 +56,7 @@
     "cross-spawn": "^7.0.6",
     "fastify": "^5.6.2",
     "fastify-type-provider-zod": "6.1.0",
-    "hapi-hub": "workspace:*",
+    "hamlet-hub": "workspace:*",
     "ink": "^6.6.0",
     "ps-list": "^9.0.0",
     "react": "^19.2.3",

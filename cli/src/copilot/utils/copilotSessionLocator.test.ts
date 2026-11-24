@@ -22,11 +22,11 @@ describe('parseCopilotWorkspaceYaml', () => {
     it('reads id and cwd fields', () => {
         expect(parseCopilotWorkspaceYaml([
             'id: abc-123',
-            'cwd: /home/ubuntu/hapi',
+            'cwd: /home/ubuntu/hamlet',
             'branch: main'
         ].join('\n'))).toEqual({
             id: 'abc-123',
-            cwd: '/home/ubuntu/hapi'
+            cwd: '/home/ubuntu/hamlet'
         });
     });
 

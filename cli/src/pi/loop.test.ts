@@ -293,7 +293,7 @@ describe('wireTransportEvents', () => {
         expect(session.client.emitSessionReady).toHaveBeenCalledTimes(1);
     });
 
-    it('syncs a native sessionName from get_state as the HAPI title', () => {
+    it('syncs a native sessionName from get_state as the HAMLET title', () => {
         const transport = createMockTransport();
         wireTransportEvents(transport, session, []);
 
@@ -311,7 +311,7 @@ describe('wireTransportEvents', () => {
         });
     });
 
-    it('syncs a live native rename from session_info_changed as the HAPI title', () => {
+    it('syncs a live native rename from session_info_changed as the HAMLET title', () => {
         const transport = createMockTransport();
         wireTransportEvents(transport, session, []);
 
@@ -1303,7 +1303,7 @@ describe('Pi settlement compatibility fallbacks', () => {
         expect(h.stateSession.piIsStreaming).toBe(false);
 
         // Pi wakes up on its own (subagent completion, scheduled work) with no
-        // HAPI prompt in flight. Its settlement must not be swallowed by the
+        // HAMLET prompt in flight. Its settlement must not be swallowed by the
         // already-delivered previous cycle, or thinking stays true forever.
         h.emit({ type: 'agent_start' });
         expect(h.stateSession.piIsStreaming).toBe(true);

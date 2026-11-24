@@ -119,7 +119,7 @@ describe('AttachmentItem', () => {
         expect(dragHandle.parentElement).toHaveClass('gap-1.5', 'px-2')
 
         for (const control of [dragHandle, removeButton]) {
-            expect(control).toHaveClass('hapi-composer-attachment-file-control', 'h-6', 'w-6', '-mx-1', 'items-center')
+            expect(control).toHaveClass('hamlet-composer-attachment-file-control', 'h-6', 'w-6', '-mx-1', 'items-center')
             expect(control).not.toHaveClass('absolute', 'top-1/2', '-translate-y-1/2')
             expect(control.querySelector('span')).toBeNull()
         }

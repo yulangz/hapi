@@ -12,7 +12,7 @@ import {
 } from '@/modules/common/remote/RemoteLauncherBase';
 import type { CursorSession } from './session';
 import type { EnhancedMode } from './loop';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand';
 // TODO(cursor-acp): remove legacy stream-json resume path after migration window.
 // New Cursor sessions use ACP only. This path exists because pre-ACP Cursor

@@ -246,7 +246,7 @@ describe('CodexSessionSyncDialog', () => {
     })
 
     it('shows imported badge on original session and fork badge on forked session', () => {
-        window.localStorage.setItem('hapi.codexImportedSessions', JSON.stringify({
+        window.localStorage.setItem('hamlet.codexImportedSessions', JSON.stringify({
             'original-session-id': Date.now()
         }))
 
@@ -257,7 +257,7 @@ describe('CodexSessionSyncDialog', () => {
                 cwd: '/home/user/project',
                 file: '/home/user/.codex/sessions/fork.jsonl',
                 modifiedAt: Date.UTC(2026, 0, 3, 3, 4, 5),
-                originator: 'hapi-codex-client',
+                originator: 'hamlet-codex-client',
                 cliVersion: '0.142.3',
                 source: 'vscode',
                 forkedFromId: 'original-session-id'

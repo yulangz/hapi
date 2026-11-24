@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { RPC_TARGET_MISSING_ERROR_CODE } from '@hapi/protocol/rpcMethods'
+import { RPC_TARGET_MISSING_ERROR_CODE } from '@hamlet/protocol/rpcMethods'
 import { ApiError, type ApiClient } from '@/api/client'
 import { useCodexModels } from './useCodexModels'
 

@@ -477,7 +477,7 @@ export const codexCases: FixtureCase[] = [
                             callId: 'call_expl_read01',
                             output: {
                                 exit_code: 0,
-                                stdout: '{\n  "name": "hapi",\n  "workspaces": ["cli", "hub", "web", "shared"]\n}'
+                                stdout: '{\n  "name": "hamlet",\n  "workspaces": ["cli", "hub", "web", "shared"]\n}'
                             },
                             is_error: false,
                             id: 'e2b4d5f6-9dfa-4a6b-8cd2-c6d7e8f9a573'

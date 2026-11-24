@@ -138,10 +138,10 @@ describe('POST /v1/push forwarding', () => {
         expect(JSON.parse(sent.payload)).toEqual({
             aps: {
                 'mutable-content': 1,
-                alert: { title: 'HAPI', body: 'New activity' },
+                alert: { title: 'HAMLET', body: 'New activity' },
                 sound: 'default'
             },
-            hapi: { v: 1, e: ENVELOPE }
+            hamlet: { v: 1, e: ENVELOPE }
         })
     })
 

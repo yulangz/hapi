@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER, type InclusiveInputTokenUsageMarker } from '@hapi/protocol/usage';
+import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER, type InclusiveInputTokenUsageMarker } from '@hamlet/protocol/usage';
 import { z } from 'zod';
 import { logger } from '@/ui/logger';
 

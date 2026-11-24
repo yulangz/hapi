@@ -3,7 +3,7 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { AGY_PERMISSION_MODES } from '@hapi/protocol/modes'
+import { AGY_PERMISSION_MODES } from '@hamlet/protocol/modes'
 import { parseRemoteAgentCommandOptions } from './agentCommandOptions'
 
 export function parseAgyCommandOptions(commandArgs: string[]) {

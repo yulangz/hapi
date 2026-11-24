@@ -1,4 +1,4 @@
-import type { ClientToServerEvents, ServerToClientEvents } from '@hapi/protocol'
+import type { ClientToServerEvents, ServerToClientEvents } from '@hamlet/protocol'
 import type { DefaultEventsMap, Server, Socket } from 'socket.io'
 
 export type SocketData = {

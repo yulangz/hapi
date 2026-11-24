@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { HapiSessionExportTooLarge, HapiSessionExportWarning } from '@hapi/protocol/sessionExport'
+import type { HamletSessionExportTooLarge, HamletSessionExportWarning } from '@hamlet/protocol/sessionExport'
 import { ApiError, type ApiClient } from '@/api/client'
 import {
     downloadSessionExport,
@@ -36,13 +36,13 @@ function formatExportSize(bytes: number): string {
     return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
 }
 
-function parseSessionExportTooLarge(error: unknown): HapiSessionExportTooLarge | null {
+function parseSessionExportTooLarge(error: unknown): HamletSessionExportTooLarge | null {
     if (!(error instanceof ApiError) || error.code !== 'session_export_too_large' || !error.body) {
         return null
     }
 
     try {
-        const details = JSON.parse(error.body) as Partial<HapiSessionExportTooLarge>
+        const details = JSON.parse(error.body) as Partial<HamletSessionExportTooLarge>
         if (
             details.type !== 'too-large'
             || typeof details.count !== 'number'
@@ -51,7 +51,7 @@ function parseSessionExportTooLarge(error: unknown): HapiSessionExportTooLarge |
         ) {
             return null
         }
-        return details as HapiSessionExportTooLarge
+        return details as HamletSessionExportTooLarge
     } catch {
         return null
     }
@@ -62,7 +62,7 @@ export function SessionExportDialog(props: SessionExportDialogProps) {
     const toast = useToast()
     const [format, setFormat] = useState<SessionExportFormat>('json')
     const [isExporting, setIsExporting] = useState(false)
-    const [warning, setWarning] = useState<HapiSessionExportWarning | null>(null)
+    const [warning, setWarning] = useState<HamletSessionExportWarning | null>(null)
     const [error, setError] = useState<string | null>(null)
     const abortRef = useRef<AbortController | null>(null)
 

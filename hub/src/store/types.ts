@@ -95,7 +95,7 @@ export type StoredScratchlistEntry = {
     text: string
     createdAt: number
     updatedAt: number
-    attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+    attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
 }
 
 export type VersionedUpdateResult<T> =

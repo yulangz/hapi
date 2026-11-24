@@ -113,7 +113,7 @@ describe('SessionHeader', () => {
     it('manually syncs an inactive Pi session through its owning machine', async () => {
         const importPiSessions = vi.fn().mockResolvedValue({
             success: true,
-            results: [{ piSessionId: 'pi-native-1', hapiSessionId: 'session-1', action: 'updated', appended: 2 }]
+            results: [{ piSessionId: 'pi-native-1', hamletSessionId: 'session-1', action: 'updated', appended: 2 }]
         })
         const api = {
             getMachines: vi.fn().mockResolvedValue({ machines: [] }),
@@ -155,7 +155,7 @@ describe('SessionHeader', () => {
         expect(invalidateQueries).toHaveBeenCalledTimes(3)
     })
 
-    it('does not offer manual Pi sync while the HAPI session is active', () => {
+    it('does not offer manual Pi sync while the HAMLET session is active', () => {
         const api = {
             getMachines: vi.fn().mockResolvedValue({ machines: [] }),
             importPiSessions: vi.fn()
@@ -251,7 +251,7 @@ describe('SessionHeader', () => {
     })
 
     it('hides Pi reasoning metadata when the header reasoning setting is disabled', () => {
-        localStorage.setItem('hapi-session-header-metadata', JSON.stringify({ reasoning: false }))
+        localStorage.setItem('hamlet-session-header-metadata', JSON.stringify({ reasoning: false }))
         renderHeader(baseSession({
             metadata: { flavor: 'pi', path: '/repo', host: 'machine' },
             effort: 'max'
@@ -267,7 +267,7 @@ describe('SessionHeader', () => {
             updatedAt: fiveMinutesAgo,
             metadata: {
                 flavor: 'cursor',
-                path: '/home/heavygee/coding/hapi',
+                path: '/home/heavygee/coding/hamlet',
                 host: 'oos-linux',
                 machineId: 'machine-deadbeef'
             }

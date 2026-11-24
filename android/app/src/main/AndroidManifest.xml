@@ -37,7 +37,7 @@
     <!-- Paired hubs must use HTTPS. Keep the platform cleartext deny in
          addition to URL validation so future transports cannot regress it. -->
     <application
-        android:name=".HapiApp"
+        android:name=".HamletApp"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -46,7 +46,7 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.HapiCompanion"
+        android:theme="@style/Theme.HamletCompanion"
         android:usesCleartextTraffic="false">
 
         <activity
@@ -57,14 +57,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Pairing deep link: hapicompanion://bind?hub=<url>&code=<accessToken> -->
+            <!-- Pairing deep link: hamletcompanion://bind?hub=<url>&code=<accessToken> -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="bind"
-                    android:scheme="hapicompanion" />
+                    android:scheme="hamletcompanion" />
             </intent-filter>
         </activity>
 
@@ -108,7 +108,7 @@
         <!-- FCM entry point (B-M4a). Data-only messages per the companion
              contract; inert when no Firebase config is present. -->
         <service
-            android:name=".fcm.HapiFirebaseMessagingService"
+            android:name=".fcm.HamletFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -121,7 +121,7 @@
             android:exported="false" />
 
         <!-- WorkManager on-demand initialization: the default initializer is
-             removed so HapiApp's Configuration.Provider (custom WorkerFactory
+             removed so HamletApp's Configuration.Provider (custom WorkerFactory
              feeding AppGraph into the push workers) is authoritative even when
              WorkManager cold-starts the process. -->
         <provider
@@ -135,7 +135,7 @@
                 tools:node="remove" />
         </provider>
 
-        <!-- HAPI only requests expedited work on API 31+, where JobScheduler
+        <!-- HAMLET only requests expedited work on API 31+, where JobScheduler
              handles it. Remove WorkManager's unused foreground fallback from
              the merged manifest so the app declares no FGS capability. -->
         <service

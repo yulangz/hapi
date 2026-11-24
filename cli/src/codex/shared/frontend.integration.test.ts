@@ -50,11 +50,11 @@ function hasReply(value: Record<string, unknown>, prompt: string): boolean {
     });
 }
 // Actual CLI/Runner -> app-server + MCP + hub sockets -> actual native TUI.
-// Separate from the protocol integration whose HAPI transport is mocked.
-describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platform === 'win32')('shared Codex full stack', () => {
+// Separate from the protocol integration whose HAMLET transport is mocked.
+describe.skipIf(process.env.HAMLET_RUN_SHARED_CODEX_TESTS !== '1' || process.platform === 'win32')('shared Codex full stack', () => {
     it('shares interaction, stops the primary execution, resumes through Runner and only detaches secondary terminals', async () => {
-        const home = await mkdtemp('/tmp/hapi-shared-e2e-');
-        const cwd = join(home, 'work'); const ch = join(home, 'codex'); const hh = join(home, 'hapi');
+        const home = await mkdtemp('/tmp/hamlet-shared-e2e-');
+        const cwd = join(home, 'work'); const ch = join(home, 'codex'); const hh = join(home, 'hamlet');
         await Promise.all([cwd, ch, hh].map(path => mkdir(path)));
         const requests: Record<string, unknown>[] = [];
         const model = createServer((request, response) => {
@@ -74,7 +74,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
                     questions: [{ id: 'choice', header: 'Choice', question: 'Choose a shared client', options: [
                         { label: 'Terminal', description: 'Native answer' }, { label: 'Web', description: 'Web answer' }
                     ] }]
-                }) } : environment ? { type: 'function_call', call_id: `env_${id}`, name: 'exec_command', arguments: JSON.stringify({ cmd: 'printf "ROOT=%s\\n" "$HAPI_SESSION_ID"' }) }
+                }) } : environment ? { type: 'function_call', call_id: `env_${id}`, name: 'exec_command', arguments: JSON.stringify({ cmd: 'printf "ROOT=%s\\n" "$HAMLET_SESSION_ID"' }) }
                     : { type: 'message', role: 'assistant', id: `msg_${id}`, content: [{ type: 'output_text', text: proposal
                         ? '<proposed_plan>\n# Shared test plan\n\n1. Inspect the source\n2. Implement and verify\n</proposed_plan>'
                         : `MOCK_DONE ${prompt} ${JSON.stringify(outputs)}` }] };
@@ -88,9 +88,9 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
         const port = (model.address() as { port: number }).port;
         await writeFile(join(ch, 'config.toml'), `model = "mock-model"\nmodel_provider = "mock_provider"\napproval_policy = "never"\nsandbox_mode = "read-only"\ncheck_for_update_on_startup = false\n[model_providers.mock_provider]\nname = "Isolated mock"\nbase_url = "http://127.0.0.1:${port}/v1"\nwire_api = "responses"\nrequires_openai_auth = false\nsupports_websockets = false\nrequest_max_retries = 0\nstream_max_retries = 0\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n[projects."${cwd}"]\ntrust_level = "trusted"\n`);
         const py = join(home, 'terminal.py'); await writeFile(py, terminalDriver);
-        const env: NodeJS.ProcessEnv = { PATH: process.env.PATH, HOME: home, CODEX_HOME: ch, HAPI_HOME: hh,
-            HAPI_API_URL: process.env.HAPI_API_URL, CLI_API_TOKEN: process.env.CLI_API_TOKEN,
-            HAPI_INVOKED_CWD: cwd, HAPI_TEST_MARKER: process.env.HAPI_HOME, TERM: 'xterm-256color', LANG: 'en_US.UTF-8', DEBUG: '1' };
+        const env: NodeJS.ProcessEnv = { PATH: process.env.PATH, HOME: home, CODEX_HOME: ch, HAMLET_HOME: hh,
+            HAMLET_API_URL: process.env.HAMLET_API_URL, CLI_API_TOKEN: process.env.CLI_API_TOKEN,
+            HAMLET_INVOKED_CWD: cwd, HAMLET_TEST_MARKER: process.env.HAMLET_HOME, TERM: 'xterm-256color', LANG: 'en_US.UTF-8', DEBUG: '1' };
         const terminals: ChildProcessWithoutNullStreams[] = [];
         const runtimePids = new Set<number>();
         const uploadDirectories = new Set<string>();
@@ -102,11 +102,11 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
         let eventStream: Promise<void> | undefined;
         let webEvents = '';
         const openTerminal = (args: string[]) => {
-            const child = spawn('python3', [py, process.env.HAPI_BUN_EXEC!, '--cwd', resolve('.'), resolve('src/index.ts'), ...args], { cwd, env });
+            const child = spawn('python3', [py, process.env.HAMLET_BUN_EXEC!, '--cwd', resolve('.'), resolve('src/index.ts'), ...args], { cwd, env });
             child.stdout.on('data', data => { output += data.toString(); }); child.stderr.on('data', data => { output += data.toString(); });
             terminals.push(child); return child;
         };
-        const base = process.env.HAPI_API_URL!;
+        const base = process.env.HAMLET_API_URL!;
         const auth = await fetch(`${base}/api/auth`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: env.CLI_API_TOKEN }) });
         const jwt = String(record(await auth.json()).token);
         const api = async (path: string, body?: unknown) => {
@@ -115,7 +115,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
             const value = record(await response.json()); if (!response.ok) throw new Error(`${path}: ${JSON.stringify(value)}`); return value;
         };
         try {
-            runner = spawn(process.env.HAPI_BUN_EXEC!, ['--cwd', resolve('.'), resolve('src/index.ts'), 'runner', 'start-sync'], { cwd, env });
+            runner = spawn(process.env.HAMLET_BUN_EXEC!, ['--cwd', resolve('.'), resolve('src/index.ts'), 'runner', 'start-sync'], { cwd, env });
             runner.stdout.on('data', data => { runnerOutput += data.toString(); });
             runner.stderr.on('data', data => { runnerOutput += data.toString(); });
             await eventually(async () => record(JSON.parse(await readFile(join(hh, 'runner.state.json'), 'utf8').catch(() => '{}'))), value => Boolean(value.httpPort), 'ordinary Runner startup');
@@ -281,7 +281,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
             };
             const runnerRuntime = await readRuntime(resumedPid);
             client = new CodexAppServerClient({ endpoint: String(runnerRuntime.endpoint) }); client.setServerRequestHandler(() => {}); await initializeSharedClient(client);
-            await client.request('hapi/stopSession', { sessionId: coldClear.sessionId });
+            await client.request('hamlet/stopSession', { sessionId: coldClear.sessionId });
             await send('AFTER_WEB_RESUME');
             await eventually(() => api(`/sessions/${sessionId}/messages`), value => hasReply(value, 'AFTER_WEB_RESUME'), 'Web reply after resume');
             const replayedPlans = await planCards();
@@ -318,11 +318,11 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
             const fork = await api(`/sessions/${sessionId}/fork`, {});
             const forkSession = record((await api(`/sessions/${fork.sessionId}`)).session);
             expect(record(forkSession.metadata)).toMatchObject({ forkedFrom: sessionId, hostPid: resumedPid });
-            await client.request('hapi/stopSession', { sessionId: fork.sessionId });
+            await client.request('hamlet/stopSession', { sessionId: fork.sessionId });
             expect(Object.keys(record(record(record((await nextDetail()).session).agentState).requests))).toHaveLength(1);
-            await client.request('hapi/stopSession', { sessionId: next.sessionId });
+            await client.request('hamlet/stopSession', { sessionId: next.sessionId });
             expect(record((await detail()).session).active).toBe(true);
-            // A cold restart must reuse the HAPI/native binding, not create a
+            // A cold restart must reuse the HAMLET/native binding, not create a
             // duplicate root or replay the previously accepted submissions.
             const interruptedInput = randomUUID();
             await api(`/sessions/${sessionId}/messages`, { text: 'ASK_SHARED_SUSPEND', localId: interruptedInput });
@@ -374,7 +374,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
             expect(Object.keys(record(record(recoveryDetail.agentState).requests))).toHaveLength(0);
             await send('AFTER_COLD_RESUME');
             await eventually(() => api(`/sessions/${sessionId}/messages`), value => hasReply(value, 'AFTER_COLD_RESUME'), 'Web after cold resume');
-            await client.request('hapi/stopSession', { sessionId });
+            await client.request('hamlet/stopSession', { sessionId });
             await api(`/sessions/${webId}/archive`, {});
             await eventually(webDetail, value => record(value.session).active === false, 'end independent Web session');
             const reopened = await api(`/sessions/${webId}/reopen`, {});
@@ -388,7 +388,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1' || process.platf
             await api(`/sessions/${webId}/archive`, {});
             await eventually(webDetail, value => record(value.session).active === false, 'end reopened Web session');
         } catch (error) {
-            await writeFile('/tmp/hapi-shared-e2e-terminal.log', output + '\nRUNNER:\n' + runnerOutput);
+            await writeFile('/tmp/hamlet-shared-e2e-terminal.log', output + '\nRUNNER:\n' + runnerOutput);
             throw error;
         } finally {
             eventsAbort.abort(); await eventStream;

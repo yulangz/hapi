@@ -12,7 +12,7 @@
       "content": [],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/cli/pr-fixture-write.txt"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/cli/pr-fixture-write.txt"
         }
       ],
       "kind": "edit"
@@ -25,7 +25,7 @@
       "content": [
         {
           "type": "diff",
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/cli/pr-fixture-write.txt",
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/cli/pr-fixture-write.txt",
           "oldText": "",
           "newText": "pro fixture line",
           "_meta": {
@@ -35,7 +35,7 @@
       ],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/cli/pr-fixture-write.txt"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/cli/pr-fixture-write.txt"
         }
       ],
       "kind": "edit"

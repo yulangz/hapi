@@ -2,7 +2,7 @@ import { logger } from '@/ui/logger'
 import { Future } from '@/utils/future'
 import { getLocalLaunchExitReason } from '@/agent/localLaunchPolicy'
 import type { LocalLaunchExitReason, StartedBy } from '@/agent/localLaunchPolicy'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 
 type QueueLike = {
     size(): number

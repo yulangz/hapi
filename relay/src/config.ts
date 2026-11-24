@@ -1,5 +1,5 @@
 /**
- * Configuration for the HAPI push relay.
+ * Configuration for the HAMLET push relay.
  *
  * Everything comes from environment variables so the relay runs as a single
  * container with no config file. See relay/README.md for the full table.
@@ -98,7 +98,7 @@ export function loadConfigFromEnv(
     if (!apns && !fcmPath) {
         throw new Error('Configure APNs credentials or RELAY_FCM_SERVICE_ACCOUNT_PATH')
     }
-    const packageName = env.RELAY_FCM_PACKAGE_NAME?.trim() || 'run.hapi.companion'
+    const packageName = env.RELAY_FCM_PACKAGE_NAME?.trim() || 'run.hamlet.companion'
     if (!/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/.test(packageName)) {
         throw new Error('RELAY_FCM_PACKAGE_NAME must be an Android application ID')
     }

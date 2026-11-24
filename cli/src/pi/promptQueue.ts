@@ -28,7 +28,7 @@ export function isPiSpecialQueued(entry: PiPromptQueueEntry): entry is PiSpecial
 }
 
 /**
- * Small cancellable FIFO: HAPI owns queueing, Pi receives only real turns.
+ * Small cancellable FIFO: HAMLET owns queueing, Pi receives only real turns.
  *
  * A native steer can asynchronously degrade to a prompt after a later ordinary
  * prompt was prepared. Arrival reservations preserve original message order at

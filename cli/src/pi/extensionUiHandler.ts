@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ApiSessionClient } from '@/api/apiSession';
 import type { AgentState } from '@/api/types';
 import { createNativeSessionTitleMetadataSync } from '@/agent/nativeSessionTitle';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { logger } from '@/ui/logger';
 import type { PiExtensionUiRequest, PiExtensionUiResponse } from './types';
 
@@ -33,8 +33,8 @@ type PiExtensionUiHandlerOptions = {
     sendResponse: (response: PiExtensionUiResponse) => void;
 };
 
-// Pi starts its dialog timeout before the event reaches the HAPI process. Keep
-// HAPI's cleanup timer ahead of that deadline so a late browser response cannot
+// Pi starts its dialog timeout before the event reaches the HAMLET process. Keep
+// HAMLET's cleanup timer ahead of that deadline so a late browser response cannot
 // race Pi's own timeout. The 10% allowance covers transport/UI propagation,
 // has a 5s ceiling for long-lived dialogs, and is capped at a quarter of a
 // short timeout so valid short dialogs still retain at least 75% of their
@@ -128,8 +128,8 @@ function normalizeAnswers(answers: PiPermissionResponse['answers']): Record<stri
 }
 
 /**
- * Bridges Pi RPC extension UI events onto HAPI's existing AgentState / Permission
- * RPC contract. Blocking Pi dialogs remain one HAPI request each and are always
+ * Bridges Pi RPC extension UI events onto HAMLET's existing AgentState / Permission
+ * RPC contract. Blocking Pi dialogs remain one HAMLET request each and are always
  * completed with exactly one extension_ui_response, including timeouts and
  * process shutdown.
  */
@@ -164,7 +164,7 @@ export class PiExtensionUiHandler {
             case 'setStatus':
             case 'setWidget':
             case 'set_editor_text':
-                logger.debug(`[pi] Extension UI ${request.method} is not exposed by the HAPI transport`);
+                logger.debug(`[pi] Extension UI ${request.method} is not exposed by the HAMLET transport`);
                 return;
             case 'select':
             case 'confirm':
@@ -200,7 +200,7 @@ export class PiExtensionUiHandler {
         }
 
         const timeout = request.method === 'editor' ? undefined : getExtensionUiCleanupTimeout(request.timeout);
-        // Start this timer before publishing the HAPI request. Pi's deadline
+        // Start this timer before publishing the HAMLET request. Pi's deadline
         // began before it emitted the extension_ui_request event.
         const timer = timeout === undefined
             ? null

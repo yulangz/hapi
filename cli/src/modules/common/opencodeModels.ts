@@ -1,5 +1,5 @@
-import { asString, isObject } from '@hapi/protocol';
-import type { OpencodeModelsResponse, OpencodeModelSummary } from '@hapi/protocol/apiTypes';
+import { asString, isObject } from '@hamlet/protocol';
+import type { OpencodeModelsResponse, OpencodeModelSummary } from '@hamlet/protocol/apiTypes';
 import { AcpStdioTransport } from '@/agent/backends/acp/AcpStdioTransport';
 import packageJson from '../../../package.json';
 import { getErrorMessage } from './rpcResponses';
@@ -98,7 +98,7 @@ async function runOpencodeProbe(cwd: string): Promise<ListOpencodeModelsForCwdRe
                 terminal: false
             },
             clientInfo: {
-                name: 'hapi-opencode-models',
+                name: 'hamlet-opencode-models',
                 version: packageJson.version
             }
         }, { timeoutMs: PROBE_TIMEOUT_MS });

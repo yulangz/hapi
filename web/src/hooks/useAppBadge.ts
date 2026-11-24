@@ -131,7 +131,7 @@ export function useAppBadge(options: UseAppBadgeOptions): void {
         // Only count sessions the sidebar can actually surface: the "Unread"
         // filter and "mark all read" both exclude empty stub sessions via
         // shouldShowSessionInSidebar, so the badge must use the same set or
-        // it can show a count nothing in the UI is able to clear (hapi#1845).
+        // it can show a count nothing in the UI is able to clear (hamlet#1845).
         const eligibleSessions = options.sessions.filter(session => shouldShowSessionInSidebar(session))
 
         // Match the session list's first-load baseline so existing sessions do

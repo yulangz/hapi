@@ -11,7 +11,7 @@ describe('shared history projection', () => {
         expect(send).not.toHaveBeenCalled();
     });
     it('paces only new outbound history, without delaying ignored or duplicate items', async () => {
-        vi.useFakeTimers(); vi.stubEnv('HAPI_CODEX_HISTORY_ITEM_DELAY_MS', '20');
+        vi.useFakeTimers(); vi.stubEnv('HAMLET_CODEX_HISTORY_ITEM_DELAY_MS', '20');
         try {
             const send = vi.fn();
             const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
@@ -34,7 +34,7 @@ describe('shared history projection', () => {
             questions: [{ title: 'Which setup?', options: ['Run', 'Prepare'] }, { title: 'Any constraints?', options: null }] };
         await projection.notification('item/completed', { threadId: 'thread', turnId: 'turn', item });
         expect(send.mock.calls[0][0]).toMatchObject({ type: 'tool-call', name: 'request_user_input',
-            input: { hapiAsyncQuestion: { threadId: 'thread', callId: 'call_ask' }, questions: [
+            input: { hamletAsyncQuestion: { threadId: 'thread', callId: 'call_ask' }, questions: [
                 { id: '0', question: 'Which setup?', isOther: true, options: [{ label: 'Run' }, { label: 'Prepare' }] },
                 { id: '1', question: 'Any constraints?', options: [] }
             ] } });

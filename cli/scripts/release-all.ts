@@ -46,7 +46,7 @@ async function waitForPlatformPackages(platforms: string[], expectedVersion: str
     const timeoutMs = 10 * 60 * 1000;
     const intervalMs = 15_000;
     const deadline = Date.now() + timeoutMs;
-    const pending = new Set(platforms.map(platform => `@twsxtd/hapi-${platform}`));
+    const pending = new Set(platforms.map(platform => `@twsxtd/hamlet-${platform}`));
 
     while (pending.size > 0) {
         for (const name of [...pending]) {

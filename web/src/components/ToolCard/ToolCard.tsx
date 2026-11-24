@@ -2,7 +2,7 @@ import type { ChatBlock, ChatToolCall, ToolCallBlock } from '@/chat/types'
 import type { ApiClient } from '@/api/client'
 import type { SessionMetadataSummary } from '@/types/api'
 import { memo, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
-import { getClaudeModelLabel, isObject, safeStringify } from '@hapi/protocol'
+import { getClaudeModelLabel, isObject, safeStringify } from '@hamlet/protocol'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CodeBlock } from '@/components/CodeBlock'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
@@ -15,7 +15,7 @@ import { CodexAsyncQuestionFooter } from '@/components/ToolCard/CodexAsyncQuesti
 import { codexAsyncReplyLocalId } from '@/components/ToolCard/codexAsyncQuestion'
 import { isAskUserQuestionToolName } from '@/components/ToolCard/askUserQuestion'
 import { isRequestUserInputToolName } from '@/components/ToolCard/requestUserInput'
-import { getToolPresentation } from '@/components/ToolCard/knownTools'
+import { hamletToolName, getToolPresentation } from '@/components/ToolCard/knownTools'
 import { getToolFullViewComponent, getToolViewComponent } from '@/components/ToolCard/views/_all'
 import { getToolResultViewComponent } from '@/components/ToolCard/views/_results'
 import { formatTaskChildLabel, TaskStateIcon } from '@/components/ToolCard/helpers'
@@ -523,7 +523,7 @@ function ToolCardInner(props: ToolCardProps) {
     )
 
     return (
-        <Card className="overflow-hidden rounded-[20px] bg-[var(--app-tool-card-bg)] shadow-none">
+        <Card data-hamlet-tool={hamletToolName(toolName) ? true : undefined} className="overflow-hidden rounded-[20px] bg-[var(--app-tool-card-bg)] shadow-none">
             <CardHeader className={cn('space-y-0 p-3', subtitle ? 'pb-2' : null)}>
                 <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
                     <DialogTrigger asChild>

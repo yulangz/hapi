@@ -10,7 +10,7 @@ import {
     updateMessageStatus,
 } from '@/lib/message-window-store'
 import { usePlatform } from '@/hooks/usePlatform'
-import type { MessageDeliveryMode } from '@hapi/protocol'
+import type { MessageDeliveryMode } from '@hamlet/protocol'
 import { getRetryDeliveryMode } from '@/lib/messageDelivery'
 
 type SendMessageInput = {

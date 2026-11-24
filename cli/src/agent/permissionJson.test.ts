@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AgentStateSchema, SessionSchema, type AgentStateRequest, type AgentStateCompletedRequest } from '@hapi/protocol/schemas'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { AgentStateSchema, SessionSchema, type AgentStateRequest, type AgentStateCompletedRequest } from '@hamlet/protocol/schemas'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import type { AgentBackend, PermissionRequest } from './types'
 
 const transport = vi.hoisted(() => ({
@@ -91,7 +91,7 @@ describe.each([
             for (const id of ids) {
                 if (!emitPermission) throw new Error('Permission listener not registered')
                 emitPermission({
-                    id, sessionId: 'repro', toolCallId: id, title: autoApprove ? 'hapi_change_title' : 'Write', rawInput, rawOutput,
+                    id, sessionId: 'repro', toolCallId: id, title: autoApprove ? 'hamlet_change_title' : 'Write', rawInput, rawOutput,
                     options: [
                         { optionId: 'allow-once', name: 'Allow once', kind: 'allow_once' },
                         { optionId: 'reject-once', name: 'Reject once', kind: 'reject_once' }

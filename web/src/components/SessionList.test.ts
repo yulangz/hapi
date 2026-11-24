@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toSessionSummary, type Session } from '@hapi/protocol'
+import { toSessionSummary, type Session } from '@hamlet/protocol'
 import type { SessionSummary } from '@/types/api'
 import {
     deduplicateSessionsByAgentId,
@@ -52,12 +52,12 @@ describe('getWorktreeSessionLabel', () => {
         const session = makeSession({
             id: 'worktree-session',
             metadata: {
-                path: '/work/hapi-worktrees/fix-resume',
+                path: '/work/hamlet-worktrees/fix-resume',
                 worktree: {
-                    basePath: '/work/hapi',
+                    basePath: '/work/hamlet',
                     branch: 'fix/resume',
                     name: 'fix-resume',
-                    worktreePath: '/work/hapi-worktrees/fix-resume'
+                    worktreePath: '/work/hamlet-worktrees/fix-resume'
                 }
             }
         })
@@ -68,7 +68,7 @@ describe('getWorktreeSessionLabel', () => {
     it('does not add a subtitle to ordinary sessions', () => {
         const session = makeSession({
             id: 'ordinary-session',
-            metadata: { path: '/work/hapi' }
+            metadata: { path: '/work/hamlet' }
         })
 
         expect(getWorktreeSessionLabel(session)).toBeNull()
@@ -78,12 +78,12 @@ describe('getWorktreeSessionLabel', () => {
         const session = makeSession({
             id: 'windows-worktree-session',
             metadata: {
-                path: 'C:\\work\\hapi-worktrees\\fix-resume',
+                path: 'C:\\work\\hamlet-worktrees\\fix-resume',
                 worktree: {
-                    basePath: 'C:\\work\\hapi',
+                    basePath: 'C:\\work\\hamlet',
                     branch: 'fix/resume',
                     name: '   ',
-                    worktreePath: 'C:\\work\\hapi-worktrees\\fix-resume\\'
+                    worktreePath: 'C:\\work\\hamlet-worktrees\\fix-resume\\'
                 }
             }
         })
@@ -241,7 +241,7 @@ describe('isSidebarEmptySessionStub', () => {
     it('treats inactive sessions without agent id or title as stubs', () => {
         expect(isSidebarEmptySessionStub(makeSession({
             id: 'stub',
-            metadata: { path: '/work/hapi' }
+            metadata: { path: '/work/hamlet' }
         }))).toBe(true)
     })
 
@@ -249,21 +249,21 @@ describe('isSidebarEmptySessionStub', () => {
         expect(isSidebarEmptySessionStub(makeSession({
             id: 'live',
             active: true,
-            metadata: { path: '/work/hapi' }
+            metadata: { path: '/work/hamlet' }
         }))).toBe(false)
     })
 
     it('does not treat sessions with agentSessionId as stubs', () => {
         expect(isSidebarEmptySessionStub(makeSession({
             id: 'resume',
-            metadata: { path: '/work/hapi', agentSessionId: 'thread-1' }
+            metadata: { path: '/work/hamlet', agentSessionId: 'thread-1' }
         }))).toBe(false)
     })
 
     it('does not treat sessions with summary text as stubs', () => {
         expect(isSidebarEmptySessionStub(makeSession({
             id: 'titled',
-            metadata: { path: '/work/hapi', summary: { text: 'Fix sidebar' } }
+            metadata: { path: '/work/hamlet', summary: { text: 'Fix sidebar' } }
         }))).toBe(false)
     })
 })
@@ -271,10 +271,10 @@ describe('isSidebarEmptySessionStub', () => {
 describe('prepareSidebarSessions', () => {
     it('hides inactive empty stubs but keeps real sessions', () => {
         const sessions = [
-            makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
+            makeSession({ id: 'stub', metadata: { path: '/work/hamlet' } }),
             makeSession({
                 id: 'real',
-                metadata: { path: '/work/hapi', agentSessionId: 'thread-1', summary: { text: 'Real chat' } }
+                metadata: { path: '/work/hamlet', agentSessionId: 'thread-1', summary: { text: 'Real chat' } }
             })
         ]
 
@@ -292,7 +292,7 @@ describe('prepareSidebarSessions', () => {
             activeAt: 0,
             updatedAt: 100,
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 host: 'local',
                 flavor: 'pi',
                 piSessionId: 'pi-session-1',
@@ -317,10 +317,10 @@ describe('prepareSidebarSessions', () => {
 
     it('keeps the selected inactive stub visible', () => {
         const sessions = [
-            makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
+            makeSession({ id: 'stub', metadata: { path: '/work/hamlet' } }),
             makeSession({
                 id: 'real',
-                metadata: { path: '/work/hapi', agentSessionId: 'thread-1' }
+                metadata: { path: '/work/hamlet', agentSessionId: 'thread-1' }
             })
         ]
 
@@ -330,8 +330,8 @@ describe('prepareSidebarSessions', () => {
 
     it('keeps a pinned inactive stub visible', () => {
         const sessions = [
-            makeSession({ id: 'pinned-stub', pinned: true, metadata: { path: '/work/hapi' } }),
-            makeSession({ id: 'stub', metadata: { path: '/work/hapi' } })
+            makeSession({ id: 'pinned-stub', pinned: true, metadata: { path: '/work/hamlet' } }),
+            makeSession({ id: 'stub', metadata: { path: '/work/hamlet' } })
         ]
 
         const result = prepareSidebarSessions(sessions)
@@ -340,15 +340,15 @@ describe('prepareSidebarSessions', () => {
 
     it('deduplicates before filtering stubs', () => {
         const sessions = [
-            makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
+            makeSession({ id: 'stub', metadata: { path: '/work/hamlet' } }),
             makeSession({
                 id: 'older',
-                metadata: { path: '/work/hapi', agentSessionId: 'thread-1' },
+                metadata: { path: '/work/hamlet', agentSessionId: 'thread-1' },
                 updatedAt: 100
             }),
             makeSession({
                 id: 'newer',
-                metadata: { path: '/work/hapi', agentSessionId: 'thread-1' },
+                metadata: { path: '/work/hamlet', agentSessionId: 'thread-1' },
                 updatedAt: 200
             })
         ]
@@ -360,7 +360,7 @@ describe('prepareSidebarSessions', () => {
 
 describe('shouldShowSessionInSidebar', () => {
     it('always shows active, selected, and pinned sessions', () => {
-        const stub = makeSession({ id: 'stub', metadata: { path: '/work/hapi' } })
+        const stub = makeSession({ id: 'stub', metadata: { path: '/work/hamlet' } })
         expect(shouldShowSessionInSidebar(stub)).toBe(false)
         expect(shouldShowSessionInSidebar(stub, 'stub')).toBe(true)
         expect(shouldShowSessionInSidebar({ ...stub, active: true })).toBe(true)
@@ -373,7 +373,7 @@ describe('session list search helpers', () => {
         const session = makeSession({
             id: 'session-1',
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: 'Fix Bot Review',
                 flavor: 'codex',
                 machineId: 'machine-1'
@@ -390,25 +390,25 @@ describe('session list search helpers', () => {
         const session = makeSession({
             id: 'worktree-session',
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 worktree: {
-                    basePath: '/work/hapi',
+                    basePath: '/work/hamlet',
                     branch: 'fix/sidebar-search',
                     name: 'sidebar-search',
-                    worktreePath: '/work/hapi-worktrees/fix-sidebar-search'
+                    worktreePath: '/work/hamlet-worktrees/fix-sidebar-search'
                 }
             }
         })
 
         expect(sessionMatchesQuery(session, normalizeSearch('sidebar-search'), 'desktop')).toBe(true)
-        expect(sessionMatchesQuery(session, normalizeSearch('hapi-worktrees'), 'desktop')).toBe(true)
+        expect(sessionMatchesQuery(session, normalizeSearch('hamlet-worktrees'), 'desktop')).toBe(true)
     })
 
     it('supports complete wildcard patterns without changing plain text matching', () => {
         const session = makeSession({
             id: 'session-123',
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: 'Fix Bot Review',
                 flavor: 'codex'
             }
@@ -444,7 +444,7 @@ describe('getVisibleSessionPreview', () => {
         const sessions = Array.from({ length: 6 }, (_, index) => makeSession({
             id: `s-${index + 1}`,
             pendingRequestsCount: index === 4 ? 1 : 0,
-            metadata: { path: '/work/hapi' },
+            metadata: { path: '/work/hamlet' },
             updatedAt: 100 - index
         }))
 
@@ -460,7 +460,7 @@ describe('getVisibleSessionPreview', () => {
         const sessions = Array.from({ length: 6 }, (_, index) => makeSession({
             id: `s-${index + 1}`,
             active: true,
-            metadata: { path: '/work/hapi' },
+            metadata: { path: '/work/hamlet' },
             updatedAt: 100 - index
         }))
 
@@ -472,7 +472,7 @@ describe('getVisibleSessionPreview', () => {
     it('does not move an already-visible selected session to the top', () => {
         const sessions = Array.from({ length: 6 }, (_, index) => makeSession({
             id: `s-${index + 1}`,
-            metadata: { path: '/work/hapi' },
+            metadata: { path: '/work/hamlet' },
             updatedAt: 100 - index
         }))
 
@@ -487,7 +487,7 @@ describe('getVisibleSessionPreview', () => {
     it('returns all sessions when expanded', () => {
         const sessions = Array.from({ length: 4 }, (_, index) => makeSession({
             id: `s-${index + 1}`,
-            metadata: { path: '/work/hapi' }
+            metadata: { path: '/work/hamlet' }
         }))
 
         expect(getVisibleSessionPreview(sessions, { expanded: true, limit: 2 })).toHaveLength(4)
@@ -615,26 +615,26 @@ describe('getPreviousSessionVisibleCount', () => {
 describe('expandSelectedSessionCollapseOverrides', () => {
     it('expands the collapsed project group, but preserves session preview folding', () => {
         const overrides = new Map<string, boolean>([
-            ['machine-1::/work/hapi', true],
-            ['sessions::machine-1::/work/hapi', true]
+            ['machine-1::/work/hamlet', true],
+            ['sessions::machine-1::/work/hamlet', true]
         ])
 
         const result = expandSelectedSessionCollapseOverrides(overrides, {
-            key: 'machine-1::/work/hapi'
+            key: 'machine-1::/work/hamlet'
         })
 
-        expect(result.get('machine-1::/work/hapi')).toBe(false)
-        expect(result.get('sessions::machine-1::/work/hapi')).toBe(true)
+        expect(result.get('machine-1::/work/hamlet')).toBe(false)
+        expect(result.get('sessions::machine-1::/work/hamlet')).toBe(true)
     })
 
     it('leaves missing session preview override unset', () => {
         const overrides = new Map<string, boolean>()
 
         const result = expandSelectedSessionCollapseOverrides(overrides, {
-            key: 'machine-1::/work/hapi'
+            key: 'machine-1::/work/hamlet'
         })
 
-        expect(result.has('sessions::machine-1::/work/hapi')).toBe(false)
+        expect(result.has('sessions::machine-1::/work/hamlet')).toBe(false)
     })
 })
 

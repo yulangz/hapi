@@ -44,7 +44,7 @@ function resolveApprovalPolicy(mode: EnhancedMode): ApprovalPolicy {
     if (mode.permissionMode === 'yolo' || mode.permissionMode === 'read-only') {
         // Codex's `never` policy auto-declines MCP elicitations before app-server
         // can forward them. Keep command/sandbox prompts disabled for Yolo and
-        // read-only while allowing auth and structured input to reach HAPI's UI.
+        // read-only while allowing auth and structured input to reach HAMLET's UI.
         return MCP_ELICITATION_ONLY_APPROVAL_POLICY;
     }
     return resolveCodexPermissionModeConfig(mode.permissionMode).approvalPolicy;
@@ -79,7 +79,7 @@ function resolveSandboxPolicyOverride(value: CodexCliOverrides['sandbox'] | unde
 const APP_SERVER_FAST_TIER = 'priority';
 
 /**
- * Translate HAPI's stored service-tier representation into the Codex
+ * Translate HAMLET's stored service-tier representation into the Codex
  * app-server `serviceTier` field for thread/turn params:
  * - `'fast'`     → `'priority'`  (the advertised Fast tier request value)
  * - `'standard'` → `null`        (explicit Standard tier)
@@ -117,10 +117,10 @@ function resolveInstructions(args: {
     developerInstructions?: string;
 }): { baseInstructions: string | undefined; developerInstructions: string } {
     const baseInstructions = args.baseInstructions;
-    const hapiDeveloperInstructions = getCodexSystemPrompt();
+    const hamletDeveloperInstructions = getCodexSystemPrompt();
     const developerInstructions = args.developerInstructions
-        ? `${hapiDeveloperInstructions}\n\n${args.developerInstructions}`
-        : hapiDeveloperInstructions;
+        ? `${hamletDeveloperInstructions}\n\n${args.developerInstructions}`
+        : hamletDeveloperInstructions;
     return {
         baseInstructions,
         developerInstructions

@@ -31,7 +31,7 @@ describe('sessionSummaryInstruction', () => {
 
     it('is disabled by default (upstream opt-in)', () => {
         expect(isSessionSummaryContractEnabled({})).toBe(false)
-        expect(isSessionSummaryContractEnabled({ HAPI_SESSION_SUMMARY_CONTRACT: '' })).toBe(false)
+        expect(isSessionSummaryContractEnabled({ HAMLET_SESSION_SUMMARY_CONTRACT: '' })).toBe(false)
         expect(sessionSummaryInstructionOrEmpty({})).toBe('')
     })
 
@@ -46,15 +46,15 @@ describe('sessionSummaryInstruction', () => {
 
     it('lets explicit env override hub preference', () => {
         applyHubSessionSummaryContract(true)
-        expect(isSessionSummaryContractEnabled({ HAPI_SESSION_SUMMARY_CONTRACT: '0' })).toBe(false)
+        expect(isSessionSummaryContractEnabled({ HAMLET_SESSION_SUMMARY_CONTRACT: '0' })).toBe(false)
         applyHubSessionSummaryContract(false)
-        expect(isSessionSummaryContractEnabled({ HAPI_SESSION_SUMMARY_CONTRACT: '1' })).toBe(true)
-        expect(isSessionSummaryContractEnabled({ HAPI_SESSION_SUMMARY_CONTRACT: 'true' })).toBe(true)
+        expect(isSessionSummaryContractEnabled({ HAMLET_SESSION_SUMMARY_CONTRACT: '1' })).toBe(true)
+        expect(isSessionSummaryContractEnabled({ HAMLET_SESSION_SUMMARY_CONTRACT: 'true' })).toBe(true)
     })
 
     it('treats common falsy env spellings as off', () => {
         for (const value of ['0', 'false', 'off', 'no', 'FALSE', ' Off ']) {
-            expect(isSessionSummaryContractEnabled({ HAPI_SESSION_SUMMARY_CONTRACT: value })).toBe(false)
+            expect(isSessionSummaryContractEnabled({ HAMLET_SESSION_SUMMARY_CONTRACT: value })).toBe(false)
         }
     })
 
@@ -94,7 +94,7 @@ describe('sessionSummaryInstruction', () => {
 
     it('leaves base unchanged when disabled', () => {
         expect(withSessionSummaryInstruction('Be helpful.', {})).toBe('Be helpful.')
-        expect(withSessionSummaryInstruction('Be helpful.', { HAPI_SESSION_SUMMARY_CONTRACT: '0' }))
+        expect(withSessionSummaryInstruction('Be helpful.', { HAMLET_SESSION_SUMMARY_CONTRACT: '0' }))
             .toBe('Be helpful.')
     })
 })

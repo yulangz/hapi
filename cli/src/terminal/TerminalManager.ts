@@ -5,7 +5,7 @@ import type {
     TerminalExitPayload,
     TerminalOutputPayload,
     TerminalReadyPayload
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { TerminalSession } from './types'
 
 type TerminalRuntime = TerminalSession & {
@@ -29,8 +29,8 @@ const DEFAULT_IDLE_TIMEOUT_MS = 15 * 60_000
 const DEFAULT_MAX_TERMINALS = 4
 const SENSITIVE_ENV_KEYS = new Set([
     'CLI_API_TOKEN',
-    'HAPI_API_URL',
-    'HAPI_HTTP_MCP_URL',
+    'HAMLET_API_URL',
+    'HAMLET_HTTP_MCP_URL',
     'TELEGRAM_BOT_TOKEN',
     'OPENAI_API_KEY',
     'ANTHROPIC_API_KEY',
@@ -52,7 +52,7 @@ function resolveEnvNumber(name: string, fallback: number): number {
 }
 
 function resolveWindowsShellCommand(): string[] {
-    const configuredShell = process.env.HAPI_TERMINAL_SHELL?.trim()
+    const configuredShell = process.env.HAMLET_TERMINAL_SHELL?.trim()
     if (configuredShell) {
         return [configuredShell]
     }
@@ -103,7 +103,7 @@ export function normalizeTerminalInputForHost(data: string): string {
     return normalized
 }
 
-function buildFilteredEnv(): NodeJS.ProcessEnv {
+export function buildFilteredEnv(): NodeJS.ProcessEnv {
     const env: NodeJS.ProcessEnv = {}
     for (const [key, value] of Object.entries(process.env)) {
         if (!value) {
@@ -145,8 +145,8 @@ export class TerminalManager {
         this.onOutput = options.onOutput
         this.onExit = options.onExit
         this.onError = options.onError
-        this.idleTimeoutMs = options.idleTimeoutMs ?? resolveEnvNumber('HAPI_TERMINAL_IDLE_TIMEOUT_MS', DEFAULT_IDLE_TIMEOUT_MS)
-        this.maxTerminals = options.maxTerminals ?? resolveEnvNumber('HAPI_TERMINAL_MAX_TERMINALS', DEFAULT_MAX_TERMINALS)
+        this.idleTimeoutMs = options.idleTimeoutMs ?? resolveEnvNumber('HAMLET_TERMINAL_IDLE_TIMEOUT_MS', DEFAULT_IDLE_TIMEOUT_MS)
+        this.maxTerminals = options.maxTerminals ?? resolveEnvNumber('HAMLET_TERMINAL_MAX_TERMINALS', DEFAULT_MAX_TERMINALS)
         this.filteredEnv = buildFilteredEnv()
     }
 

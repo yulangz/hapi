@@ -1,5 +1,5 @@
 import type { Machine } from '@/types/api'
-import { isMachineCapabilitySkewed } from '@hapi/protocol/runnerCapabilities'
+import { isMachineCapabilitySkewed } from '@hamlet/protocol/runnerCapabilities'
 import { useTranslation } from '@/lib/use-translation'
 import { SelectControl } from '@/components/ui/select-control'
 

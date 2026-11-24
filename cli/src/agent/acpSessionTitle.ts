@@ -6,7 +6,7 @@ import { normalizeNativeSessionTitle } from '@/agent/nativeSessionTitle';
 type AcpSessionTitleBackend = Pick<AcpSdkBackend, 'setSessionInfoUpdateListener'>;
 type AcpSessionTitleClient = Pick<ApiSessionClient, 'sendClaudeSessionMessage'>;
 
-/** Creates a normalized, deduplicated native-title sink for a HAPI session. */
+/** Creates a normalized, deduplicated native-title sink for a HAMLET session. */
 function createSessionTitleSync(client: AcpSessionTitleClient): (title: unknown) => void {
     let lastTitle: string | null = null;
 
@@ -24,7 +24,7 @@ function createSessionTitleSync(client: AcpSessionTitleClient): (title: unknown)
     };
 }
 
-/** Syncs agent-generated ACP session titles into HAPI session metadata. */
+/** Syncs agent-generated ACP session titles into HAMLET session metadata. */
 export function registerAcpSessionTitleSync(
     backend: AcpSessionTitleBackend,
     client: AcpSessionTitleClient

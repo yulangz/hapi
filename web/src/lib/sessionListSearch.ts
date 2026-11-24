@@ -1,5 +1,5 @@
 import type { SessionSummary } from '@/types/api'
-import { isWildcardSearch, matchesSearchQuery } from '@hapi/protocol'
+import { isWildcardSearch, matchesSearchQuery } from '@hamlet/protocol'
 import { getSessionTitle } from '@/lib/sessionTitle'
 import { getWorktreeSessionLabel } from '@/lib/sessionWorktreeLabel'
 

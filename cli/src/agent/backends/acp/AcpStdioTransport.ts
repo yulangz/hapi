@@ -2,11 +2,11 @@ import { spawn, type ChildProcessWithoutNullStreams, type SpawnOptions } from 'n
 import {
     acquireAgentCliSpawnLease,
     releaseAgentCliSpawnLeaseFromAcpRegisterSync
-} from '@hapi/protocol/agentCliSpawnLease';
-import { resolveHapiHomeDir } from '@/configuration';
+} from '@hamlet/protocol/agentCliSpawnLease';
+import { resolveHamletHomeDir } from '@/configuration';
 import { logger } from '@/ui/logger';
 import { killProcessByChildProcess } from '@/utils/process';
-import { GEMINI_MODEL_PRESETS } from '@hapi/protocol';
+import { GEMINI_MODEL_PRESETS } from '@hamlet/protocol';
 import {
     describeAgentAcpGuardState,
     getAgentAcpLockDir,
@@ -115,7 +115,7 @@ export class AcpStdioTransport {
     }): Promise<AcpStdioTransport> {
         const shouldGuardAgentCli = options.command === 'agent';
         if (shouldGuardAgentCli) {
-            await acquireAgentCliSpawnLease(resolveHapiHomeDir());
+            await acquireAgentCliSpawnLease(resolveHamletHomeDir());
             try {
                 registerActiveAcpTransport();
                 try {

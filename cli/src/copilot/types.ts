@@ -1,5 +1,5 @@
-import type { CopilotPermissionMode } from '@hapi/protocol/types';
-import type { CopilotAgentMode } from '@hapi/protocol';
+import type { CopilotPermissionMode } from '@hamlet/protocol/types';
+import type { CopilotAgentMode } from '@hamlet/protocol';
 
 export type PermissionMode = CopilotPermissionMode;
 

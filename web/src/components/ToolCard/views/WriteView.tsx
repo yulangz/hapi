@@ -1,5 +1,5 @@
 import type { ToolViewProps } from '@/components/ToolCard/views/_all'
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 import { CodeBlock } from '@/components/CodeBlock'
 import { DiffView } from '@/components/DiffView'
 import { getInputStringAny } from '@/lib/toolInputUtils'

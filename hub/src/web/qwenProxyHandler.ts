@@ -6,7 +6,7 @@
 // a deterministic fake for the upstream connection.
 
 import type { ServerWebSocket } from 'bun'
-import { buildQwenSessionUpdateMessage, isQwenSafeClientFrame } from '@hapi/protocol/voice'
+import { buildQwenSessionUpdateMessage, isQwenSafeClientFrame } from '@hamlet/protocol/voice'
 
 type WebSocketCtor = new (url: string, opts?: unknown) => WebSocketLike
 
@@ -45,7 +45,7 @@ export function createQwenProxyWebSocketHandler(
     // Tracks whether DashScope has acknowledged the hub-owned session.update with a session.updated
     // frame. Until the ack arrives, client frames are queued, never forwarded - otherwise an
     // authenticated client could push response.create / conversation.item.create / instruction-only
-    // session.update before HAPI's tools/voice/instructions are locked into the upstream session.
+    // session.update before HAMLET's tools/voice/instructions are locked into the upstream session.
     const setupAckedMap = new WeakMap<ServerWebSocket<unknown>, boolean>()
     const pendingClientFrames = new WeakMap<ServerWebSocket<unknown>, Array<string | ArrayBuffer | Uint8Array>>()
     const pendingClientBytes = new WeakMap<ServerWebSocket<unknown>, number>()

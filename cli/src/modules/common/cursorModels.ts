@@ -1,12 +1,12 @@
 import { spawn } from 'node:child_process';
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand';
-import type { CursorModelsResponse, CursorModelSummary } from '@hapi/protocol/apiTypes';
+import type { CursorModelsResponse, CursorModelSummary } from '@hamlet/protocol/apiTypes';
 import {
     releaseAgentCliSpawnLeaseSync,
     tryAcquireAgentCliSpawnLeaseSync
-} from '@hapi/protocol/agentCliSpawnLease';
+} from '@hamlet/protocol/agentCliSpawnLease';
 import { isAgentAcpTransportActive } from '@/agent/backends/acp/agentCliGuard';
-import { resolveHapiHomeDir } from '@/configuration';
+import { resolveHamletHomeDir } from '@/configuration';
 import { killProcessByChildProcess } from '@/utils/process';
 import { getCursorAcpModelsSnapshot } from '@/cursor/utils/cursorAcpModelsBridge';
 import { getErrorMessage } from './rpcResponses';
@@ -20,7 +20,7 @@ import {
     cursorModelBaseId,
     isCursorAcpCatalogModelId,
     isCursorAcpWireModelId
-} from '@hapi/protocol';
+} from '@hamlet/protocol';
 import {
     cursorProbeResponseHasWireCatalog,
     runCursorAcpModelProbe
@@ -209,7 +209,7 @@ export function parseCursorModelsOutput(output: string): {
 }
 
 async function runCursorModelProbe(): Promise<ListCursorModelsResponse> {
-    if (!tryAcquireAgentCliSpawnLeaseSync(resolveHapiHomeDir())) {
+    if (!tryAcquireAgentCliSpawnLeaseSync(resolveHamletHomeDir())) {
         throw new Error('Cursor ACP transport is active');
     }
     if (isAgentAcpTransportActive()) {

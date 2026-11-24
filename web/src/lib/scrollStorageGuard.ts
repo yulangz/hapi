@@ -4,7 +4,7 @@ const STORAGE_KEY = storageKey
 
 const TARGET_ENTRIES_AFTER_PRUNE = 50
 
-const GUARD_MARKER = '__hapiScrollRestorationGuard'
+const GUARD_MARKER = '__hamletScrollRestorationGuard'
 
 interface GuardedStorage extends Storage {
     [GUARD_MARKER]?: true

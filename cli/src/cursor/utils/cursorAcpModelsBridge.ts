@@ -1,4 +1,4 @@
-import type { CursorModelSummary } from '@hapi/protocol/apiTypes';
+import type { CursorModelSummary } from '@hamlet/protocol/apiTypes';
 
 export type CursorModelsSnapshot = {
     availableModels: CursorModelSummary[];

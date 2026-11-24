@@ -19,7 +19,7 @@ vi.mock('../../utils/process', () => ({
 
 import { _resetPiModelsCacheForTests, listPiModelsForMachine } from './piModels'
 
-const PROBE_RPC_ID = 'hapi-machine-models-probe'
+const PROBE_RPC_ID = 'hamlet-machine-models-probe'
 
 class FakeChild extends EventEmitter {
     stdout = new EventEmitter()

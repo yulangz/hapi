@@ -39,8 +39,8 @@ vi.mock('@/persistence', () => ({
 
 vi.mock('@/configuration', () => ({
     configuration: {
-        happyHomeDir: '/tmp/.hapi',
-        logsDir: '/tmp/.hapi/logs',
+        happyHomeDir: '/tmp/.hamlet',
+        logsDir: '/tmp/.hamlet/logs',
         isRunnerProcess: false
     }
 }))
@@ -52,7 +52,7 @@ vi.mock('@/ui/logger', () => ({
 }))
 
 import {
-    HAPI_SESSION_ID_ENV,
+    HAMLET_SESSION_ID_ENV,
     bootstrapExistingSession,
     bootstrapLazySession,
     bootstrapSession,
@@ -62,7 +62,7 @@ import {
 
 function createSession(): Session {
     return {
-        id: 'hapi-session-1',
+        id: 'hamlet-session-1',
         namespace: 'default',
         seq: 1,
         createdAt: 1,
@@ -99,10 +99,10 @@ describe('bootstrapExistingSession', () => {
         sessionSyncClientMock.mockReset()
         notifyRunnerSessionStartedMock.mockClear()
         readSettingsMock.mockReset()
-        delete process.env[HAPI_SESSION_ID_ENV]
+        delete process.env[HAMLET_SESSION_ID_ENV]
     })
 
-    it('loads an existing HAPI session and reports it to the runner', async () => {
+    it('loads an existing HAMLET session and reports it to the runner', async () => {
         const session = createSession()
         const sessionClient = {
             updateMetadata: vi.fn()
@@ -113,18 +113,18 @@ describe('bootstrapExistingSession', () => {
         readSettingsMock.mockResolvedValue({ machineId: 'machine-1' })
 
         const result = await bootstrapExistingSession({
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             flavor: 'codex',
             workingDirectory: '/tmp/project'
         })
 
-        expect(result.sessionInfo.id).toBe('hapi-session-1')
-        expect(process.env[HAPI_SESSION_ID_ENV]).toBe('hapi-session-1')
+        expect(result.sessionInfo.id).toBe('hamlet-session-1')
+        expect(process.env[HAMLET_SESSION_ID_ENV]).toBe('hamlet-session-1')
         expect(result.workingDirectory).toBe('/tmp/project')
         expect(sessionSyncClientMock).toHaveBeenCalledWith(session)
         expect(sessionClient.updateMetadata).toHaveBeenCalledOnce()
         expect(notifyRunnerSessionStartedMock).toHaveBeenCalledWith(
-            'hapi-session-1',
+            'hamlet-session-1',
             expect.objectContaining({
                 path: '/tmp/project',
                 flavor: 'codex',
@@ -182,7 +182,7 @@ describe('bootstrapExistingSession', () => {
         readSettingsMock.mockResolvedValue({ machineId: 'machine-1' })
 
         const result = await bootstrapExistingSession({
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             flavor: 'codex',
             workingDirectory: '/tmp/project'
         })
@@ -227,7 +227,7 @@ describe('bootstrapExistingSession', () => {
             conversationHistoryEntryIds: { 'local-user-1': 'pi-entry-1' }
         }))
         expect(notifyRunnerSessionStartedMock).toHaveBeenCalledWith(
-            'hapi-session-1',
+            'hamlet-session-1',
             expect.objectContaining({
                 codexSessionId: 'codex-thread-1',
                 grokSessionId: 'grok-thread-1',
@@ -256,10 +256,10 @@ describe('bootstrapLazySession', () => {
         sessionSyncClientMock.mockReset()
         notifyRunnerSessionStartedMock.mockClear()
         readSettingsMock.mockReset()
-        delete process.env[HAPI_SESSION_ID_ENV]
+        delete process.env[HAMLET_SESSION_ID_ENV]
     })
 
-    it('does not export HAPI_SESSION_ID until the hub row is materialized', async () => {
+    it('does not export HAMLET_SESSION_ID until the hub row is materialized', async () => {
         const pendingClient = { isPending: () => true }
         sessionSyncClientMock.mockReturnValue(pendingClient)
         readSettingsMock.mockResolvedValue({ machineId: 'machine-1' })
@@ -271,7 +271,7 @@ describe('bootstrapLazySession', () => {
             agentState: { controlledByUser: false }
         })
 
-        expect(process.env[HAPI_SESSION_ID_ENV]).toBeUndefined()
+        expect(process.env[HAMLET_SESSION_ID_ENV]).toBeUndefined()
         expect(result.sessionInfo.id).toMatch(/^[0-9a-f-]{36}$/)
 
         const [, options] = sessionSyncClientMock.mock.calls[0]
@@ -282,7 +282,7 @@ describe('bootstrapLazySession', () => {
             agentState: { controlledByUser: false }
         })
 
-        expect(process.env[HAPI_SESSION_ID_ENV]).toBe(result.sessionInfo.id)
+        expect(process.env[HAMLET_SESSION_ID_ENV]).toBe(result.sessionInfo.id)
     })
 
     it('does not persist a machine or session until materialization', async () => {
@@ -338,14 +338,14 @@ describe('bootstrapLazySession', () => {
     })
 })
 
-describe('bootstrapSession HAPI_SESSION_ID export', () => {
+describe('bootstrapSession HAMLET_SESSION_ID export', () => {
     beforeEach(() => {
         getOrCreateSessionMock.mockReset()
         getOrCreateMachineMock.mockReset()
         sessionSyncClientMock.mockReset()
         notifyRunnerSessionStartedMock.mockClear()
         readSettingsMock.mockReset()
-        delete process.env[HAPI_SESSION_ID_ENV]
+        delete process.env[HAMLET_SESSION_ID_ENV]
     })
 
     it('exports the hub session id so spawned agents inherit it', async () => {
@@ -362,23 +362,23 @@ describe('bootstrapSession HAPI_SESSION_ID export', () => {
         })
 
         expect(result.sessionInfo.id).toBe('hub-session-42')
-        expect(process.env[HAPI_SESSION_ID_ENV]).toBe('hub-session-42')
+        expect(process.env[HAMLET_SESSION_ID_ENV]).toBe('hub-session-42')
     })
 })
 
 describe('buildMachineMetadata runner-only capabilities', () => {
-    const originalSupervised = process.env.HAPI_RUNNER_SUPERVISED
+    const originalSupervised = process.env.HAMLET_RUNNER_SUPERVISED
 
     afterEach(() => {
         if (originalSupervised === undefined) {
-            delete process.env.HAPI_RUNNER_SUPERVISED
+            delete process.env.HAMLET_RUNNER_SUPERVISED
         } else {
-            process.env.HAPI_RUNNER_SUPERVISED = originalSupervised
+            process.env.HAMLET_RUNNER_SUPERVISED = originalSupervised
         }
     })
 
     it('omits machine RPC capabilities for terminal bootstrap metadata', () => {
-        delete process.env.HAPI_RUNNER_SUPERVISED
+        delete process.env.HAMLET_RUNNER_SUPERVISED
         const metadata = buildMachineMetadata()
         expect(metadata.capabilities).toBeUndefined()
         expect(metadata.startedCliMtimeMs).toBeUndefined()
@@ -387,7 +387,7 @@ describe('buildMachineMetadata runner-only capabilities', () => {
     })
 
     it('advertises capabilities and supervisedRestart only for asRunner', () => {
-        process.env.HAPI_RUNNER_SUPERVISED = '1'
+        process.env.HAMLET_RUNNER_SUPERVISED = '1'
         const metadata = buildMachineMetadata({ asRunner: true, startedCliMtimeMs: 42 })
         expect(metadata.capabilities).toEqual(expect.arrayContaining(['cursor-chat-store-status', 'stop-runner']))
         expect(metadata.startedCliMtimeMs).toBe(42)
@@ -396,7 +396,7 @@ describe('buildMachineMetadata runner-only capabilities', () => {
     })
 
     it('always sends supervisedRestart boolean for asRunner so sticky true can clear', () => {
-        delete process.env.HAPI_RUNNER_SUPERVISED
+        delete process.env.HAMLET_RUNNER_SUPERVISED
         const metadata = buildMachineMetadata({ asRunner: true })
         expect(metadata.capabilities).toEqual(expect.arrayContaining(['stop-runner']))
         expect(metadata.supervisedRestart).toBe(false)

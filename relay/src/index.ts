@@ -1,5 +1,5 @@
 /**
- * HAPI push relay - a tiny standalone service that forwards E2E-encrypted
+ * HAMLET push relay - a tiny standalone service that forwards E2E-encrypted
  * push envelopes from self-hosted hubs to APNs and FCM.
  *
  * Privacy stance: the relay never sees notification content. Hubs encrypt
@@ -34,7 +34,7 @@ import {
 import { TokenBucketLimiter } from './rateLimit'
 import { FcmAccessTokenProvider, HttpFcmClient, parseServiceAccount, type FcmClient, type FcmPushResult } from './fcm'
 
-export const SERVICE_NAME = 'hapi-push-relay'
+export const SERVICE_NAME = 'hamlet-push-relay'
 
 /** Hard cap on the request body accepted by Bun.serve (defense in depth). */
 export const MAX_REQUEST_BODY_BYTES = 64 * 1024

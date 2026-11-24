@@ -1,5 +1,5 @@
 import { AcpSdkBackend } from '@/agent/backends/acp';
-import type { CopilotAgentMode } from '@hapi/protocol';
+import type { CopilotAgentMode } from '@hamlet/protocol';
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand';
 
 function filterEnv(env: NodeJS.ProcessEnv): Record<string, string> {

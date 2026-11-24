@@ -181,7 +181,7 @@ describe('convertAgentMessage', () => {
         expect(converted).toEqual({
             type: 'token_count',
             model: 'kimi-k2.5',
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache',
             info: {
                 total: {
@@ -229,7 +229,7 @@ describe('convertAgentMessage', () => {
         expect(converted).toMatchObject({
             type: 'token_count',
             model: null,
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache'
         });
     });

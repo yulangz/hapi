@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import type { Session, SyncEvent, SyncEventListener, SyncEngine } from '../sync/syncEngine'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { NotificationChannel, TaskNotification } from './notificationTypes'
 import { NotificationHub } from './notificationHub'
 

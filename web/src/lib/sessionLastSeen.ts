@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 
-const STORAGE_KEY = 'hapi.sessionLastSeen.v1'
-const MANUAL_UNREAD_KEY = 'hapi.sessionManualUnread.v1'
-const BASELINE_KEY = 'hapi.sessionLastSeenBaseline.v1'
-const CHANGE_EVENT = 'hapi.sessionLastSeen.changed'
+const STORAGE_KEY = 'hamlet.sessionLastSeen.v1'
+const MANUAL_UNREAD_KEY = 'hamlet.sessionManualUnread.v1'
+const BASELINE_KEY = 'hamlet.sessionLastSeenBaseline.v1'
+const CHANGE_EVENT = 'hamlet.sessionLastSeen.changed'
 
 let changeVersion = 0
 

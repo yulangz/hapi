@@ -1,9 +1,9 @@
 import type { AttachmentAdapter, Attachment, CompleteAttachment, PendingAttachment } from '@assistant-ui/react'
-import type { ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 import {
     isHubScratchlistAttachmentPath,
     parseHubScratchlistAttachmentPath,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import { getRestoredUploadMetadata } from '@/lib/composer-attachment-drafts'
 import { isImageMimeType } from '@/lib/fileAttachments'

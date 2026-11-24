@@ -5,7 +5,7 @@ import type { WebAppEnv } from '../middleware/auth'
 import { createAuthMiddleware } from '../middleware/auth'
 import { Store } from '../../store'
 import { createWorkGraphRoutes } from './workGraph'
-import { PROTOCOL_VERSION, WORK_GRAPH_MAX_BODY_BYTES } from '@hapi/protocol'
+import { PROTOCOL_VERSION, WORK_GRAPH_MAX_BODY_BYTES } from '@hamlet/protocol'
 
 const JWT_SECRET = new TextEncoder().encode('test-secret')
 

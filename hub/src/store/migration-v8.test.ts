@@ -17,7 +17,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('V7 DB migrates to V8 via Store: invoked_at added, existing rows backfilled to created_at', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v8-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v8-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -54,7 +54,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('V6 DB migrates to V8 (multi-hop)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v6-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v6-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -78,7 +78,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('V5 DB migrates to V8 (multi-hop)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v5-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v5-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -99,7 +99,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('V4 DB migrates to V8 (multi-hop)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v4-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v4-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -120,7 +120,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('V8 DB reopen is idempotent: schema unchanged', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v8-idempotent-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v8-idempotent-'))
         const dbPath = join(dir, 'test.db')
         let store1: Store | undefined
         let store2: Store | undefined
@@ -141,7 +141,7 @@ describe('Store V7→V8 migration: invoked_at column', () => {
     })
 
     it('migrateFromV7ToV8 PRAGMA guard: invoked_at column appears exactly once', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v8-guard-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v8-guard-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -355,7 +355,7 @@ describe('Store V8 byPosition pagination', () => {
     })
 
     it('V7 mode getMessages is unchanged after V8 migration', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-v7-compat-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-v7-compat-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -392,7 +392,7 @@ describe('Store V8 byPosition pagination', () => {
     })
 
     it('idx_messages_session_position index exists after V7→V8 migration', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-index-v7-v8-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-index-v7-v8-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -466,7 +466,7 @@ describe('Store V8 byPosition pagination', () => {
     })
 
     it('legacy DB (user_version=0 with V7-shape tables): step ladder backfills invoked_at and index', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-legacy-v0-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-legacy-v0-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {

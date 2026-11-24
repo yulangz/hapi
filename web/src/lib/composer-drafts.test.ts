@@ -33,7 +33,7 @@ describe('composer-drafts', () => {
     it('persists drafts to sessionStorage', async () => {
         const mod = await import('./composer-drafts')
         mod.saveDraft('session-1', 'test')
-        const stored = JSON.parse(storage['hapi:composer-drafts'] ?? '{}')
+        const stored = JSON.parse(storage['hamlet:composer-drafts'] ?? '{}')
         expect(stored['session-1']).toBe('test')
     })
 
@@ -52,7 +52,7 @@ describe('composer-drafts', () => {
         mod.saveDraft('session-1', '   ')
         expect(mod.getDraft('session-1')).toBe('')
 
-        const stored = JSON.parse(storage['hapi:composer-drafts'] ?? '{}')
+        const stored = JSON.parse(storage['hamlet:composer-drafts'] ?? '{}')
         expect(stored).not.toHaveProperty('session-1')
     })
 
@@ -76,13 +76,13 @@ describe('composer-drafts', () => {
     })
 
     it('hydrates from existing sessionStorage data', async () => {
-        storage['hapi:composer-drafts'] = JSON.stringify({ 'existing': 'draft text' })
+        storage['hamlet:composer-drafts'] = JSON.stringify({ 'existing': 'draft text' })
         const mod = await import('./composer-drafts')
         expect(mod.getDraft('existing')).toBe('draft text')
     })
 
     it('recovers from invalid sessionStorage data', async () => {
-        storage['hapi:composer-drafts'] = 'not valid json'
+        storage['hamlet:composer-drafts'] = 'not valid json'
         const mod = await import('./composer-drafts')
         expect(mod.getDraft('any')).toBe('')
         // Should still be able to save
@@ -91,7 +91,7 @@ describe('composer-drafts', () => {
     })
 
     it('ignores non-string values during hydration', async () => {
-        storage['hapi:composer-drafts'] = JSON.stringify({
+        storage['hamlet:composer-drafts'] = JSON.stringify({
             'valid': 'text',
             'invalid-number': 42,
             'invalid-null': null,

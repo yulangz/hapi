@@ -7,7 +7,7 @@
 
 import { logger } from "@/ui/logger";
 import { ApiSessionClient } from "@/api/apiSession";
-import type { CodexPermissionMode } from "@hapi/protocol/types";
+import type { CodexPermissionMode } from "@hamlet/protocol/types";
 import {
     BasePermissionHandler,
     type AutoApprovalDecision,

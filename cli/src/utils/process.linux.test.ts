@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { readFileSyncMock } = vi.hoisted(() => ({ readFileSyncMock: vi.fn() }));
 vi.mock('node:fs', () => ({ readFileSync: readFileSyncMock }));
 
-import { getHapiRunnerProcessIdentity, getProcessStartMarker, isProcessAlive } from './process';
+import { getHamletRunnerProcessIdentity, getProcessStartMarker, isProcessAlive } from './process';
 
 const descriptor = Object.getOwnPropertyDescriptor(process, 'platform')!;
 
@@ -19,10 +19,10 @@ describe('Linux process liveness', () => {
     });
 
     it.each(['Z', 'X', 'x'])('treats unreaped/dead state %s as exited even when signal 0 succeeds', state => {
-        readFileSyncMock.mockReturnValue(`489121 (hapi) ${state} 1 1 1 0`);
+        readFileSyncMock.mockReturnValue(`489121 (hamlet) ${state} 1 1 1 0`);
         expect(isProcessAlive(489121)).toBe(false);
         expect(getProcessStartMarker(489121)).toBeNull();
-        expect(getHapiRunnerProcessIdentity(489121)).toBe('dead');
+        expect(getHamletRunnerProcessIdentity(489121)).toBe('dead');
     });
 
     it.each(['R', 'S', 'D', 'T', 't'])('preserves ownership for a live process in state %s', state => {

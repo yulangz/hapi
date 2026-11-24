@@ -43,14 +43,14 @@ describe('CodexPermissionHandler', () => {
     it('auto-approves change_title tools in default mode', async () => {
         const { handler, getAgentState } = createHarness('default');
 
-        await expect(handler.handleToolCall('perm-1', 'mcp__hapi__change_title', { title: 'Rename' })).resolves.toEqual({
+        await expect(handler.handleToolCall('perm-1', 'mcp__hamlet__change_title', { title: 'Rename' })).resolves.toEqual({
             decision: 'approved'
         });
 
         expect(getAgentState().requests).toEqual({});
         expect(getAgentState().completedRequests).toMatchObject({
             'perm-1': {
-                tool: 'mcp__hapi__change_title',
+                tool: 'mcp__hamlet__change_title',
                 status: 'approved',
                 decision: 'approved'
             }

@@ -1,4 +1,4 @@
-import { getAgyModelLabel } from '@hapi/protocol'
+import { getAgyModelLabel } from '@hamlet/protocol'
 import { MODEL_OPTIONS } from '@/components/NewSession/types'
 import { CURSOR_AUTO_MODEL_LABEL } from '@/lib/cursorModelOptions'
 import { getClaudeComposerModelOptions, getNextClaudeComposerModel } from './claudeModelOptions'

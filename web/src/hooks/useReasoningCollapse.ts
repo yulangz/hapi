@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 
 export const DEFAULT_REASONING_COLLAPSED = false
 
-const REASONING_COLLAPSED_STORAGE_KEY = 'hapi-reasoning-collapsed'
+const REASONING_COLLAPSED_STORAGE_KEY = 'hamlet-reasoning-collapsed'
 
 function isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof document !== 'undefined'

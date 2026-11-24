@@ -1,40 +1,40 @@
-import { CREATABLE_AGENT_FLAVORS, getFlavorLabel } from '@hapi/protocol'
+import { CREATABLE_AGENT_FLAVORS, getFlavorLabel } from '@hamlet/protocol'
 
 export function printCliHelp(): void {
     const agents = [...CREATABLE_AGENT_FLAVORS].sort().map((agent) => (
-        `  ${`hapi ${agent}`.padEnd(26)} ${getFlavorLabel(agent)}`
+        `  ${`hamlet ${agent}`.padEnd(26)} ${getFlavorLabel(agent)}`
     )).join('\n')
 
-    console.log(`HAPI - Coding agents with remote control
+    console.log(`HAMLET - Coding agents with remote control
 
 Usage:
-  hapi                       Choose an agent interactively
-  hapi <agent> [options]      Start an agent session
-  hapi <command> [options]    Run a HAPI command
+  hamlet                       Choose an agent interactively
+  hamlet <agent> [options]      Start an agent session
+  hamlet <command> [options]    Run a HAMLET command
 
 Agents:
 ${agents}
 
 Commands:
-  hapi auth                  Manage authentication
-  hapi resume [id]           Choose or resume an existing HAPI session
-  hapi hub [--relay]         Start the API + web hub
-  hapi server                Alias for hapi hub
-  hapi runner                Manage the background runner
-  hapi doctor                Run diagnostics and troubleshooting
-  hapi ping-peer             List peers or message another session
-  hapi inspect-peer <id>     Read another session's metadata and messages
-  hapi mcp                   Start the MCP stdio bridge
+  hamlet auth                  Manage authentication
+  hamlet resume [id]           Choose or resume an existing HAMLET session
+  hamlet hub [--relay]         Start the API + web hub
+  hamlet server                Alias for hamlet hub
+  hamlet runner                Manage the background runner
+  hamlet doctor                Run diagnostics and troubleshooting
+  hamlet ping-peer             List peers or message another session
+  hamlet inspect-peer <id>     Read another session's metadata and messages
+  hamlet mcp                   Start the MCP stdio bridge
 
 Options:
-  -h, --help                 Show HAPI help
-  -v, --version              Show HAPI version
+  -h, --help                 Show HAMLET help
+  -v, --version              Show HAMLET version
 
 Examples:
-  hapi                       Choose an installed agent
-  hapi claude --resume       Resume a Claude session
-  hapi codex --yolo          Start Codex with automatic approvals
-  hapi auth login            Configure authentication
+  hamlet                       Choose an installed agent
+  hamlet claude --resume       Resume a Claude session
+  hamlet codex --yolo          Start Codex with automatic approvals
+  hamlet auth login            Configure authentication
 
 Agent options belong after the agent name; supported options vary by agent.
 Scripts and non-interactive shells must specify an agent explicitly.`)

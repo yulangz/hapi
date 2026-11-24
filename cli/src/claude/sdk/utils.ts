@@ -78,7 +78,7 @@ function findWindowsClaudePath(): string | null {
     }
 
     // Try PATH lookup. npm global installs usually expose claude.cmd/claude
-    // shims, while HAPI spawns Claude with shell:false and needs the real exe.
+    // shims, while HAMLET spawns Claude with shell:false and needs the real exe.
     for (const command of ['claude.exe', 'claude.cmd', 'claude']) {
         for (const result of findWhereResults(command)) {
             const resolved = resolveWindowsClaudePathCandidate(result)
@@ -119,7 +119,7 @@ function findGlobalClaudePath(env: Record<string, string | undefined>): string |
  * Get default path to Claude Code executable.
  *
  * Environment variables:
- * - HAPI_CLAUDE_PATH: Force a specific path to claude executable
+ * - HAMLET_CLAUDE_PATH: Force a specific path to claude executable
  */
 export function getDefaultClaudeCodePath(
     env: Record<string, string | undefined> = process.env,
@@ -127,23 +127,23 @@ export function getDefaultClaudeCodePath(
     // Allow explicit override via env var. On Windows, tolerate npm
     // shim paths (`claude.cmd` / extensionless `claude`) by resolving them
     // to the real `claude.exe` because Claude is spawned with shell:false.
-    if (env.HAPI_CLAUDE_PATH) {
+    if (env.HAMLET_CLAUDE_PATH) {
         const configuredPath = getAgentLaunchCommand('claude', env)
         if (process.platform === 'win32') {
             const resolved = resolveWindowsClaudePathCandidate(configuredPath)
             if (resolved) {
-                logger.debug(`[Claude SDK] Using resolved HAPI_CLAUDE_PATH: ${resolved}`)
+                logger.debug(`[Claude SDK] Using resolved HAMLET_CLAUDE_PATH: ${resolved}`)
                 return resolved
             }
         }
-        logger.debug(`[Claude SDK] Using HAPI_CLAUDE_PATH: ${configuredPath}`)
+        logger.debug(`[Claude SDK] Using HAMLET_CLAUDE_PATH: ${configuredPath}`)
         return configuredPath
     }
 
     // Find global claude
     const globalPath = findGlobalClaudePath(env)
     if (!globalPath) {
-        throw new Error('Claude Code CLI not found on PATH. Install Claude Code or set HAPI_CLAUDE_PATH.')
+        throw new Error('Claude Code CLI not found on PATH. Install Claude Code or set HAMLET_CLAUDE_PATH.')
     }
     return globalPath
 }

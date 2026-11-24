@@ -1,6 +1,6 @@
 # Message pagination, windowing, and optimistic sends
 
-**Audience:** Implementers of native HAPI clients (iOS / Android). This page specifies the message paging protocol (`GET /api/sessions/:id/messages`), the epoch reset contract, the tail-sync loop, recommended client windowing, and the optimistic-send / cancel lifecycle. Companion pages: [sse](./sse.md), [messages](./messages.md), [rest](./rest.md).
+**Audience:** Implementers of native HAMLET clients (iOS / Android). This page specifies the message paging protocol (`GET /api/sessions/:id/messages`), the epoch reset contract, the tail-sync loop, recommended client windowing, and the optimistic-send / cancel lifecycle. Companion pages: [sse](./sse.md), [messages](./messages.md), [rest](./rest.md).
 
 Source of truth: `shared/src/apiTypes.ts` (`MessagesQuerySchema`, `MessagesResponse`, `SendMessageRequestSchema`), `hub/src/web/routes/messages.ts`, `hub/src/sync/messageService.ts`, `hub/src/store/messages.ts`, reference client `web/src/lib/message-window-store.ts` + `web/src/lib/messages.ts`.
 

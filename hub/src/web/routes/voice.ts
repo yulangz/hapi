@@ -15,8 +15,8 @@ import {
     listConfiguredTranscriptionProviders,
     listConfiguredVoiceBackends,
     resolveHubVoiceBackend
-} from '@hapi/protocol/voice'
-import type { TranscriptionProvider, VoiceBackendType } from '@hapi/protocol/voice'
+} from '@hamlet/protocol/voice'
+import type { TranscriptionProvider, VoiceBackendType } from '@hamlet/protocol/voice'
 import {
     getProviderEnvironment,
     getTranscriptionCredentialStatus,
@@ -335,9 +335,9 @@ function parseVoiceAgentMap(): Record<string, string> {
 }
 
 /**
- * Find an existing "Hapi Voice Assistant" agent
+ * Find an existing "Hamlet Voice Assistant" agent
  */
-async function findHapiAgent(apiKey: string, agentName: string = VOICE_AGENT_NAME): Promise<string | null> {
+async function findHamletAgent(apiKey: string, agentName: string = VOICE_AGENT_NAME): Promise<string | null> {
     try {
         const response = await fetch(`${ELEVENLABS_API_BASE}/convai/agents`, {
             method: 'GET',
@@ -353,22 +353,22 @@ async function findHapiAgent(apiKey: string, agentName: string = VOICE_AGENT_NAM
 
         const data = await response.json() as { agents?: ElevenLabsAgent[] }
         const agents: ElevenLabsAgent[] = data.agents || []
-        const hapiAgent = agents.find(agent => agent.name === agentName)
+        const hamletAgent = agents.find(agent => agent.name === agentName)
 
-        return hapiAgent?.agent_id || null
+        return hamletAgent?.agent_id || null
     } catch {
         return null
     }
 }
 
 /**
- * Create a new "Hapi Voice Assistant" agent
+ * Create a new "Hamlet Voice Assistant" agent
  */
-async function createHapiAgent(apiKey: string): Promise<string | null> {
-    return createNamedHapiAgent(apiKey, VOICE_AGENT_NAME)
+async function createHamletAgent(apiKey: string): Promise<string | null> {
+    return createNamedHamletAgent(apiKey, VOICE_AGENT_NAME)
 }
 
-async function createNamedHapiAgent(apiKey: string, agentName: string, voiceId?: string): Promise<string | null> {
+async function createNamedHamletAgent(apiKey: string, agentName: string, voiceId?: string): Promise<string | null> {
     try {
         const config = buildVoiceAgentConfig()
         config.name = agentName
@@ -404,7 +404,7 @@ async function createNamedHapiAgent(apiKey: string, agentName: string, voiceId?:
 }
 
 /**
- * Get or create agent ID - finds existing or creates new "Hapi Voice Assistant" agent
+ * Get or create agent ID - finds existing or creates new "Hamlet Voice Assistant" agent
  */
 async function getOrCreateAgentId(apiKey: string): Promise<string | null> {
     return getOrCreateAgentIdForVoice(apiKey)
@@ -430,7 +430,7 @@ async function getOrCreateAgentIdForVoice(apiKey: string, voiceId?: string): Pro
         voiceId,
         agentName
     })
-    let agentId = await findHapiAgent(apiKey, agentName)
+    let agentId = await findHamletAgent(apiKey, agentName)
 
     if (agentId) {
         console.log('[Voice] Found existing agent:', agentId)
@@ -440,7 +440,7 @@ async function getOrCreateAgentIdForVoice(apiKey: string, voiceId?: string): Pro
     } else {
         // Create new agent
         console.log('[Voice] No existing agent found, creating new one...')
-        agentId = await createNamedHapiAgent(apiKey, agentName, voiceId)
+        agentId = await createNamedHamletAgent(apiKey, agentName, voiceId)
         if (agentId) {
             console.log('[Voice] Created new agent:', agentId)
             // Newly-created agents already carry the canonical overrides, but
@@ -572,9 +572,9 @@ export function createVoiceRoutes(options: { dataDir?: string } = {}): Hono<WebA
         // Use server-side WS proxy to avoid region restrictions.
         // The proxy at /api/voice/gemini-ws handles the API key server-side.
         // Derive wsUrl from the request origin so remote browsers connect back to the hub,
-        // not to localhost. HAPI_PUBLIC_URL overrides when set (e.g. behind a reverse proxy).
+        // not to localhost. HAMLET_PUBLIC_URL overrides when set (e.g. behind a reverse proxy).
         const requestOrigin = new URL(c.req.url).origin
-        const publicUrl = process.env.HAPI_PUBLIC_URL || requestOrigin
+        const publicUrl = process.env.HAMLET_PUBLIC_URL || requestOrigin
         const wsProxyUrl = buildVoiceWsUrl(publicUrl, '/api/voice/gemini-ws')
 
         return c.json({
@@ -598,7 +598,7 @@ export function createVoiceRoutes(options: { dataDir?: string } = {}): Hono<WebA
         }
 
         const requestOrigin = new URL(c.req.url).origin
-        const publicUrl = process.env.HAPI_PUBLIC_URL || requestOrigin
+        const publicUrl = process.env.HAMLET_PUBLIC_URL || requestOrigin
         const wsProxyUrl = buildVoiceWsUrl(publicUrl, '/api/voice/qwen-ws')
 
         return c.json({

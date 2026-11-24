@@ -3,8 +3,8 @@ import { spawn, spawnSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { homedir, hostname, platform } from 'node:os'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
-import type { CodexCollaborationMode } from '@hapi/protocol/types'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
+import type { CodexCollaborationMode } from '@hamlet/protocol/types'
 import { Hono } from 'hono'
 import type { Machine, SyncEngine } from '../../sync/syncEngine'
 import type { Store, StoredMessage } from '../../store'
@@ -14,7 +14,7 @@ import type { WebAppEnv } from '../middleware/auth'
 type ScriptLogKind = 'sync' | 'restart'
 
 const DIRECT_IMPORT_COMMAND = 'direct-import'
-const RESTART_SCRIPT_ENV_NAME = 'HAPI_CODEX_RESTART_SCRIPT'
+const RESTART_SCRIPT_ENV_NAME = 'HAMLET_CODEX_RESTART_SCRIPT'
 const RESTART_SCRIPT_DEFAULT_FILE = 'Restart-CodexDesktop.ps1'
 const RESTART_SCRIPT_ARGS = ['-Apply']
 const RESTART_SCRIPT_MESSAGE = 'Codex Desktop restart script started'
@@ -31,7 +31,7 @@ type ScriptLaunchResponse = {
     codexClientAvailable?: boolean
     syncedCount?: number
     sessionIds?: string[]
-    hapiSessionIds?: string[]
+    hamletSessionIds?: string[]
 } | {
     success: false
     error: string
@@ -42,7 +42,7 @@ type ScriptLaunchResponse = {
     codexClientAvailable?: boolean
     syncedCount?: number
     sessionIds?: string[]
-    hapiSessionIds?: string[]
+    hamletSessionIds?: string[]
 }
 
 type CodexDesktopStatus = {
@@ -141,7 +141,7 @@ type SyncSessionRequestParseResult = {
 
 type CodexDuplicateSessionGroup = {
     codexSessionId: string
-    hapiSessionIds: string[]
+    hamletSessionIds: string[]
     canonicalSessionId?: string
     removedSessionIds?: string[]
 }
@@ -185,12 +185,12 @@ function resolveLocalPath(pathValue: string): string {
 }
 
 function getScriptRoot(): string {
-    const configured = process.env.HAPI_CODEX_SCRIPT_ROOT?.trim()
+    const configured = process.env.HAMLET_CODEX_SCRIPT_ROOT?.trim()
     return configured ? resolveLocalPath(configured) : process.cwd()
 }
 
 function getDefaultScriptPath(defaultFile: string): string {
-    const configuredRoot = process.env.HAPI_CODEX_SCRIPT_ROOT?.trim()
+    const configuredRoot = process.env.HAMLET_CODEX_SCRIPT_ROOT?.trim()
     if (configuredRoot) {
         return join(resolveLocalPath(configuredRoot), defaultFile)
     }
@@ -218,12 +218,12 @@ function getRestartScriptPath(): string {
 }
 
 function getWorkspace(scriptPath: string): string {
-    const configured = process.env.HAPI_CODEX_WORKSPACE?.trim()
+    const configured = process.env.HAMLET_CODEX_WORKSPACE?.trim()
     return configured ? resolveLocalPath(configured) : dirname(scriptPath)
 }
 
 function getDirectImportWorkspace(): string {
-    const configured = process.env.HAPI_CODEX_WORKSPACE?.trim()
+    const configured = process.env.HAMLET_CODEX_WORKSPACE?.trim()
     return configured ? resolveLocalPath(configured) : process.cwd()
 }
 
@@ -980,7 +980,7 @@ function buildImportedSessionMetadata(
 ): Record<string, unknown> {
     const now = Date.now()
     const path = data.cwd ?? (typeof existingMetadata?.path === 'string' ? existingMetadata.path : dirname(data.file))
-    const host = typeof existingMetadata?.host === 'string' ? existingMetadata.host : (process.env.HAPI_HOSTNAME || hostname())
+    const host = typeof existingMetadata?.host === 'string' ? existingMetadata.host : (process.env.HAMLET_HOSTNAME || hostname())
     const osValue = typeof existingMetadata?.os === 'string' ? existingMetadata.os : platform()
     const summaryText = data.lastUserMessage ?? data.title
     const machineId = typeof existingMetadata?.machineId === 'string'
@@ -1307,7 +1307,7 @@ async function mergeSingleDuplicateCodexSessionGroup(options: {
 
     const canonical = sessionStates[0]
     if (!canonical) {
-        throw new Error(`No duplicate Hapi session found for Codex thread: ${options.group.codexSessionId}`)
+        throw new Error(`No duplicate Hamlet session found for Codex thread: ${options.group.codexSessionId}`)
     }
 
     const knownKeys = new Set(canonical.comparableKeys)
@@ -1340,7 +1340,7 @@ async function mergeSingleDuplicateCodexSessionGroup(options: {
         } else {
             const deleted = options.store.sessions.deleteSession(source.sessionId, options.namespace)
             if (!deleted) {
-                throw new Error(`Failed to delete duplicate Hapi session: ${source.sessionId}`)
+                throw new Error(`Failed to delete duplicate Hamlet session: ${source.sessionId}`)
             }
         }
         removedSessionIds.push(source.sessionId)
@@ -1363,7 +1363,7 @@ async function mergeSingleDuplicateCodexSessionGroup(options: {
 
     return {
         codexSessionId: options.group.codexSessionId,
-        hapiSessionIds: sessionStates.map((candidate) => candidate.sessionId),
+        hamletSessionIds: sessionStates.map((candidate) => candidate.sessionId),
         canonicalSessionId: canonical.sessionId,
         removedSessionIds
     }
@@ -1378,7 +1378,7 @@ function emitImportedMessageEvents(
         return
     }
 
-    // 中文注释：只有追加到已有 Hapi 会话时才逐条广播新增消息，确保当前打开的会话右侧消息区能立即刷新到最新 transcript。
+    // 中文注释：只有追加到已有 Hamlet 会话时才逐条广播新增消息，确保当前打开的会话右侧消息区能立即刷新到最新 transcript。
     for (const message of appendedMessages) {
         engine.handleRealtimeEvent({
             type: 'message-received',
@@ -1431,7 +1431,7 @@ function findOnPath(commandName: string): string | null {
 
 function getCodexLauncherCandidates(): string[] {
     return [
-        process.env.HAPI_CODEX_COMMAND?.trim() ?? '',
+        process.env.HAMLET_CODEX_COMMAND?.trim() ?? '',
         findOnPath('codex') ?? '',
         process.env.LOCALAPPDATA ? join(process.env.LOCALAPPDATA, 'Microsoft', 'WindowsApps', 'codex.exe') : ''
     ].filter(Boolean)
@@ -1449,7 +1449,7 @@ function isCodexLauncherAvailable(): boolean {
 
 function getDarwinCodexAppCandidates(): string[] {
     return [
-        process.env.HAPI_CODEX_APP_PATH?.trim() ?? '',
+        process.env.HAMLET_CODEX_APP_PATH?.trim() ?? '',
         ...DARWIN_CODEX_APP_CANDIDATES
     ].filter(Boolean)
 }
@@ -1570,7 +1570,7 @@ function getCodexDesktopStatus(): CodexDesktopStatus {
 }
 
 function getScriptTimeoutMs(): number {
-    const configured = Number(process.env.HAPI_CODEX_SCRIPT_TIMEOUT_MS)
+    const configured = Number(process.env.HAMLET_CODEX_SCRIPT_TIMEOUT_MS)
     if (Number.isFinite(configured) && configured > 0) {
         return configured
     }
@@ -1603,7 +1603,7 @@ function appendScriptLog(workspace: string, kind: ScriptLogKind, message: string
 }
 
 async function runPowerShellScript(scriptPath: string, workspace: string, scriptArgs: string[]): Promise<{ pid: number; command: string; output: string }> {
-    const configuredPwsh = process.env.HAPI_PWSH_PATH?.trim()
+    const configuredPwsh = process.env.HAMLET_PWSH_PATH?.trim()
     const candidates = Array.from(new Set([
         configuredPwsh || 'pwsh',
         'powershell.exe'
@@ -1942,9 +1942,9 @@ function createImportErrorResponse(
     }
 }
 
-function parseImportedHapiSessionId(output?: string): string | null {
+function parseImportedHamletSessionId(output?: string): string | null {
     if (!output) return null
-    const match = /^Hapi session:\s*(.+)$/m.exec(output)
+    const match = /^Hamlet session:\s*(.+)$/m.exec(output)
     return match?.[1]?.trim() || null
 }
 
@@ -1960,13 +1960,13 @@ function createImportSuccessResponse(
     )
     return {
         success: true,
-        message: `Imported ${results.length} Codex session(s) into Hapi`,
+        message: `Imported ${results.length} Codex session(s) into Hamlet`,
         pid: 0,
         command: DIRECT_IMPORT_COMMAND,
         cwd: workspace,
         output: combineSyncOutputs(results),
         sessionIds: codexSessionIds,
-        hapiSessionIds: results.map((result) => parseImportedHapiSessionId(result.output)).filter((id): id is string => Boolean(id)),
+        hamletSessionIds: results.map((result) => parseImportedHamletSessionId(result.output)).filter((id): id is string => Boolean(id)),
         syncedCount: results.length
     }
 }
@@ -2032,7 +2032,7 @@ function importSingleCodexSession(options: {
         let sessionId = existingStored?.id ?? null
         let created = false
         if (!sessionId) {
-            // 中文注释：找不到可安全续写的历史会话时，直接新建一个 Hapi 会话，避免把已分叉的数据硬写进旧会话。
+            // 中文注释：找不到可安全续写的历史会话时，直接新建一个 Hamlet 会话，避免把已分叉的数据硬写进旧会话。
             const createdSession = engine?.getOrCreateSession(
                 randomUUID(),
                 metadata,
@@ -2052,7 +2052,7 @@ function importSingleCodexSession(options: {
                 options.namespace
             )
             if (updatedMetadata.result !== 'success') {
-                throw new Error(`Failed to update metadata for Hapi session: ${existingStored.id}`)
+                throw new Error(`Failed to update metadata for Hamlet session: ${existingStored.id}`)
             }
             if (options.model !== undefined) {
                 options.store.sessions.setSessionModel(existingStored.id, options.model, options.namespace, { touchUpdatedAt: false })
@@ -2064,7 +2064,7 @@ function importSingleCodexSession(options: {
         }
 
         if (!sessionId) {
-            throw new Error(`Failed to determine target Hapi session for Codex thread: ${options.codexSessionId}`)
+            throw new Error(`Failed to determine target Hamlet session for Codex thread: ${options.codexSessionId}`)
         }
 
         const comparablePrefixCount = sessionId ? target.comparablePrefixCount : 0
@@ -2075,7 +2075,7 @@ function importSingleCodexSession(options: {
         }
         const appendedMessages = messagesToAppend.map((message) => options.store.messages.addMessage(sessionId!, message))
 
-        // 中文注释：更新 Hapi 会话的 updatedAt，并在已有会话追加时广播新增消息，让当前打开的聊天页立刻显示客户端新增内容。
+        // 中文注释：更新 Hamlet 会话的 updatedAt，并在已有会话追加时广播新增消息，让当前打开的聊天页立刻显示客户端新增内容。
         const latestMessageCreatedAt = appendedMessages[appendedMessages.length - 1]?.createdAt ?? Date.now()
         if (engine) {
             engine.recordSessionActivity(sessionId, latestMessageCreatedAt)
@@ -2090,7 +2090,7 @@ function importSingleCodexSession(options: {
 
         const output = [
             `Codex thread: ${options.codexSessionId}`,
-            `Hapi session: ${sessionId}`,
+            `Hamlet session: ${sessionId}`,
             `Action: ${created ? 'created' : 'updated'}`,
             `Appended messages: ${appendedMessages.length}`
         ].join('\n')
@@ -2098,18 +2098,18 @@ function importSingleCodexSession(options: {
         appendScriptLog(
             getDirectImportRouteContext().workspace,
             'sync',
-            `SUCCESS: codexSessionId=${options.codexSessionId}; hapiSessionId=${sessionId}; created=${created}; appended=${appendedMessages.length}`
+            `SUCCESS: codexSessionId=${options.codexSessionId}; hamletSessionId=${sessionId}; created=${created}; appended=${appendedMessages.length}`
         )
 
         return {
             success: true,
-            message: created ? 'Codex session imported into a new Hapi session' : 'Codex session appended to existing Hapi session',
+            message: created ? 'Codex session imported into a new Hamlet session' : 'Codex session appended to existing Hamlet session',
             pid: 0,
             command: DIRECT_IMPORT_COMMAND,
             cwd: getDirectImportRouteContext().workspace,
             output,
             sessionIds: [options.codexSessionId],
-            hapiSessionIds: [sessionId],
+            hamletSessionIds: [sessionId],
             syncedCount: 1
         }
     } catch (error) {
@@ -2156,7 +2156,7 @@ export async function importSelectedCodexSessions(options: {
         results.push(result)
 
         if (result.success && (options.serviceTier !== undefined || options.collaborationMode !== undefined)) {
-            const importedSessionId = result.hapiSessionIds?.[0]
+            const importedSessionId = result.hamletSessionIds?.[0]
             const engine = options.getSyncEngine?.() ?? null
             if (!importedSessionId || !engine) {
                 return createImportErrorResponse(codexSessionIds, 'Imported session config could not be applied before resume')
@@ -2342,7 +2342,7 @@ export function createCodexDesktopRoutes(options: {
             options.getSyncEngine
         ).map((group) => ({
             codexSessionId: group.codexSessionId,
-            hapiSessionIds: group.sessions.map((session) => session.sessionId)
+            hamletSessionIds: group.sessions.map((session) => session.sessionId)
         }))
 
         return c.json({
@@ -2380,7 +2380,7 @@ export function createCodexDesktopRoutes(options: {
             appendScriptLog(
                 workspace,
                 'sync',
-                `SUCCESS: merged duplicate Hapi sessions for selected codexSessionIds=${parsed.sessionIds.join(',')}`
+                `SUCCESS: merged duplicate Hamlet sessions for selected codexSessionIds=${parsed.sessionIds.join(',')}`
             )
             return c.json(result satisfies CodexMergeDuplicateSessionsResponse)
         } catch (error) {

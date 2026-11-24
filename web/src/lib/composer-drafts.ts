@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'hapi:composer-drafts'
+const STORAGE_KEY = 'hamlet:composer-drafts'
 const MAX_DRAFTS = 50
 
 type DraftsMap = Record<string, string>

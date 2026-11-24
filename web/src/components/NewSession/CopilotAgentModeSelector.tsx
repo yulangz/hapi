@@ -1,4 +1,4 @@
-import { getCopilotAgentModeOptions, type CopilotAgentMode } from '@hapi/protocol'
+import { getCopilotAgentModeOptions, type CopilotAgentMode } from '@hamlet/protocol'
 import { useTranslation } from '@/lib/use-translation'
 import type { AgentType } from './types'
 

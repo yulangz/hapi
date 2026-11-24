@@ -404,7 +404,7 @@ describe('AcpMessageHandler', () => {
         handler.handleUpdate({
             sessionUpdate: ACP_SESSION_UPDATE_TYPES.toolCall,
             toolCallId: 'tool-4',
-            title: 'hapi_change_title',
+            title: 'hamlet_change_title',
             rawInput: { title: 'A' },
             status: 'in_progress'
         });
@@ -421,8 +421,8 @@ describe('AcpMessageHandler', () => {
             message.type === 'tool_call'
         );
         expect(calls).toHaveLength(2);
-        expect(calls[0].name).toBe('hapi_change_title');
-        expect(calls[1].name).toBe('hapi_change_title');
+        expect(calls[0].name).toBe('hamlet_change_title');
+        expect(calls[1].name).toBe('hamlet_change_title');
     });
 
     it('falls back to kind+title derivation when rawInput is explicitly null', () => {
@@ -701,7 +701,7 @@ describe('AcpMessageHandler', () => {
         });
 
         it('preserves OpenCode other/fetch/think tool rawInput (MCP, webfetch, task)', () => {
-            // These kinds have no kind+title fallback in HAPI — usable rawInput is
+            // These kinds have no kind+title fallback in HAMLET — usable rawInput is
             // the only path. Empty {} must not be stored in place of later args.
             const cases: Array<{
                 id: string;
@@ -728,7 +728,7 @@ describe('AcpMessageHandler', () => {
                 {
                     id: 'oc-mcp',
                     kind: 'other',
-                    title: 'hapi_change_title',
+                    title: 'hamlet_change_title',
                     rawInput: { title: 'fixed title' }
                 }
             ];
@@ -1133,7 +1133,7 @@ describe('AcpMessageHandler', () => {
             { textChunkMode: 'delta' }
         );
 
-        const answer = '{"name":"hapi","version":"0.23.4"}';
+        const answer = '{"name":"hamlet","version":"0.23.4"}';
         for (const chunk of [answer.slice(0, 10), answer.slice(10)]) {
             handler.handleUpdate({
                 sessionUpdate: ACP_SESSION_UPDATE_TYPES.agentMessageChunk,
@@ -1489,7 +1489,7 @@ describe('AcpMessageHandler', () => {
     describe('tool_call_update content normalization (Gemini/OpenCode path)', () => {
         it('unwraps text content block to string output', () => {
             // Gemini sends content: [{type:'content', content:{type:'text', text:'...'}}]
-            // when the tool has stdout. HAPI must normalize this to a plain string.
+            // when the tool has stdout. HAMLET must normalize this to a plain string.
             const messages: AgentMessage[] = [];
             const handler = new AcpMessageHandler((message) => messages.push(message));
 
@@ -1541,7 +1541,7 @@ describe('AcpMessageHandler', () => {
 
         it('preserves diff content block fields in output', () => {
             // Gemini sends content: [{type:'diff', path, oldText, newText, _meta:{kind}}]
-            // for file-edit tools. HAPI must surface these fields intact.
+            // for file-edit tools. HAMLET must surface these fields intact.
             const messages: AgentMessage[] = [];
             const handler = new AcpMessageHandler((message) => messages.push(message));
 

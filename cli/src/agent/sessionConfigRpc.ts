@@ -1,7 +1,7 @@
-import { isPermissionModeAllowedForFlavor, type AgentFlavor } from '@hapi/protocol'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
-import { PermissionModeSchema } from '@hapi/protocol/schemas'
-import type { PermissionMode } from '@hapi/protocol/types'
+import { isPermissionModeAllowedForFlavor, type AgentFlavor } from '@hamlet/protocol'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
+import { PermissionModeSchema } from '@hamlet/protocol/schemas'
+import type { PermissionMode } from '@hamlet/protocol/types'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 
 type SessionConfigState<TPermissionMode extends PermissionMode = PermissionMode> = {

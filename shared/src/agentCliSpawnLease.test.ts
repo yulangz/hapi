@@ -13,7 +13,7 @@ import {
 } from './agentCliSpawnLease'
 
 describe('agentCliSpawnLease', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'hapi-agent-cli-spawn-lease-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hamlet-agent-cli-spawn-lease-'))
 
     afterEach(() => {
         _resetAgentCliSpawnLeaseForTests(dir)
@@ -82,5 +82,5 @@ describe('agentCliSpawnLease', () => {
 })
 
 function spawnLockfilePath(lockTarget: string): string {
-    return `${lockTarget}.hapi.lock`
+    return `${lockTarget}.hamlet.lock`
 }

@@ -580,7 +580,7 @@ export type RewindConversationResponse = {
     success: true
 }
 
-/** CLI → hub RPC result for native fork (before HAPI child binding). */
+/** CLI → hub RPC result for native fork (before HAMLET child binding). */
 export type ForkConversationRpcResult = {
     nativeSessionId: string
     /** Shared runtimes bind the child themselves; hub must not spawn another engine. */
@@ -595,7 +595,7 @@ export type RewindConversationErrorCode =
 
 export type RewindConversationRpcResult = {
     success: true
-    /** Truncate HAPI transcript at/after this localId, then accept rehydrated history. */
+    /** Truncate HAMLET transcript at/after this localId, then accept rehydrated history. */
     truncateFromLocalId: string
     messages?: Array<{
         content: unknown

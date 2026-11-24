@@ -1,4 +1,4 @@
-import type { TranscriptionProvider } from '@hapi/protocol/voice'
+import type { TranscriptionProvider } from '@hamlet/protocol/voice'
 import type { TranscriptionCredentialStatus } from '@/api/client'
 
 /** Curated cloud presets shown when onboarding dictation credentials. */

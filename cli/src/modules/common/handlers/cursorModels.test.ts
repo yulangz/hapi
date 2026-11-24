@@ -3,7 +3,7 @@ import { mkdir, rm } from 'fs/promises';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager';
 import { _resetAgentCliGuardForTests } from '@/agent/backends/acp/agentCliGuard';
 import {
@@ -16,21 +16,21 @@ import {
 } from '../cursorModelsSharedCache';
 import { registerCursorModelHandlers } from './cursorModels';
 
-async function createTempHapiHome(): Promise<string> {
-    const path = join(tmpdir(), `hapi-cursor-rpc-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+async function createTempHamletHome(): Promise<string> {
+    const path = join(tmpdir(), `hamlet-cursor-rpc-${Date.now()}-${Math.random().toString(16).slice(2)}`);
     await mkdir(path, { recursive: true });
     return path;
 }
 
 describe('listCursorModels machine RPC handler', () => {
     let testHome: string;
-    let savedHapiHome: string | undefined;
+    let savedHamletHome: string | undefined;
     let rpc: RpcHandlerManager;
 
     beforeEach(async () => {
-        savedHapiHome = process.env.HAPI_HOME;
-        testHome = await createTempHapiHome();
-        process.env.HAPI_HOME = testHome;
+        savedHamletHome = process.env.HAMLET_HOME;
+        testHome = await createTempHamletHome();
+        process.env.HAMLET_HOME = testHome;
         _resetCursorModelsCacheForTests();
         _resetSharedCursorModelsCacheForTests();
         _resetAgentCliGuardForTests();
@@ -43,10 +43,10 @@ describe('listCursorModels machine RPC handler', () => {
         _resetCursorModelsCacheForTests();
         _resetSharedCursorModelsCacheForTests();
         _resetAgentCliGuardForTests();
-        if (savedHapiHome === undefined) {
-            delete process.env.HAPI_HOME;
+        if (savedHamletHome === undefined) {
+            delete process.env.HAMLET_HOME;
         } else {
-            process.env.HAPI_HOME = savedHapiHome;
+            process.env.HAMLET_HOME = savedHamletHome;
         }
         await rm(testHome, { recursive: true, force: true });
     });

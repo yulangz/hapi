@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export const DEFAULT_CODEX_EXPLORATION_COLLAPSED = true
 
-const CODEX_EXPLORATION_COLLAPSED_STORAGE_KEY = 'hapi-codex-exploration-collapsed'
+const CODEX_EXPLORATION_COLLAPSED_STORAGE_KEY = 'hamlet-codex-exploration-collapsed'
 
 function isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof document !== 'undefined'

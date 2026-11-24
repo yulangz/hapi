@@ -1,13 +1,13 @@
 /**
- * Minimal persistence functions for HAPI CLI
+ * Minimal persistence functions for HAMLET CLI
  * 
- * Handles settings, encryption key, and runner state storage in ~/.hapi/ (or HAPI_HOME override)
+ * Handles settings, encryption key, and runner state storage in ~/.hamlet/ (or HAMLET_HOME override)
  */
 
 import { FileHandle } from 'node:fs/promises'
 import { readFile, writeFile, mkdir, open, unlink, rename, chmod } from 'node:fs/promises'
 import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs'
-import { withSettingsFileLock } from '@hapi/protocol/settingsFileLock'
+import { withSettingsFileLock } from '@hamlet/protocol/settingsFileLock'
 import { configuration } from '@/configuration'
 import { isProcessAlive } from '@/utils/process';
 
@@ -18,9 +18,9 @@ interface Settings {
   machineIdConfirmedByServer?: boolean
   runnerAutoStartWhenRunningHappy?: boolean
   cliApiToken?: string
-  // API URL for server connections (priority: env HAPI_API_URL > this > default)
+  // API URL for server connections (priority: env HAMLET_API_URL > this > default)
   apiUrl?: string
-  // Extra headers for CLI -> hub requests (priority: env HAPI_EXTRA_HEADERS_JSON > this)
+  // Extra headers for CLI -> hub requests (priority: env HAMLET_EXTRA_HEADERS_JSON > this)
   extraHeaders?: unknown
   // Legacy field name (for migration, read-only)
   serverUrl?: string
@@ -54,8 +54,8 @@ export interface RunnerLocallyPersistedState {
   lastHeartbeat?: string;
   runnerLogPath?: string;
   /**
-   * Snapshot of HAPI_DISABLE_VERSION_HANDOFF=1 at the time this runner
-   * started. Lets a later `hapi runner start` invocation (from a shell where
+   * Snapshot of HAMLET_DISABLE_VERSION_HANDOFF=1 at the time this runner
+   * started. Lets a later `hamlet runner start` invocation (from a shell where
    * the env var is NOT set, e.g. operator's interactive terminal vs a
    * systemd service that owns supervision) honour the running runner's
    * opt-out instead of treating mtime drift as a reason to kill it.

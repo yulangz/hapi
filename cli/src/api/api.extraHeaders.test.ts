@@ -46,7 +46,7 @@ describe('API extra headers integration', () => {
     const now = 1_710_000_000_000
 
     beforeEach(() => {
-        configuration._setApiUrl('https://hapi.example.com')
+        configuration._setApiUrl('https://hamlet.example.com')
         configuration._setExtraHeaders({})
         axiosPostMock.mockReset()
         ioMock.mockReset()
@@ -113,7 +113,7 @@ describe('API extra headers integration', () => {
         await expect(client.clearOpenCodeSession('source-session')).resolves.toBe('fresh-session')
 
         expect(axiosPostMock).toHaveBeenCalledWith(
-            'https://hapi.example.com/cli/sessions/source-session/clear-opencode',
+            'https://hamlet.example.com/cli/sessions/source-session/clear-opencode',
             {},
             expect.objectContaining({
                 headers: expect.objectContaining({ Authorization: 'Bearer cli-token' })
@@ -126,7 +126,7 @@ describe('API extra headers integration', () => {
         const client = await ApiClient.create()
         await expect(client.reserveOpenCodeClearSession('source-session')).resolves.toBe('fresh-session')
         expect(axiosPostMock).toHaveBeenCalledWith(
-            'https://hapi.example.com/cli/sessions/source-session/clear-opencode/reserve', {},
+            'https://hamlet.example.com/cli/sessions/source-session/clear-opencode/reserve', {},
             expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer cli-token' }) })
         )
     })

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { normalizeHookPermissionMode } from './hookPermissionMode'
 
 describe('normalizeHookPermissionMode', () => {
-    it('passes through HAPI claude modes', () => {
+    it('passes through HAMLET claude modes', () => {
         expect(normalizeHookPermissionMode('default')).toBe('default')
         expect(normalizeHookPermissionMode('acceptEdits')).toBe('acceptEdits')
         expect(normalizeHookPermissionMode('auto')).toBe('auto')
@@ -14,7 +14,7 @@ describe('normalizeHookPermissionMode', () => {
         expect(normalizeHookPermissionMode('manual')).toBe('default')
     })
 
-    it('rejects modes HAPI has no claude equivalent for', () => {
+    it('rejects modes HAMLET has no claude equivalent for', () => {
         expect(normalizeHookPermissionMode('dontAsk')).toBeNull()
         expect(normalizeHookPermissionMode('yolo')).toBeNull()
         expect(normalizeHookPermissionMode('garbage')).toBeNull()

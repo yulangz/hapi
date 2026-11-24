@@ -1,5 +1,5 @@
-import { isObject } from '@hapi/protocol'
-import { unwrapRoleWrappedRecordEnvelope } from '@hapi/protocol/messages'
+import { isObject } from '@hamlet/protocol'
+import { unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
 
 /**
  * Extract background task start/completion signals from a message.

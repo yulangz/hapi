@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { I18nProvider } from '@/lib/i18n-context'
 import { SessionActionMenu } from '@/components/SessionActionMenu'
-import { SESSION_REFERENCE_STEER_SUFFIX } from '@hapi/protocol/sessionCitation'
+import { SESSION_REFERENCE_STEER_SUFFIX } from '@hamlet/protocol/sessionCitation'
 
 vi.mock('@/hooks/usePlatform', () => ({
     usePlatform: () => ({

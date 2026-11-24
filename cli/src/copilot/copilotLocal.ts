@@ -2,7 +2,7 @@ import { logger } from '@/ui/logger';
 import { spawnWithTerminalGuard } from '@/utils/spawnWithTerminalGuard';
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand';
 
-import type { CopilotAgentMode } from '@hapi/protocol';
+import type { CopilotAgentMode } from '@hamlet/protocol';
 import { assertSafeWindowsShellArg } from '@/grok/utils/windowsShellArgs';
 
 export function buildCopilotLocalArgs(opts: {

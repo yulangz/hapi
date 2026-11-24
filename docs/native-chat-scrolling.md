@@ -177,7 +177,7 @@ existing asynchronous, cached Coil loader.
 From the repository root:
 
 ```sh
-swift test --package-path ios/Packages/HapiKit
+swift test --package-path ios/Packages/HamletKit
 ios/scripts/test-transcript.sh
 
 cd android

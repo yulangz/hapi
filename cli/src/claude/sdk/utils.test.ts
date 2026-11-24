@@ -53,7 +53,7 @@ describe('getDefaultClaudeCodePath', () => {
         vi.clearAllMocks()
         vi.resetModules()
         process.env = { ...originalEnv }
-        delete process.env.HAPI_CLAUDE_PATH
+        delete process.env.HAMLET_CLAUDE_PATH
         homedirMock.mockReturnValue('C:\\Users\\junes')
         execFileSyncMock.mockImplementation(() => {
             throw new Error('not found')
@@ -71,19 +71,19 @@ describe('getDefaultClaudeCodePath', () => {
         }
     })
 
-    it('uses HAPI_CLAUDE_PATH when set', async () => {
-        process.env.HAPI_CLAUDE_PATH = 'C:\\tools\\claude.exe'
+    it('uses HAMLET_CLAUDE_PATH when set', async () => {
+        process.env.HAMLET_CLAUDE_PATH = 'C:\\tools\\claude.exe'
         const { getDefaultClaudeCodePath } = await import('./utils')
 
         expect(getDefaultClaudeCodePath()).toBe('C:\\tools\\claude.exe')
         expect(execFileSyncMock).not.toHaveBeenCalled()
     })
 
-    it('resolves HAPI_CLAUDE_PATH when it points to a Windows npm shim', async () => {
+    it('resolves HAMLET_CLAUDE_PATH when it points to a Windows npm shim', async () => {
         setPlatform('win32')
         const shim = 'C:\\nvm4w\\nodejs\\claude.cmd'
         const executable = 'C:\\nvm4w\\nodejs\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe'
-        process.env.HAPI_CLAUDE_PATH = shim
+        process.env.HAMLET_CLAUDE_PATH = shim
         existsSyncMock.mockImplementation((candidate: string) => candidate === shim || candidate === executable)
         const { getDefaultClaudeCodePath } = await import('./utils')
 

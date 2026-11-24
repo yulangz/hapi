@@ -5,9 +5,9 @@ import {
     MachinePathsExistsRequestSchema,
     RenameMachineRequestSchema,
     SpawnSessionRequestSchema
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import { Hono } from 'hono'
-import { RPC_TARGET_MISSING_ERROR_CODE } from '@hapi/protocol/rpcMethods'
+import { RPC_TARGET_MISSING_ERROR_CODE } from '@hamlet/protocol/rpcMethods'
 import type { SyncEngine } from '../../sync/syncEngine'
 import { RpcTargetMissingError } from '../../sync/rpcGateway'
 import type { WebAppEnv } from '../middleware/auth'

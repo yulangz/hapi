@@ -89,7 +89,7 @@ export function TerminalView(props: {
             const nextFamily = fontProvider.getFontFamily()
 
             if (forceRemeasure && terminal.options.fontFamily === nextFamily) {
-                terminal.options.fontFamily = `${nextFamily}, "__hapi_font_refresh__"`
+                terminal.options.fontFamily = `${nextFamily}, "__hamlet_font_refresh__"`
                 requestAnimationFrame(() => {
                     if (abortController.signal.aborted) return
                     terminal.options.fontFamily = nextFamily

@@ -1,4 +1,4 @@
-import { isCursorAcpCatalogModelId } from '@hapi/protocol';
+import { isCursorAcpCatalogModelId } from '@hamlet/protocol';
 import { createCursorAcpBackend } from '@/cursor/utils/cursorAcpBackend';
 import { buildCursorModelsSnapshotFromAcp } from '@/cursor/utils/cursorAcpModelsSnapshot';
 import type { ListCursorModelsResponse } from './cursorModels';

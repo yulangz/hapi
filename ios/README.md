@@ -1,6 +1,6 @@
-# HAPI iOS
+# HAMLET iOS
 
-Native SwiftUI/UIKit client for HAPI, independent of `web/` at the code level.
+Native SwiftUI/UIKit client for HAMLET, independent of `web/` at the code level.
 It shares the [client protocol](../docs/api/client-contract/index.md) and
 web-generated golden fixtures in `shared/fixtures/`.
 
@@ -22,10 +22,10 @@ for platform differences, web-only features and everyday use.
 
 - Xcode 16 or newer with Swift 6 support.
 - Deployment target: iOS 17.0.
-- Runtime dependencies (SPM, declared in `Packages/HapiKit/Package.swift`,
-  used only by the `HapiUI` target): `swiftlang/swift-markdown` (GFM parsing
+- Runtime dependencies (SPM, declared in `Packages/HamletKit/Package.swift`,
+  used only by the `HamletUI` target): `swiftlang/swift-markdown` (GFM parsing
   for the custom renderer) and `raspu/Highlightr` (code highlighting, kept
-  behind a protocol so it is swappable). `HapiProtocol`/`HapiClient` stay
+  behind a protocol so it is swappable). `HamletProtocol`/`HamletClient` stay
   dependency-free.
 
 ## Build
@@ -33,16 +33,16 @@ for platform differences, web-only features and everyday use.
 Native chat scrolling architecture and acceptance checklist:
 [Native transcript scrolling](../docs/native-chat-scrolling.md).
 
-Open `ios/Hapi.xcodeproj` in Xcode and run the shared `Hapi` scheme, or from
+Open `ios/Hamlet.xcodeproj` in Xcode and run the shared `Hamlet` scheme, or from
 the command line:
 
 ```sh
 # App (simulator, no signing)
-xcodebuild build -project ios/Hapi.xcodeproj -scheme Hapi \
+xcodebuild build -project ios/Hamlet.xcodeproj -scheme Hamlet \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
 
 # Package tests (macOS; protocol/client plus UI package tests)
-swift test --package-path ios/Packages/HapiKit
+swift test --package-path ios/Packages/HamletKit
 ```
 
 CI runs package tests, the simulator build, and app-hosted transcript tests
@@ -52,7 +52,7 @@ on `macos-15` via `.github/workflows/ios.yml` (triggered by changes under
 ### Linux verification (no Mac needed)
 
 `ios/scripts/linux-test.sh` compiles and tests the non-UI targets
-(HapiProtocol + HapiClient and their test suites, including the
+(HamletProtocol + HamletClient and their test suites, including the
 `shared/fixtures` golden suites) in a Swift Linux container:
 
 ```sh
@@ -61,16 +61,16 @@ ios/scripts/linux-test.sh --filter Chat  # extra args pass through to swift test
 ```
 
 Requires docker; defaults to the `swift:6.1-noble` image
-(`HAPI_SWIFT_IMAGE` overrides). The script rsyncs the package and the
-fixtures into a repo-depth staging dir (`HAPI_LINUX_STAGE` overrides;
+(`HAMLET_SWIFT_IMAGE` overrides). The script rsyncs the package and the
+fixtures into a repo-depth staging dir (`HAMLET_LINUX_STAGE` overrides;
 kept between runs so builds are incremental) and mounts it at `/work`,
 so the tests' `#filePath`-relative fixture resolution works unchanged.
 Always edit the real worktree files — every run re-stages them.
 
-HapiUI (SwiftUI + swift-markdown + Highlightr) cannot build on Linux;
+HamletUI (SwiftUI + swift-markdown + Highlightr) cannot build on Linux;
 `Package.swift` drops the UI product/targets and their dependencies
 under `#if os(Linux)`, and the script leaves those sources out of the
-staging copy. The few Darwin-only APIs in HapiClient are conditionally
+staging copy. The few Darwin-only APIs in HamletClient are conditionally
 compiled (`#if canImport(Security)` for the Keychain store — Linux tests
 use `InMemoryCredentialStore` through the `CredentialStoring` seam;
 `#if canImport(CryptoKit)` for snapshot-file digests with an FNV-1a
@@ -85,9 +85,9 @@ context. The Linux script stages the package and fixtures at the required depth.
 
 | Suite | Coverage |
 |---|---|
-| `HapiProtocolTests` | Wire decoding, mode catalogs, versioned patches, and normalize → reduce → group projections against the golden fixtures. |
-| `HapiClientTests` | Pagination fixtures through the message-window controller, chat pipeline/interactions, REST requests, authentication, SSE recovery, stores and push. |
-| `HapiUITests` / `HapiTests` | Renderer logic and app-hosted layout, interaction, recycling and transcript behavior on supported Apple toolchains. |
+| `HamletProtocolTests` | Wire decoding, mode catalogs, versioned patches, and normalize → reduce → group projections against the golden fixtures. |
+| `HamletClientTests` | Pagination fixtures through the message-window controller, chat pipeline/interactions, REST requests, authentication, SSE recovery, stores and push. |
+| `HamletUITests` / `HamletTests` | Renderer logic and app-hosted layout, interaction, recycling and transcript behavior on supported Apple toolchains. |
 
 Fixture conformance pins protocol/state semantics, not identical web/native
 presentation. When changing fixture inputs or generation, run
@@ -97,7 +97,7 @@ hand-edit fixtures. See [fixture guidance](../shared/fixtures/README.md) and
 
 New-session directory regression checks: `ios/scripts/linux-test.sh --filter
 'NewSession|RemoteDirectoryBrowser'` covers path queries and browser navigation;
-`HapiTests/NewSessionDirectoryTests` covers the form's defaults, roster refresh,
+`HamletTests/NewSessionDirectoryTests` covers the form's defaults, roster refresh,
 offline machines and spawn validation. On a device, verify home → parent → a
 project outside home, explicit workspace-root prefixes, `~/` and hidden-directory
 completion, and clearing the input while machine health updates arrive. A
@@ -109,7 +109,7 @@ online machine; its old path is never silently moved to another host.
 The app supports multiple hubs with one active selection. See the
 [auth contract](../docs/api/client-contract/auth.md) for the wire rules.
 
-- **Manual entry:** start `hapi hub --relay`, then *Enter Manually* → HTTPS
+- **Manual entry:** start `hamlet hub --relay`, then *Enter Manually* → HTTPS
   hub address and access token → *Pair*. The address starts empty, with a
   separate protocol menu defaulting to HTTPS; type the domain/IP and optional
   port without a scheme. Pasting a full HTTP(S) URL updates that menu. A full
@@ -120,10 +120,10 @@ The app supports multiple hubs with one active selection. See the
   requires `protocolVersion == ProtocolVersion.supported`, exchanges the
   token with `POST /api/auth` and stores credentials in the Keychain.
 - **QR scan:** the in-app scanner accepts both hub QR forms —
-  `hapicompanion://bind?hub=…&code=…` and the web direct-access URL
+  `hamletcompanion://bind?hub=…&code=…` and the web direct-access URL
   `https://<web>/?hub=…&token=…`. Web **Settings → Companion pairing** also
   displays the companion QR.
-- **Deep link:** opening `hapicompanion://bind` presents pairing confirmation;
+- **Deep link:** opening `hamletcompanion://bind` presents pairing confirmation;
   an already-paired hub can be selected directly.
 - **Simulator:** use manual entry because `DataScannerViewController` is
   unavailable. Camera pairing is optional on physical devices too.
@@ -137,7 +137,7 @@ The parser accepts HTTP URLs. Manual entry uses the selected protocol
 or pairing link. The form warns that HTTP is unencrypted and may be restricted
 by iOS. It never guesses HTTP for a local address or downgrades after a failed
 HTTPS connection. Input acceptance is not a transport exemption.
-`Hapi/Info.plist` and the project build settings declare no ATS exceptions,
+`Hamlet/Info.plist` and the project build settings declare no ATS exceptions,
 including no `NSAllowsLocalNetworking`. Use HTTPS endpoints for a reliable
 pairing setup; HTTP behavior remains subject to system network policy.
 
@@ -174,19 +174,19 @@ provider credentials as described below.
   equivalent) — the next trigger heals transient failures.
 - **E2E envelope.** The hub never sends plaintext through APNs. The wire
   notification is `{aps: {mutable-content: 1, alert: <generic>},
-  hapi: {v: 1, e: <envelope>}}` where `e` is
+  hamlet: {v: 1, e: <envelope>}}` where `e` is
   `base64(nonce[12] || AES-256-GCM ciphertext || tag[16])` over the FCM
   data-contract JSON, keyed by this install's `pushKey` with AAD
   `hapi-push-v1`. Whether the hub delivers via direct APNs or a relay is
   entirely hub-side — the app only ever registers and decrypts.
-- **Notification Service Extension.** The `HapiNotificationService` appex
+- **Notification Service Extension.** The `HamletNotificationService` appex
   decrypts on device: reads the push key from the shared Keychain access
-  group (`$(AppIdentifierPrefix)run.hapi.companion.push`,
+  group (`$(AppIdentifierPrefix)run.hamlet.companion.push`,
   after-first-unlock so lock-screen pushes decrypt), swaps in the real
   title/body, stamps the action category, and stores the decrypted fields in
   `userInfo` for the tap/action handlers. Undecryptable payloads deliver
   the generic alert unchanged. The appex links nothing beyond the SDK — it
-  carries an SDK-only copy of the HapiKit `PushEnvelope` decrypt, kept honest
+  carries an SDK-only copy of the HamletKit `PushEnvelope` decrypt, kept honest
   by the shared test vector.
 - **Actions.** `permission-request` → Allow / Deny; `ready` and
   `task-notification` → inline Reply. `input-request` previews the first
@@ -200,24 +200,24 @@ provider credentials as described below.
   to the session chat; a push for the chat currently on screen is suppressed
   (the in-app SSE stream is already showing it).
 
-**Layer map**: `HapiClient/Push/` (envelope + payload + key, Linux-tested),
+**Layer map**: `HamletClient/Push/` (envelope + payload + key, Linux-tested),
 `Endpoints/DeviceEndpoints.swift` (register/unregister),
-`Hapi/Models/PushCoordinator.swift` (registrar + delegate + action runner),
-`HapiNotificationService/` (the appex). The AES-GCM decrypt and the contract
-test vector are verified by `HapiClientTests/Push/*` — structural checks run
+`Hamlet/Models/PushCoordinator.swift` (registrar + delegate + action runner),
+`HamletNotificationService/` (the appex). The AES-GCM decrypt and the contract
+test vector are verified by `HamletClientTests/Push/*` — structural checks run
 in the Linux container, the CryptoKit vector/tamper tests on Darwin CI.
 
 ### Self-signed builds with push
 
 1. Select a paid/organization team under *Signing & Capabilities* for both
-   the `Hapi` app and `HapiNotificationService` extension. Use bundle IDs
+   the `Hamlet` app and `HamletNotificationService` extension. Use bundle IDs
    registered to that team. Free personal teams cannot sign push entitlements.
 2. Keep the same Keychain access group in both targets:
-   `$(AppIdentifierPrefix)run.hapi.companion.push`. The app also declares
+   `$(AppIdentifierPrefix)run.hamlet.companion.push`. The app also declares
    `aps-environment: development`; distribution signing determines the final
    entitlement. The extension shares the key through `keychain-access-groups`,
    not an App Group container.
-3. Configure the hub with `HAPI_IOS_PUSH=apns` and `APNS_KEY_P8_PATH`,
+3. Configure the hub with `HAMLET_IOS_PUSH=apns` and `APNS_KEY_P8_PATH`,
    `APNS_KEY_ID`, `APNS_TEAM_ID`, and `APNS_BUNDLE_ID` matching the signed app.
    Set `APNS_ENV=sandbox` for development tokens or `production` for
    distribution tokens. Alternatively use a self-hosted push relay with
@@ -226,7 +226,7 @@ in the Linux container, the CryptoKit vector/tamper tests on Darwin CI.
 
 APNs availability on a simulator depends on the host/runtime and signing
 setup. Use `xcrun simctl push <simulator> <bundle-id> <payload.json>` for local
-notification injection, with `hapi.e` encrypted using that install's push key.
+notification injection, with `hamlet.e` encrypted using that install's push key.
 This checks local handling, not provider delivery. Verify registration,
 background/lock-screen delivery and actions on a signed physical device.
 
@@ -234,18 +234,18 @@ background/lock-screen delivery and actions on a signed physical device.
 
 | Path | Responsibility |
 |---|---|
-| `Hapi.xcodeproj/` | App, notification extension and app-hosted tests. App sources use Xcode synchronized folders. |
-| `Hapi/Models/` | `AppModel` pairing/navigation, active `HubSession`, per-chat `ChatSession`, and `PushCoordinator`. |
-| `Hapi/Features/` | SwiftUI screens and app models for pairing, sessions, chat, new sessions, files, Scratchlist and settings; UIKit transcript hosting. |
-| `Packages/HapiKit/Sources/HapiProtocol/` | Foundation wire models, catalogs, pairing parser, versioned patches, chat reduction, message-window logic and Git parsers. |
-| `Packages/HapiKit/Sources/HapiClient/` | Auth/REST/SSE, stores and disk snapshots, message windows, chat interaction, attachments, dictation, push and testable feature logic. |
-| `Packages/HapiKit/Sources/HapiUI/` | Reusable Markdown, syntax highlighting, diff rendering, theme and typography. |
-| `HapiNotificationService/` | SDK-only extension that decrypts APNs content using the shared Keychain key. |
-| `Packages/HapiKit/Tests/`, `HapiTests/` | Package and app-hosted verification. |
+| `Hamlet.xcodeproj/` | App, notification extension and app-hosted tests. App sources use Xcode synchronized folders. |
+| `Hamlet/Models/` | `AppModel` pairing/navigation, active `HubSession`, per-chat `ChatSession`, and `PushCoordinator`. |
+| `Hamlet/Features/` | SwiftUI screens and app models for pairing, sessions, chat, new sessions, files, Scratchlist and settings; UIKit transcript hosting. |
+| `Packages/HamletKit/Sources/HamletProtocol/` | Foundation wire models, catalogs, pairing parser, versioned patches, chat reduction, message-window logic and Git parsers. |
+| `Packages/HamletKit/Sources/HamletClient/` | Auth/REST/SSE, stores and disk snapshots, message windows, chat interaction, attachments, dictation, push and testable feature logic. |
+| `Packages/HamletKit/Sources/HamletUI/` | Reusable Markdown, syntax highlighting, diff rendering, theme and typography. |
+| `HamletNotificationService/` | SDK-only extension that decrypts APNs content using the shared Keychain key. |
+| `Packages/HamletKit/Tests/`, `HamletTests/` | Package and app-hosted verification. |
 
-The app owns navigation, lifecycle and screen presentation; HapiKit supplies
-protocol, transport, testable feature logic and reusable UI. `HapiProtocol` and
-`HapiClient` build without the UI dependencies on Linux.
+The app owns navigation, lifecycle and screen presentation; HamletKit supplies
+protocol, transport, testable feature logic and reusable UI. `HamletProtocol` and
+`HamletClient` build without the UI dependencies on Linux.
 
 The active hub maintains a global SSE connection; an open chat adds a
 session-scoped connection. Chat event handling is ordered through the window
@@ -293,7 +293,7 @@ photo/file retry, and inactive-session sending on a connected device.
 
 ### Localization catalog
 
-`Hapi/Resources/Localizable.xcstrings` is **manually managed**, including every
+`Hamlet/Resources/Localizable.xcstrings` is **manually managed**, including every
 entry's `"extractionState" : "manual"`. Keep `SWIFT_EMIT_LOC_STRINGS = NO` for the
 app/extension in Debug and Release. That setting disables compiler extraction;
 it does **not** prevent the Xcode editor from synchronizing or saving a catalog.
@@ -343,7 +343,7 @@ operations clear the current selection, never optimistic list removal/rollback.
 The detail's identity is hub/session-based, so resizing preserves the existing
 chat, draft, attachment tray and transcript anchor. Native menus/sheets remain
 native; the hub sign-out and attachment dialogs are anchored to their buttons.
-The explicit scene manifest disables additional HAPI windows, **not** Split
+The explicit scene manifest disables additional HAMLET windows, **not** Split
 View/Stage Manager with other apps. Do not enable scene-manifest generation
 (which generates multiple-scene support) or require full screen. Multiwindow,
 third-column inspectors, keyboard shortcuts and drag/drop are not implemented.
@@ -356,13 +356,13 @@ reading anchors, draft/attachment retention and surface/subscription lifetime.
 CI keeps the iPhone suite and adds iPad Air 11-inch (M2). Run it locally with:
 
 ```sh
-HAPI_TEST_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPad-Air-11-inch-M2 \
+HAMLET_TEST_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPad-Air-11-inch-M2 \
   ios/scripts/test-transcript.sh \
-    -only-testing:HapiTests/SessionNavigationTests \
-    -only-testing:HapiTests/SessionSplitPresentationTests
+    -only-testing:HamletTests/SessionNavigationTests \
+    -only-testing:HamletTests/SessionSplitPresentationTests
 ```
 
-Optional specimens: set `TEST_RUNNER_HAPI_IPAD_CAPTURE` to a **new temporary
+Optional specimens: set `TEST_RUNNER_HAMLET_IPAD_CAPTURE` to a **new temporary
 directory**; these are synthetic test conversations, not release screenshots.
 Before release, manually verify mini/11/13-inch portrait and landscape,
 one-third/half-screen and Stage Manager resizing, keyboard docking/floating and
@@ -372,8 +372,8 @@ resizing, notification navigation, and background/foreground reconnection.
 
 ### Reading typography
 
-`HapiUI` separates color palettes (`HapiTheme`) from resolved Dynamic Type
-metrics (`HapiTypography`). Install `.hapiTypography()` at a presentation root,
+`HamletUI` separates color palettes (`HamletTheme`) from resolved Dynamic Type
+metrics (`HamletTypography`). Install `.hamletTypography()` at a presentation root,
 outside `AnchoredTranscriptList`; hosted rows inherit those metrics. Do not
 scale the resolved values again. Body/user/composer text starts at 16pt,
 inline code at 15pt, code/diffs/terminal at 14pt, and captions at 12pt.
@@ -402,8 +402,8 @@ they are **not** live conversations or App Store screenshots. Capture into a
 new temporary directory, never over the release gallery:
 
 ```sh
-TEST_RUNNER_HAPI_TYPOGRAPHY_CAPTURE=/tmp/hapi-typography-review \
-  ios/scripts/test-transcript.sh -only-testing:HapiTests/TypographySnapshotTests
+TEST_RUNNER_HAMLET_TYPOGRAPHY_CAPTURE=/tmp/hamlet-typography-review \
+  ios/scripts/test-transcript.sh -only-testing:HamletTests/TypographySnapshotTests
 ```
 
 ### Session settings
@@ -419,24 +419,24 @@ Run the configuration and real-presentation tests on both phone and tablet:
 
 ```sh
 ios/scripts/test-transcript.sh \
-  -only-testing:HapiTests/SessionConfigTests \
-  -only-testing:HapiTests/SessionConfigPresentationTests
+  -only-testing:HamletTests/SessionConfigTests \
+  -only-testing:HamletTests/SessionConfigPresentationTests
 
 # Pick a device type supported by your installed runtime:
 # xcrun simctl list devicetypes
-HAPI_TEST_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M5-12GB \
+HAMLET_TEST_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M5-12GB \
   ios/scripts/test-transcript.sh \
-  -only-testing:HapiTests/SessionConfigTests \
-  -only-testing:HapiTests/SessionConfigPresentationTests
+  -only-testing:HamletTests/SessionConfigTests \
+  -only-testing:HamletTests/SessionConfigPresentationTests
 ```
 
 The script creates and deletes an isolated simulator. Set
-`TEST_RUNNER_HAPI_SESSION_CONFIG_CAPTURE` to a new temporary directory for
+`TEST_RUNNER_HAMLET_SESSION_CONFIG_CAPTURE` to a new temporary directory for
 non-networked specimens (not App Store screenshots). A widened phone window
 is not a substitute for the native iPad anchor test. For AXe-driven menu and
 Done checks, run only
 `SessionConfigPresentationTests/testNativeDevicePresentationIsAnchoredOnIPadAndAdaptsOnIPhone`
-with `TEST_RUNNER_HAPI_SESSION_CONFIG_INTERACTIVE_SECONDS=180`; leave the panel
+with `TEST_RUNNER_HAMLET_SESSION_CONFIG_INTERACTIVE_SECONDS=180`; leave the panel
 open when the pause ends. Manually check rotation and Split View/window resizing,
 menu checkmarks and risk announcements, and that closing preserves the chat's
 draft and reading position.
@@ -453,7 +453,7 @@ narrow. Native alerts, sheets and form controls retain their system styling.
 
 `PermissionActionPresentationTests` covers flavor gates, action geometry, busy
 and already-handled states, failures, themes and large text. To capture isolated,
-non-networked approval specimens, set `TEST_RUNNER_HAPI_APPROVAL_CAPTURE` to a
+non-networked approval specimens, set `TEST_RUNNER_HAMLET_APPROVAL_CAPTURE` to a
 new temporary directory and run it through `ios/scripts/test-transcript.sh`.
 
 Plan proposals (`ExitPlanMode` / `exit_plan_mode`) are reading documents, not
@@ -513,9 +513,9 @@ Question tests include pure navigation/answer-building checks and app-hosted
 layout/recycling specimens (fake data; no live agent or saved credentials):
 
 ```sh
-TEST_RUNNER_HAPI_QUESTION_CAPTURE=/tmp/hapi-question-review \
-  ios/scripts/test-transcript.sh -only-testing:HapiTests/QuestionAnswerDraftTests \
-    -only-testing:HapiTests/QuestionCardPresentationTests
+TEST_RUNNER_HAMLET_QUESTION_CAPTURE=/tmp/hamlet-question-review \
+  ios/scripts/test-transcript.sh -only-testing:HamletTests/QuestionAnswerDraftTests \
+    -only-testing:HamletTests/QuestionCardPresentationTests
 ```
 
 Inspection pauses transcript tail-following and hidden history paging, without
@@ -545,9 +545,9 @@ loopback SSE; sheet specimens are non-networked. Both use deterministic test
 records, not live sessions or App Store screenshots. Capture into a fresh directory:
 
 ```sh
-TEST_RUNNER_HAPI_TOOL_CAPTURE=/tmp/hapi-tool-review \
-  ios/scripts/test-transcript.sh -only-testing:HapiTests/ToolInspectionPresentationTests \
-    -only-testing:HapiTests/ToolTranscriptPresentationTests
+TEST_RUNNER_HAMLET_TOOL_CAPTURE=/tmp/hamlet-tool-review \
+  ios/scripts/test-transcript.sh -only-testing:HamletTests/ToolInspectionPresentationTests \
+    -only-testing:HamletTests/ToolTranscriptPresentationTests
 ```
 
 ### Home filtering
@@ -564,20 +564,20 @@ App-hosted filter tests use observable in-memory stores (no network or pairing).
 Optional layout captures are test specimens, not live or App Store screenshots:
 
 ```sh
-TEST_RUNNER_HAPI_HOME_CAPTURE=/tmp/hapi-home-review \
-  ios/scripts/test-transcript.sh -only-testing:HapiTests/SessionListFilterTests \
-    -only-testing:HapiTests/HomeFilterPresentationTests
+TEST_RUNNER_HAMLET_HOME_CAPTURE=/tmp/hamlet-home-review \
+  ios/scripts/test-transcript.sh -only-testing:HamletTests/SessionListFilterTests \
+    -only-testing:HamletTests/HomeFilterPresentationTests
 ```
 
 ## Notes
 
-- The `hapicompanion://` URL scheme is registered via `Hapi/Info.plist`,
+- The `hamletcompanion://` URL scheme is registered via `Hamlet/Info.plist`,
   alongside the camera (QR pairing + attachment capture) and microphone
   (dictation) usage strings; everything else is generated through
   `GENERATE_INFOPLIST_FILE` + `INFOPLIST_KEY_*` build settings. The modern
   out-of-process `PhotosPicker` needs **no** photo-library permission, so
   there is no `NSPhotoLibraryUsageDescription`.
-- `run.hapi.app` is the bundle id; signing is `Automatic` and CI builds
+- `run.hamlet.app` is the bundle id; signing is `Automatic` and CI builds
   with `CODE_SIGNING_ALLOWED=NO`.
 - CI uses the runner's default Xcode; each job prints `xcodebuild -version`
   first so failures are attributable to a toolchain bump.

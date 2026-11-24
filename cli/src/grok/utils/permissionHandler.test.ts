@@ -63,7 +63,7 @@ async function flush(): Promise<void> {
 }
 
 describe('GrokPermissionHandler', () => {
-    it('queues default-mode requests for HAPI approval', () => {
+    it('queues default-mode requests for HAMLET approval', () => {
         const harness = createHarness('default')
         harness.emit(request())
         expect(harness.responses).toEqual([])

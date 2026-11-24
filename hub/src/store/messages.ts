@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
 import { z } from 'zod'
 
-import { getLiveReasoningStreamId } from '@hapi/protocol/messages'
+import { getLiveReasoningStreamId } from '@hamlet/protocol/messages'
 
 import type { StoredMessage } from './types'
 import { decodeMessageContent, encodeMessageContent, truncateOversizedMessageContent } from './contentCodec'
@@ -614,7 +614,7 @@ export function getMatureScheduledMessages(
  *  ack does.  If the session-end sweep stamped a mature scheduled row as
  *  invoked, a subsequent CLI re-attach would never see the row in the
  *  mature-scan results (it filters on invoked_at IS NULL), and the user's
- *  scheduled prompt would be silently dropped.  See HAPI Bot R4 finding. */
+ *  scheduled prompt would be silently dropped.  See HAMLET Bot R4 finding. */
 export function getImmediateQueuedLocalMessages(
     db: Database,
     sessionId: string

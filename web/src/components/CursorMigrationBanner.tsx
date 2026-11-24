@@ -34,7 +34,7 @@ export function isCursorMigrationInProgress(metadata: Metadata | undefined | nul
  * tiann/hapi#873: the migrator refused to transplant a legacy store -
  * either because the same cursorSessionId exists in multiple workspace-hash
  * drawers (`ambiguous_legacy_store`) or because the candidate's blob count
- * is dramatically lower than HAPI's known history (`size_mismatch`). The
+ * is dramatically lower than HAMLET's known history (`size_mismatch`). The
  * hub promotes `cursorMigrationState` from 'in_progress' to 'ambiguous' so
  * this banner can switch from "Upgrading..." to a "manual review needed"
  * surface instead of disappearing silently.

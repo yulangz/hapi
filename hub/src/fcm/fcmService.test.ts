@@ -50,7 +50,7 @@ function makePayload(overrides: Partial<FcmSendPayload['data']> = {}): FcmSendPa
             type: 'ready',
             sessionId: 'sess-1',
             sessionName: 'Demo',
-            url: 'https://hapi.example.com/sessions/sess-1',
+            url: 'https://hamlet.example.com/sessions/sess-1',
             title: 'T',
             body: 'B',
             contractVersion: '1',
@@ -146,7 +146,7 @@ describe('FcmService.sendToNamespace', () => {
         expect(store.fcm.removeDeviceByToken).not.toHaveBeenCalled()
     })
 
-    it('keeps the device row on transient 429 (rate limit) - regression for HAPI Bot finding', async () => {
+    it('keeps the device row on transient 429 (rate limit) - regression for HAMLET Bot finding', async () => {
         const store = makeStore([
             { namespace: 'default', token: 'rate-limited-token', platform: 'phone', deviceId: 'p1' }
         ])
@@ -295,7 +295,7 @@ describe('FcmService.isHealthy (rolling outcome window)', () => {
     })
 
     it('starts UNHEALTHY with an empty outcome buffer (no positive evidence yet)', () => {
-        // Cold-start invariant (HAPI Bot Major fix on PR #803): the gate
+        // Cold-start invariant (HAMLET Bot Major fix on PR #803): the gate
         // requires at least one observed success before suppressing
         // web-push. Otherwise a hub started with broken FCM credentials
         // silently drops the first N notifications while waiting for the

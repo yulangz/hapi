@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { AGY_MODEL_LABELS, AGY_MODEL_PRESETS } from '@hapi/protocol'
+import { AGY_MODEL_LABELS, AGY_MODEL_PRESETS } from '@hamlet/protocol'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const spawnMock = vi.hoisted(() => vi.fn())

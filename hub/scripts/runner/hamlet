@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+case "${0##*/}" in
+    hamlet-hub) role=hub ;;
+    hamlet-runner) role=runner ;;
+    *) role=${1:-help}; [ "$#" -eq 0 ] || shift ;;
+esac
+case "$role" in
+    runner) HAMLET_HOME=${HAMLET_RUNNER_HOME:-"$HOME/.local/share/hamlet-runner"} ;;
+    hub) HAMLET_HOME=${HAMLET_HUB_HOME:-"$HOME/.local/share/hamlet-hub"}
+         export HAMLET_LISTEN_PORT=${HAMLET_HUB_PORT:-13007} ;;
+    *) echo 'Usage: hamlet hub [options] | hamlet runner [start|stop|status|list]' >&2; exit 2 ;;
+esac
+export HAMLET_HOME
+unset HAMLET_API_URL CLI_API_TOKEN
+export HAMLET_CLI_EXECUTABLE="$HAMLET_HOME/bin/hamlet-$role"
+if [ ! -x "$HAMLET_CLI_EXECUTABLE" ]; then
+    echo "Install hamlet-$role on this machine first." >&2
+    exit 1
+fi
+if [ "${1:-}" = --version ]; then
+    version=$("$HAMLET_CLI_EXECUTABLE" --version)
+    echo "hamlet-$role ${version##* }"
+    exit 0
+fi
+exec "$HAMLET_CLI_EXECUTABLE" "$role" "$@"

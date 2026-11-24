@@ -66,8 +66,8 @@ export function moveComposerToolbarItemInSingleLayout(
     }
 }
 
-const STORAGE_KEY = 'hapi-composer-toolbar-layout'
-const CHANGE_EVENT = 'hapi-composer-toolbar-layout-change'
+const STORAGE_KEY = 'hamlet-composer-toolbar-layout'
+const CHANGE_EVENT = 'hamlet-composer-toolbar-layout-change'
 
 function isItemId(value: unknown): value is ComposerToolbarItemId {
     return typeof value === 'string' && (COMPOSER_TOOLBAR_ITEM_IDS as readonly string[]).includes(value)

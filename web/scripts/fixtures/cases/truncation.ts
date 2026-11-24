@@ -3,14 +3,14 @@ import { T0, wireMessage } from './support'
 
 /**
  * The hub head+tail-truncates strings over 64KB inside agent message content
- * at ingest, splicing in the `…[hapi: truncated N chars]…` marker
+ * at ingest, splicing in the `…[hamlet: truncated N chars]…` marker
  * (hub/src/store/contentCodec.ts). Clients receive the marker verbatim inside
  * tool results — the pipeline must pass it through intact.
  */
 export const truncationCases: FixtureCase[] = [
     {
         name: 'tool-result-truncation-marker',
-        description: 'A tool_result containing the hub truncation marker (…[hapi: truncated N chars]…) passes through the pipeline byte-for-byte inside tool.result.',
+        description: 'A tool_result containing the hub truncation marker (…[hamlet: truncated N chars]…) passes through the pipeline byte-for-byte inside tool.result.',
         messages: [
             wireMessage({
                 id: 'msg-agent-111',
@@ -60,7 +60,7 @@ export const truncationCases: FixtureCase[] = [
                                     {
                                         type: 'tool_result',
                                         tool_use_id: 'toolu_01TrCtBuildLog',
-                                        content: '[build] compiling 412 modules\n[build] step 1/9 …\n…[hapi: truncated 51200 chars]…\n[build] step 9/9 done\n[build] finished in 84.2s',
+                                        content: '[build] compiling 412 modules\n[build] step 1/9 …\n…[hamlet: truncated 51200 chars]…\n[build] step 9/9 done\n[build] finished in 84.2s',
                                         is_error: false
                                     }
                                 ]

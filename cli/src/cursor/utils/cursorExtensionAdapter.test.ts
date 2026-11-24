@@ -323,7 +323,7 @@ describe('CursorExtensionAdapter', () => {
     });
 
     it('does not read filePath-only generate_image (permission bypass)', async () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-cursor-gen-img-'));
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-cursor-gen-img-'));
         try {
             const filePath = join(dir, 'secret.png');
             writeFileSync(filePath, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));

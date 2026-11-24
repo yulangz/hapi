@@ -203,7 +203,7 @@ export const ReasoningGroup: FC<HappyReasoningGroupProps> = ({
     }, [])
 
     return (
-        <div data-hapi-share-exclude="true" className="aui-reasoning-group my-3 overflow-hidden rounded-2xl bg-[var(--app-reasoning-bg)]">
+        <div data-hamlet-share-exclude="true" className="aui-reasoning-group my-3 overflow-hidden rounded-2xl bg-[var(--app-reasoning-bg)]">
             <button
                 type="button"
                 onClick={handleToggle}
@@ -230,7 +230,7 @@ export const ReasoningGroup: FC<HappyReasoningGroupProps> = ({
             >
                 <div
                     ref={scrollRef}
-                    data-hapi-nested-scroll="true"
+                    data-hamlet-nested-scroll="true"
                     tabIndex={isOpen ? 0 : -1}
                     onScroll={handleScroll}
                     onPointerDown={claimNestedPointerScroll}

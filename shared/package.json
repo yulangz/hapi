@@ -1,5 +1,5 @@
 {
-    "name": "@hapi/protocol",
+    "name": "@hamlet/protocol",
     "private": true,
     "version": "0.1.0",
     "type": "module",
@@ -7,6 +7,7 @@
     "types": "./src/index.ts",
     "exports": {
         ".": "./src/index.ts",
+        "./hamlet": "./src/hamlet.ts",
         "./apiTypes": "./src/apiTypes.ts",
         "./messages": "./src/messages.ts",
         "./slashCommands": "./src/slashCommands.ts",

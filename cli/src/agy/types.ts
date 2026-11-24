@@ -1,4 +1,4 @@
-import type { AgyPermissionMode } from '@hapi/protocol/types';
+import type { AgyPermissionMode } from '@hamlet/protocol/types';
 import type { SessionEffort, SessionModel } from '@/api/types';
 
 export type PermissionMode = AgyPermissionMode;

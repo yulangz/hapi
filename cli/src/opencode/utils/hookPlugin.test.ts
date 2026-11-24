@@ -3,12 +3,12 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-// Stub out `@/configuration` so the helper considers our tmpdir HAPI-managed.
+// Stub out `@/configuration` so the helper considers our tmpdir HAMLET-managed.
 // Tests that exercise the non-managed branch override happyHomeDir explicitly.
 vi.mock('@/configuration', () => ({
     configuration: {
         get happyHomeDir(): string {
-            return (globalThis as { __hapiHomeStub?: string }).__hapiHomeStub ?? tmpdir();
+            return (globalThis as { __hamletHomeStub?: string }).__hamletHomeStub ?? tmpdir();
         }
     }
 }));
@@ -31,24 +31,24 @@ function makeTempDir(prefix: string): string {
     return mkdtempSync(join(tmpdir(), prefix));
 }
 
-function setHapiHome(value: string): void {
-    (globalThis as { __hapiHomeStub?: string }).__hapiHomeStub = value;
+function setHamletHome(value: string): void {
+    (globalThis as { __hamletHomeStub?: string }).__hamletHomeStub = value;
 }
 
-function resetHapiHome(): void {
-    delete (globalThis as { __hapiHomeStub?: string }).__hapiHomeStub;
+function resetHamletHome(): void {
+    delete (globalThis as { __hamletHomeStub?: string }).__hamletHomeStub;
 }
 
 describe('buildPluginSource (via ensureOpencodeHookPlugin)', () => {
     let tempRoot: string;
 
     beforeEach(() => {
-        tempRoot = makeTempDir('hapi-hookplugin-src-');
+        tempRoot = makeTempDir('hamlet-hookplugin-src-');
     });
 
     afterEach(() => {
         rmSync(tempRoot, { recursive: true, force: true });
-        resetHapiHome();
+        resetHamletHome();
     });
 
     it('emits real newlines, not the literal two-character escape', () => {
@@ -74,9 +74,9 @@ describe('buildPluginSource (via ensureOpencodeHookPlugin)', () => {
 
     it('preserves the file unchanged when called with identical inputs', () => {
         ensureOpencodeHookPlugin(tempRoot, 'http://h/hook', 't');
-        const first = readFileSync(join(tempRoot, 'plugins', 'hapi-hook.ts'));
+        const first = readFileSync(join(tempRoot, 'plugins', 'hamlet-hook.ts'));
         ensureOpencodeHookPlugin(tempRoot, 'http://h/hook', 't');
-        const second = readFileSync(join(tempRoot, 'plugins', 'hapi-hook.ts'));
+        const second = readFileSync(join(tempRoot, 'plugins', 'hamlet-hook.ts'));
         expect(second.equals(first)).toBe(true);
     });
 });
@@ -85,13 +85,13 @@ describe('ensurePluginRuntime (via ensureOpencodeHookPlugin)', () => {
     let tempRoot: string;
 
     beforeEach(() => {
-        tempRoot = makeTempDir('hapi-hookplugin-rt-');
+        tempRoot = makeTempDir('hamlet-hookplugin-rt-');
         loggerMock.warn.mockClear();
     });
 
     afterEach(() => {
         rmSync(tempRoot, { recursive: true, force: true });
-        resetHapiHome();
+        resetHamletHome();
     });
 
     it('writes a minimal package.json pinned to a tested @opencode-ai/plugin version', () => {
@@ -131,22 +131,22 @@ describe('ensurePluginRuntime (via ensureOpencodeHookPlugin)', () => {
         expect(pkg.dependencies['@opencode-ai/plugin']).toBeDefined();
     });
 
-    it('does NOT write to a non-HAPI-managed dir (user-supplied OPENCODE_CONFIG_DIR)', () => {
+    it('does NOT write to a non-HAMLET-managed dir (user-supplied OPENCODE_CONFIG_DIR)', () => {
         // Simulate a user pointing OPENCODE_CONFIG_DIR at their own ~/.config/opencode.
-        // Even though it's empty, HAPI must not pollute it with a placeholder.
-        const userOwned = makeTempDir('hapi-not-managed-');
+        // Even though it's empty, HAMLET must not pollute it with a placeholder.
+        const userOwned = makeTempDir('hamlet-not-managed-');
         try {
-            setHapiHome(makeTempDir('hapi-home-elsewhere-'));
+            setHamletHome(makeTempDir('hamlet-home-elsewhere-'));
 
             ensureOpencodeHookPlugin(userOwned, 'http://h/hook', 't');
 
             expect(existsSync(join(userOwned, 'package.json'))).toBe(false);
-            // Plugin file is still written — that's HAPI's contract — but the
+            // Plugin file is still written — that's HAMLET's contract — but the
             // package.json side effect is gated.
-            expect(existsSync(join(userOwned, 'plugins', 'hapi-hook.ts'))).toBe(true);
+            expect(existsSync(join(userOwned, 'plugins', 'hamlet-hook.ts'))).toBe(true);
         } finally {
             rmSync(userOwned, { recursive: true, force: true });
-            resetHapiHome();
+            resetHamletHome();
         }
     });
 
@@ -185,7 +185,7 @@ describe('ensurePluginRuntime (via ensureOpencodeHookPlugin)', () => {
         expect(() => ensureOpencodeHookPlugin(tempRoot, 'http://h/hook', 't')).not.toThrow();
 
         // Plugin file should still be written (that path is independent).
-        expect(existsSync(join(tempRoot, 'plugins', 'hapi-hook.ts'))).toBe(true);
+        expect(existsSync(join(tempRoot, 'plugins', 'hamlet-hook.ts'))).toBe(true);
 
         // The failure must be surfaced — silent failure was the pre-#589
         // bug shape we are explicitly *not* repeating.

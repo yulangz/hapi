@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { SignJWT } from 'jose'
-import { AuthRequestSchema } from '@hapi/protocol'
+import { AuthRequestSchema } from '@hamlet/protocol'
 import { getConfiguration } from '../../configuration'
 import { constantTimeEquals } from '../../utils/crypto'
 import { parseAccessToken } from '../../utils/accessToken'

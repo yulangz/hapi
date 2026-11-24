@@ -58,7 +58,7 @@ describe('markdown-text CodeHeader + Pre wrap toggle', () => {
     })
 
     it('reads the persisted wrap preference on mount', () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>

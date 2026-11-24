@@ -1,7 +1,7 @@
 /**
  * Relay auth key resolution
  *
- * Priority: HAPI_RELAY_AUTH env > persisted per-hub key > freshly issued key.
+ * Priority: HAMLET_RELAY_AUTH env > persisted per-hub key > freshly issued key.
  * The relay server only accepts per-hub HMAC keys issued via /issue; once
  * obtained the key is persisted to settings.json so every hub has a stable,
  * individually revocable identity. A persisted key rejected by /add is
@@ -32,7 +32,7 @@ async function issueRelayAuthKey(
             throw new Error(
                 'Relay key issuance rate-limited (HTTP 429). ' +
                 'The relay limits issuance per public IP.' + retryHint +
-                ' Configure HAPI_RELAY_AUTH if an operator provided a key.'
+                ' Configure HAMLET_RELAY_AUTH if an operator provided a key.'
             )
         }
         throw new Error(`Relay at ${apiDomain} refused to issue an auth key (HTTP ${resp.status}).`)
@@ -57,7 +57,7 @@ export async function resolveRelayAuthKey(
     settingsFile: string,
     fetchRelayAuth: FetchRelayAuth = fetch
 ): Promise<string> {
-    const envKey = process.env.HAPI_RELAY_AUTH
+    const envKey = process.env.HAMLET_RELAY_AUTH
     if (envKey) {
         return envKey
     }
@@ -76,9 +76,9 @@ export async function refreshRejectedRelayAuthKey(
     rejectedKey: string,
     fetchRelayAuth: FetchRelayAuth = fetch
 ): Promise<string> {
-    if (process.env.HAPI_RELAY_AUTH) {
+    if (process.env.HAMLET_RELAY_AUTH) {
         throw new Error(
-            'HAPI_RELAY_AUTH was rejected by the relay (HTTP 403). ' +
+            'HAMLET_RELAY_AUTH was rejected by the relay (HTTP 403). ' +
             'Update or unset the environment variable; persisted settings cannot override it.'
         )
     }

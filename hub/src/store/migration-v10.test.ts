@@ -12,7 +12,7 @@ describe('Store V10→V11 migration: fcm_devices', () => {
     })
 
     it('V10 DB migrates to V11: fcm_devices created', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v11-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v11-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {

@@ -1,7 +1,7 @@
 /**
- * HAPI-owned stdio-to-stdio proxy for external Codex MCP servers.
+ * HAMLET-owned stdio-to-stdio proxy for external Codex MCP servers.
  *
- * This command is intentionally internal. It lets the compiled HAPI binary
+ * This command is intentionally internal. It lets the compiled HAMLET binary
  * bridge Windows command shims without requiring a separate Node runtime.
  */
 
@@ -66,7 +66,7 @@ function resolveWindowsCommand(command: string): string {
 export async function runHappyMcpStdioProxy(argv: string[]): Promise<void> {
     const specPath = parseSpecPath(argv);
     if (!specPath) {
-        process.stderr.write('[hapi-mcp-proxy] Missing --spec path\n');
+        process.stderr.write('[hamlet-mcp-proxy] Missing --spec path\n');
         process.exitCode = 2;
         return;
     }
@@ -137,13 +137,13 @@ export async function runHappyMcpStdioProxy(argv: string[]): Promise<void> {
                 resolve();
             };
             child?.once('error', (error) => {
-                process.stderr.write(`[hapi-mcp-proxy] ${error.message}\n`);
+                process.stderr.write(`[hamlet-mcp-proxy] ${error.message}\n`);
                 finish(1);
             });
             child?.once('close', (code) => finish(typeof code === 'number' ? code : 1));
         });
     } catch (error) {
-        process.stderr.write(`[hapi-mcp-proxy] ${error instanceof Error ? error.message : String(error)}\n`);
+        process.stderr.write(`[hamlet-mcp-proxy] ${error instanceof Error ? error.message : String(error)}\n`);
         process.exitCode = 1;
     } finally {
         process.stdin.off('data', forwardInput);

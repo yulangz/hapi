@@ -10,7 +10,7 @@ import packageJson from '../../package.json';
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { isBunCompiled, projectPath } from '@/projectPath';
-import { isProcessAlive, getHapiRunnerProcessIdentity, killProcess } from '@/utils/process';
+import { isProcessAlive, getHamletRunnerProcessIdentity, killProcess } from '@/utils/process';
 import { configuration } from '@/configuration';
 import { hashRunnerCliApiToken, hashRunnerExtraHeaders, isRunnerStateCompatibleWithIdentity } from './runnerIdentity';
 
@@ -54,7 +54,7 @@ async function runnerPost(path: string, body?: any): Promise<{ error?: string } 
   }
 
   try {
-    const timeout = process.env.HAPI_RUNNER_HTTP_TIMEOUT ? parseInt(process.env.HAPI_RUNNER_HTTP_TIMEOUT) : 10_000;
+    const timeout = process.env.HAMLET_RUNNER_HTTP_TIMEOUT ? parseInt(process.env.HAMLET_RUNNER_HTTP_TIMEOUT) : 10_000;
     const response = await fetch(`http://127.0.0.1:${state.httpPort}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -114,7 +114,7 @@ export async function stopRunnerHttp(): Promise<void> {
 
 /**
  * The version check is still quite naive.
- * For instance we are not handling the case where we upgraded hapi,
+ * For instance we are not handling the case where we upgraded hamlet,
  * the runner is still running, and it recieves a new message to spawn a new session.
  * This is a tough case - we need to somehow figure out to restart ourselves,
  * yet still handle the original request.
@@ -137,7 +137,7 @@ export async function stopRunnerHttp(): Promise<void> {
  * Not just a boolean.
  * 
  * We can destructure the response on the caller for richer output.
- * For instance when running `hapi runner status` we can show more information.
+ * For instance when running `hamlet runner status` we can show more information.
  */
 export async function checkIfRunnerRunningAndCleanupStaleState(): Promise<boolean> {
   const state = await readRunnerState();
@@ -145,8 +145,8 @@ export async function checkIfRunnerRunningAndCleanupStaleState(): Promise<boolea
     return false;
   }
 
-  // Verify PID is alive AND belongs to hapi (not a reused PID from another process)
-  const identity = getHapiRunnerProcessIdentity(state.pid);
+  // Verify PID is alive AND belongs to hamlet (not a reused PID from another process)
+  const identity = getHamletRunnerProcessIdentity(state.pid);
   if (identity === 'runner') {
     return true;
   }
@@ -159,7 +159,7 @@ export async function checkIfRunnerRunningAndCleanupStaleState(): Promise<boolea
     return false;
   }
 
-  logger.debug('[RUNNER RUN] Runner PID not running or not a hapi process, cleaning up state');
+  logger.debug('[RUNNER RUN] Runner PID not running or not a hamlet process, cleaning up state');
   await cleanupRunnerState();
   return false;
 }
@@ -186,7 +186,7 @@ export async function isRunnerRunningCurrentlyInstalledHappyVersion(): Promise<b
   }
 
   const settings = await readSettings();
-  const currentApiUrl = process.env.HAPI_API_URL
+  const currentApiUrl = process.env.HAMLET_API_URL
     || settings.apiUrl
     || settings.serverUrl
     || configuration.apiUrl;
@@ -196,10 +196,10 @@ export async function isRunnerRunningCurrentlyInstalledHappyVersion(): Promise<b
   const currentMachineId = settings.machineId;
   
   try {
-    // When HAPI_DISABLE_VERSION_HANDOFF=1 is set on the live runner (operator
+    // When HAMLET_DISABLE_VERSION_HANDOFF=1 is set on the live runner (operator
     // owns supervision via systemd/tmux/custom rebuild pipelines), a fresh CLI invocation must NOT
     // treat the running runner as stale just because source mtimes shifted.
-    // Otherwise `hapi runner start` would kill the live runner mid-rebuild.
+    // Otherwise `hamlet runner start` would kill the live runner mid-rebuild.
     //
     // Per Codex review #814 [Major]: the env var is commonly only set on the
     // supervising service (systemd unit file), NOT on the operator's
@@ -207,7 +207,7 @@ export async function isRunnerRunningCurrentlyInstalledHappyVersion(): Promise<b
     // caller, OR the live env-var check with the persisted-at-start snapshot
     // in state.startedWithVersionHandoffDisabled.
     if (
-      process.env.HAPI_DISABLE_VERSION_HANDOFF === '1'
+      process.env.HAMLET_DISABLE_VERSION_HANDOFF === '1'
       || state.startedWithVersionHandoffDisabled === true
     ) {
       logger.debug('[RUNNER CONTROL] Version handoff disabled (env or persisted state), skipping mtime/version drift check');
@@ -299,7 +299,7 @@ export async function stopRunner() {
     // sequence on a confirmed identity. Callers derive their decision from a
     // boolean, and a pid we cannot identify may belong to an unrelated process
     // that reused it, whose port may have been reused as well.
-    const identity = getHapiRunnerProcessIdentity(state.pid);
+    const identity = getHamletRunnerProcessIdentity(state.pid);
     if (identity !== 'runner') {
       logger.debug(`Not stopping PID ${state.pid}: identity is ${identity}`);
       return;

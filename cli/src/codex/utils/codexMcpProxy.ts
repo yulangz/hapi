@@ -38,7 +38,7 @@ function commandBaseName(command: string): string {
  * Codex currently launches Windows MCP commands verbatim. Package-manager
  * shims can close before returning the initialize response when launched by
  * the Rust stdio launcher, while the same process works through a native
- * HAPI child process. Keep the workaround narrow to known command shims.
+ * HAMLET child process. Keep the workaround narrow to known command shims.
  */
 export function shouldProxyCodexMcpStdio(command: string, platform = process.platform): boolean {
     if (platform !== 'win32') {
@@ -59,7 +59,7 @@ function runsOnRemoteEnvironment(server: Record<string, unknown>): boolean {
 }
 
 async function writeProxySpec(spec: StdioProxySpec): Promise<{ directory: string; path: string }> {
-    const directory = await mkdtemp(join(tmpdir(), 'hapi-codex-mcp-'));
+    const directory = await mkdtemp(join(tmpdir(), 'hamlet-codex-mcp-'));
     const path = join(directory, `${randomUUID()}.json`);
     await writeFile(path, JSON.stringify(spec), { encoding: 'utf8', mode: 0o600 });
     return { directory, path };

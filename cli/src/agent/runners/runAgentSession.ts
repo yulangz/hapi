@@ -12,10 +12,10 @@ import { registerKillSessionHandler } from '@/claude/registerKillSessionHandler'
 import { bootstrapSession } from '@/agent/sessionFactory';
 import { formatMessageWithAttachments } from '@/utils/attachmentFormatter';
 import { getInvokedCwd } from '@/utils/invokedCwd';
-import { PermissionModeSchema } from '@hapi/protocol/schemas';
-import { isPermissionModeAllowedForFlavor } from '@hapi/protocol';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
-import type { SessionEndReason } from '@hapi/protocol';
+import { PermissionModeSchema } from '@hamlet/protocol/schemas';
+import { isPermissionModeAllowedForFlavor } from '@hamlet/protocol';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
+import type { SessionEndReason } from '@hamlet/protocol';
 function emitReadyIfIdle(props: {
     queueSize: () => number;
     shouldExit: boolean;

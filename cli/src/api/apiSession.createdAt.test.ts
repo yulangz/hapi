@@ -102,7 +102,7 @@ describe('sendClaudeSessionMessage createdAt propagation', () => {
     }
 
     beforeEach(() => {
-        configuration._setApiUrl('https://hapi.example.com')
+        configuration._setApiUrl('https://hamlet.example.com')
         ioMock.mockReset()
     })
 

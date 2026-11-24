@@ -3,7 +3,7 @@
  *
  *  - `ApnsClient`   direct HTTP/2 to Apple's APNs (self-host: operator owns
  *                   the APNs auth key + bundle id)
- *  - `RelayClient`  plain HTTPS POST to a hapi push relay, which holds the
+ *  - `RelayClient`  plain HTTPS POST to a hamlet push relay, which holds the
  *                   APNs/FCM credentials for the official apps
  *
  * Both only ever carry the encrypted envelope - neither transport (nor

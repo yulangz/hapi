@@ -11,7 +11,7 @@ const mockApi = {
 const mockSessionId = 'sess-test'
 
 /**
- * Regression test for upstream review on PR #798 (HAPI Bot follow-up
+ * Regression test for upstream review on PR #798 (HAMLET Bot follow-up
  * after b256fe5):
  *
  *   > Found one major issue: promoting a scratchlist item to the

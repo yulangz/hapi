@@ -6,11 +6,11 @@ import {
     markUnsupported,
     toConversationHistoryCapabilities,
     type ConversationHistoryCapabilityStates
-} from '@hapi/protocol/conversationHistory'
+} from '@hamlet/protocol/conversationHistory'
 import type {
     ForkConversationRpcResult,
     RewindConversationRpcResult
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 
 function isMethodNotFound(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error)
@@ -105,7 +105,7 @@ export class GrokConversationHistory {
         if (this.states.forkCurrent === 'unknown' || this.states.forkAtMessage === 'unknown') {
             try {
                 await backend.sendExtensionRequest('_x.ai/session/fork', {
-                    sourceSessionId: '__hapi_capability_probe__',
+                    sourceSessionId: '__hamlet_capability_probe__',
                     sourceCwd: this.cwd ?? '',
                     newCwd: this.cwd ?? ''
                 })

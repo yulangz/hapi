@@ -11,7 +11,7 @@ import { getDraft } from '@/lib/composer-drafts'
  * Lifecycle:
  *  - The sessionStorage pending key is left untouched while
  *    `sessionActive` is false. Inactive mounts (e.g. sharing into a
- *    stopped session that then reopens under a new HAPI session id) must
+ *    stopped session that then reopens under a new HAMLET session id) must
  *    not steal the hand-off — otherwise the remounted chat never sees
  *    the transfer. Consume + seed happen in the same effect once active.
  *  - The pending slot is bound to a target session id, so a different

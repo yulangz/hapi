@@ -10,7 +10,7 @@ vi.mock('@/agent/loopBase', () => ({
 
 vi.mock('@/ui/logger', () => ({
     logger: {
-        logFilePath: '/tmp/hapi.log',
+        logFilePath: '/tmp/hamlet.log',
         debug: vi.fn()
     }
 }))

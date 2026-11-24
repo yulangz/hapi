@@ -96,7 +96,7 @@ export function getBuiltinAgentConfigDescriptors(): AgentConfigDescriptor[] {
     return AGENT_FLAVORS.map(getAgentConfigDescriptor)
 }
 
-export function resolveHapiYoloPermissionMode(flavor: AgentFlavor): PermissionMode | null {
+export function resolveHamletYoloPermissionMode(flavor: AgentFlavor): PermissionMode | null {
     switch (flavor) {
         case 'claude':
         case 'grok':

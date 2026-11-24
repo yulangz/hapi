@@ -1,4 +1,4 @@
-import type { PermissionMode } from '@hapi/protocol/types'
+import type { PermissionMode } from '@hamlet/protocol/types'
 
 export type RemoteAgentCommandOptions<
     TPermissionMode extends PermissionMode,
@@ -30,12 +30,12 @@ export function parseRemoteAgentCommandOptions<
         const arg = args[i]
         if (arg === '--started-by') {
             options.startedBy = args[++i] as 'runner' | 'terminal'
-        } else if (arg === '--hapi-starting-mode') {
+        } else if (arg === '--hamlet-starting-mode') {
             const value = args[++i]
             if (startingModes.includes(value)) {
                 options.startingMode = value as TStartingMode
             } else {
-                throw new Error('Invalid --hapi-starting-mode (expected local, remote, or pty)')
+                throw new Error('Invalid --hamlet-starting-mode (expected local, remote, or pty)')
             }
         } else if (arg === '--existing-session-id') {
             const sessionId = args[++i]
@@ -61,13 +61,13 @@ export function parseRemoteAgentCommandOptions<
             if (yoloEquivalent) {
                 options.permissionMode = yoloEquivalent as TPermissionMode
             }
-        } else if (arg === '--hapi-session-id') {
+        } else if (arg === '--hamlet-session-id') {
             // Hub row to reuse on reopen/resume of a pty session (agy), so the id
             // stays stable instead of spawn-new + merge-delete (+ the 404 flash).
             // The runner only emits this for pty flavors whose parser consumes it.
             const id = args[++i]
             if (!id) {
-                throw new Error('Missing --hapi-session-id value')
+                throw new Error('Missing --hamlet-session-id value')
             }
             options.existingSessionId = id
         } else if (arg === '--resume') {
@@ -83,7 +83,7 @@ export function parseRemoteAgentCommandOptions<
             }
             options.existingSessionId = sessionId
         } else if (arg === '-s' || arg === '--session') {
-            // OpenCode-native resume flags (hapi opencode -s / --session <id>)
+            // OpenCode-native resume flags (hamlet opencode -s / --session <id>)
             const sessionId = args[++i]
             if (!sessionId) {
                 throw new Error(`Missing ${arg} value`)

@@ -137,8 +137,8 @@ function compareVersion(a: number[] | null, b: number[] | null): number {
 }
 
 export function resolveCodexAppServerCommand(): string {
-    if (process.env.HAPI_CODEX_APP_SERVER_BIN) {
-        return process.env.HAPI_CODEX_APP_SERVER_BIN;
+    if (process.env.HAMLET_CODEX_APP_SERVER_BIN) {
+        return process.env.HAMLET_CODEX_APP_SERVER_BIN;
     }
 
     const candidates: CodexCommandCandidate[] = [{
@@ -411,7 +411,7 @@ export class CodexAppServerClient extends JsonLineParser {
 
     async supportsMethod(method: string): Promise<boolean> {
         try {
-            await this.sendRequest(method, { threadId: '__hapi_capability_probe__' }, { timeoutMs: 30_000 });
+            await this.sendRequest(method, { threadId: '__hamlet_capability_probe__' }, { timeoutMs: 30_000 });
             return true;
         } catch (error) {
             if (this.options.endpoint && isIndeterminateError(error)) throw error;

@@ -7,7 +7,7 @@ describe('getSessionTitle', () => {
             id: 'abcdef0123456789',
             metadata: {
                 name: 'hub runner version governance',
-                summary: { text: 'HAPI Skill Lookup' },
+                summary: { text: 'HAMLET Skill Lookup' },
                 path: '/tmp/share-title-parity',
             },
         })).toBe('hub runner version governance')
@@ -17,10 +17,10 @@ describe('getSessionTitle', () => {
         expect(getSessionTitle({
             id: 'abcdef0123456789',
             metadata: {
-                summary: { text: 'HAPI Skill Lookup' },
+                summary: { text: 'HAMLET Skill Lookup' },
                 path: '/tmp/share-title-parity',
             },
-        })).toBe('HAPI Skill Lookup')
+        })).toBe('HAMLET Skill Lookup')
     })
 
     it('falls back to the last path segment when name and summary are absent', () => {

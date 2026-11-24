@@ -3,7 +3,7 @@ import {
     findBestCliSkuForAcpWire,
     isCursorAcpCatalogModelId,
     isCursorAcpWireModelId as isSharedCursorAcpWireModelId
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { CursorModelSummary } from '@/types/api'
 
 export type CursorModelOption = { value: string | null; label: string }

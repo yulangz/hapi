@@ -4,7 +4,7 @@ import {
     ELEVENLABS_REALTIME_TRANSCRIPTION_MODEL,
     type TranscriptionMode,
     type TranscriptionProvider
-} from '@hapi/protocol/voice'
+} from '@hamlet/protocol/voice'
 import type { ApiClient } from '@/api/client'
 import type { ConversationStatus } from '@/realtime/types'
 import {
@@ -112,7 +112,7 @@ export function useRealtimeDictation(config: {
         const controller = new AbortController()
         startAbortRef.current = controller
         const provider = config.provider
-        const language = localStorage.getItem('hapi-voice-lang') || undefined
+        const language = localStorage.getItem('hamlet-voice-lang') || undefined
         setError(null)
         updatePartial('')
         setStatus('connecting')

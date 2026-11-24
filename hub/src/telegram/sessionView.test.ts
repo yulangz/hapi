@@ -15,7 +15,7 @@ function createSession(overrides: Partial<Session> = {}): Session {
             path: '/home/alice/infra',
             host: 'devbox.local',
             homeDir: '/home/alice',
-            name: 'rotate HAPI secrets',
+            name: 'rotate HAMLET secrets',
             machineId: 'machine-1',
             flavor: 'codex'
         },
@@ -57,10 +57,10 @@ function createMachine(overrides: Partial<Machine> = {}): Machine {
 describe('Telegram session notifications', () => {
     it('adds session, machine, and path context to ready notifications', () => {
         expect(formatReadyNotification(createSession(), createMachine())).toBe([
-            'Ready: rotate HAPI secrets on Work Laptop',
+            'Ready: rotate HAMLET secrets on Work Laptop',
             '',
             'Codex is waiting for your command',
-            'Session: rotate HAPI secrets',
+            'Session: rotate HAMLET secrets',
             'Path: ~/infra'
         ].join('\n'))
     })
@@ -89,10 +89,10 @@ describe('Telegram session notifications', () => {
         })
 
         expect(formatSessionNotification(session, createMachine())).toBe([
-            'Action required: rotate HAPI secrets on Work Laptop',
+            'Action required: rotate HAMLET secrets on Work Laptop',
             '',
             'Codex requests permission',
-            'Session: rotate HAPI secrets',
+            'Session: rotate HAMLET secrets',
             'Path: ~/infra',
             'Tool: Bash',
             'Command: bun test'

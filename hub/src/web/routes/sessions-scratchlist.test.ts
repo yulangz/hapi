@@ -239,7 +239,7 @@ describe('POST /api/sessions/:id/scratchlist', () => {
         expect(body.code).toBe('scratchlist_at_cap')
     })
 
-    it('still returns 200 for a duplicate entryId even when the session is at the cap (HAPI Bot, PR #896)', async () => {
+    it('still returns 200 for a duplicate entryId even when the session is at the cap (HAMLET Bot, PR #896)', async () => {
         // The cap check used to fire BEFORE the duplicate check, which
         // turned an idempotent migration retry into a hard 409 the
         // moment a session reached `SCRATCHLIST_MAX_ENTRIES`. The fix
@@ -299,7 +299,7 @@ describe('POST /api/sessions/:id/scratchlist', () => {
         expect(res.status).toBe(409)
     })
 
-    it('rejects oversized entryId with 400 (HAPI Bot, PR #896 follow-up)', async () => {
+    it('rejects oversized entryId with 400 (HAMLET Bot, PR #896 follow-up)', async () => {
         // Server-side guard for the SQLite primary key: an authenticated
         // client could otherwise grow the table and its index with
         // arbitrarily large keys. 129 chars is one over the 128-char
@@ -411,7 +411,7 @@ describe('PUT /api/sessions/:id/scratchlist/:entryId', () => {
                     filename: 'a.png',
                     mimeType: 'image/png',
                     size: 3,
-                    path: 'hapi-hub:scratchlist/default/session-1/11111111-1111-4111-8111-111111111111-a.png',
+                    path: 'hamlet-hub:scratchlist/default/session-1/11111111-1111-4111-8111-111111111111-a.png',
                 }],
             }),
         })

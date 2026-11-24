@@ -35,7 +35,7 @@ describe('ScratchlistMigrationBanner', () => {
         expect(container.firstChild).toBeNull()
     })
 
-    // 'pre-migrated' was removed by the HAPI Bot PR #896 follow-up:
+    // 'pre-migrated' was removed by the HAMLET Bot PR #896 follow-up:
     // a session whose migration ran in a prior mount but was not yet
     // dismissed should now show the banner, not hide it. The
     // dismissal flag is the only thing that suppresses the banner -

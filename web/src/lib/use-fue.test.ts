@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetFue, useFue } from './use-fue'
 
 const FEATURE = 'test-feature'
-const STORAGE_KEY = `hapi.fue.v1.${FEATURE}`
+const STORAGE_KEY = `hamlet.fue.v1.${FEATURE}`
 
 describe('useFue', () => {
     beforeEach(() => {
@@ -91,7 +91,7 @@ describe('useFue', () => {
     })
 
     it('switches state when featureId changes', () => {
-        localStorage.setItem('hapi.fue.v1.feature-a', '1')
+        localStorage.setItem('hamlet.fue.v1.feature-a', '1')
         const { result, rerender } = renderHook(
             ({ id }: { id: string }) => useFue(id),
             { initialProps: { id: 'feature-a' } }

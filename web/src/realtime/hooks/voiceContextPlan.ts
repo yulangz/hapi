@@ -3,7 +3,7 @@ import {
     VOICE_CONTEXT_STREAM_CHUNK_MAX_BYTES,
     truncateUtf8ByteLength,
     utf8ByteLength
-} from '@hapi/protocol/voice-personality'
+} from '@hamlet/protocol/voice-personality'
 import type { DecryptedMessage, Session } from '@/types/api'
 import { formatMessage } from './contextFormatters'
 import { VOICE_CONFIG } from '../voiceConfig'

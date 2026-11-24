@@ -1,10 +1,13 @@
 import { useRef, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MACHINE_DISPLAY_NAME_MAX_LENGTH } from '@hapi/protocol'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { MACHINE_DISPLAY_NAME_MAX_LENGTH } from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import type { Machine } from '@/types/api'
 import { useAppContext } from '@/lib/app-context'
 import { useTranslation } from '@/lib/use-translation'
+import { getHubAccessToken } from '@/hooks/useAuthSource'
+import { downloadBlobFile } from '@/lib/sessionExport/download'
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { useMachines } from '@/hooks/queries/useMachines'
 import { getMachineTitle } from '@/hooks/useMachineLabels'
 import { queryKeys } from '@/lib/query-keys'
@@ -110,6 +113,69 @@ function MachineRow(props: { api: ApiClient | null; machine: Machine }) {
     )
 }
 
+function RunnerInstall() {
+    const { api, baseUrl, token } = useAppContext()
+    const [failedDownload, setFailedDownload] = useState(false)
+    const { t } = useTranslation()
+    const { copy, copied } = useCopyToClipboard()
+    const tokenCopy = useCopyToClipboard()
+    const accessToken = getHubAccessToken(baseUrl)
+    const { data } = useQuery({
+        queryKey: ['runner-install', baseUrl],
+        queryFn: () => api.getRunnerInstall(),
+    })
+    const current = new URL(baseUrl || window.location.origin)
+    const configured = data?.hubUrl ? new URL(data.hubUrl) : current
+    const isLocal = (url: URL) => ['127.0.0.1', '[::1]', 'localhost'].includes(url.hostname)
+    const hub = !isLocal(configured) ? configured : current
+    const lan = hub.protocol === 'http:' && !isLocal(hub)
+    const path = current.origin + '/runner/'
+    const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'"
+    const setup = [
+        'set -eo pipefail',
+        'IFS= read -rs -p "Hub token: " CLI_API_TOKEN </dev/tty',
+        'echo >&2',
+        'export CLI_API_TOKEN',
+        'printf "Authorization: Bearer %s\\n" "$CLI_API_TOKEN" | curl -fsS -H @- "$1/runner/install.py" | python3 - --hub "$1"' + (lan ? ' --allow-http' : ''),
+    ].join('; ')
+    const command = 'bash -c ' + quote(setup) + ' _ ' + quote(hub.origin)
+    async function download(event: React.MouseEvent<HTMLAnchorElement>) {
+        event.preventDefault()
+        const { href, download: filename } = event.currentTarget
+        setFailedDownload(false)
+        try {
+            const response = await fetch(href, { headers: { Authorization: 'Bearer ' + token }, redirect: 'error' })
+            if (!response.ok) throw new Error(String(response.status))
+            downloadBlobFile(filename, await response.blob())
+        } catch {
+            setFailedDownload(true)
+        }
+    }
+    return (
+        <SettingsSection title={t('settings.machines.install')} description={t('settings.machines.installHint')}>
+            <div className="space-y-3 px-3 py-3">
+                {(lan || isLocal(hub)) && <p className="text-sm text-[var(--app-hint)]">{t(lan ? 'settings.machines.lan' : 'settings.machines.httpsNeeded')}</p>}
+                    <code className="block select-all break-all rounded bg-[var(--app-subtle-bg)] p-2 text-xs">{command}</code>
+                    <button type="button" className="text-sm text-[var(--app-link)]" onClick={() => void copy(command)}>
+                        {t(copied ? 'settings.machines.copied' : 'settings.machines.copyInstall')}
+                    </button>
+                {failedDownload && <p role="alert" className="text-sm text-red-600">{t('settings.machines.downloadError')}</p>}
+                {accessToken && <button type="button" className="block text-sm text-[var(--app-link)]" onClick={() => void tokenCopy.copy(accessToken)}>
+                    {t(tokenCopy.copied ? 'settings.machines.copied' : 'settings.machines.copyToken')}
+                </button>}
+                <a className="block text-sm text-[var(--app-link)]" href={path + 'install.py'} download="install.py" onClick={download}>{t('settings.machines.script')}</a>
+            </div>
+            <div className="grid grid-cols-2 gap-2 px-3 py-3 text-sm text-[var(--app-link)]">
+                {(['darwin', 'linux'] as const).flatMap(os => (['arm64', 'x64'] as const).map(arch =>
+                    <a key={os + arch} href={path + 'hamlet-runner-' + os + '-' + arch + '.gz'} download={'hamlet-runner-' + os + '-' + arch + '.gz'} onClick={download}>
+                        {os === 'darwin' ? 'macOS' : 'Linux'} · {arch === 'arm64' ? 'ARM64' : 'x64'}
+                    </a>
+                ))}
+            </div>
+        </SettingsSection>
+    )
+}
+
 export default function SettingsMachinesPage() {
     const { t } = useTranslation()
     const { api } = useAppContext()
@@ -117,6 +183,7 @@ export default function SettingsMachinesPage() {
 
     return (
         <SettingsPageContent description={t('settings.machines.description')}>
+            <RunnerInstall />
             <SettingsSection title={t('settings.machines.section')}>
                 {machines.length === 0 ? (
                     <div className="px-3 py-3 text-sm text-[var(--app-hint)]">{t('settings.machines.empty')}</div>

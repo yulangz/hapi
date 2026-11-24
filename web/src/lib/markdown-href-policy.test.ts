@@ -56,21 +56,21 @@ describe('isKnownSpaHref', () => {
     })
 
     it('strips Vite BASE_URL prefix before SPA allowlist checks', () => {
-        expect(isKnownSpaHref('/hapi/settings', { baseUrl: '/hapi/' })).toBe(true)
-        expect(isKnownSpaHref('/hapi/sessions/abc/file', { baseUrl: '/hapi/' })).toBe(true)
-        expect(isKnownSpaHref('/hapi/settings/typo', { baseUrl: '/hapi/' })).toBe(false)
+        expect(isKnownSpaHref('/hamlet/settings', { baseUrl: '/hamlet/' })).toBe(true)
+        expect(isKnownSpaHref('/hamlet/sessions/abc/file', { baseUrl: '/hamlet/' })).toBe(true)
+        expect(isKnownSpaHref('/hamlet/settings/typo', { baseUrl: '/hamlet/' })).toBe(false)
     })
 })
 
 describe('expandTildePath', () => {
     it('expands ~/ against /home/<user> workspace', () => {
-        expect(expandTildePath('~/coding/hapi/docs/a.md', '/home/ada/coding/hapi')).toBe(
-            '/home/ada/coding/hapi/docs/a.md'
+        expect(expandTildePath('~/coding/hamlet/docs/a.md', '/home/ada/coding/hamlet')).toBe(
+            '/home/ada/coding/hamlet/docs/a.md'
         )
     })
 
     it('expands ~/ against /root workspaces', () => {
-        expect(expandTildePath('~/hapi/docs/a.md', '/root/hapi')).toBe('/root/hapi/docs/a.md')
+        expect(expandTildePath('~/hamlet/docs/a.md', '/root/hamlet')).toBe('/root/hamlet/docs/a.md')
     })
 
     it('returns null without workspace metadata', () => {
@@ -79,7 +79,7 @@ describe('expandTildePath', () => {
 })
 
 describe('classifyNoSchemeHref — fail-closed (#1452)', () => {
-    const workspace = '/home/ada/coding/hapi'
+    const workspace = '/home/ada/coding/hamlet'
 
     it('keeps allowlisted relative file targets as file preview', () => {
         expect(classifyNoSchemeHref('docs/foo.md')).toEqual({
@@ -103,25 +103,25 @@ describe('classifyNoSchemeHref — fail-closed (#1452)', () => {
     })
 
     it('routes in-workspace absolute paths to file preview', () => {
-        expect(classifyNoSchemeHref('/home/ada/coding/hapi/docs/a.md', { workspacePath: workspace })).toEqual({
+        expect(classifyNoSchemeHref('/home/ada/coding/hamlet/docs/a.md', { workspacePath: workspace })).toEqual({
             action: 'file',
-            path: '/home/ada/coding/hapi/docs/a.md',
+            path: '/home/ada/coding/hamlet/docs/a.md',
         })
     })
 
     it('expands in-workspace ~/ paths to absolute file preview targets', () => {
-        expect(classifyNoSchemeHref('~/coding/hapi/docs/a.md', { workspacePath: workspace })).toEqual({
+        expect(classifyNoSchemeHref('~/coding/hamlet/docs/a.md', { workspacePath: workspace })).toEqual({
             action: 'file',
-            path: '/home/ada/coding/hapi/docs/a.md',
+            path: '/home/ada/coding/hamlet/docs/a.md',
         })
     })
 
     it('expands ~/ for root-owned workspaces', () => {
         expect(
-            classifyNoSchemeHref('~/hapi/docs/a.md', { workspacePath: '/root/hapi' })
+            classifyNoSchemeHref('~/hamlet/docs/a.md', { workspacePath: '/root/hamlet' })
         ).toEqual({
             action: 'file',
-            path: '/root/hapi/docs/a.md',
+            path: '/root/hamlet/docs/a.md',
         })
     })
 
@@ -157,34 +157,34 @@ describe('classifyNoSchemeHref — fail-closed (#1452)', () => {
     })
 
     it('routes in-workspace Windows absolute paths to file preview', () => {
-        const winWorkspace = 'C:\\Users\\ada\\coding\\hapi'
+        const winWorkspace = 'C:\\Users\\ada\\coding\\hamlet'
         expect(
-            classifyNoSchemeHref('C:\\Users\\ada\\coding\\hapi\\docs\\a.md', {
+            classifyNoSchemeHref('C:\\Users\\ada\\coding\\hamlet\\docs\\a.md', {
                 workspacePath: winWorkspace,
             })
         ).toEqual({
             action: 'file',
-            path: 'C:\\Users\\ada\\coding\\hapi\\docs\\a.md',
+            path: 'C:\\Users\\ada\\coding\\hamlet\\docs\\a.md',
         })
     })
 
     it('compares Windows workspace containment case-insensitively', () => {
         expect(
-            classifyNoSchemeHref('c:\\users\\ada\\coding\\hapi\\docs\\a.md', {
-                workspacePath: 'C:\\Users\\Ada\\coding\\hapi',
+            classifyNoSchemeHref('c:\\users\\ada\\coding\\hamlet\\docs\\a.md', {
+                workspacePath: 'C:\\Users\\Ada\\coding\\hamlet',
             })
         ).toEqual({
             action: 'file',
-            path: 'c:\\users\\ada\\coding\\hapi\\docs\\a.md',
+            path: 'c:\\users\\ada\\coding\\hamlet\\docs\\a.md',
         })
     })
 
     it('renders absolute paths without workspace metadata as inert (fail closed)', () => {
-        expect(classifyNoSchemeHref('/home/ada/coding/hapi/docs/a.md')).toEqual({ action: 'inert' })
+        expect(classifyNoSchemeHref('/home/ada/coding/hamlet/docs/a.md')).toEqual({ action: 'inert' })
     })
 
     it('rejects tilde paths that lexically escape the workspace via ..', () => {
-        expect(classifyNoSchemeHref('~/coding/hapi/../secret.ts', { workspacePath: workspace })).toEqual({
+        expect(classifyNoSchemeHref('~/coding/hamlet/../secret.ts', { workspacePath: workspace })).toEqual({
             action: 'inert',
         })
     })
@@ -196,7 +196,7 @@ describe('classifyNoSchemeHref — fail-closed (#1452)', () => {
     })
 
     it('renders unresolvable ~/ without workspace as inert (never SPA)', () => {
-        expect(classifyNoSchemeHref('~/coding/hapi/docs/a.md')).toEqual({ action: 'inert' })
+        expect(classifyNoSchemeHref('~/coding/hamlet/docs/a.md')).toEqual({ action: 'inert' })
     })
 
     it('renders no-extension path-like hrefs as inert', () => {
@@ -221,13 +221,13 @@ describe('classifyNoSchemeHref — fail-closed (#1452)', () => {
     })
 
     it('never classifies /home/... absolute file hrefs as SPA navigate', () => {
-        const decision = classifyNoSchemeHref('/home/ada/coding/hapi/docs/a.md', {
+        const decision = classifyNoSchemeHref('/home/ada/coding/hamlet/docs/a.md', {
             workspacePath: workspace,
         })
         expect(decision.action).not.toBe('navigate')
         expect(decision).toEqual({
             action: 'file',
-            path: '/home/ada/coding/hapi/docs/a.md',
+            path: '/home/ada/coding/hamlet/docs/a.md',
         })
     })
 })

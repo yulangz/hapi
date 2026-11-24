@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
 import { Store, type StoredSession } from '../../../store'
 import type { SyncEvent } from '../../../sync/syncEngine'
 import type { CliSocketWithData } from '../../socketTypes'

@@ -8,7 +8,8 @@ import {
     consumeComposerSendIntent,
     type ComposerSendIntent,
 } from '@/lib/messageDelivery'
-import { safeStringify } from '@hapi/protocol'
+import { isObject, safeStringify } from '@hamlet/protocol'
+import { HamletChatSource } from '@hamlet/protocol/hamlet'
 import { renderEventLabel } from '@/chat/presentation'
 import type { ChatBlock, CliOutputBlock, CodexReview, RoundSummary, UsageData } from '@/chat/types'
 import type { AgentEvent, ToolCallBlock } from '@/chat/types'
@@ -33,6 +34,7 @@ export type AggregatedAssistantMeta = {
 
 export type HappyChatMessageMetadata = {
     kind: 'user' | 'assistant' | 'tool' | 'event' | 'cli-output' | 'codex-review' | 'compact-summary'
+    hamlet?: HamletChatSource
     status?: HappyMessageStatus
     localId?: string | null
     originalText?: string
@@ -504,6 +506,7 @@ function toThreadMessageLike(
             metadata: {
                 custom: {
                     kind: 'user',
+                    ...(isObject(block.meta) && block.meta.hamlet ? { hamlet: HamletChatSource.safeParse(block.meta.hamlet).data } : {}),
                     status: block.status,
                     localId: block.localId,
                     originalText: block.originalText,

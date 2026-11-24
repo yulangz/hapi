@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'hapi:ask-user-question-drafts'
+const STORAGE_KEY = 'hamlet:ask-user-question-drafts'
 const MAX_DRAFTS = 50
 
 export type AskUserQuestionDraft = {

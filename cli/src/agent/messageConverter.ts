@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER, type InclusiveInputTokenUsageMarker } from '@hapi/protocol/usage';
+import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER, type InclusiveInputTokenUsageMarker } from '@hamlet/protocol/usage';
 import type { AgentMessage, PlanItem } from './types';
 import type { InlineMediaSource } from '@/modules/common/inlineMediaSource';
 

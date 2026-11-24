@@ -2,7 +2,7 @@ import type { ApiSessionClient } from '@/api/apiSession';
 import type { AgentState } from '@/api/types';
 import type { AcpSdkBackend } from '@/agent/backends/acp';
 import { logger } from '@/ui/logger';
-import { asString, isObject } from '@hapi/protocol';
+import { asString, isObject } from '@hamlet/protocol';
 import type { AgentMessage, PlanItem } from '@/agent/types';
 import { randomUUID } from 'node:crypto';
 import { basename } from 'node:path';

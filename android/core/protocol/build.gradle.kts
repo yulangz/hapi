@@ -40,5 +40,5 @@ tasks.test {
     // Golden fixtures live at the repo root (outside the Gradle root dir).
     // Track K (M2) drops conformance fixtures into shared/fixtures/; protocol
     // tests read them via this system property -- no build changes needed then.
-    systemProperty("hapi.fixtures.dir", rootDir.parentFile.resolve("shared/fixtures").absolutePath)
+    systemProperty("hamlet.fixtures.dir", rootDir.parentFile.resolve("shared/fixtures").absolutePath)
 }

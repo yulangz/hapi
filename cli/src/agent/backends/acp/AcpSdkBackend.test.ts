@@ -169,7 +169,7 @@ describe('AcpSdkBackend', () => {
             sessionId: 'session-1',
             toolCall: {
                 toolCallId: 'tool-approve',
-                title: 'hapi_change_title',
+                title: 'hamlet_change_title',
                 rawInput: { title: 'Rename chat' }
             },
             options: [
@@ -1749,7 +1749,7 @@ describe('AcpSdkBackend', () => {
         vi.useRealTimers();
     });
 
-    it('ignores idle clears while a HAPI prompt turn is still draining', () => {
+    it('ignores idle clears while a HAMLET prompt turn is still draining', () => {
         const backend = new AcpSdkBackend({ command: 'agent' });
         const activity: boolean[] = [];
         backend.setAgentActivityListener((thinking) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { randomUUID } from 'node:crypto';
 import { logger } from '@/ui/logger';
-import { buildHapiMcpBridge } from '@/codex/utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from '@/codex/utils/buildHamletMcpBridge';
 import { convertAgentMessage } from '@/agent/messageConverter';
 import { PermissionAdapter } from '@/agent/permissionAdapter';
 import type { AgentMessage, McpServerStdio, PromptContent } from '@/agent/types';
@@ -36,9 +36,9 @@ import type { AcpSdkBackend } from '@/agent/backends/acp';
 import type { AcpStderrError } from '@/agent/backends/acp/AcpStdioTransport';
 import { isAcpIndeterminateError } from '@/agent/backends/acp/AcpStdioTransport';
 import { registerAcpSessionTitleSync } from '@/agent/acpSessionTitle';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import {
-    cursorHapiMcpServerId,
+    cursorHamletMcpServerId,
     installCursorMcpOverlay,
     type CursorMcpOverlayHandle,
 } from './utils/cursorMcpOverlay';
@@ -104,24 +104,24 @@ class CursorAcpRemoteLauncher extends RemoteLauncherBase {
         const messageBuffer = this.messageBuffer;
         session.client.updateAgentState?.((state) => ({ ...state, steeringActive: false }));
 
-        const { server: happyServer, mcpServers } = await buildHapiMcpBridge(session.client, {
+        const { server: happyServer, mcpServers } = await buildHamletMcpBridge(session.client, {
             enableChangeTitle: false,
             skillLookup: { workingDirectory: session.path, flavor: 'cursor' }
         });
         this.happyServer = happyServer;
 
-        const hapiBridge = mcpServers.hapi;
-        if (hapiBridge) {
+        const hamletBridge = mcpServers.hamlet;
+        if (hamletBridge) {
             try {
                 this.cursorMcpOverlay = installCursorMcpOverlay(session.path, {
-                    command: hapiBridge.command,
-                    args: hapiBridge.args,
+                    command: hamletBridge.command,
+                    args: hamletBridge.args,
                 }, {
-                    serverId: cursorHapiMcpServerId(session.client.sessionId),
+                    serverId: cursorHamletMcpServerId(session.client.sessionId),
                 });
             } catch (error) {
                 logger.warn(
-                    '[cursor-acp] failed to install HAPI MCP overlay; continuing without inline media',
+                    '[cursor-acp] failed to install HAMLET MCP overlay; continuing without inline media',
                     error,
                 );
                 this.cursorMcpOverlay = { cleanup: () => {} };
@@ -160,7 +160,7 @@ class CursorAcpRemoteLauncher extends RemoteLauncherBase {
 
             backend.setUsageUpdateListener((message) => this.handleAgentMessage(message));
             // Harness resume (notify_on_output / mid-idle ACP activity) may not
-            // go through HAPI's prompt() window — bump thinking so the hub list
+            // go through HAMLET's prompt() window — bump thinking so the hub list
             // matches reality (#1470).
             this.wireAgentActivityThinking(backend, session);
 
@@ -718,7 +718,7 @@ class CursorAcpRemoteLauncher extends RemoteLauncherBase {
 
     protected async cleanup(): Promise<void> {
         // Capture overlay before awaited teardown so a reject from
-        // cancelAll/disconnect cannot leave a dead hapi-* entry in ~/.cursor/mcp.json.
+        // cancelAll/disconnect cannot leave a dead hamlet-* entry in ~/.cursor/mcp.json.
         const overlay = this.cursorMcpOverlay;
         this.cursorMcpOverlay = null;
 

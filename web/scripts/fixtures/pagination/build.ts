@@ -1,4 +1,4 @@
-import { DecryptedMessageSchema } from '@hapi/protocol/schemas'
+import { DecryptedMessageSchema } from '@hamlet/protocol/schemas'
 import type { DecryptedMessage, MessagesResponse } from '@/types/api'
 import { FIXTURE_VERSION } from '../fixtureTypes'
 import { toCanonicalJson } from '../serialize'

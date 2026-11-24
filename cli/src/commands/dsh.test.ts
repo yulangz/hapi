@@ -2,17 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { parseDshCommandOptions } from './dsh'
 
 describe('parseDshCommandOptions', () => {
-    it('forces remote mode and accepts an existing HAPI row', () => {
+    it('forces remote mode and accepts an existing HAMLET row', () => {
         expect(parseDshCommandOptions([
-            '--hapi-starting-mode', 'remote',
-            '--existing-session-id', 'hapi-session'
+            '--hamlet-starting-mode', 'remote',
+            '--existing-session-id', 'hamlet-session'
         ])).toEqual({
             startingMode: 'remote',
-            existingSessionId: 'hapi-session'
+            existingSessionId: 'hamlet-session'
         })
     })
 
-    it('rejects native resume, model, and HAPI permission controls unsupported by DSH ACP', () => {
+    it('rejects native resume, model, and HAMLET permission controls unsupported by DSH ACP', () => {
         expect(() => parseDshCommandOptions(['--resume', 'native-id']))
             .toThrow('fresh sessions')
         expect(() => parseDshCommandOptions(['--model', 'deepseek-v4-pro']))

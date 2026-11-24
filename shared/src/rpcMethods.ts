@@ -1,4 +1,6 @@
 export const RPC_METHODS = {
+    HamletControlTurn: 'hamlet-control-turn',
+    HamletCurrentTurn: 'hamlet-current-turn',
     Permission: 'permission',
     Abort: 'abort',
     Switch: 'switch',

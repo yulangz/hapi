@@ -1,4 +1,4 @@
-import { isObject, type AgentStateRequest } from '@hapi/protocol'
+import { isObject, type AgentStateRequest } from '@hamlet/protocol'
 import type { Session } from '../sync/syncEngine'
 import { getAgentName, getSessionName } from './sessionInfo'
 

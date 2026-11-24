@@ -1,9 +1,9 @@
 /**
- * Cross-platform HAPI CLI spawning utility
+ * Cross-platform HAMLET CLI spawning utility
  *
  * ## Background
  *
- * HAPI CLI runs in two modes:
+ * HAMLET CLI runs in two modes:
  * 1. **Compiled binary**: A single executable built with `bun build --compile`
  * 2. **Development mode**: Running TypeScript directly via `bun`
  *
@@ -20,7 +20,7 @@
  *
  * ## Cross-Platform Support
  *
- * This utility handles spawning HAPI CLI subprocesses (for runner processes)
+ * This utility handles spawning HAMLET CLI subprocesses (for runner processes)
  * in a cross-platform way, detecting the current runtime mode and using
  * the appropriate command and arguments.
  */
@@ -32,7 +32,7 @@ import { isBunCompiled, projectPath } from '@/projectPath';
 import { logger } from '@/ui/logger';
 import { existsSync } from 'node:fs';
 
-const HAPI_CLI_EXECUTABLE_ENV = 'HAPI_CLI_EXECUTABLE';
+const HAMLET_CLI_EXECUTABLE_ENV = 'HAMLET_CLI_EXECUTABLE';
 
 /**
  * Resolve the TypeScript entrypoint for development mode.
@@ -65,7 +65,7 @@ function resolveInvokedCwd(cwd: SpawnOptions['cwd']): string {
     return isCrossPlatformAbsolutePath(normalizedCwd) ? normalizedCwd : resolve(normalizedCwd);
   }
 
-  const inheritedInvokedCwd = process.env.HAPI_INVOKED_CWD?.trim();
+  const inheritedInvokedCwd = process.env.HAMLET_INVOKED_CWD?.trim();
   if (inheritedInvokedCwd && isCrossPlatformAbsolutePath(inheritedInvokedCwd)) {
     return inheritedInvokedCwd;
   }
@@ -74,7 +74,7 @@ function resolveInvokedCwd(cwd: SpawnOptions['cwd']): string {
 }
 
 export function resolveHappyCliExecutable(): string {
-  const override = process.env[HAPI_CLI_EXECUTABLE_ENV]?.trim();
+  const override = process.env[HAMLET_CLI_EXECUTABLE_ENV]?.trim();
   if (override && isCrossPlatformAbsolutePath(override) && existsSync(override)) {
     return override;
   }
@@ -109,16 +109,16 @@ export function getHappyCliCommand(args: string[]): HappyCliCommand {
   if (isBunRuntime) {
     // Bun can run TypeScript directly.
     // Force Bun's cwd to the CLI project root so alias resolution via bunfig.toml
-    // keeps working even when external tools launch HAPI from another workspace.
+    // keeps working even when external tools launch HAMLET from another workspace.
     return {
       command: process.execPath,
       args: ['--cwd', projectRoot, entrypoint, ...args]
     };
   }
 
-  // When vitest runs under Node.js, HAPI_BUN_EXEC can point to the bun binary so that
+  // When vitest runs under Node.js, HAMLET_BUN_EXEC can point to the bun binary so that
   // spawned CLI child processes still run under bun (which is required for TypeScript entrypoints).
-  const bunExecOverride = process.env['HAPI_BUN_EXEC']?.trim();
+  const bunExecOverride = process.env['HAMLET_BUN_EXEC']?.trim();
   if (bunExecOverride && isCrossPlatformAbsolutePath(bunExecOverride) && existsSync(bunExecOverride)) {
     return {
       command: bunExecOverride,
@@ -142,12 +142,12 @@ export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): Child
     directory = process.cwd()
   }
   // Note: We're executing the current runtime with the calculated entrypoint path below,
-  // bypassing the 'hapi' wrapper that would normally be found in the shell's PATH.
-  // However, we log it as 'hapi' here because other engineers are typically looking
-  // for when "hapi" was started and don't care about the underlying node process
+  // bypassing the 'hamlet' wrapper that would normally be found in the shell's PATH.
+  // However, we log it as 'hamlet' here because other engineers are typically looking
+  // for when "hamlet" was started and don't care about the underlying node process
   // details and flags we use to achieve the same result.
-  const fullCommand = `hapi ${args.join(' ')}`;
-  logger.debug(`[SPAWN HAPI CLI] Spawning: ${fullCommand} in ${directory}`);
+  const fullCommand = `hamlet ${args.join(' ')}`;
+  logger.debug(`[SPAWN HAMLET CLI] Spawning: ${fullCommand} in ${directory}`);
   
   const compiledMode = isBunCompiled();
   const { command: spawnCommand, args: spawnArgs } = getHappyCliCommand(args);
@@ -157,7 +157,7 @@ export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): Child
     const entrypoint = spawnArgs.find((arg) => arg.endsWith('index.ts'));
     if (entrypoint && !existsSync(entrypoint)) {
       const errorMessage = `Entrypoint ${entrypoint} does not exist`;
-      logger.debug(`[SPAWN HAPI CLI] ${errorMessage}`);
+      logger.debug(`[SPAWN HAMLET CLI] ${errorMessage}`);
       throw new Error(errorMessage);
     }
   }
@@ -168,12 +168,12 @@ export function spawnHappyCLI(args: string[], options: SpawnOptions = {}): Child
   const finalEnv = { ...process.env, ...options.env };
   let shouldSetEnv = false;
   if (compiledMode) {
-    finalEnv[HAPI_CLI_EXECUTABLE_ENV] = spawnCommand;
+    finalEnv[HAMLET_CLI_EXECUTABLE_ENV] = spawnCommand;
     shouldSetEnv = true;
   } else {
-    const invokedCwd = finalEnv.HAPI_INVOKED_CWD?.trim();
+    const invokedCwd = finalEnv.HAMLET_INVOKED_CWD?.trim();
     const hasExplicitCwd = 'cwd' in options && options.cwd !== undefined;
-    finalEnv.HAPI_INVOKED_CWD = hasExplicitCwd
+    finalEnv.HAMLET_INVOKED_CWD = hasExplicitCwd
       ? resolveInvokedCwd(options.cwd)
       : invokedCwd && isCrossPlatformAbsolutePath(invokedCwd)
         ? invokedCwd

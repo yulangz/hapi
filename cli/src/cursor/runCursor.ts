@@ -15,7 +15,7 @@ import {
 import { formatMessageWithAttachments } from '@/utils/attachmentFormatter';
 import { getInvokedCwd } from '@/utils/invokedCwd';
 import { enqueueCursorUserMessage } from './cursorUserMessageQueue';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 const formatFailureReason = (message: string): string => {
     const maxLength = 200;

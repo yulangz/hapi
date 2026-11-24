@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand'
 import { homedir } from 'node:os'
 import { parse } from 'node:path'
-import type { PiModelSummary, PiModelsResponse } from '@hapi/protocol/apiTypes'
+import type { PiModelSummary, PiModelsResponse } from '@hamlet/protocol/apiTypes'
 import { parsePiModels } from '../../pi/schemas'
 import { killProcessByChildProcess } from '../../utils/process'
 import { getErrorMessage } from './rpcResponses'
@@ -53,7 +53,7 @@ const PI_PROBE_ARGS = [
     '--no-tools',
 ] as const
 
-const PROBE_RPC_ID = 'hapi-machine-models-probe'
+const PROBE_RPC_ID = 'hamlet-machine-models-probe'
 
 /**
  * Result of scanning one RPC stdout line for the probe response.

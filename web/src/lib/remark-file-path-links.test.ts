@@ -48,13 +48,13 @@ describe('remarkFilePathLinks', () => {
         expect(links.map(linkedPath)).toEqual(['screenshot.png', 'README.md'])
     })
 
-    it('autolinks Windows absolute paths as hapi-file-candidate (backslash-safe through hast)', () => {
+    it('autolinks Windows absolute paths as hamlet-file-candidate (backslash-safe through hast)', () => {
         const nodes = transform('Open C:\\Users\\dev\\project\\handoff.md and D:/work/app/src/main.ts:12')
         const links = nodes.filter((node) => node.type === 'link')
 
         expect(links.map((n) => n.url)).toEqual([
-            'hapi-file-candidate:' + encodeURIComponent('C:\\Users\\dev\\project\\handoff.md'),
-            'hapi-file-candidate:' + encodeURIComponent('D:/work/app/src/main.ts'),
+            'hamlet-file-candidate:' + encodeURIComponent('C:\\Users\\dev\\project\\handoff.md'),
+            'hamlet-file-candidate:' + encodeURIComponent('D:/work/app/src/main.ts'),
         ])
         for (const link of links) {
             expect(decodeFilePathHref(link.url as string)).toBeNull()
@@ -122,11 +122,11 @@ describe('remarkFilePathLinks — inlineCode', () => {
     it.each([
         'C:\\Users\\dev\\project\\handoff.md',
         'D:/work/app/src/main.ts:12'
-    ])('autolinks Windows absolute inlineCode path %s as hapi-file-candidate', (value) => {
+    ])('autolinks Windows absolute inlineCode path %s as hamlet-file-candidate', (value) => {
         const nodes = transformNodes([{ type: 'inlineCode', value }])
         const link = nodes.find((node) => node.type === 'link')!
         const expected = value.replace(/:\d+(?::\d+)?$/, '')
-        expect(link.url).toBe('hapi-file-candidate:' + encodeURIComponent(expected))
+        expect(link.url).toBe('hamlet-file-candidate:' + encodeURIComponent(expected))
         expect(decodeFilePathHref(link.url as string)).toBeNull()
         expect(link.children?.[0]?.type).toBe('inlineCode')
         expect(link.children?.[0]?.value).toBe(value)
@@ -161,7 +161,7 @@ describe('remarkFilePathLinks — explicit markdown links', () => {
         return { type: 'link', url, children: [{ type: 'text', value: label }] }
     }
 
-    it('rewrites [label](relative/file.md) to a hapi-file link and keeps the label', () => {
+    it('rewrites [label](relative/file.md) to a hamlet-file link and keeps the label', () => {
         const nodes = transformNodes([linkNode('docs/foo.md', 'the docs')])
         const link = nodes.find((node) => node.type === 'link')
 
@@ -185,23 +185,23 @@ describe('remarkFilePathLinks — explicit markdown links', () => {
     })
 
     it('does not rewrite POSIX absolute file links (containment needs session cwd in <A>)', () => {
-        const nodes = transformNodes([linkNode('/home/ada/coding/hapi/docs/a.md')])
+        const nodes = transformNodes([linkNode('/home/ada/coding/hamlet/docs/a.md')])
         const link = nodes.find((n) => n.type === 'link')!
         expect(decodeFilePathHref(link.url as string)).toBeNull()
-        expect(link.url).toBe('/home/ada/coding/hapi/docs/a.md')
+        expect(link.url).toBe('/home/ada/coding/hamlet/docs/a.md')
     })
 
     it.each([
         'C:\\Users\\dev\\project\\handoff.md',
         'D:/work/app/src/main.ts:12',
         'D:/outside/secret.ts#L1',
-    ])('rewrites Windows absolute file link %s to hapi-file-candidate (not premature hapi-file)', (url) => {
+    ])('rewrites Windows absolute file link %s to hamlet-file-candidate (not premature hamlet-file)', (url) => {
         const nodes = transformNodes([linkNode(url)])
         const link = nodes.find((node) => node.type === 'link')!
         const withoutMeta = url.replace(/#.*$/, '').replace(/\?.*$/, '')
         const expectedPath = withoutMeta.replace(/:\d+(?::\d+)?$/, '')
         expect(decodeFilePathHref(link.url as string)).toBeNull()
-        expect(link.url).toBe('hapi-file-candidate:' + encodeURIComponent(expectedPath))
+        expect(link.url).toBe('hamlet-file-candidate:' + encodeURIComponent(expectedPath))
     })
 
     it.each([
@@ -219,14 +219,14 @@ describe('remarkFilePathLinks — explicit markdown links', () => {
     ])('does not rewrite non-file / unsafe link url %s', (url) => {
         const nodes = transformNodes([linkNode(url)])
         const link = nodes.find((node) => node.type === 'link')!
-        // url is either untouched or still not a hapi-file target
+        // url is either untouched or still not a hamlet-file target
         expect(decodeFilePathHref(link.url as string)).toBeNull()
         expect(link.url).toBe(url)
     })
 })
 
 // ── standalone gate: rewriteExplicitLinks:false (file-preview surface) ────────
-// The standalone renderer has no HappyChatContext, so a hapi-file: link would
+// The standalone renderer has no HappyChatContext, so a hamlet-file: link would
 // collapse to plain text. It disables explicit-link rewrite but keeps bare-path
 // and inlineCode autolinks (already inert on that surface, so no regression).
 

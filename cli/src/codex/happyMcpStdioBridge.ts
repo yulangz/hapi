@@ -1,16 +1,18 @@
 /**
- * HAPI MCP STDIO Bridge
+ * HAMLET MCP STDIO Bridge
  *
- * Minimal STDIO MCP server exposing HAPI tools such as `change_title`, `display_image`, `display_video`, `display_media`, `list_peers`, `ping_peer`, and `inspect_peer`.
- * On invocation it forwards the tool call to an existing HAPI HTTP MCP server
+ * Minimal STDIO MCP server exposing HAMLET tools such as `change_title`, `display_image`, `display_video`, `display_media`, `list_peers`, `ping_peer`, and `inspect_peer`.
+ * On invocation it forwards the tool call to an existing HAMLET HTTP MCP server
  * using the StreamableHTTPClientTransport.
  *
- * Configure the target HTTP MCP URL via env var `HAPI_HTTP_MCP_URL` or
+ * Configure the target HTTP MCP URL via env var `HAMLET_HTTP_MCP_URL` or
  * via CLI flag `--url <http://127.0.0.1:PORT>`.
  *
  * Note: This process must not print to stdout as it would break MCP STDIO.
  */
 
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -21,7 +23,7 @@ import {
   INSPECT_PEER_TOOL_DESCRIPTION,
   PING_PEER_TOOL_DESCRIPTION,
   SESSION_ID_PREFIX_PARAM_DESCRIPTION,
-} from '@hapi/protocol/sessionCitation';
+} from '@hamlet/protocol/sessionCitation';
 
 const DEFAULT_TOOL_NAMES = ['change_title', 'display_image', 'display_video', 'display_media', 'list_peers', 'ping_peer', 'inspect_peer'];
 
@@ -45,12 +47,12 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
   try {
     // Resolve target HTTP MCP URL
     const { url: urlFromArgs, toolNames } = parseArgs(argv);
-    const baseUrl = urlFromArgs || process.env.HAPI_HTTP_MCP_URL || '';
+    const baseUrl = urlFromArgs || process.env.HAMLET_HTTP_MCP_URL || '';
 
     if (!baseUrl) {
       // Write to stderr; never stdout.
       process.stderr.write(
-        '[hapi-mcp] Missing target URL. Set HAPI_HTTP_MCP_URL or pass --url <http://127.0.0.1:PORT>\n'
+        '[hamlet-mcp] Missing target URL. Set HAMLET_HTTP_MCP_URL or pass --url <http://127.0.0.1:PORT>\n'
       );
       process.exit(2);
     }
@@ -60,7 +62,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
     async function ensureHttpClient(): Promise<Client> {
       if (httpClient) return httpClient;
       const client = new Client(
-        { name: 'hapi-stdio-bridge', version: '1.0.0' },
+        { name: 'hamlet-stdio-bridge', version: '1.0.0' },
         { capabilities: {} }
       );
 
@@ -70,9 +72,16 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
       return client;
     }
 
+    if (toolNames.has('whoami')) {
+      const server = new Server({ name: 'hamlet', version: '1.0.0' }, { capabilities: { tools: {} } });
+      server.setRequestHandler(ListToolsRequestSchema, async () => (await ensureHttpClient()).listTools());
+      server.setRequestHandler(CallToolRequestSchema, async request => (await ensureHttpClient()).callTool(request.params));
+      await server.connect(new StdioServerTransport());
+      return;
+    }
     // Create STDIO MCP server
     const server = new McpServer({
-      name: 'HAPI MCP Bridge',
+      name: 'HAMLET MCP Bridge',
       version: '1.0.0',
     });
 
@@ -118,7 +127,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
       server.registerTool<any, any>(
         'display_image',
         {
-          description: `Display a local image file to the human user inline in the current HAPI chat session. ${DISPLAY_IMAGE_PROMPT_CURSOR}`,
+          description: `Display a local image file to the human user inline in the current HAMLET chat session. ${DISPLAY_IMAGE_PROMPT_CURSOR}`,
           title: 'Display Image',
           inputSchema: displayImageInputSchema,
         },
@@ -148,7 +157,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
       server.registerTool<any, any>(
         'display_video',
         {
-          description: `Display a local mp4 or webm file inline in the current HAPI chat session. ${DISPLAY_VIDEO_PROMPT_CURSOR}`,
+          description: `Display a local mp4 or webm file inline in the current HAMLET chat session. ${DISPLAY_VIDEO_PROMPT_CURSOR}`,
           title: 'Display Video',
           inputSchema: displayVideoInputSchema,
         },
@@ -178,7 +187,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
       server.registerTool<any, any>(
         'display_media',
         {
-          description: `Send a local image, video, audio, or other file to the current HAPI chat session. ${DISPLAY_MEDIA_PROMPT_CURSOR}`,
+          description: `Send a local image, video, audio, or other file to the current HAMLET chat session. ${DISPLAY_MEDIA_PROMPT_CURSOR}`,
           title: 'Display Media',
           inputSchema: displayMediaInputSchema,
         },
@@ -268,7 +277,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
       server.registerTool<any, any>(
         'list_peers',
         {
-          description: 'List peer HAPI sessions on the same hub/namespace (id prefix, active, flavor, name). Uses this session\'s hub credentials - works from runner-spawned agents without being on the hub host. Prefer this over shelling `hapi ping-peer --list`. Then call inspect_peer / ping_peer with a listed id.',
+          description: 'List peer HAMLET sessions on the same hub/namespace (id prefix, active, flavor, name). Uses this session\'s hub credentials - works from runner-spawned agents without being on the hub host. Prefer this over shelling `hamlet ping-peer --list`. Then call inspect_peer / ping_peer with a listed id.',
           title: 'List Peer Sessions',
           inputSchema: listPeersInputSchema,
         },
@@ -290,14 +299,14 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
     }
 
     const skillLookupInputSchema: z.ZodTypeAny = z.object({
-      name: z.string().trim().min(1).max(128).describe('Exact skill name shown by HAPI skill autocomplete'),
+      name: z.string().trim().min(1).max(128).describe('Exact skill name shown by HAMLET skill autocomplete'),
     });
 
     if (toolNames.has('skill_lookup')) {
       server.registerTool<any, any>(
         'skill_lookup',
         {
-          description: 'Load a HAPI skill by exact name. When a user message starts with $name, call this tool with that name before acting.',
+          description: 'Load a HAMLET skill by exact name. When a user message starts with $name, call this tool with that name before acting.',
           title: 'Look Up Skill',
           inputSchema: skillLookupInputSchema,
         },
@@ -323,7 +332,7 @@ export async function runHappyMcpStdioBridge(argv: string[]): Promise<void> {
     await server.connect(stdio);
   } catch (err) {
     try {
-      process.stderr.write(`[hapi-mcp] Fatal: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.stderr.write(`[hamlet-mcp] Fatal: ${err instanceof Error ? err.message : String(err)}\n`);
     } finally {
       process.exit(1);
     }

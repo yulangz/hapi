@@ -1,6 +1,6 @@
-import type { AgentFlavor } from '@hapi/protocol';
+import type { AgentFlavor } from '@hamlet/protocol';
 import type { AgentBackend, AgentMessage, AgentSessionConfig, PermissionRequest, PermissionResponse, PromptContent } from '@/agent/types';
-import { asString, isObject } from '@hapi/protocol';
+import { asString, isObject } from '@hamlet/protocol';
 import { AcpStdioTransport, type AcpStderrError } from './AcpStdioTransport';
 import { AcpMessageHandler, type AcpTextChunkMode } from './AcpMessageHandler';
 import { ACP_SESSION_UPDATE_TYPES } from './constants';
@@ -205,7 +205,7 @@ export class AcpSdkBackend implements AgentBackend {
                     }
                 },
                 clientInfo: {
-                    name: 'hapi',
+                    name: 'hamlet',
                     version: packageJson.version
                 }
             }),
@@ -521,7 +521,7 @@ export class AcpSdkBackend implements AgentBackend {
     /**
      * Called when ACP reports foreground state / permission for harness wake (#1470 / #1502).
      * `true` = sustained `running` (debounced), `requires_action`, or permission.
-     * `false` = `state_update` idle (skipped while a HAPI prompt turn is still draining).
+     * `false` = `state_update` idle (skipped while a HAMLET prompt turn is still draining).
      * Launchers should ignore no-ops when session.thinking already matches.
      */
     setAgentActivityListener(listener: ((thinking: boolean) => void) | null): void {

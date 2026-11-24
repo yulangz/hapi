@@ -83,7 +83,7 @@ vi.mock('@/claude/utils/startHappyServer', () => ({
 vi.mock('@/utils/spawnHappyCLI', () => ({
     getHappyCliCommand: vi.fn((args: string[]) => {
         harness.bridgeArgs = args
-        return { command: 'hapi', args, env: [] }
+        return { command: 'hamlet', args, env: [] }
     })
 }))
 
@@ -173,7 +173,7 @@ describe('runAgentSession', () => {
             cwd: '/tmp/project',
             mcpServers: [{
                 name: 'happy',
-                command: 'hapi',
+                command: 'hamlet',
                 args: harness.bridgeArgs
             }]
         })

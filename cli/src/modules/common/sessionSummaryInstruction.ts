@@ -7,7 +7,7 @@
  * one-shot instruction paths when the operator opts in.
  *
  * Resolution order:
- * 1. Explicit `HAPI_SESSION_SUMMARY_CONTRACT` env (0|false|off|no → off; anything else → on)
+ * 1. Explicit `HAMLET_SESSION_SUMMARY_CONTRACT` env (0|false|off|no → off; anything else → on)
  * 2. Hub preference applied via `applyHubSessionSummaryContract` (from session bootstrap)
  * 3. Default: off (matches A2A RFC — emission stays optional indefinitely)
  */
@@ -27,7 +27,7 @@ export function resetSessionSummaryContractForTests(): void {
 export function isSessionSummaryContractEnabled(
     env: NodeJS.ProcessEnv = process.env
 ): boolean {
-    const raw = env.HAPI_SESSION_SUMMARY_CONTRACT
+    const raw = env.HAMLET_SESSION_SUMMARY_CONTRACT
     if (raw !== undefined && raw !== '') {
         const normalized = raw.trim().toLowerCase()
         return !(normalized === '0' || normalized === 'false' || normalized === 'off' || normalized === 'no')
@@ -37,7 +37,7 @@ export function isSessionSummaryContractEnabled(
 
 /**
  * Canonical trailing-line contract. Matches the FCM / native-companion parser
- * in `@hapi/protocol` (`extractNotifySummary`).
+ * in `@hamlet/protocol` (`extractNotifySummary`).
  */
 export const SESSION_SUMMARY_CONTRACT_LINE =
     'AGENT_NOTIFY_SUMMARY {"version":1,"agent":"<agent-id>","project":"<project>","status":"done|blocked|needs_review|needs_decision|failed|stalled","action":"<=12 words","summary":"one-line triage"}'

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural audit for the hand-rolled ios/Hapi.xcodeproj/project.pbxproj.
+"""Structural audit for the hand-rolled ios/Hamlet.xcodeproj/project.pbxproj.
 
 The project file is edited by hand on Linux (no Xcode to validate it), so
 this script re-checks everything a bad edit could break:
@@ -20,7 +20,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-path = Path(__file__).resolve().parents[1] / "Hapi.xcodeproj" / "project.pbxproj"
+path = Path(__file__).resolve().parents[1] / "Hamlet.xcodeproj" / "project.pbxproj"
 text = path.read_text()
 problems: list[str] = []
 

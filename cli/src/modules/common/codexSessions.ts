@@ -3,7 +3,7 @@ import { open, readdir, readFile, stat } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { basename, dirname, join, relative } from 'node:path'
 import { homedir } from 'node:os'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
 import { isCodexSubagentSource } from '@/codex/utils/codexSessionMetadata'
 
 const DEFAULT_CODEX_SESSION_SCAN_LIMIT = 200

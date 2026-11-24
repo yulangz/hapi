@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createMessageConnection, StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node';
-import { asString, isObject } from '@hapi/protocol';
-import type { CopilotModelsResponse, CopilotModelSummary } from '@hapi/protocol/apiTypes';
+import { asString, isObject } from '@hamlet/protocol';
+import type { CopilotModelsResponse, CopilotModelSummary } from '@hamlet/protocol/apiTypes';
 import { createCopilotBackend } from '@/copilot/utils/copilotBackend';
 import { getErrorMessage } from './rpcResponses';
 

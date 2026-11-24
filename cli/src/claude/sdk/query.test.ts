@@ -46,7 +46,7 @@ function createFakeChild() {
 
 afterEach(() => {
     vi.clearAllMocks()
-    delete process.env.HAPI_CLAUDE_PATH
+    delete process.env.HAMLET_CLAUDE_PATH
 })
 
 describe('Query', () => {
@@ -64,7 +64,7 @@ describe('Query', () => {
     it('propagates prompt stream failures through query()', async () => {
         const child = createFakeChild()
         spawnMock.mockReturnValueOnce(child)
-        process.env.HAPI_CLAUDE_PATH = 'claude'
+        process.env.HAMLET_CLAUDE_PATH = 'claude'
 
         const { query } = await import('./query')
         const prompt = {
@@ -83,7 +83,7 @@ describe('Query', () => {
         const child = createFakeChild()
         spawnMock.mockReturnValueOnce(child)
         killProcessMock.mockReturnValueOnce(new Promise<void>(() => {}))
-        process.env.HAPI_CLAUDE_PATH = 'claude'
+        process.env.HAMLET_CLAUDE_PATH = 'claude'
 
         const { query } = await import('./query')
         const prompt = {
@@ -98,17 +98,17 @@ describe('Query', () => {
         await expect(result.next()).rejects.toThrow('prompt failed')
     })
 
-    it('places additional launch arguments before HAPI settings', async () => {
+    it('places additional launch arguments before HAMLET settings', async () => {
         const child = createFakeChild()
         spawnMock.mockReturnValueOnce(child)
-        process.env.HAPI_CLAUDE_PATH = 'claude'
+        process.env.HAMLET_CLAUDE_PATH = 'claude'
 
         const { query } = await import('./query')
         query({
             prompt: 'hello',
             options: {
                 additionalArgs: ['--plugin-dir', '/tmp/plugin'],
-                settingsPath: '/tmp/hapi-settings.json'
+                settingsPath: '/tmp/hamlet-settings.json'
             }
         })
 

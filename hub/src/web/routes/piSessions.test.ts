@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { Hono } from 'hono'
-import type { PiLocalSessionSummary, PiLocalSessionWithMessages } from '@hapi/protocol/apiTypes'
+import type { PiLocalSessionSummary, PiLocalSessionWithMessages } from '@hamlet/protocol/apiTypes'
 import { Store } from '../../store'
 import type { Machine, SyncEngine } from '../../sync/syncEngine'
 import type { WebAppEnv } from '../middleware/auth'
@@ -131,7 +131,7 @@ describe('Pi session import', () => {
         expect(await response.json()).toMatchObject({
             success: true,
             sessions: [
-                { id: 'native-1', hapiSessionId: imported.id, importState: 'complete' },
+                { id: 'native-1', hamletSessionId: imported.id, importState: 'complete' },
                 { id: 'native-2' }
             ]
         })
@@ -193,22 +193,22 @@ describe('Pi session import', () => {
         ])
         const initial = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: first })
         expect(initial).toMatchObject({ action: 'created', appended: 1 })
-        expect(store.messages.getAllMessages(initial.hapiSessionId!)[0]).toMatchObject({
+        expect(store.messages.getAllMessages(initial.hamletSessionId!)[0]).toMatchObject({
             localId: 'pi:native-1:entry-1:user',
             invokedAt: 1_000
         })
 
         const unchanged = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: first })
-        expect(unchanged).toMatchObject({ hapiSessionId: initial.hapiSessionId, action: 'unchanged', appended: 0 })
+        expect(unchanged).toMatchObject({ hamletSessionId: initial.hamletSessionId, action: 'unchanged', appended: 0 })
 
         const extended = transcript('native-1', [
             userMessage('native-1', 'entry-1', null, 'one', 1_000),
             userMessage('native-1', 'entry-2', 'entry-1', 'two', 2_000)
         ])
         const updated = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: extended })
-        expect(updated).toMatchObject({ hapiSessionId: initial.hapiSessionId, action: 'updated', appended: 1 })
-        expect(store.messages.getAllMessages(initial.hapiSessionId!)).toHaveLength(2)
-        const metadata = store.sessions.getSession(initial.hapiSessionId!)?.metadata as Record<string, unknown>
+        expect(updated).toMatchObject({ hamletSessionId: initial.hamletSessionId, action: 'updated', appended: 1 })
+        expect(store.messages.getAllMessages(initial.hamletSessionId!)).toHaveLength(2)
+        const metadata = store.sessions.getSession(initial.hamletSessionId!)?.metadata as Record<string, unknown>
         expect(metadata.piHistoryLeafEntryId).toBe('entry-2')
         expect(metadata.conversationHistoryEntryIds).toMatchObject({
             'pi:native-1:entry-1:user': 'entry-1',
@@ -222,18 +222,18 @@ describe('Pi session import', () => {
         const first = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: source })
         const second = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-2'), transcript: source })
 
-        expect(first.hapiSessionId).not.toBe(second.hapiSessionId)
+        expect(first.hamletSessionId).not.toBe(second.hamletSessionId)
         expect(store.sessions.getSessionsByNamespace('default')).toHaveLength(2)
     })
 
-    it('preserves a custom HAPI session name during later Pi reconciliation', () => {
+    it('preserves a custom HAMLET session name during later Pi reconciliation', () => {
         const { store, engine } = setup()
         const source = transcript('native-renamed', [userMessage('native-renamed', 'entry-1', null, 'one', 1_000)])
         const first = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: source })
-        const stored = store.sessions.getSession(first.hapiSessionId!)!
+        const stored = store.sessions.getSession(first.hamletSessionId!)!
         store.sessions.updateSessionMetadata(
             stored.id,
-            { ...(stored.metadata as Record<string, unknown>), name: 'My custom HAPI title' },
+            { ...(stored.metadata as Record<string, unknown>), name: 'My custom HAMLET title' },
             stored.metadataVersion,
             'default'
         )
@@ -245,7 +245,7 @@ describe('Pi session import', () => {
         const result = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: extended })
 
         expect(result.error).toBeUndefined()
-        expect((store.sessions.getSession(stored.id)?.metadata as { name?: string }).name).toBe('My custom HAPI title')
+        expect((store.sessions.getSession(stored.id)?.metadata as { name?: string }).name).toBe('My custom HAMLET title')
     })
 
     it('keeps a mid-transcript incremental import idempotent and rebuilds missing user locators', () => {
@@ -264,9 +264,9 @@ describe('Pi session import', () => {
         }, {}, 'default')
 
         const first = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: source })
-        expect(first).toMatchObject({ hapiSessionId: existing.id, action: 'updated', appended: 1 })
+        expect(first).toMatchObject({ hamletSessionId: existing.id, action: 'updated', appended: 1 })
         const second = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: source })
-        expect(second).toMatchObject({ hapiSessionId: existing.id, action: 'unchanged', appended: 0 })
+        expect(second).toMatchObject({ hamletSessionId: existing.id, action: 'unchanged', appended: 0 })
         expect(second.error).toBeUndefined()
         expect((store.sessions.getSession(existing.id)?.metadata as { conversationHistoryEntryIds?: Record<string, string> }).conversationHistoryEntryIds).toMatchObject({
             'pi:native-mid:entry-2:user': 'entry-2'
@@ -313,10 +313,10 @@ describe('Pi session import', () => {
         ])
         const result = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: rewritten })
         expect(result.error?.code).toBe('transcript_diverged')
-        expect((store.sessions.getSession(first.hapiSessionId!)?.metadata as { piImportState?: { state?: string } }).piImportState?.state).toBe('diverged')
+        expect((store.sessions.getSession(first.hamletSessionId!)?.metadata as { piImportState?: { state?: string } }).piImportState?.state).toBe('diverged')
     })
 
-    it('does not interleave new imported entries into an active HAPI session', () => {
+    it('does not interleave new imported entries into an active HAMLET session', () => {
         const { store, engine } = setup()
         const first = importPiSession({
             store,
@@ -325,7 +325,7 @@ describe('Pi session import', () => {
             machine: machine('machine-1'),
             transcript: transcript('native-active', [userMessage('native-active', 'entry-1', null, 'one', 1_000)])
         })
-        store.sessions.setSessionActive(first.hapiSessionId!, true, 2_000, 'default')
+        store.sessions.setSessionActive(first.hamletSessionId!, true, 2_000, 'default')
         const extended = transcript('native-active', [
             userMessage('native-active', 'entry-1', null, 'one', 1_000),
             userMessage('native-active', 'entry-2', 'entry-1', 'two', 2_000)
@@ -333,6 +333,6 @@ describe('Pi session import', () => {
 
         const result = importPiSession({ store, engine, namespace: 'default', machine: machine('machine-1'), transcript: extended })
         expect(result.error?.code).toBe('session_active')
-        expect(store.messages.getAllMessages(first.hapiSessionId!)).toHaveLength(1)
+        expect(store.messages.getAllMessages(first.hamletSessionId!)).toHaveLength(1)
     })
 })

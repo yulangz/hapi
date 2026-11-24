@@ -1,6 +1,6 @@
 # Native apps (iOS / Android)
 
-HAPI includes native iOS and Android clients for controlling sessions on a hub
+HAMLET includes native iOS and Android clients for controlling sessions on a hub
 you run. Agents execute on your CLI/Runner machines; the hub stores the session
 history. The apps connect directly to that hub and share the same conversations
 as the [Web/PWA](./pwa.md).
@@ -11,7 +11,7 @@ The repository provides these build paths:
 
 | Platform | Device requirement | Build instructions |
 |---|---|---|
-| iOS | iOS 17 or newer | [iOS README](https://github.com/tiann/hapi/blob/main/ios/README.md): Xcode 16 or newer, shared `Hapi` scheme; device builds require signing. |
+| iOS | iOS 17 or newer | [iOS README](https://github.com/tiann/hapi/blob/main/ios/README.md): Xcode 16 or newer, shared `Hamlet` scheme; device builds require signing. |
 | Android | Android 8.0 (API 26) or newer | [Android README](https://github.com/tiann/hapi/blob/main/android/README.md): JDK 17+, Android SDK, Gradle wrapper; build/install a debug APK or configure release signing. |
 
 Maintainers can use the [Android Official Build workflow](https://github.com/tiann/hapi/blob/main/.github/workflows/android-release.yml)
@@ -24,14 +24,14 @@ you install; see [Notifications](#notifications).
 1. Start your hub, or use an existing HTTPS hub endpoint:
 
    ```bash
-   hapi hub --relay
+   hamlet hub --relay
    ```
 
 2. Open the native app and choose a pairing method:
 
    - **Scan QR:** use the in-app scanner with either QR code printed by the
      hub. Web **Settings → Companion pairing** also shows the companion QR.
-   - **Open a pairing link:** `hapicompanion://bind` opens the app's pairing
+   - **Open a pairing link:** `hamletcompanion://bind` opens the app's pairing
      flow. Confirm the hub before pairing.
    - **Enter manually:** supply the hub URL and access token printed by the
      hub. On iOS, enter just the domain/IP and optional port; the separate
@@ -61,14 +61,14 @@ without a usable scanner.
 
 ## Sessions and everyday use
 
-Start an agent on your computer with `hapi` and choose an installed agent, or
+Start an agent on your computer with `hamlet` and choose an installed agent, or
 run a [specific agent command](./agents.md). The session appears in the app.
 
 To create sessions from your phone, start a [Runner](./installation.md#runner-setup)
 on the machine that will execute the agent:
 
 ```bash
-hapi runner start
+hamlet runner start
 ```
 
 In the app, select **New Session**, choose an online machine, directory and
@@ -145,7 +145,7 @@ is suppressed locally because the conversation is already visible.
 | Self-signed iOS build | Configure direct APNs or a self-hosted push relay with credentials matching the app's developer account, bundle ID and APNs environment. Follow the iOS README's signing instructions. |
 
 The official push relay carries encrypted notification content and routing
-metadata. It is separate from the network tunnel enabled by `hapi hub --relay`,
+metadata. It is separate from the network tunnel enabled by `hamlet hub --relay`,
 so it also works with hubs reached through another HTTPS setup. Private direct
 FCM delivery uses an unencrypted notification data payload; direct APNs remains
 encrypted. See [Notifications](./notifications.md#native-app-notifications)

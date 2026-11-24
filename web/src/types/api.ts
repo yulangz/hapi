@@ -8,7 +8,7 @@ import type {
     SessionSummary,
     SyncEvent as ProtocolSyncEvent,
     WorktreeMetadata
-} from '@hapi/protocol/types'
+} from '@hamlet/protocol/types'
 
 export type {
     AgyModelsResponse,
@@ -52,7 +52,7 @@ export type {
     SessionsResponse,
     SpawnResponse,
     UploadFileResponse
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 
 export type {
     AgentState,
@@ -78,13 +78,13 @@ export type {
     ThreadGoalStatus,
     TodoItem,
     WorktreeMetadata
-} from '@hapi/protocol/types'
+} from '@hamlet/protocol/types'
 
 export type {
-    HapiSessionExport,
-    HapiSessionExportResponse,
-    HapiSessionExportWarning
-} from '@hapi/protocol/sessionExport'
+    HamletSessionExport,
+    HamletSessionExportResponse,
+    HamletSessionExportWarning
+} from '@hamlet/protocol/sessionExport'
 
 export type SessionMetadataSummary = {
     path: string
@@ -214,7 +214,7 @@ export type CodexDesktopScriptResponse = {
     syncedCount?: number
     // 中文注释：这里存放本次导入对应的 Codex thread ID 列表，方便日志和排查 direct import 结果。
     sessionIds?: string[]
-    hapiSessionIds?: string[]
+    hamletSessionIds?: string[]
 }
 
 export type CodexLocalSessionSummary = {
@@ -253,7 +253,7 @@ export type PiLocalSessionSummary = {
     thinkingLevel?: string | null
     leafEntryId?: string | null
     messageCount: number
-    hapiSessionId?: string
+    hamletSessionId?: string
     importState?: 'importing' | 'complete' | 'failed' | 'diverged'
 }
 
@@ -270,7 +270,7 @@ export type PiLocalSessionsResponse = {
 
 export type PiImportResult = {
     piSessionId: string
-    hapiSessionId?: string
+    hamletSessionId?: string
     action?: 'created' | 'updated' | 'unchanged'
     appended?: number
     error?: { code: string; message: string }
@@ -295,7 +295,7 @@ export type CodexArchiveSessionResponse = {
 }
 
 export type CodexDesktopSyncRequest = {
-    // 中文注释：前端弹窗直接提交 Codex thread ID，后端会按这些 transcript 直接导入到 Hapi。
+    // 中文注释：前端弹窗直接提交 Codex thread ID，后端会按这些 transcript 直接导入到 Hamlet。
     sessionIds: string[]
     cwd?: string | null
     machineId?: string | null
@@ -314,7 +314,7 @@ export type CodexDesktopStatusResponse = {
 
 export type CodexDuplicateSessionGroup = {
     codexSessionId: string
-    hapiSessionIds: string[]
+    hamletSessionIds: string[]
     canonicalSessionId?: string
     removedSessionIds?: string[]
 }

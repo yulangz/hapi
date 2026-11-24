@@ -6,7 +6,7 @@ import { realpathSync } from 'node:fs';
 import { z } from 'zod';
 import { configuration } from '@/configuration';
 import { getProcessStartMarker, isProcessAlive } from '@/utils/process';
-import { withSettingsFileLock } from '@hapi/protocol/settingsFileLock';
+import { withSettingsFileLock } from '@hamlet/protocol/settingsFileLock';
 
 const RuntimeSchema = z.object({
     id: z.string(), pid: z.number().int().positive(), marker: z.string(),
@@ -63,8 +63,8 @@ async function readRecords(directory: string, strict = false): Promise<CodexRunt
 
 export async function saveRuntime(record: CodexRuntimeRecord): Promise<void> {
     // Ownership follows the native store, even when two launches use different
-    // HAPI_HOME / hub namespaces. These are files, not a global agent daemon.
-    for (const directory of [join(record.codexHome, 'hapi-runtime-owners'), runtimeDirectory()]) {
+    // HAMLET_HOME / hub namespaces. These are files, not a global agent daemon.
+    for (const directory of [join(record.codexHome, 'hamlet-runtime-owners'), runtimeDirectory()]) {
         await mkdir(directory, { recursive: true, mode: 0o700 });
         const target = join(directory, `${record.id}.json`);
         const temporary = `${target}.${randomUUID()}.tmp`;
@@ -75,7 +75,7 @@ export async function saveRuntime(record: CodexRuntimeRecord): Promise<void> {
 
 /** The store-wide lock spans cold resume, not merely registry writes. */
 export async function withThreadOwnership<T>(home: string, threadId: string, ownId: string, work: () => Promise<T>): Promise<T> {
-    const directory = join(home, 'hapi-runtime-owners');
+    const directory = join(home, 'hamlet-runtime-owners');
     await mkdir(directory, { recursive: true, mode: 0o700 });
     return withSettingsFileLock(join(directory, 'ownership'), async () => {
         for (const owner of await readRecords(directory, true)) {
@@ -87,7 +87,7 @@ export async function withThreadOwnership<T>(home: string, threadId: string, own
             if (!match) continue;
             const orphanAlive = owner.serverPid && generationMayBeAlive(owner.serverPid, owner.serverMarker);
             if (generationMayBeAlive(owner.pid, owner.marker) || orphanAlive) {
-                throw new Error(`Thread belongs to another Codex runtime. Use hapi resume ${match[0]}.${orphanAlive && !runtimeAlive(owner) ? ' Its wrapper exited; stop the orphaned runtime before recovery.' : ''}`);
+                throw new Error(`Thread belongs to another Codex runtime. Use hamlet resume ${match[0]}.${orphanAlive && !runtimeAlive(owner) ? ' Its wrapper exited; stop the orphaned runtime before recovery.' : ''}`);
             }
         }
         return work();

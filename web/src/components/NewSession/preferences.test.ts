@@ -20,15 +20,15 @@ describe('NewSession preferences', () => {
     })
 
     it('loads saved values from storage', () => {
-        localStorage.setItem('hapi:newSession:agent', 'codex')
-        localStorage.setItem('hapi:newSession:yolo', 'true')
+        localStorage.setItem('hamlet:newSession:agent', 'codex')
+        localStorage.setItem('hamlet:newSession:yolo', 'true')
 
         expect(loadPreferredAgent()).toBe('codex')
         expect(loadPreferredYoloMode()).toBe(true)
     })
 
     it('falls back to default agent on invalid stored value', () => {
-        localStorage.setItem('hapi:newSession:agent', 'unknown-agent')
+        localStorage.setItem('hamlet:newSession:agent', 'unknown-agent')
 
         expect(loadPreferredAgent()).toBe('claude')
     })
@@ -37,8 +37,8 @@ describe('NewSession preferences', () => {
         savePreferredAgent('gemini')
         savePreferredYoloMode(true)
 
-        expect(localStorage.getItem('hapi:newSession:agent')).toBe('gemini')
-        expect(localStorage.getItem('hapi:newSession:yolo')).toBe('true')
+        expect(localStorage.getItem('hamlet:newSession:agent')).toBe('gemini')
+        expect(localStorage.getItem('hamlet:newSession:yolo')).toBe('true')
     })
 
     it('round-trips launch settings per machine and agent', () => {
@@ -107,7 +107,7 @@ describe('NewSession preferences', () => {
 
     it('fills missing optional launch fields from older stored values', () => {
         localStorage.setItem(
-            'hapi:newSession:launchSettings:v1:machine-1:codex',
+            'hamlet:newSession:launchSettings:v1:machine-1:codex',
             JSON.stringify({ model: 'gpt-5.6-sol' })
         )
 
@@ -121,13 +121,13 @@ describe('NewSession preferences', () => {
 
     it('ignores malformed launch settings', () => {
         localStorage.setItem(
-            'hapi:newSession:launchSettings:v1:machine-1:codex',
+            'hamlet:newSession:launchSettings:v1:machine-1:codex',
             '{not-json'
         )
         expect(loadPreferredLaunchSettings('machine-1', 'codex')).toBeNull()
 
         localStorage.setItem(
-            'hapi:newSession:launchSettings:v1:machine-1:codex',
+            'hamlet:newSession:launchSettings:v1:machine-1:codex',
             JSON.stringify({ model: 42 })
         )
         expect(loadPreferredLaunchSettings('machine-1', 'codex')).toBeNull()

@@ -7,7 +7,7 @@ const fixtureUrl = '/e2e-fixtures/terminal-wrap-fixture.html'
 
 test.describe('terminal wrap fidelity', () => {
     test('wrap-on keeps 1-, 2-, and 3-digit gutter numbers left of code text on mobile', async ({ page }, testInfo) => {
-        await page.addInitScript(() => window.localStorage.setItem('hapi-code-wrap', '1'))
+        await page.addInitScript(() => window.localStorage.setItem('hamlet-code-wrap', '1'))
         await page.goto(fixtureUrl)
 
         await page.getByRole('button', { name: /node scripts\/render-report/i }).click()
@@ -15,8 +15,8 @@ test.describe('terminal wrap fidelity', () => {
         await expect(dialog).toBeVisible()
 
         const metrics = await dialog.evaluate((element) => {
-            const body = element.querySelector<HTMLElement>('[data-hapi-code-body="true"]')!
-            const grid = element.querySelector<HTMLElement>('[data-hapi-code-grid="true"]')!
+            const body = element.querySelector<HTMLElement>('[data-hamlet-code-body="true"]')!
+            const grid = element.querySelector<HTMLElement>('[data-hamlet-code-grid="true"]')!
             const cells = Array.from(element.querySelectorAll<HTMLElement>('[data-code-cell]'))
             const gutters = Array.from(element.querySelectorAll<HTMLElement>('[data-line-number]'))
             const measure = (needle: string) => {
@@ -62,15 +62,15 @@ test.describe('terminal wrap fidelity', () => {
         await page.goto(fixtureUrl)
 
         const preview = page.getByTestId('diff-preview')
-        const wrapToggle = preview.locator('[data-hapi-code-wrap-toggle="true"]')
+        const wrapToggle = preview.locator('[data-hamlet-code-wrap-toggle="true"]')
         await expect(wrapToggle).toHaveCount(1)
         await expect(preview.locator('button button')).toHaveCount(0)
         await expect(preview.getByRole('button', { name: /open diff for src\/mobile-terminal\.ts/i })).toHaveCount(1)
-        await expect(wrapToggle).toHaveAttribute('data-hapi-share-export-exclude', 'true')
+        await expect(wrapToggle).toHaveAttribute('data-hamlet-share-export-exclude', 'true')
 
         await wrapToggle.click()
         await expect(wrapToggle).toHaveAttribute('aria-pressed', 'true')
-        await expect(page.locator('[data-hapi-code-grid="true"]')).toHaveAttribute('style', /minmax\(0px, 1fr\)/)
+        await expect(page.locator('[data-hamlet-code-grid="true"]')).toHaveAttribute('style', /minmax\(0px, 1fr\)/)
 
         const inline = page.getByTestId('diff-inline')
         await expect(inline.locator('.whitespace-pre-wrap')).toHaveCount(2)
@@ -93,7 +93,7 @@ test.describe('terminal wrap fidelity', () => {
 
         const codexDiff = page.getByTestId('toolcard-codex-diff')
         await expect(codexDiff.locator('[role="button"] button')).toHaveCount(0)
-        const codexWrapToggle = codexDiff.locator('[data-hapi-code-wrap-toggle="true"]')
+        const codexWrapToggle = codexDiff.locator('[data-hamlet-code-wrap-toggle="true"]')
         await expect(codexWrapToggle).toHaveCount(1)
         await codexWrapToggle.click()
         await expect(page.getByRole('dialog')).toHaveCount(0)

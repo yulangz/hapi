@@ -5,7 +5,7 @@ const { spawnSyncMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('node:fs', () => ({
-    readFileSync: vi.fn(() => '9124 (hapi) S 1 1 1 0')
+    readFileSync: vi.fn(() => '9124 (hamlet) S 1 1 1 0')
 }))
 
 vi.mock('cross-spawn', () => ({
@@ -14,7 +14,7 @@ vi.mock('cross-spawn', () => ({
     }
 }))
 
-import { getHapiRunnerProcessIdentity } from './process'
+import { getHamletRunnerProcessIdentity } from './process'
 
 const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')
 
@@ -44,7 +44,7 @@ function unavailable(command: string) {
     }
 }
 
-describe('getHapiRunnerProcessIdentity on Windows', () => {
+describe('getHamletRunnerProcessIdentity on Windows', () => {
     beforeAll(() => {
         if (!originalPlatformDescriptor?.configurable) {
             throw new Error('process.platform is not configurable in this runtime')
@@ -70,7 +70,7 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
     it('reports a foreign process when CIM identifies it', () => {
         spawnSyncMock.mockReturnValueOnce(completed('C:\\Windows\\System32\\conhost.exe'))
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('foreign')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('foreign')
         expect(spawnSyncMock).toHaveBeenCalledTimes(1)
         expect(spawnSyncMock).toHaveBeenNthCalledWith(
             1,
@@ -86,17 +86,17 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
     })
 
     it('reports the runner when CIM identifies it', () => {
-        spawnSyncMock.mockReturnValueOnce(completed('hapi-local.exe runner start-sync'))
+        spawnSyncMock.mockReturnValueOnce(completed('hamlet-local.exe runner start-sync'))
 
-        expect(getHapiRunnerProcessIdentity(9124)).toBe('runner')
+        expect(getHamletRunnerProcessIdentity(9124)).toBe('runner')
     })
 
     it('falls back to WMIC when PowerShell is unavailable', () => {
         spawnSyncMock
             .mockReturnValueOnce(unavailable('powershell'))
-            .mockReturnValueOnce(completed('hapi-local.exe runner start-sync'))
+            .mockReturnValueOnce(completed('hamlet-local.exe runner start-sync'))
 
-        expect(getHapiRunnerProcessIdentity(9124)).toBe('runner')
+        expect(getHamletRunnerProcessIdentity(9124)).toBe('runner')
         expect(spawnSyncMock).toHaveBeenNthCalledWith(
             2,
             'wmic',
@@ -108,9 +108,9 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
     it('falls back to WMIC when CIM reports no command line', () => {
         spawnSyncMock
             .mockReturnValueOnce(completed(''))
-            .mockReturnValueOnce(completed('CommandLine\r\nhapi-local.exe runner start-sync\r\n'))
+            .mockReturnValueOnce(completed('CommandLine\r\nhamlet-local.exe runner start-sync\r\n'))
 
-        expect(getHapiRunnerProcessIdentity(9124)).toBe('runner')
+        expect(getHamletRunnerProcessIdentity(9124)).toBe('runner')
         expect(spawnSyncMock).toHaveBeenCalledTimes(2)
     })
 
@@ -119,16 +119,16 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
             .mockReturnValueOnce(completed(''))
             .mockReturnValueOnce(completed('CommandLine\r\n\r\n'))
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('unknown')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('unknown')
         expect(spawnSyncMock).toHaveBeenCalledTimes(2)
     })
 
     it('falls back to WMIC when PowerShell exits non-zero', () => {
         spawnSyncMock
             .mockReturnValueOnce(completed('', 1))
-            .mockReturnValueOnce(completed('hapi-local.exe runner start-sync'))
+            .mockReturnValueOnce(completed('hamlet-local.exe runner start-sync'))
 
-        expect(getHapiRunnerProcessIdentity(9124)).toBe('runner')
+        expect(getHamletRunnerProcessIdentity(9124)).toBe('runner')
         expect(spawnSyncMock).toHaveBeenCalledTimes(2)
     })
 
@@ -137,7 +137,7 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
             .mockReturnValueOnce(completed(''))
             .mockReturnValueOnce(unavailable('wmic'))
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('unknown')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('unknown')
         expect(spawnSyncMock).toHaveBeenCalledTimes(2)
     })
 
@@ -151,7 +151,7 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
             .mockReturnValueOnce(unavailable('powershell'))
             .mockReturnValueOnce(unavailable('wmic'))
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('dead')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('dead')
     })
 
     it('reports dead without probing when the pid is already gone', () => {
@@ -159,12 +159,12 @@ describe('getHapiRunnerProcessIdentity on Windows', () => {
             throw new Error('ESRCH')
         })
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('dead')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('dead')
         expect(spawnSyncMock).not.toHaveBeenCalled()
     })
 })
 
-describe('getHapiRunnerProcessIdentity on POSIX', () => {
+describe('getHamletRunnerProcessIdentity on POSIX', () => {
     beforeEach(() => {
         setPlatform('linux')
         spawnSyncMock.mockReset()
@@ -182,14 +182,14 @@ describe('getHapiRunnerProcessIdentity on POSIX', () => {
     })
 
     it('reports the runner from the ps command line', () => {
-        spawnSyncMock.mockReturnValueOnce(completed('hapi runner start-sync'))
+        spawnSyncMock.mockReturnValueOnce(completed('hamlet runner start-sync'))
 
-        expect(getHapiRunnerProcessIdentity(9124)).toBe('runner')
+        expect(getHamletRunnerProcessIdentity(9124)).toBe('runner')
     })
 
     it('reports unknown when ps cannot report a command line', () => {
         spawnSyncMock.mockReturnValueOnce(completed(''))
 
-        expect(getHapiRunnerProcessIdentity(8328)).toBe('unknown')
+        expect(getHamletRunnerProcessIdentity(8328)).toBe('unknown')
     })
 })

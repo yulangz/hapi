@@ -1,4 +1,4 @@
-import { getAgyModelLabel, getClaudeModelLabel } from '@hapi/protocol'
+import { getAgyModelLabel, getClaudeModelLabel } from '@hamlet/protocol'
 
 type SessionModelSource = {
     model?: string | null

@@ -15,8 +15,8 @@ import { spawnHappyCLI } from '@/utils/spawnHappyCLI';
 import { writeRunnerState, RunnerLocallyPersistedState, readRunnerState, acquireRunnerLock, releaseRunnerLock } from '@/persistence';
 import { getCliArgs } from '@/utils/cliArgs';
 import { getProcessStartMarker, isProcessAlive, isWindows, killProcess, killProcessByChildProcess, killProcessTreeByPid } from '@/utils/process';
-import { PERMISSION_MODES } from '@hapi/protocol/modes';
-import { RUNNER_CAPABILITIES } from '@hapi/protocol';
+import { PERMISSION_MODES } from '@hamlet/protocol/modes';
+import { RUNNER_CAPABILITIES } from '@hamlet/protocol';
 import { withRetry } from '@/utils/time';
 import { isRetryableConnectionError } from '@/utils/errorUtils';
 
@@ -35,9 +35,9 @@ import { agentUnavailableMessage, getAgentAvailability } from '@/agent/agentAvai
 import { copyCodexConfigFile, resolveCodexHome } from '@/codex/utils/codexHome';
 
 /**
- * Deduplicates a preallocated HAPI-row spawn only while its child is alive.
+ * Deduplicates a preallocated HAMLET-row spawn only while its child is alive.
  * A lost acknowledgement can retry safely, but a later resume after that
- * child exits must be allowed to start a new child for the same HAPI row.
+ * child exits must be allowed to start a new child for the same HAMLET row.
  */
 export type SpawnDeduplicator = ((options: SpawnSessionOptions) => Promise<SpawnSessionResult>) & {
   recoverChild: (existingSessionId: string, result: SpawnSessionResult) => void
@@ -128,8 +128,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
   //
   // In case the setup malfunctions - our signal handlers will not properly
   // shut down. We will force exit the process with code 1.
-  let requestShutdown: (source: 'hapi-app' | 'hapi-cli' | 'os-signal' | 'exception', errorMessage?: string) => void;
-  let resolvesWhenShutdownRequested = new Promise<({ source: 'hapi-app' | 'hapi-cli' | 'os-signal' | 'exception', errorMessage?: string })>((resolve) => {
+  let requestShutdown: (source: 'hamlet-app' | 'hamlet-cli' | 'os-signal' | 'exception', errorMessage?: string) => void;
+  let resolvesWhenShutdownRequested = new Promise<({ source: 'hamlet-app' | 'hamlet-cli' | 'os-signal' | 'exception', errorMessage?: string })>((resolve) => {
     requestShutdown = (source, errorMessage) => {
       logger.debug(`[RUNNER RUN] Requesting shutdown (source: ${source}, errorMessage: ${errorMessage})`);
 
@@ -193,7 +193,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
 
   // Detect authorized handoff from a parent runner doing the
   // mtime-drift self-restart (see heartbeat block below). The parent sets
-  // HAPI_RUNNER_HANDOFF_FROM_PID=<parent_pid> on the spawned child's env;
+  // HAMLET_RUNNER_HANDOFF_FROM_PID=<parent_pid> on the spawned child's env;
   // if it matches the live state pid, we are the explicit replacement and
   // must NOT trigger `stopRunner()` (parent will voluntarily release the
   // lock and exit once it sees our pid in state).
@@ -207,14 +207,14 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
   // machine went offline with no runner at all.
   //
   // New protocol:
-  //   - Parent: spawn child with HAPI_RUNNER_HANDOFF_FROM_PID env, then
+  //   - Parent: spawn child with HAMLET_RUNNER_HANDOFF_FROM_PID env, then
   //     release lock, then wait for state.pid to change to a different
   //     live pid. On wait-timeout the parent re-acquires the lock and
   //     defers retry; on wait-success the parent clearInterval + exit.
   //   - Child: detect env, skip stopRunner(), skip the version-match
   //     early-exit, acquire the lock with a longer retry window (parent
   //     releases asynchronously, so we may need to wait).
-  const handoffFromPidRaw = process.env.HAPI_RUNNER_HANDOFF_FROM_PID;
+  const handoffFromPidRaw = process.env.HAMLET_RUNNER_HANDOFF_FROM_PID;
   const handoffFromPid = handoffFromPidRaw ? Number(handoffFromPidRaw) : NaN;
   let isAuthorizedHandoff = false;
   if (Number.isFinite(handoffFromPid) && handoffFromPid > 0) {
@@ -223,7 +223,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       isAuthorizedHandoff = true;
       logger.debug(`[RUNNER RUN] Authorized handoff from parent runner PID ${handoffFromPid}; skipping stopRunner() and version-match short-circuit`);
     } else {
-      logger.debug(`[RUNNER RUN] HAPI_RUNNER_HANDOFF_FROM_PID=${handoffFromPidRaw} set but no matching live parent in state (state.pid=${existingState?.pid ?? 'none'}); ignoring handoff signal`);
+      logger.debug(`[RUNNER RUN] HAMLET_RUNNER_HANDOFF_FROM_PID=${handoffFromPidRaw} set but no matching live parent in state (state.pid=${existingState?.pid ?? 'none'}); ignoring handoff signal`);
     }
   }
 
@@ -271,7 +271,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // Setup state - key by PID
     const pidToTrackedSession = new Map<number, TrackedSession>();
     // Retained until actual child exit even if webhook timeout removes normal
-    // tracking, so confirmed exit can be attributed to the requested HAPI row.
+    // tracking, so confirmed exit can be attributed to the requested HAMLET row.
     const pidToRequestedSessionId = new Map<number, string>();
     const pidToConfirmedSessionId = new Map<number, string>();
     // Only actual observed child exits may create a stop-session tombstone.
@@ -388,7 +388,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // heavy session restore). Allow advanced users to raise this ceiling
     // so that slow starts no longer leave orphaned child processes which
     // later report back as ghost sessions.
-    const envWebhookTimeout = Number(process.env.HAPI_RUNNER_WEBHOOK_TIMEOUT_MS);
+    const envWebhookTimeout = Number(process.env.HAMLET_RUNNER_WEBHOOK_TIMEOUT_MS);
     const webhookTimeoutMs =
       Number.isFinite(envWebhookTimeout) && envWebhookTimeout > 0
         ? envWebhookTimeout
@@ -397,7 +397,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // Session spawning awaiter system
     const pidToAwaiter = new Map<number, (session: TrackedSession) => void>();
     const pidToErrorAwaiter = new Map<number, (errorMessage: string) => void>();
-    // existingSessionId identifies the HAPI row, not a permanent spawn request.
+    // existingSessionId identifies the HAMLET row, not a permanent spawn request.
     // Keep the dedupe entry only while this runner still owns the child PID.
     const existingSessionIdByChildPid = new Map<number, string>();
     type SpawnFailureDetails = {
@@ -419,7 +419,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       ? Object.entries(session.sharedSessions).map(([happySessionId, metadata]) => ({ ...session, happySessionId, happySessionMetadataFromLocalWebhook: metadata }))
       : [session]);
 
-    // Handle webhook from HAPI session reporting itself
+    // Handle webhook from HAMLET session reporting itself
     const onHappySessionWebhook = (sessionId: string, sessionMetadata: Metadata) => {
       logger.debugLargeJson(`[RUNNER RUN] Session reported`, sessionMetadata);
 
@@ -503,7 +503,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
         // New session started externally (terminal)
         const trackedSession: TrackedSession = {
           ...(sessionMetadata.capabilities?.concurrentClients ? { sharedSessions: { [sessionId]: sessionMetadata } } : {}),
-          startedBy: 'hapi directly - likely by user from terminal',
+          startedBy: 'hamlet directly - likely by user from terminal',
           happySessionId: sessionId,
           happySessionMetadataFromLocalWebhook: sessionMetadata,
           pid
@@ -518,7 +518,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // Spawn a new session (sessionId reserved for future --resume functionality)
     let spawnSession!: SpawnDeduplicator;
     const spawnSessionOnce = async (options: SpawnSessionOptions): Promise<SpawnSessionResult> => {
-      logger.debugLargeJson('[RUNNER RUN] Spawning session', options);
+      const { hamletToken: _hamletToken, token: _token, ...logOptions } = options;
+      logger.debugLargeJson('[RUNNER RUN] Spawning session', logOptions);
 
       const { directory, sessionId, machineId, approvedNewDirectoryCreation = true } = options;
       const agent = options.agent ?? 'claude';
@@ -617,8 +618,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
 
       if (sessionType === 'worktree') {
         // Cursor Agent has native `--worktree` under ~/.cursor/worktrees/. Prefer that
-        // over HAPI's sibling-directory worktree so Cursor sandbox/skills see the same layout.
-        // Exception: if `directory` is already a linked git worktree (e.g. HAPI feature
+        // over HAMLET's sibling-directory worktree so Cursor sandbox/skills see the same layout.
+        // Exception: if `directory` is already a linked git worktree (e.g. HAMLET feature
         // worktree or driver/), nesting `--cursor-worktree` hangs ACP initialize (#1085).
         if (agent === 'cursor') {
           spawnDirectory = directory;
@@ -682,7 +683,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           if (options.agent === 'codex') {
 
             // Create a temporary directory for Codex
-            const codexHomeDir = await fs.mkdtemp(join(os.tmpdir(), 'hapi-codex-'));
+            const codexHomeDir = await fs.mkdtemp(join(os.tmpdir(), 'hamlet-codex-'));
 
             // Preserve user MCP/config settings while keeping token auth isolated.
             copiedCodexConfigPath = await copyCodexConfigFile(resolveCodexHome(), codexHomeDir);
@@ -704,11 +705,11 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
         if (worktreeInfo) {
           extraEnv = {
             ...extraEnv,
-            HAPI_WORKTREE_BASE_PATH: worktreeInfo.basePath,
-            HAPI_WORKTREE_BRANCH: worktreeInfo.branch,
-            HAPI_WORKTREE_NAME: worktreeInfo.name,
-            HAPI_WORKTREE_PATH: worktreeInfo.worktreePath,
-            HAPI_WORKTREE_CREATED_AT: String(worktreeInfo.createdAt)
+            HAMLET_WORKTREE_BASE_PATH: worktreeInfo.basePath,
+            HAMLET_WORKTREE_BRANCH: worktreeInfo.branch,
+            HAMLET_WORKTREE_NAME: worktreeInfo.name,
+            HAMLET_WORKTREE_PATH: worktreeInfo.worktreePath,
+            HAMLET_WORKTREE_CREATED_AT: String(worktreeInfo.createdAt)
           };
         }
 
@@ -739,7 +740,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           stdio: ['ignore', 'pipe', 'pipe'],  // Capture stdout/stderr for debugging
           env: {
             ...process.env,
-            ...extraEnv
+            ...extraEnv,
+            ...(options.hamletToken ? { HAMLET_TOKEN: options.hamletToken, HAMLET_AGENT_ID: options.existingSessionId, HAMLET_MAIN: options.hamletMain ? "1" : "0" } : {})
           }
         });
         happyProcess.once('exit', () => {
@@ -763,7 +765,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           if (spawnErrorBeforePidCheck) {
             details.push(formatSpawnError(spawnErrorBeforePidCheck));
           }
-          const errorMessage = `Failed to spawn HAPI process - no PID returned (${details.join('; ')})`;
+          const errorMessage = `Failed to spawn HAMLET process - no PID returned (${details.join('; ')})`;
           logger.debug('[RUNNER RUN] Failed to spawn process - no PID returned', spawnErrorBeforePidCheck ?? null);
           reportSpawnOutcomeToHub?.({
             type: 'error',
@@ -781,7 +783,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
         happyProcess.removeListener('error', captureSpawnErrorBeforePidCheck);
 
         // The OS process now exists, so this is the point where a new generation
-        // invalidates exit evidence left by an older child with the same HAPI ID.
+        // invalidates exit evidence left by an older child with the same HAMLET ID.
         for (const id of [options.sessionId, options.existingSessionId]) {
           if (id) invalidateVerifiedExit(id);
         }
@@ -880,7 +882,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
 
         const spawnResult = await new Promise<SpawnSessionResult>((resolve) => {
           // Set timeout for webhook. Default is 15s but can be raised via
-          // HAPI_RUNNER_WEBHOOK_TIMEOUT_MS for users on slow models
+          // HAMLET_RUNNER_WEBHOOK_TIMEOUT_MS for users on slow models
           // (e.g. opus[1m] --resume).
           const timeout = setTimeout(() => {
             pidToAwaiter.delete(pid);
@@ -994,7 +996,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       if (sharedRuntime) {
         try {
           const { runtimeControl } = await import('@/codex/shared/frontend');
-          await runtimeControl(sharedRuntime, 'hapi/stopSession', sessionId);
+          await runtimeControl(sharedRuntime, 'hamlet/stopSession', sessionId);
           const tracked = pidToTrackedSession.get(sharedRuntime.pid);
           if (tracked?.sharedSessions) delete tracked.sharedSessions[sessionId];
           return 'stopped';
@@ -1035,7 +1037,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           }
 
           // A stop request starts termination but does not prove that a detached
-          // child is gone. Keep its HAPI-row dedupe key until exit/stale detection.
+          // child is gone. Keep its HAMLET-row dedupe key until exit/stale detection.
           const existingSessionId = existingSessionIdByChildPid.get(pid);
           if (existingSessionId) {
             spawnSession.markChildStopping(existingSessionId);
@@ -1061,8 +1063,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       }
 
       // Webhook timeout can remove the normal TrackedSession before the process
-      // actually exits. Retain the requested HAPI ID -> PID relation so Hub can
-      // still terminate that exact generation by HAPI ID.
+      // actually exits. Retain the requested HAMLET ID -> PID relation so Hub can
+      // still terminate that exact generation by HAMLET ID.
       const fallbackPids = new Set([
         ...pidToRequestedSessionId.keys(),
         ...pidToConfirmedSessionId.keys(),
@@ -1143,7 +1145,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       getChildren: getCurrentChildren,
       stopSession,
       spawnSession,
-      requestShutdown: () => requestShutdown('hapi-cli'),
+      requestShutdown: () => requestShutdown('hamlet-cli'),
       onHappySessionWebhook
     });
 
@@ -1161,8 +1163,8 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     //
     // Codex review #814 [Major]: previously `process.argv.slice(2)` was used,
     // but in compiled binary mode (`bun build --compile`) the raw argv shape is
-    // `[hapi, runner, start-sync, ...]` so slice(2) produced `['start-sync', ...]`.
-    // The replacement then spawned `hapi start-sync ...`, which `resolveCommand`
+    // `[hamlet, runner, start-sync, ...]` so slice(2) produced `['start-sync', ...]`.
+    // The replacement then spawned `hamlet start-sync ...`, which `resolveCommand`
     // now rejects as an unknown top-level command (previously it fell back to
     // Claude). `getCliArgs()` strips runtime + entrypoint
     // correctly in all execution modes.
@@ -1176,10 +1178,10 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       ? rawStartedWithArgv
       : ['runner', 'start-sync'];
     // Snapshot at start: did this runner opt out of version handoff via env?
-    // Persisted to runner.state.json so a later `hapi runner start` from a
+    // Persisted to runner.state.json so a later `hamlet runner start` from a
     // shell where the env var is NOT set can still honour the opt-out
     // (Codex review #814 [Major] - controlClient.ts:192 fix).
-    const startedWithVersionHandoffDisabled = process.env.HAPI_DISABLE_VERSION_HANDOFF === '1';
+    const startedWithVersionHandoffDisabled = process.env.HAMLET_DISABLE_VERSION_HANDOFF === '1';
 
     // Write initial runner state (no lock needed for state file)
     const fileState: RunnerLocallyPersistedState = {
@@ -1246,7 +1248,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     apiMachine.setRPCHandlers({
       spawnSession,
       stopSession,
-      requestShutdown: () => requestShutdown('hapi-app')
+      requestShutdown: () => requestShutdown('hamlet-app')
     });
 
     // Connect to server
@@ -1256,7 +1258,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // Visible startup banner. Use console.log so it always appears on stdout,
     // regardless of the verbose/quiet logger setting.
     console.log('');
-    console.log('Hapi runner started.');
+    console.log('Hamlet runner started.');
     console.log(`  Workspace roots: ${workspaceRoots?.join(', ') ?? '(not set — browsing and spawning are unrestricted)'}`);
     console.log(`  Hub URL:        ${configuration.apiUrl}`);
     console.log(`  Machine ID:     ${machine.id}`);
@@ -1307,7 +1309,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     // 2. Check if runner needs update
     // 3. If outdated, restart with latest version
     // 4. Write heartbeat
-    const heartbeatIntervalMs = parseInt(process.env.HAPI_RUNNER_HEARTBEAT_INTERVAL || '60000');
+    const heartbeatIntervalMs = parseInt(process.env.HAMLET_RUNNER_HEARTBEAT_INTERVAL || '60000');
     let heartbeatRunning = false
     // Timestamp (ms) gate for handoff retries after a failed spawn or timed-out
     // handoff. Per Codex review #814 [Major], we previously mutated
@@ -1366,12 +1368,12 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
       // Check if runner needs update.
       // Skip entirely when the operator owns process supervision (systemd, tmux,
       // custom rebuild pipelines, etc.) and source mtimes change for reasons
-      // unrelated to an actual npm upgrade. HAPI_DISABLE_VERSION_HANDOFF=1
+      // unrelated to an actual npm upgrade. HAMLET_DISABLE_VERSION_HANDOFF=1
       // keeps the rest of the heartbeat (session pruning, state file
       // persistence) intact.
-      if (process.env.HAPI_DISABLE_VERSION_HANDOFF === '1') {
+      if (process.env.HAMLET_DISABLE_VERSION_HANDOFF === '1') {
         if (process.env.DEBUG) {
-          logger.debug('[RUNNER RUN] HAPI_DISABLE_VERSION_HANDOFF=1 set, skipping mtime/version drift self-restart');
+          logger.debug('[RUNNER RUN] HAMLET_DISABLE_VERSION_HANDOFF=1 set, skipping mtime/version drift self-restart');
         }
       } else {
         const installedCliMtimeMs = getInstalledCliMtimeMs();
@@ -1416,7 +1418,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
             heartbeatRunning = false;
           };
 
-          // Spawn the replacement with HAPI_RUNNER_HANDOFF_FROM_PID set so
+          // Spawn the replacement with HAMLET_RUNNER_HANDOFF_FROM_PID set so
           // the child knows it is an authorized handoff and must NOT call
           // stopRunner() against us before writing its own state.
           // Codex review #814 [Major] on run.ts:892.
@@ -1426,7 +1428,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
               stdio: 'ignore',
               env: {
                 ...process.env,
-                HAPI_RUNNER_HANDOFF_FROM_PID: String(process.pid)
+                HAMLET_RUNNER_HANDOFF_FROM_PID: String(process.pid)
               }
             });
           } catch (error) {
@@ -1437,7 +1439,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
 
           // Release the lock so the child can acquire it. The child is
           // configured (above, in its startRunner() entry) with a longer
-          // lock-retry window when HAPI_RUNNER_HANDOFF_FROM_PID is set, so
+          // lock-retry window when HAMLET_RUNNER_HANDOFF_FROM_PID is set, so
           // it will wait through this release. We deliberately release
           // BEFORE waitForRunnerHandoff to break the original deadlock:
           // child cannot write state (and thus cannot signal handoff
@@ -1508,7 +1510,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
     }, heartbeatIntervalMs); // Every 60 seconds in production
 
     // Setup signal handlers
-    const cleanupAndShutdown = async (source: 'hapi-app' | 'hapi-cli' | 'os-signal' | 'exception', errorMessage?: string) => {
+    const cleanupAndShutdown = async (source: 'hamlet-app' | 'hamlet-cli' | 'os-signal' | 'exception', errorMessage?: string) => {
       logger.debug(`[RUNNER RUN] Starting proper cleanup (source: ${source}, errorMessage: ${errorMessage})...`);
 
       // Clear health check interval
@@ -1596,10 +1598,10 @@ export function buildCliArgs(
   }
   const startingMode = options.startingMode || 'remote';
   // Codex shares one engine; Runner owns the wrapper, not a remote mode.
-  if (agent !== 'codex') args.push('--hapi-starting-mode', startingMode);
+  if (agent !== 'codex') args.push('--hamlet-starting-mode', startingMode);
   args.push('--started-by', 'runner');
   // Codex, Cursor ACP, OpenCode, Pi native resume, and Claude message-level
-  // forks reuse the original HAPI row via --existing-session-id.
+  // forks reuse the original HAMLET row via --existing-session-id.
   if (agent === 'codex' || agent === 'cursor' || agent === 'pi'
       || agent === 'opencode'
       || agent === 'agy'
@@ -1610,7 +1612,7 @@ export function buildCliArgs(
       args.push('--existing-session-id', existingSessionId);
     }
   }
-  // Grok fork children also bind the pending HAPI session id.
+  // Grok fork children also bind the pending HAMLET session id.
   if (agent === 'grok') {
     const existingSessionId = options.existingSessionId ?? options.sessionId;
     if (existingSessionId && !args.includes('--existing-session-id')) {

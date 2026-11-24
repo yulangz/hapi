@@ -4,7 +4,7 @@ import type { RealtimeVoiceSessionProps } from './RealtimeVoiceSession'
 import { fetchVoiceBackend } from '@/api/voice'
 import { resolveSelectedVoiceBackend } from '@/lib/voicePickerPreferences'
 import type { ApiClient } from '@/api/client'
-import type { VoiceBackendType } from '@hapi/protocol/voice'
+import type { VoiceBackendType } from '@hamlet/protocol/voice'
 
 // Lazy-load alternative backends to avoid bundling when using ElevenLabs
 const GeminiLiveVoiceSession = lazy(() =>

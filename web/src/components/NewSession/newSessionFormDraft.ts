@@ -3,16 +3,16 @@ import {
     GROK_PERMISSION_MODES,
     getLaunchPermissionModesForFlavor,
     normalizeCopilotAgentMode,
-    resolveHapiYoloPermissionMode,
+    resolveHamletYoloPermissionMode,
     type CodexCollaborationMode,
     type CopilotAgentMode,
     type GrokPermissionMode,
     type PermissionMode
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { AgentType, LaunchEffort, CodexReasoningEffort, NewSessionServiceTier, SessionType } from './types'
 import { LEGACY_YOLO_BRIDGE_AGENTS } from '@/lib/codexFamilyPermissionAgents'
 
-const DRAFT_STORAGE_KEY = 'hapi:new-session-form-draft'
+const DRAFT_STORAGE_KEY = 'hamlet:new-session-form-draft'
 
 export type NewSessionFormDraft = {
     agent: AgentType
@@ -81,7 +81,7 @@ export function loadNewSessionFormDraft(): NewSessionFormDraft | null {
                     return parsedMode
                 }
                 const yoloBridgeMode = LEGACY_YOLO_BRIDGE_AGENTS.includes(restoredAgent)
-                    ? resolveHapiYoloPermissionMode(restoredAgent)
+                    ? resolveHamletYoloPermissionMode(restoredAgent)
                     : null
                 if (agentPreserved && parsedMode === undefined && parsed.yoloMode && yoloBridgeMode && modes.includes(yoloBridgeMode)) {
                     return yoloBridgeMode

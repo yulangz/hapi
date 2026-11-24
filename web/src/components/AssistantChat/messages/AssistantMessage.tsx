@@ -75,7 +75,7 @@ export function HappyAssistantMessage() {
     return (
         <MessagePrimitive.Root
             id={elementId}
-            data-hapi-message-role="assistant"
+            data-hamlet-message-role="assistant"
             className={`happy-message ${rootClass} scroll-mt-4`}
         >
             {isCliOutput

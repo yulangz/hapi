@@ -9,7 +9,7 @@ import path from 'node:path'
 
 const SCREENSHOT_PATH = path.resolve(
     process.env.HOME ?? '',
-    'coding/hapi/localdocs/playwright-runs/954-file-md-preview.png'
+    'coding/hamlet/localdocs/playwright-runs/954-file-md-preview.png'
 )
 
 test.describe('file markdown preview e2e', () => {

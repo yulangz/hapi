@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ELEVENLABS_WEBRTC_CONTEXT_MAX_BYTES, utf8ByteLength } from '@hapi/protocol/voice-personality'
+import { ELEVENLABS_WEBRTC_CONTEXT_MAX_BYTES, utf8ByteLength } from '@hamlet/protocol/voice-personality'
 import { buildSessionVoiceContextPlan } from './voiceContextPlan'
 import type { DecryptedMessage, Session } from '@/types/api'
 

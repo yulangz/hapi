@@ -924,7 +924,7 @@
   ],
   "androidFullPresent": [
     {
-      "phase": "HapiScroll:plain:1",
+      "phase": "HamletScroll:plain:1",
       "gestures": "8",
       "presented_frames": "251",
       "present_cadence_fps": "59.390000",
@@ -935,7 +935,7 @@
       "app_deadline_missed": "3"
     },
     {
-      "phase": "HapiScroll:plain:2",
+      "phase": "HamletScroll:plain:2",
       "gestures": "8",
       "presented_frames": "249",
       "present_cadence_fps": "59.950000",
@@ -946,7 +946,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:plain:3",
+      "phase": "HamletScroll:plain:3",
       "gestures": "8",
       "presented_frames": "250",
       "present_cadence_fps": "60.120000",
@@ -957,7 +957,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:1",
+      "phase": "HamletScroll:rich-updates:1",
       "gestures": "8",
       "presented_frames": "247",
       "present_cadence_fps": "59.780000",
@@ -968,7 +968,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:2",
+      "phase": "HamletScroll:rich-updates:2",
       "gestures": "8",
       "presented_frames": "248",
       "present_cadence_fps": "59.600000",
@@ -979,7 +979,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:3",
+      "phase": "HamletScroll:rich-updates:3",
       "gestures": "8",
       "presented_frames": "250",
       "present_cadence_fps": "47.580000",
@@ -990,7 +990,7 @@
       "app_deadline_missed": "4"
     },
     {
-      "phase": "HapiScroll:rich:1",
+      "phase": "HamletScroll:rich:1",
       "gestures": "8",
       "presented_frames": "243",
       "present_cadence_fps": "51.660000",
@@ -1001,7 +1001,7 @@
       "app_deadline_missed": "1"
     },
     {
-      "phase": "HapiScroll:rich:2",
+      "phase": "HamletScroll:rich:2",
       "gestures": "8",
       "presented_frames": "243",
       "present_cadence_fps": "49.550000",
@@ -1012,7 +1012,7 @@
       "app_deadline_missed": "37"
     },
     {
-      "phase": "HapiScroll:rich:3",
+      "phase": "HamletScroll:rich:3",
       "gestures": "8",
       "presented_frames": "243",
       "present_cadence_fps": "60.130000",
@@ -1279,7 +1279,7 @@
   ],
   "androidControlledPresent": [
     {
-      "phase": "HapiScroll:plain:1",
+      "phase": "HamletScroll:plain:1",
       "gestures": "8",
       "presented_frames": "245",
       "present_cadence_fps": "60.130000",
@@ -1290,7 +1290,7 @@
       "app_deadline_missed": "1"
     },
     {
-      "phase": "HapiScroll:plain:2",
+      "phase": "HamletScroll:plain:2",
       "gestures": "8",
       "presented_frames": "249",
       "present_cadence_fps": "60.040000",
@@ -1301,7 +1301,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:plain:3",
+      "phase": "HamletScroll:plain:3",
       "gestures": "8",
       "presented_frames": "247",
       "present_cadence_fps": "60.130000",
@@ -1312,7 +1312,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:1",
+      "phase": "HamletScroll:rich-updates:1",
       "gestures": "8",
       "presented_frames": "247",
       "present_cadence_fps": "59.320000",
@@ -1323,7 +1323,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:2",
+      "phase": "HamletScroll:rich-updates:2",
       "gestures": "8",
       "presented_frames": "243",
       "present_cadence_fps": "59.750000",
@@ -1334,7 +1334,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich-updates:3",
+      "phase": "HamletScroll:rich-updates:3",
       "gestures": "8",
       "presented_frames": "244",
       "present_cadence_fps": "59.640000",
@@ -1345,7 +1345,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich:1",
+      "phase": "HamletScroll:rich:1",
       "gestures": "8",
       "presented_frames": "244",
       "present_cadence_fps": "60.050000",
@@ -1356,7 +1356,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich:2",
+      "phase": "HamletScroll:rich:2",
       "gestures": "8",
       "presented_frames": "247",
       "present_cadence_fps": "60.020000",
@@ -1367,7 +1367,7 @@
       "app_deadline_missed": "0"
     },
     {
-      "phase": "HapiScroll:rich:3",
+      "phase": "HamletScroll:rich:3",
       "gestures": "8",
       "presented_frames": "243",
       "present_cadence_fps": "60.000000",
@@ -1379,7 +1379,7 @@
     }
   ],
   "androidControlledSchedulerSlices": 495548,
-  "rawArtifactPrefix": "/tmp/hapi-scroll-frame-",
+  "rawArtifactPrefix": "/tmp/hamlet-scroll-frame-",
   "iosDifferentialRefresh": {
     "implementation": "Retain UIHostingConfiguration roots; observable row builder and full representable environment; only changed data/width requests diffable reconfiguration.",
     "harnessChanges": "Added pre-timing rendered screenshot and initialVisibleHeights assertion. Compare only with the same-harness baseline control, not directly with the earlier baseline.",
@@ -1910,9 +1910,9 @@
       }
     ],
     "artifactPaths": [
-      "/tmp/hapi-scroll-live-environment.xcresult",
-      "/tmp/hapi-scroll-baseline-control.xcresult",
-      "/tmp/hapi-scroll-live-environment-repeat.xcresult"
+      "/tmp/hamlet-scroll-live-environment.xcresult",
+      "/tmp/hamlet-scroll-baseline-control.xcresult",
+      "/tmp/hamlet-scroll-live-environment-repeat.xcresult"
     ],
     "measurementCaveat": "Display-link callback cadence, not compositor-presented FPS. Static rich-content benefit not established; Simulator variation remains.",
     "optimizedRepeat": [

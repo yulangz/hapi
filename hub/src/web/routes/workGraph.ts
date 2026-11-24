@@ -5,7 +5,7 @@ import {
     WorkGraphEventCreateSchema,
     WorkGraphEventLinkCreateSchema,
     principalMatchesAuthenticatedOwner
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { Store } from '../../store'
 import {
     WorkGraphNotFoundError,

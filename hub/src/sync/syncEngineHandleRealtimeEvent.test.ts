@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { WORK_GRAPH_MAX_SUMMARY } from '@hapi/protocol'
-import type { SessionPatch, SyncEvent } from '@hapi/protocol/types'
+import { WORK_GRAPH_MAX_SUMMARY } from '@hamlet/protocol'
+import type { SessionPatch, SyncEvent } from '@hamlet/protocol/types'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { Store } from '../store'
 import { SessionCache } from './sessionCache'
@@ -186,7 +186,7 @@ describe('SyncEngine.handleRealtimeEvent notify → work-graph ingest', () => {
                             message: {
                                 content: [{
                                     type: 'text',
-                                    text: 'Done.\n\nAGENT_NOTIFY_SUMMARY {"status":"done","summary":"Wired through engine","project":"hapi"}'
+                                    text: 'Done.\n\nAGENT_NOTIFY_SUMMARY {"status":"done","summary":"Wired through engine","project":"hamlet"}'
                                 }]
                             }
                         }

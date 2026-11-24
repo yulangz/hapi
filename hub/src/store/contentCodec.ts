@@ -17,7 +17,7 @@ function truncateString(value: string): string {
     // head + tail + marker stays well under TRUNCATE_STRING_LIMIT so the
     // function is idempotent — codexDesktop compares stored rows against
     // freshly-normalized transcripts and must get identical strings on both sides.
-    return `${value.slice(0, TRUNCATE_HEAD)}\n…[hapi: truncated ${removed} chars]…\n${value.slice(value.length - TRUNCATE_TAIL)}`
+    return `${value.slice(0, TRUNCATE_HEAD)}\n…[hamlet: truncated ${removed} chars]…\n${value.slice(value.length - TRUNCATE_TAIL)}`
 }
 
 /** Returns the same reference when nothing was truncated so callers can use

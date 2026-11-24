@@ -1,5 +1,5 @@
 import type { Session } from '../sync/syncEngine'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { VisibilityTracker } from '../visibility/visibilityTracker'
@@ -30,7 +30,7 @@ export class ServerChanChannel implements NotificationChannel {
         const agentName = getAgentName(session)
         const name = getSessionName(session)
         const url = buildSessionUrl(this.publicUrl, session.id)
-        await this.send('HAPI Ready for input', `${agentName} 正在等待输入\n\n会话：${name}\n\n${url}`)
+        await this.send('HAMLET Ready for input', `${agentName} 正在等待输入\n\n会话：${name}\n\n${url}`)
     }
 
     async sendPermissionRequest(session: Session): Promise<void> {
@@ -45,7 +45,7 @@ export class ServerChanChannel implements NotificationChannel {
         const toolName = request?.tool ? ` (${request.tool})` : ''
         const url = buildSessionUrl(this.publicUrl, session.id)
         await this.send(
-            inputNotification ? `HAPI ${inputNotification.title}` : 'HAPI Permission Request',
+            inputNotification ? `HAMLET ${inputNotification.title}` : 'HAMLET Permission Request',
             `${inputNotification?.body ?? `${name}${toolName}`}\n\n${url}`
         )
     }
@@ -63,7 +63,7 @@ export class ServerChanChannel implements NotificationChannel {
             return
         }
         const url = buildSessionUrl(this.publicUrl, session.id)
-        await this.send('HAPI Task failed', `${agentName} · ${name}\n\n${notification.summary}\n\n${url}`)
+        await this.send('HAMLET Task failed', `${agentName} · ${name}\n\n${notification.summary}\n\n${url}`)
     }
 
     async sendSessionCompletion(session: Session, _reason: SessionEndReason): Promise<void> {
@@ -74,7 +74,7 @@ export class ServerChanChannel implements NotificationChannel {
         const agentName = getAgentName(session)
         const name = getSessionName(session)
         const url = buildSessionUrl(this.publicUrl, session.id)
-        await this.send('HAPI Session completed', `${agentName} · ${name}\n\n会话已结束。\n\n${url}`)
+        await this.send('HAMLET Session completed', `${agentName} · ${name}\n\n会话已结束。\n\n${url}`)
     }
 
     private async send(title: string, desp: string): Promise<void> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { WORK_GRAPH_MAX_SUMMARY } from '@hapi/protocol'
+import { WORK_GRAPH_MAX_SUMMARY } from '@hamlet/protocol'
 import { Store, WorkGraphPrincipalError, WorkGraphValidationError } from './index'
 
 const humanPrincipal = { kind: 'human' as const, id: '1' }

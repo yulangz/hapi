@@ -16,11 +16,11 @@ type ParsedInspectPeerArgs = {
 
 function showHelp(): void {
     console.log(`
-${chalk.bold('hapi inspect-peer')} - Read another HAPI session's metadata + recent messages
+${chalk.bold('hamlet inspect-peer')} - Read another HAMLET session's metadata + recent messages
 
 ${chalk.bold('Usage:')}
-  hapi inspect-peer <session-id-or-prefix>
-  hapi inspect-peer <session-id-or-prefix> --limit 50
+  hamlet inspect-peer <session-id-or-prefix>
+  hamlet inspect-peer <session-id-or-prefix> --limit 50
 
 ${chalk.bold('Notes:')}
   Read-only twin of ping-peer. Prefer this (or MCP inspect_peer) over JWT+curl.
@@ -31,7 +31,7 @@ ${chalk.bold('Notes:')}
   /sessions/<id> is a hub path - not a local filesystem path.
 
 ${chalk.bold('Env:')}
-  HAPI_API_URL / CLI_API_TOKEN (or ~/.hapi/settings.json via \`hapi auth login\`)
+  HAMLET_API_URL / CLI_API_TOKEN (or ~/.hamlet/settings.json via \`hamlet auth login\`)
 `)
 }
 
@@ -84,7 +84,7 @@ export async function handleInspectPeerCommand(args: string[]): Promise<void> {
 
     if (!parsed.sessionIdPrefix) {
         showHelp()
-        throw new PingPeerError('bad_args', 'missing session id; usage: hapi inspect-peer <session-id>')
+        throw new PingPeerError('bad_args', 'missing session id; usage: hamlet inspect-peer <session-id>')
     }
 
     const result = await inspectPeer({
@@ -102,11 +102,11 @@ export const inspectPeerCommand: CommandDefinition = {
             await handleInspectPeerCommand(commandArgs)
         } catch (error) {
             if (error instanceof PingPeerError) {
-                console.error(chalk.red('hapi inspect-peer:'), error.message)
+                console.error(chalk.red('hamlet inspect-peer:'), error.message)
                 process.exit(exitCodeForPingPeerError(error))
             }
             console.error(
-                chalk.red('hapi inspect-peer:'),
+                chalk.red('hamlet inspect-peer:'),
                 error instanceof Error ? error.message : 'Unknown error'
             )
             if (process.env.DEBUG) {

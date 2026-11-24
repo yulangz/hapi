@@ -11,7 +11,7 @@ import {
 let workRoot: string;
 
 beforeEach(async () => {
-    workRoot = await mkdtemp(join(tmpdir(), 'hapi-validate-workspace-'));
+    workRoot = await mkdtemp(join(tmpdir(), 'hamlet-validate-workspace-'));
 });
 
 afterEach(async () => {
@@ -150,7 +150,7 @@ describe('validateWorkspaceDirectory', () => {
 });
 
 describe('describeMkdirError', () => {
-    const directory = '/tmp/hapi-test-target';
+    const directory = '/tmp/hamlet-test-target';
 
     it('produces a Permission denied message for EACCES', () => {
         const msg = describeMkdirError(directory, {

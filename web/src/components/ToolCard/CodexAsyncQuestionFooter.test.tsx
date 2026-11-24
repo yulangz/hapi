@@ -17,7 +17,7 @@ vi.mock('@/lib/message-window-store', () => {
 
 const tool = {
     id: 'codex-async:thread:call_ask', name: 'request_user_input', state: 'completed', createdAt: 0,
-    input: { hapiAsyncQuestion: { threadId: 'thread', callId: 'call_ask' },
+    input: { hamletAsyncQuestion: { threadId: 'thread', callId: 'call_ask' },
         questions: [{ id: '0', question: 'Which setup?', isOther: true, options: [{ label: 'Run' }, { label: 'Prepare' }] }] }
 } as unknown as ChatToolCall
 const emptyState = { queuedLocalIds: [], indeterminateLocalIds: [], invokedLocalMessages: [] }

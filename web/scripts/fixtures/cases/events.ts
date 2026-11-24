@@ -127,7 +127,7 @@ export const eventCases: FixtureCase[] = [
     },
     {
         name: 'event-title-changed-dedupe',
-        description: 'title-changed is synthesized from a mcp__hapi__change_title tool_use (no tool card, one event even though tool_use and tool_result both mention it). dedupeAgentEvents then drops a message event echoing the exact title and folds consecutive identical message events into one.',
+        description: 'title-changed is synthesized from a mcp__hamlet__change_title tool_use (no tool card, one event even though tool_use and tool_result both mention it). dedupeAgentEvents then drops a message event echoing the exact title and folds consecutive identical message events into one.',
         messages: [
             wireMessage({
                 id: 'msg-user-331',
@@ -157,7 +157,7 @@ export const eventCases: FixtureCase[] = [
                                     {
                                         type: 'tool_use',
                                         id: 'toolu_01TitleChange01',
-                                        name: 'mcp__hapi__change_title',
+                                        name: 'mcp__hamlet__change_title',
                                         input: { title: 'Fix pagination cursor math' }
                                     }
                                 ]

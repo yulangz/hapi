@@ -1,6 +1,6 @@
 import React from 'react'
 import { render } from 'ink'
-import { CREATABLE_AGENT_FLAVORS, type AgentFlavor } from '@hapi/protocol'
+import { CREATABLE_AGENT_FLAVORS, type AgentFlavor } from '@hamlet/protocol'
 import { getAgentAvailability } from '@/agent/agentAvailability'
 import { AgentPicker, formatAgentChoice } from './ink/AgentPicker'
 import { restoreTerminalState } from './terminalState'
@@ -18,7 +18,7 @@ export async function selectAgent(): Promise<AgentSelection> {
         for (const entry of agents) {
             console.error(`  ${formatAgentChoice(entry)}`)
         }
-        console.error('Install an agent or fix its configuration, then run hapi again or use hapi <agent> [options].')
+        console.error('Install an agent or fix its configuration, then run hamlet again or use hamlet <agent> [options].')
         return { type: 'exit', exitCode: 1 }
     }
 

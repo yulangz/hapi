@@ -1,9 +1,9 @@
 import {
     CREATABLE_AGENT_FLAVORS,
     getLaunchPermissionModesForFlavor,
-    resolveHapiYoloPermissionMode,
+    resolveHamletYoloPermissionMode,
     type PermissionMode
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import {
     CLAUDE_EFFORT_OPTIONS,
     CODEX_REASONING_EFFORT_OPTIONS,
@@ -14,9 +14,9 @@ import {
 } from './types'
 import { LEGACY_YOLO_BRIDGE_AGENTS, usesSharedPermissionModeState } from '@/lib/codexFamilyPermissionAgents'
 
-const AGENT_STORAGE_KEY = 'hapi:newSession:agent'
-const YOLO_STORAGE_KEY = 'hapi:newSession:yolo'
-const LAUNCH_SETTINGS_STORAGE_PREFIX = 'hapi:newSession:launchSettings:v1'
+const AGENT_STORAGE_KEY = 'hamlet:newSession:agent'
+const YOLO_STORAGE_KEY = 'hamlet:newSession:yolo'
+const LAUNCH_SETTINGS_STORAGE_PREFIX = 'hamlet:newSession:launchSettings:v1'
 
 export type PreferredLaunchSettings = {
     model: string
@@ -158,7 +158,7 @@ export function resolvePreferredLaunchSettings(
     const preferredPermissionMode = preferred?.permissionMode
     // A removed explicit mode falls back to Default, never to a stale YOLO toggle.
     const legacyYoloBridgeMode = preferredPermissionMode === undefined && legacyYolo && LEGACY_YOLO_BRIDGE_AGENTS.includes(agent)
-        ? resolveHapiYoloPermissionMode(agent)
+        ? resolveHamletYoloPermissionMode(agent)
         : null
     const permissionMode = usesSharedPermissionMode
         ? preferredPermissionMode && availablePermissionModes.includes(preferredPermissionMode)

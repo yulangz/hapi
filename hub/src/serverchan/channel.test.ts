@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { Session } from '../sync/syncEngine'
 import { VisibilityTracker } from '../visibility/visibilityTracker'
 import { ServerChanChannel } from './channel'
@@ -37,7 +37,7 @@ describe('ServerChanChannel', () => {
         globalThis.fetch = fetchMock as unknown as typeof fetch
 
         try {
-            const channel = new ServerChanChannel('SCT_TEST', 'https://hapi.example.com')
+            const channel = new ServerChanChannel('SCT_TEST', 'https://hamlet.example.com')
             await channel.sendTaskNotification(createSession(), {
                 status: 'completed',
                 summary: 'Subtask finished'
@@ -55,7 +55,7 @@ describe('ServerChanChannel', () => {
         globalThis.fetch = fetchMock as unknown as typeof fetch
 
         try {
-            const channel = new ServerChanChannel('SCT_TEST', 'https://hapi.example.com')
+            const channel = new ServerChanChannel('SCT_TEST', 'https://hamlet.example.com')
             await channel.sendTaskNotification(createSession(), {
                 status: 'failed',
                 summary: 'Subtask failed'
@@ -66,7 +66,7 @@ describe('ServerChanChannel', () => {
             const url = call?.[0]
             const init = call?.[1] as RequestInit | undefined
             expect(String(url)).toContain('https://sctapi.ftqq.com/SCT_TEST.send')
-            expect((init?.body as URLSearchParams).get('title')).toBe('HAPI Task failed')
+            expect((init?.body as URLSearchParams).get('title')).toBe('HAMLET Task failed')
         } finally {
             globalThis.fetch = originalFetch
         }
@@ -78,7 +78,7 @@ describe('ServerChanChannel', () => {
         globalThis.fetch = fetchMock as unknown as typeof fetch
 
         try {
-            const channel = new ServerChanChannel('SCT_TEST', 'https://hapi.example.com')
+            const channel = new ServerChanChannel('SCT_TEST', 'https://hamlet.example.com')
             await channel.sendSessionCompletion(createSession({
                 id: 'session-complete',
                 metadata: {
@@ -93,7 +93,7 @@ describe('ServerChanChannel', () => {
             const url = call?.[0]
             const init = call?.[1] as RequestInit | undefined
             expect(String(url)).toContain('https://sctapi.ftqq.com/SCT_TEST.send')
-            expect((init?.body as URLSearchParams).get('title')).toBe('HAPI Session completed')
+            expect((init?.body as URLSearchParams).get('title')).toBe('HAMLET Session completed')
         } finally {
             globalThis.fetch = originalFetch
         }
@@ -109,7 +109,7 @@ describe('ServerChanChannel', () => {
             visibilityTracker.registerConnection('visible-1', 'default', 'visible')
             const channel = new ServerChanChannel(
                 'SCT_TEST',
-                'https://hapi.example.com',
+                'https://hamlet.example.com',
                 visibilityTracker,
                 true
             )
@@ -138,7 +138,7 @@ describe('ServerChanChannel', () => {
             visibilityTracker.registerConnection('visible-1', 'default', 'visible')
             const channel = new ServerChanChannel(
                 'SCT_TEST',
-                'https://hapi.example.com',
+                'https://hamlet.example.com',
                 visibilityTracker,
                 false
             )
@@ -161,7 +161,7 @@ describe('ServerChanChannel', () => {
             visibilityTracker.registerConnection('hidden-1', 'default', 'hidden')
             const channel = new ServerChanChannel(
                 'SCT_TEST',
-                'https://hapi.example.com',
+                'https://hamlet.example.com',
                 visibilityTracker,
                 true
             )
@@ -184,7 +184,7 @@ describe('ServerChanChannel', () => {
             visibilityTracker.registerConnection('visible-1', 'other-namespace', 'visible')
             const channel = new ServerChanChannel(
                 'SCT_TEST',
-                'https://hapi.example.com',
+                'https://hamlet.example.com',
                 visibilityTracker,
                 true
             )

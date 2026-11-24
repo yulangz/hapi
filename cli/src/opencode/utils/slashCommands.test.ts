@@ -165,7 +165,7 @@ describe('resolveOpencodeSlashCommand', () => {
             expect(help.message).toContain('/plan');
             expect(help.message).toContain('/permissions');
             expect(help.message).toContain('/compact` — compact (summarize) the OpenCode session context (remote sessions only)');
-            expect(help.message).toContain('/clear` — archive this HAPI session and open a fresh OpenCode session');
+            expect(help.message).toContain('/clear` — archive this HAMLET session and open a fresh OpenCode session');
         }
     });
 

@@ -16,7 +16,7 @@ export const BUILTIN_SLASH_COMMANDS = {
         { name: 'clear', description: 'Clear current Codex thread context', source: 'builtin' },
         { name: 'compact', description: 'Compact current Codex thread context', source: 'builtin' },
         { name: 'goal', description: 'Set, view, pause, resume, or clear a persistent Codex goal', source: 'builtin' },
-        { name: 'help', description: 'Show supported HAPI Codex slash commands', source: 'builtin' },
+        { name: 'help', description: 'Show supported HAMLET Codex slash commands', source: 'builtin' },
         { name: 'plan', description: 'Enable plan mode; use /plan off to return to default', source: 'builtin' },
         { name: 'default', description: 'Return Codex collaboration mode to default', source: 'builtin' },
         { name: 'execute', description: 'Return Codex collaboration mode to default', source: 'builtin' },
@@ -43,7 +43,7 @@ export const BUILTIN_SLASH_COMMANDS = {
         { name: 'auto', description: 'Let Grok classify safe tool calls for automatic approval', source: 'builtin' },
     ],
     opencode: [
-        { name: 'help', description: 'Show supported HAPI OpenCode slash commands', source: 'builtin' },
+        { name: 'help', description: 'Show supported HAMLET OpenCode slash commands', source: 'builtin' },
         { name: 'status', description: 'Show current OpenCode session config', source: 'builtin' },
         { name: 'plan', description: 'Enable plan mode; use /plan off to return to default', source: 'builtin' },
         { name: 'default', description: 'Return OpenCode permission mode to default', source: 'builtin' },
@@ -75,12 +75,12 @@ export const BUILTIN_SLASH_COMMANDS = {
         { name: 'usage', description: 'Show session usage metrics', source: 'builtin' },
     ],
     kimi: [],
-    // Pi runs `pi --mode rpc` over stdio; only commands HAPI can translate
+    // Pi runs `pi --mode rpc` over stdio; only commands HAMLET can translate
     // to Pi RPC calls are listed. Terminal-only Pi builtins (e.g. /tree,
     // /export, /reload) are intercepted with an explicit "not supported"
     // message instead of being passed to the model as plain text.
     pi: [
-        { name: 'help', description: 'Show supported HAPI Pi slash commands', source: 'builtin' },
+        { name: 'help', description: 'Show supported HAMLET Pi slash commands', source: 'builtin' },
         { name: 'compact', description: 'Compress conversation history to save context (optional custom instructions)', source: 'builtin' },
         { name: 'session', description: 'Show Pi session stats (tokens, cost, context usage)', source: 'builtin' },
         { name: 'model', description: 'Show or switch the Pi model, e.g. /model gpt-5.2', source: 'builtin' },

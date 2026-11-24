@@ -3,11 +3,11 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, mkdtemp, open, rm } from 'fs/promises'
 import { extname, join, resolve, sep } from 'path'
 import { rmSync } from 'node:fs'
-import type { DeleteUploadResponse, UploadFileResponse } from '@hapi/protocol/apiTypes'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import type { DeleteUploadResponse, UploadFileResponse } from '@hamlet/protocol/apiTypes'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { getErrorMessage, rpcError } from '../rpcResponses'
-import { getHapiBlobsDir } from '@/constants/uploadPaths'
+import { getHamletBlobsDir } from '@/constants/uploadPaths'
 import { MAX_UPLOAD_BYTES } from '../attachmentLimits'
 
 interface UploadFileRequest {
@@ -101,7 +101,7 @@ async function getOrCreateUploadDir(sessionId?: string): Promise<string> {
     const safeKey = fitFilenameToBytes(sanitizeFilename(sessionKey), 120)
     const creation = (async () => {
         try {
-            const blobsDir = getHapiBlobsDir()
+            const blobsDir = getHamletBlobsDir()
             await mkdir(blobsDir, { recursive: true })
             const dir = await mkdtemp(join(blobsDir, `${safeKey}-`))
             if (uploadDirCleanupRequested.has(sessionKey)) {
@@ -190,7 +190,7 @@ export function isPathWithinUploadDir(path: string, sessionId?: string): boolean
     }
 
     const safeKey = fitFilenameToBytes(sanitizeFilename(sessionKey), 120)
-    const resolvedPrefix = resolve(getHapiBlobsDir(), `${safeKey}-`)
+    const resolvedPrefix = resolve(getHamletBlobsDir(), `${safeKey}-`)
     return resolvedPath.startsWith(resolvedPrefix)
 }
 

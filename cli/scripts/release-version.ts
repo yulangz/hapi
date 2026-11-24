@@ -30,14 +30,14 @@ export function updateReleaseVersions(repoRoot: string, version: string, dryRun 
             'shared/src/buildInfo.ts',
             /(export const APP_VERSION = ['"])[^'"\r\n]+(['"])/
         ),
-        // Includes Debug/Release for both Hapi and HapiNotificationService.
+        // Includes Debug/Release for both Hamlet and HamletNotificationService.
         updateVersionFile(
-            'ios/Hapi.xcodeproj/project.pbxproj',
+            'ios/Hamlet.xcodeproj/project.pbxproj',
             /^([ \t]*MARKETING_VERSION\s*=\s*)[^;\r\n]+(;)/gm
         ),
         updateVersionFile(
             'android/app/build.gradle.kts',
-            /(versionName\s*=\s*providers\.gradleProperty\("hapiVersionName"\)\.orElse\(")[^"]+("\))/
+            /(versionName\s*=\s*providers\.gradleProperty\("hamletVersionName"\)\.orElse\(")[^"]+("\))/
         ),
     ];
 

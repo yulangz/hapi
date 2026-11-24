@@ -9,7 +9,7 @@ import {
 
 describe('newSessionFormDraft', () => {
     it('drops Safe Yolo from a saved Codex draft without dropping other settings', () => {
-        sessionStorage.setItem('hapi:new-session-form-draft', JSON.stringify({
+        sessionStorage.setItem('hamlet:new-session-form-draft', JSON.stringify({
             agent: 'codex', model: 'custom-model', nativePermissionMode: 'safe-yolo', yoloMode: true
         }))
         expect(loadNewSessionFormDraft()).toMatchObject({ model: 'custom-model', nativePermissionMode: 'default' })
@@ -145,7 +145,7 @@ describe('newSessionFormDraft', () => {
         // copilot moved to the native permission select before the YOLO
         // toggle era; its restore-time bridge target already settled on
         // 'default' and stays there (see LEGACY_YOLO_BRIDGE_AGENTS).
-        sessionStorage.setItem('hapi:new-session-form-draft', JSON.stringify({
+        sessionStorage.setItem('hamlet:new-session-form-draft', JSON.stringify({
             agent: 'copilot',
             model: 'auto',
             cursorSelectedBase: 'auto',
@@ -166,7 +166,7 @@ describe('newSessionFormDraft', () => {
     })
 
     it('does not bridge a legacy yoloMode for opencode', () => {
-        sessionStorage.setItem('hapi:new-session-form-draft', JSON.stringify({
+        sessionStorage.setItem('hamlet:new-session-form-draft', JSON.stringify({
             agent: 'opencode',
             model: 'auto',
             cursorSelectedBase: 'auto',
@@ -187,7 +187,7 @@ describe('newSessionFormDraft', () => {
     })
 
     it('bridges a legacy yoloMode to yolo when restoring codex drafts (pin: codex stays in the allow-list)', () => {
-        sessionStorage.setItem('hapi:new-session-form-draft', JSON.stringify({
+        sessionStorage.setItem('hamlet:new-session-form-draft', JSON.stringify({
             agent: 'codex',
             model: 'auto',
             cursorSelectedBase: 'auto',
@@ -208,7 +208,7 @@ describe('newSessionFormDraft', () => {
     })
 
     it('maps legacy yoloMode to bypassPermissions when restoring claude drafts', () => {
-        sessionStorage.setItem('hapi:new-session-form-draft', JSON.stringify({
+        sessionStorage.setItem('hamlet:new-session-form-draft', JSON.stringify({
             agent: 'claude',
             model: 'auto',
             cursorSelectedBase: 'auto',

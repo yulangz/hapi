@@ -4,7 +4,7 @@ import type {
     WorkGraphEventCreate,
     WorkGraphEventLink,
     WorkGraphEventLinkCreate
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import {
     getWorkGraphEventByNamespace,
     insertWorkGraphEvent,

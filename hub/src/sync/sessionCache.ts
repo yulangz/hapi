@@ -1,5 +1,5 @@
-import { AgentStateSchema, MetadataSchema, SessionPatchSchema, TeamStateSchema } from '@hapi/protocol/schemas'
-import type { CodexCollaborationMode, CopilotAgentMode, PermissionMode, Session, SessionPatch } from '@hapi/protocol/types'
+import { AgentStateSchema, MetadataSchema, SessionPatchSchema, TeamStateSchema } from '@hamlet/protocol/schemas'
+import type { CodexCollaborationMode, CopilotAgentMode, PermissionMode, Session, SessionPatch } from '@hamlet/protocol/types'
 import type { Store } from '../store'
 import { clampAliveTime } from './aliveTime'
 import { EventPublisher } from './eventPublisher'
@@ -1085,11 +1085,11 @@ export class SessionCache {
         void import('../scratchlistAttachments/storage').then(async ({
             deleteScratchlistAttachmentFiles,
             deleteScratchlistSessionAttachmentDir,
-            getHapiHomeDir,
+            getHamletHomeDir,
         }) => {
-            const hapiHome = getHapiHomeDir()
-            await deleteScratchlistAttachmentFiles(hapiHome, scratchlistAttachments)
-            await deleteScratchlistSessionAttachmentDir(hapiHome, session.namespace, sessionId)
+            const hamletHome = getHamletHomeDir()
+            await deleteScratchlistAttachmentFiles(hamletHome, scratchlistAttachments)
+            await deleteScratchlistSessionAttachmentDir(hamletHome, session.namespace, sessionId)
         })
 
         this.publisher.emit({ type: 'session-removed', sessionId, namespace: session.namespace })
@@ -1153,15 +1153,15 @@ export class SessionCache {
             // Attachment hub paths embed the old session id. Re-key files +
             // metadata so quota/resolve stay correct on the consolidated id.
             const {
-                getHapiHomeDir,
+                getHamletHomeDir,
                 moveScratchlistAttachmentFilesForSession,
                 deleteScratchlistSessionAttachmentDir,
             } = await import('../scratchlistAttachments/storage')
-            const hapiHome = getHapiHomeDir()
+            const hamletHome = getHamletHomeDir()
             for (const entry of this.store.scratchlist.list(newSessionId)) {
                 if (entry.attachments.length === 0) continue
                 const attachments = await moveScratchlistAttachmentFilesForSession(
-                    hapiHome,
+                    hamletHome,
                     namespace,
                     oldSessionId,
                     newSessionId,
@@ -1172,19 +1172,19 @@ export class SessionCache {
                 }
             }
             // Collided SQL losers + orphan uploads still under the old dir.
-            await deleteScratchlistSessionAttachmentDir(hapiHome, namespace, oldSessionId)
+            await deleteScratchlistSessionAttachmentDir(hamletHome, namespace, oldSessionId)
             // Rows landed on the consolidated session - invalidate so
             // any client on the new id refetches.
             this.emitScratchlistChanged(newSessionId)
         } else if (movedScratchlist.collided > 0) {
             // Every old entry lost the PK race — drop leftover hub blobs.
-            const { getHapiHomeDir, deleteScratchlistSessionAttachmentDir } = await import(
+            const { getHamletHomeDir, deleteScratchlistSessionAttachmentDir } = await import(
                 '../scratchlistAttachments/storage'
             )
-            await deleteScratchlistSessionAttachmentDir(getHapiHomeDir(), namespace, oldSessionId)
+            await deleteScratchlistSessionAttachmentDir(getHamletHomeDir(), namespace, oldSessionId)
         }
         if (!options.deleteOldSession && (movedScratchlist.moved > 0 || movedScratchlist.collided > 0)) {
-            // HAPI Bot PR #896: when every old entry collides (moved=0,
+            // HAMLET Bot PR #896: when every old entry collides (moved=0,
             // collided>0) the transfer still deletes rows from the
             // still-alive old session. Emit even when moved=0 so web
             // clients viewing the old id drop stale cache entries that

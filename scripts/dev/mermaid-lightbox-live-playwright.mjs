@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Bounded wrapper: Playwright against a real HAPI chat session (no Vite). */
+/** Bounded wrapper: Playwright against a real HAMLET chat session (no Vite). */
 import { spawnSync } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,7 +13,7 @@ const result = spawnSync(
     {
         cwd: REPO_ROOT,
         stdio: 'inherit',
-        env: { ...process.env, PATH: process.env.PATH, HAPI_LIVE: '1' },
+        env: { ...process.env, PATH: process.env.PATH, HAMLET_LIVE: '1' },
     },
 )
 

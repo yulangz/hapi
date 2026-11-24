@@ -1,6 +1,6 @@
-import { COPILOT_PERMISSION_MODES } from '@hapi/protocol/modes';
-import type { CopilotAgentMode } from '@hapi/protocol';
-import type { CopilotPermissionMode } from '@hapi/protocol/types';
+import { COPILOT_PERMISSION_MODES } from '@hamlet/protocol/modes';
+import type { CopilotAgentMode } from '@hamlet/protocol';
+import type { CopilotPermissionMode } from '@hamlet/protocol/types';
 import type { SlashCommand } from '@/modules/common/slashCommands';
 
 export type CopilotSlashResolution =

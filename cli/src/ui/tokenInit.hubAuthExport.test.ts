@@ -19,13 +19,13 @@ import { configuration } from '@/configuration'
 import { initializeToken } from './tokenInit'
 
 describe('initializeToken hub auth export', () => {
-    const previousUrl = process.env.HAPI_API_URL
+    const previousUrl = process.env.HAMLET_API_URL
     const previousToken = process.env.CLI_API_TOKEN
 
     beforeEach(() => {
-        delete process.env.HAPI_API_URL
+        delete process.env.HAMLET_API_URL
         delete process.env.CLI_API_TOKEN
-        delete process.env.HAPI_EXTRA_HEADERS_JSON
+        delete process.env.HAMLET_EXTRA_HEADERS_JSON
         configuration._setCliApiToken('')
         configuration._setApiUrl('http://localhost:3006')
         configuration._setExtraHeaders({})
@@ -37,9 +37,9 @@ describe('initializeToken hub auth export', () => {
 
     afterEach(() => {
         if (previousUrl === undefined) {
-            delete process.env.HAPI_API_URL
+            delete process.env.HAMLET_API_URL
         } else {
-            process.env.HAPI_API_URL = previousUrl
+            process.env.HAMLET_API_URL = previousUrl
         }
         if (previousToken === undefined) {
             delete process.env.CLI_API_TOKEN
@@ -59,7 +59,7 @@ describe('initializeToken hub auth export', () => {
 
         expect(configuration.cliApiToken).toBe('token-from-settings')
         expect(process.env.CLI_API_TOKEN).toBeUndefined()
-        expect(process.env.HAPI_API_URL).toBeUndefined()
+        expect(process.env.HAMLET_API_URL).toBeUndefined()
     })
 
     it('exports settings hub URL without mirroring the token', async () => {
@@ -70,7 +70,7 @@ describe('initializeToken hub auth export', () => {
 
         await initializeToken()
 
-        expect(process.env.HAPI_API_URL).toBe('http://remote-hub:3006')
+        expect(process.env.HAMLET_API_URL).toBe('http://remote-hub:3006')
         expect(process.env.CLI_API_TOKEN).toBeUndefined()
     })
 })

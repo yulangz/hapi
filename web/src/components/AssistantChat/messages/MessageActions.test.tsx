@@ -194,7 +194,7 @@ describe('MessageActions', () => {
     })
 
     it('localizes Fork and Rewind labels in Simplified Chinese', () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
 
         renderActions({
             align: 'end',
@@ -210,7 +210,7 @@ describe('MessageActions', () => {
     })
 
     it('localizes the Fork confirmation dialog in Simplified Chinese', async () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
         let resolveFork: (() => void) | undefined
         const onFork = vi.fn(() => new Promise<void>((resolve) => {
             resolveFork = resolve
@@ -238,7 +238,7 @@ describe('MessageActions', () => {
     })
 
     it('localizes the Rewind confirmation dialog in Simplified Chinese', async () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
         let resolveRewind: (() => void) | undefined
         const onRewind = vi.fn(() => new Promise<void>((resolve) => {
             resolveRewind = resolve
@@ -384,7 +384,7 @@ describe('MessageActions', () => {
     })
 
     it('localizes every message action hover label in Simplified Chinese', () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
 
         renderActions({
             align: 'end',

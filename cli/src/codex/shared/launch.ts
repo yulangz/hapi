@@ -67,7 +67,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
         if (arg === '-p' || arg === '--profile' || arg === '--config-profile') {
             throw new Error('Codex app-server 0.154 does not support profile selection. Use CODEX_HOME with the desired config.toml or explicit -c overrides.');
         }
-        if (arg.startsWith('--remote')) throw new Error('HAPI owns --remote and its authentication options');
+        if (arg.startsWith('--remote')) throw new Error('HAMLET owns --remote and its authentication options');
         if (['-c', '--config', '--enable', '--disable'].includes(arg)) {
             const v = value(); serverArgs.push(arg, v);
             // Remote resume inherits permissions from the server; do not send
@@ -100,7 +100,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
         } else if (['--no-alt-screen', '--yolo', '--dangerously-bypass-approvals-and-sandbox'].includes(arg)) {
             tuiArgs.push(arg);
         } else if (arg === '--full-auto') {
-            // Older HAPI accepted this alias; upstream 0.154 removed it.
+            // Older HAMLET accepted this alias; upstream 0.154 removed it.
             tuiArgs.push('--ask-for-approval', 'on-request', '--sandbox', 'workspace-write');
         } else if (arg.startsWith('-')) {
             throw new Error(`Unsupported shared Codex launch flag: ${arg}`);
@@ -117,9 +117,13 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
     }
     if (extraDirs.length) config['sandbox_workspace_write.writable_roots'] = extraDirs.map(path => resolve(directory, path));
     if (provider) config.model_provider = provider;
+    if (process.env.HAMLET_AGENT_ID) {
+        config['features.multi_agent'] = false;
+        config['features.multi_agent_v2'] = false;
+    }
     const permission = options.permissionMode ? resolveCodexPermissionModeConfig(options.permissionMode) : undefined;
     if (permission) {
-        // Explicit HAPI permission selection wins on every launch surface:
+        // Explicit HAMLET permission selection wins on every launch surface:
         // initial thread, attached TUI, and later native /new threads.
         config.approval_policy = permission.approvalPolicy;
         config.sandbox_mode = permission.sandbox;
@@ -129,7 +133,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
     // The initial thread already has their resolved policy; inherit it there.
     tuiArgs = stripCodexCliOverrides(tuiArgs);
     // Launch-wide flags also apply to later native /new roots, not just the
-    // initial HAPI-created root. Explicit config layers keep their order.
+    // initial HAMLET-created root. Explicit config layers keep their order.
     for (const [key, value] of Object.entries(config)) serverArgs.push('-c', `${key}=${JSON.stringify(value)}`);
     return {
         cwd: directory, serverArgs, tuiArgs,
@@ -149,7 +153,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
 
 export async function initializeSharedClient(client: CodexAppServerClient): Promise<void> {
     await client.connect();
-    await client.initialize({ clientInfo: { name: 'hapi', title: 'HAPI', version: '1' }, capabilities: { experimentalApi: true } });
+    await client.initialize({ clientInfo: { name: 'hamlet', title: 'HAMLET', version: '1' }, capabilities: { experimentalApi: true } });
 }
 
 /** Invalid IDs only: no probes may create turns, mutate threads or call a model. */

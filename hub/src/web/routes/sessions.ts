@@ -24,9 +24,9 @@ import {
     supportsEffort,
     toSessionSummary,
     UploadFileRequestSchema
-} from '@hapi/protocol'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
-import type { SlashCommand } from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
+import type { SlashCommand } from '@hamlet/protocol/apiTypes'
 import { Hono, type Context } from 'hono'
 import type { SyncEngine, Session } from '../../sync/syncEngine'
 import type { WebAppEnv } from '../middleware/auth'
@@ -1072,7 +1072,7 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
             return c.json({ error: 'Invalid body', issues: parsed.error.issues }, 400)
         }
 
-        // Idempotent-retry short-circuit (HAPI Bot, PR #896 review):
+        // Idempotent-retry short-circuit (HAMLET Bot, PR #896 review):
         // when the caller supplies an explicit entryId AND that id
         // already exists, return the canonical row with 200 BEFORE the
         // cap check fires. Otherwise a session sitting at the
@@ -1227,8 +1227,8 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
             )
             const orphaned = removedAttachments.filter((att) => !remainingIds.has(att.id))
             if (orphaned.length > 0) {
-                void import('../../scratchlistAttachments/storage').then(({ deleteScratchlistAttachmentFiles, getHapiHomeDir }) =>
-                    deleteScratchlistAttachmentFiles(getHapiHomeDir(), orphaned)
+                void import('../../scratchlistAttachments/storage').then(({ deleteScratchlistAttachmentFiles, getHamletHomeDir }) =>
+                    deleteScratchlistAttachmentFiles(getHamletHomeDir(), orphaned)
                 )
             }
         }

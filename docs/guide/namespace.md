@@ -1,6 +1,6 @@
 # Namespace (Advanced)
 
-Namespaces are intended for small teams sharing a single public HAPI hub. Each team member uses a different namespace to isolate their sessions and machines without running separate hubs.
+Namespaces are intended for small teams sharing a single public HAMLET hub. Each team member uses a different namespace to isolate their sessions and machines without running separate hubs.
 
 This is not a default setup path for most users.
 
@@ -30,5 +30,5 @@ CLI_API_TOKEN="your-base-token:alice"
 - Hub-side `CLI_API_TOKEN` must not include `:<namespace>`. The hub validates the token from both the environment variable and `settings.json`, and refuses to start with an error if a suffix is present.
 - Namespaces are isolated: sessions, machines, and users are not visible across namespaces.
 - One machine ID cannot be reused across namespaces.
-  - To run multiple namespaces on one machine, use a separate `HAPI_HOME` per namespace, or clear the machine ID with `hapi auth logout` before switching.
-- Remote spawn is namespace-scoped. If you need remote spawning for multiple namespaces on the same machine, run a separate runner per namespace (use separate `HAPI_HOME`).
+  - To run multiple namespaces on one machine, use a separate `HAMLET_HOME` per namespace, or clear the machine ID with `hamlet auth logout` before switching.
+- Remote spawn is namespace-scoped. If you need remote spawning for multiple namespaces on the same machine, run a separate runner per namespace (use separate `HAMLET_HOME`).

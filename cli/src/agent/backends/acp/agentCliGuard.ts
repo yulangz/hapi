@@ -11,21 +11,21 @@ import { join } from 'node:path';
 import {
     releaseAgentCliSpawnLeaseFromAcpRegisterSync,
     _resetAgentCliSpawnLeaseForTests
-} from '@hapi/protocol/agentCliSpawnLease';
-import { resolveHapiHomeDir } from '@/configuration';
+} from '@hamlet/protocol/agentCliSpawnLease';
+import { resolveHamletHomeDir } from '@/configuration';
 
 /**
  * Cursor's `agent` CLI appears to allow only one active process at a time.
  * Spawning `agent --list-models` while `agent acp` is running terminates the ACP
  * child (SIGTERM / exit 143) and crashes the remote session.
  *
- * In-process ref counting covers RPC handlers in the same process; a HAPI_HOME
+ * In-process ref counting covers RPC handlers in the same process; a HAMLET_HOME
  * lock directory covers runner vs session child processes. The proper-lockfile
  * spawn lease (`locks/agent-cli.spawn`) is held only around `spawn('agent')`
  * in AcpStdioTransport and during list-models probes — not for the full session
  * (#1520; multi-session ACP must remain possible).
  *
- * Prefer recording the ACP child PID (not only the HAPI host PID) so stale
+ * Prefer recording the ACP child PID (not only the HAMLET host PID) so stale
  * cleanup and logs attribute the real `agent` process. Register the lock
  * before spawn, and keep it held until stdio `close` — releasing on bare
  * `exit` opens a window where list-models can start another `agent`.
@@ -64,7 +64,7 @@ function normalizePid(pid: number | undefined): number | null {
 }
 
 export function getAgentAcpLockDir(): string {
-    return join(resolveHapiHomeDir(), 'locks', 'agent-acp-active');
+    return join(resolveHamletHomeDir(), 'locks', 'agent-acp-active');
 }
 
 function getAcpLockDir(): string {
@@ -349,7 +349,7 @@ export function registerActiveAcpTransport(options?: AgentAcpGuardPidOptions): v
         mkdirSync(lockDir, { recursive: true });
         beginRegistering(lockDir);
         registerPublishHook?.('after-mkdir');
-        // Always keep the HAPI host PID for crash/stale cleanup of the session
+        // Always keep the HAMLET host PID for crash/stale cleanup of the session
         // process; also record the ACP child when known — before count.
         addLockPid(lockDir, process.pid);
         if (childPid !== null) {
@@ -475,7 +475,7 @@ export function _setActiveAcpTransportCountForTests(count: number): void {
 }
 
 export function _resetAgentCliGuardForTests(): void {
-    const home = process.env.HAPI_HOME;
+    const home = process.env.HAMLET_HOME;
     activeAcpTransportCount = 0;
     registerPublishHook = null;
     addLockPidHook = null;

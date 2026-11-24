@@ -698,7 +698,7 @@ describe('NewSession launch preferences', () => {
     })
 
     it('does not preselect bypassPermissions for Claude from a legacy YOLO value owned by another flavor', async () => {
-        // hapi:newSession:yolo is a flavor-agnostic global key. The legacyYoloAgent
+        // hamlet:newSession:yolo is a flavor-agnostic global key. The legacyYoloAgent
         // snapshot (captured once at mount, see index.tsx) is what stops a YOLO
         // toggle left on under cursor from silently preselecting bypassPermissions
         // the next time Claude is picked.
@@ -825,7 +825,7 @@ describe('NewSession launch preferences', () => {
         expect(mocks.spawnSession).toHaveBeenCalledTimes(1)
     })
 
-    it('imports the selected Pi history and resumes the canonical HAPI session', async () => {
+    it('imports the selected Pi history and resumes the canonical HAMLET session', async () => {
         savePreferredAgent('pi')
         const piApi = {
             getPiSessions: vi.fn().mockResolvedValue({
@@ -843,9 +843,9 @@ describe('NewSession launch preferences', () => {
             importPiSessions: vi.fn().mockResolvedValue({
                 success: true,
                 machineId: 'machine-1',
-                results: [{ piSessionId: 'pi-native-1', hapiSessionId: 'hapi-imported-1', action: 'created', appended: 2 }]
+                results: [{ piSessionId: 'pi-native-1', hamletSessionId: 'hamlet-imported-1', action: 'created', appended: 2 }]
             }),
-            reopenSession: vi.fn().mockResolvedValue({ ok: true, sessionId: 'hapi-imported-1', resumed: true })
+            reopenSession: vi.fn().mockResolvedValue({ ok: true, sessionId: 'hamlet-imported-1', resumed: true })
         } as unknown as ApiClient
 
         render(
@@ -864,13 +864,13 @@ describe('NewSession launch preferences', () => {
         fireEvent.click(screen.getByTestId('select-pi-history'))
         fireEvent.click(screen.getByTestId('create'))
 
-        await waitFor(() => expect(mocks.onSuccess).toHaveBeenCalledWith('hapi-imported-1'))
+        await waitFor(() => expect(mocks.onSuccess).toHaveBeenCalledWith('hamlet-imported-1'))
         expect(piApi.importPiSessions).toHaveBeenCalledWith({
             sessionIds: ['pi-native-1'],
             cwd: 'C:\\repo',
             machineId: 'machine-1'
         })
-        expect(piApi.reopenSession).toHaveBeenCalledWith('hapi-imported-1')
+        expect(piApi.reopenSession).toHaveBeenCalledWith('hamlet-imported-1')
         expect(mocks.spawnSession).not.toHaveBeenCalled()
     })
 
@@ -894,9 +894,9 @@ describe('NewSession launch preferences', () => {
             importPiSessions: vi.fn().mockResolvedValue({
                 success: true,
                 machineId: machineB.id,
-                results: [{ piSessionId: 'pi-machine-b', hapiSessionId: 'hapi-machine-b', action: 'created', appended: 1 }]
+                results: [{ piSessionId: 'pi-machine-b', hamletSessionId: 'hamlet-machine-b', action: 'created', appended: 1 }]
             }),
-            reopenSession: vi.fn().mockResolvedValue({ ok: true, sessionId: 'hapi-machine-b', resumed: true })
+            reopenSession: vi.fn().mockResolvedValue({ ok: true, sessionId: 'hamlet-machine-b', resumed: true })
         } as unknown as ApiClient
 
         render(
@@ -937,7 +937,7 @@ describe('NewSession launch preferences', () => {
 
         fireEvent.click(screen.getByTestId('select-pi-history'))
         fireEvent.click(screen.getByTestId('create'))
-        await waitFor(() => expect(mocks.onSuccess).toHaveBeenCalledWith('hapi-machine-b'))
+        await waitFor(() => expect(mocks.onSuccess).toHaveBeenCalledWith('hamlet-machine-b'))
         expect(piApi.importPiSessions).toHaveBeenCalledWith({
             sessionIds: ['pi-machine-b'],
             cwd: 'C:\\repo',
@@ -965,8 +965,8 @@ describe('NewSession launch preferences', () => {
                 success: false,
                 machineId: 'machine-1',
                 results: [
-                    { piSessionId: 'pi-native-1', hapiSessionId: 'hapi-1', action: 'created', appended: 1 },
-                    { piSessionId: 'pi-native-2', hapiSessionId: 'hapi-2', error: { code: 'session_active', message: 'active' } }
+                    { piSessionId: 'pi-native-1', hamletSessionId: 'hamlet-1', action: 'created', appended: 1 },
+                    { piSessionId: 'pi-native-2', hamletSessionId: 'hamlet-2', error: { code: 'session_active', message: 'active' } }
                 ]
             })
         } as unknown as ApiClient

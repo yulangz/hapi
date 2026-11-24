@@ -1,4 +1,4 @@
-import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hapi/protocol/usage';
+import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hamlet/protocol/usage';
 import { logger } from '@/ui/logger';
 
 type ConvertedEvent = {

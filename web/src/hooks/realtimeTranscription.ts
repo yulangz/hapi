@@ -1,4 +1,4 @@
-import { DEEPGRAM_TRANSCRIPTION_MODEL } from '@hapi/protocol/voice'
+import { DEEPGRAM_TRANSCRIPTION_MODEL } from '@hamlet/protocol/voice'
 import {
     getBrowserLocalSpeechSupport,
     type LocalSpeechRecognition,

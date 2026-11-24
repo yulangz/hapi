@@ -18,7 +18,7 @@ function mockModelBackend(overrides: Record<string, unknown> = {}): AcpSdkBacken
 }
 
 describe('toCursorAcpMode', () => {
-    it('maps HAPI cursor modes to Cursor ACP modes', () => {
+    it('maps HAMLET cursor modes to Cursor ACP modes', () => {
         expect(toCursorAcpMode('default')).toBe('agent');
         expect(toCursorAcpMode('yolo')).toBe('agent');
         expect(toCursorAcpMode('autoReview')).toBe('agent');

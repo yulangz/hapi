@@ -8,7 +8,7 @@
       "sessionUpdate": "agent_thought_chunk",
       "content": {
         "type": "text",
-        "text": "[current working directory /home/lupin/workspace/hapi-fix-gemini-display/cli]"
+        "text": "[current working directory /home/lupin/workspace/hamlet-fix-gemini-display/cli]"
       }
     },
     {
@@ -250,7 +250,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "3 lupin lupin   180  5월  4 12:03 hapi-blo"
+        "text": "3 lupin lupin   180  5월  4 12:03 hamlet-blo"
       }
     },
     {
@@ -264,14 +264,14 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "25 hapi-e2e-3QZ3Gx\ndrwx------  4 lupin lupin"
+        "text": "25 hamlet-e2e-3QZ3Gx\ndrwx------  4 lupin lupin"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "   240  5월  4 12:05 hapi-e2e-pro-"
+        "text": "   240  5월  4 12:05 hamlet-e2e-pro-"
       }
     },
     {
@@ -285,7 +285,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "4 12:06 hapi-pro-dumps\n-rw-rw-r--  1 lup"
+        "text": "4 12:06 hamlet-pro-dumps\n-rw-rw-r--  1 lup"
       }
     },
     {

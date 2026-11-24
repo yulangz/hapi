@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ApiClient } from '@/api/client'
 import type { ConversationStatus } from '@/realtime/types'
-import type { TranscriptionMode, TranscriptionProvider } from '@hapi/protocol/voice'
+import type { TranscriptionMode, TranscriptionProvider } from '@hamlet/protocol/voice'
 import { useRealtimeDictation } from './useRealtimeDictation'
 
 export function appendTranscript(text: string, transcript: string): string {
@@ -68,7 +68,7 @@ export function useDictation(config: {
         if (!standardSupported || !config.provider || status === 'connecting' || status === 'connected') return
         const operation = ++operationRef.current
         const provider = config.provider
-        const language = localStorage.getItem('hapi-voice-lang') || undefined
+        const language = localStorage.getItem('hamlet-voice-lang') || undefined
         setError(null)
         setStatus('connecting')
         try {

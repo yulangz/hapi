@@ -7,7 +7,7 @@
   matching the web's choices.
 -->
 <resources>
-    <string name="app_name">HAPI</string>
+    <string name="app_name">HAMLET</string>
 
     <!-- Markdown / code / diff rendering (B-M2d1) -->
     <string name="code_copy">复制</string>
@@ -19,7 +19,7 @@
 
     <!-- Pairing (B-M1d) -->
     <string name="pairing_title">与您的 hub 配对</string>
-    <string name="pairing_intro">HAPI 是自托管的：您的编码智能体运行在您自己的机器上，由您自己运营的 HAPI hub 管理。将本应用与该 hub 配对，即可在手机上查看并操控它们。</string>
+    <string name="pairing_intro">HAMLET 是自托管的：您的编码智能体运行在您自己的机器上，由您自己运营的 HAMLET hub 管理。将本应用与该 hub 配对，即可在手机上查看并操控它们。</string>
     <string name="pairing_hint">扫描 hub 启动时打印的“伴侣应用（Companion app）”二维码（需 --relay），或手动输入 hub 地址和访问令牌。</string>
     <string name="pairing_scan_qr">扫描二维码</string>
     <string name="pairing_manual_entry">手动输入</string>
@@ -47,7 +47,7 @@
     <!-- QR scan -->
     <string name="pairing_scan_title">扫描配对二维码</string>
     <string name="pairing_scan_prompt">将相机对准配对二维码</string>
-    <string name="pairing_scan_not_pairing_qr">这不是有效的 HTTPS HAPI 配对二维码。请扫描 hub 打印的两个二维码之一（伴侣应用或网页应用）。</string>
+    <string name="pairing_scan_not_pairing_qr">这不是有效的 HTTPS HAMLET 配对二维码。请扫描 hub 打印的两个二维码之一（伴侣应用或网页应用）。</string>
     <string name="pairing_scan_again">重新扫描</string>
     <string name="pairing_scan_permission_rationale">扫描配对二维码需要相机权限。您也可以改用手动配对。</string>
     <string name="pairing_scan_grant_camera">授予相机权限</string>
@@ -217,7 +217,7 @@
     <string name="sessions_empty_title">还没有会话</string>
     <string name="sessions_empty_loading_hint">正在从 hub 获取会话列表。</string>
     <string name="sessions_empty_offline_hint">恢复网络后下拉重试。</string>
-    <string name="sessions_empty_hint">用 hapi CLI 启动一个智能体，会话就会出现在这里。</string>
+    <string name="sessions_empty_hint">用 hamlet CLI 启动一个智能体，会话就会出现在这里。</string>
     <string name="sessions_badge_needs_input">需要输入</string>
     <string name="sessions_badge_approve">批准 %1$s</string>
     <string name="sessions_badge_pending">待处理</string>
@@ -513,7 +513,7 @@
     <string name="pairing_error_token_rejected">Hub 拒绝了此访问令牌。Hub 轮换 CLI_API_TOKEN 后令牌会变化 — 请重新获取二维码或令牌后再试。</string>
     <string name="pairing_error_hub_gone">该 hub 已不在配对列表中。请在下方重新配对。</string>
     <string name="pairing_error_unreachable">无法连接 %1$s。请检查地址和网络，并确认 hub 正在运行。</string>
-    <string name="pairing_error_not_a_hub">%1$s 有响应，但看起来不是 HAPI hub。请核对地址（应为 hub 自身的地址，而非网页应用的地址）。</string>
+    <string name="pairing_error_not_a_hub">%1$s 有响应，但看起来不是 HAMLET hub。请核对地址（应为 hub 自身的地址，而非网页应用的地址）。</string>
     <string name="pairing_error_protocol_update_app">此 hub 使用协议 v%1$d，而应用支持 v%2$d。请更新应用后重试。</string>
     <string name="pairing_error_protocol_update_hub">此 hub 使用协议 v%1$d，而应用支持 v%2$d。请更新 hub 后重试。</string>
     <string name="pairing_error_auth_failed">配对失败（HTTP %1$d）。请稍后重试。</string>
@@ -532,7 +532,7 @@
     <string name="new_session_error_directory_outside_workspace_roots">目录必须位于此机器配置的某个工作区根目录内。</string>
     <string name="directory_browser_error">浏览目录失败</string>
     <string name="new_session_error_agent_availability">检查已安装代理失败</string>
-    <string name="new_session_error_runner_upgrade_required">创建会话前，请升级并重启此机器上的 HAPI runner。</string>
+    <string name="new_session_error_runner_upgrade_required">创建会话前，请升级并重启此机器上的 HAMLET runner。</string>
     <string name="new_session_error_no_available_agents">此机器上没有安装受支持的代理。</string>
     <string name="new_session_error_selected_agent_unavailable">所选代理在此机器上不可用。</string>
     <string name="chat_back_to_latest">回到最新 ↓</string>

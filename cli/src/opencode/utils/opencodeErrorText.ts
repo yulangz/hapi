@@ -1,4 +1,4 @@
-import { asString, isObject } from '@hapi/protocol';
+import { asString, isObject } from '@hamlet/protocol';
 
 /**
  * Longest run of provider-authored text this session puts in front of a user.

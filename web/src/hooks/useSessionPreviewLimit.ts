@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from 'react'
 export const DEFAULT_SESSION_PREVIEW_LIMIT = 8
 export const MIN_SESSION_PREVIEW_LIMIT = 1
 export const MAX_SESSION_PREVIEW_LIMIT = 99
-const SESSION_PREVIEW_LIMIT_CHANGED_EVENT = 'hapi-session-preview-limit-changed'
+const SESSION_PREVIEW_LIMIT_CHANGED_EVENT = 'hamlet-session-preview-limit-changed'
 
 function getSessionPreviewLimitStorageKey(): string {
-    return 'hapi-session-preview-limit'
+    return 'hamlet-session-preview-limit'
 }
 
 function isBrowser(): boolean {

@@ -3,7 +3,7 @@
  * includes cache reads/writes. Consumers must not add cache tokens again.
  */
 export const INCLUSIVE_INPUT_TOKEN_USAGE_MARKER = {
-    usageSchema: 'hapi.usage.v1',
+    usageSchema: 'hamlet.usage.v1',
     inputTokenSemantics: 'includes-cache'
 } as const
 

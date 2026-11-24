@@ -67,18 +67,18 @@ function finding(overrides = {}) {
 
 function review(overrides = {}) {
     return {
-        id: 1, body: 'Previous review\n\n*HAPI Bot*', commit_id: HEAD, state: 'COMMENTED',
+        id: 1, body: 'Previous review\n\n*HAMLET Bot*', commit_id: HEAD, state: 'COMMENTED',
         user: { type: 'Bot', login: 'github-actions[bot]' }, submitted_at: '2026-09-13T00:00:00Z',
         ...overrides,
     };
 }
 
 function harness(t) {
-    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hapi-pr-review-test-'));
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hamlet-pr-review-test-'));
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     const state = { pull: pull(), reviews: [], posts: [], outputs: {}, diffReads: 0, getCalls: 0 };
     const env = { GITHUB_WORKSPACE: path.resolve(__dirname, '../..'), RUNNER_TEMP: temporary };
-    const context = { repo: { owner: 'tiann', repo: 'hapi' }, payload: { pull_request: { number: 1842 } } };
+    const context = { repo: { owner: 'tiann', repo: 'hamlet' }, payload: { pull_request: { number: 1842 } } };
     const core = {
         info: () => {},
         setOutput: (key, value) => { state.outputs[key] = value; },
@@ -184,7 +184,7 @@ test('renders Chinese status labels and questions, preserving the bot signature'
     assert.match(body, /实现方向 — 未评审/);
     assert.match(body, /代码实现 — 未评审/);
     assert.match(body, /需要支持哪种用户操作/);
-    assert.ok(body.endsWith('*HAPI Bot*'));
+    assert.ok(body.endsWith('*HAMLET Bot*'));
     assert.doesNotMatch(body, /未发现可报告的代码缺陷/);
 });
 
@@ -243,7 +243,7 @@ test('fingerprint includes title, body, head, target and policy, excluding norma
 
 test('requires a submitted review from an allowed bot and an exact generated footer', () => {
     const snapshot = { pull: { head_sha: HEAD }, input_id: 'f'.repeat(64) };
-    const body = `Reviewed\n\n${marker(snapshot.input_id)}\n*HAPI Bot*`;
+    const body = `Reviewed\n\n${marker(snapshot.input_id)}\n*HAMLET Bot*`;
     const valid = review({ body });
     const candidates = [
         valid,
@@ -372,7 +372,7 @@ test('prompt JSON examples satisfy the publisher contract', () => {
 });
 
 test('reads the fixed head against its merge base, including spaces, Unicode, renames and deletions', t => {
-    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hapi-review-diff-test-'));
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hamlet-review-diff-test-'));
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     const git = (...args) => execFileSync('git', args, { cwd: temporary, encoding: 'utf8' });
     const commit = () => git('-c', 'user.name=Review test', '-c', 'user.email=review@example.invalid',

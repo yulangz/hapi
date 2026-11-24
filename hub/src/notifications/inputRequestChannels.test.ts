@@ -87,14 +87,14 @@ describe('input-request notification channels', () => {
 
     it('gives Telegram the same summary with only an Open Session button', () => {
         expect(formatSessionNotification(session)).toBe(`${expected.title}\n\n${expected.body}`)
-        expect(createNotificationKeyboard(session, 'https://hapi.example.com').inline_keyboard).toEqual([
-            [{ text: 'Open Session', web_app: { url: 'https://hapi.example.com/?startapp=session_session-input' } }]
+        expect(createNotificationKeyboard(session, 'https://hamlet.example.com').inline_keyboard).toEqual([
+            [{ text: 'Open Session', web_app: { url: 'https://hamlet.example.com/?startapp=session_session-input' } }]
         ])
         const approvalFirst = { ...session, agentState: { requests: {
             'request-approval': session.agentState!.requests!['request-approval'],
             'request-input': session.agentState!.requests!['request-input']
         } } }
-        const buttons = createNotificationKeyboard(approvalFirst, 'https://hapi.example.com').inline_keyboard.flat()
+        const buttons = createNotificationKeyboard(approvalFirst, 'https://hamlet.example.com').inline_keyboard.flat()
         expect(buttons.map(button => button.text)).toEqual(['Allow', 'Deny', 'Details'])
         expect(formatSessionNotification(approvalFirst)).toContain('Tool: Bash')
         expect(formatSessionNotification(approvalFirst)).not.toContain('needs your input')
@@ -104,13 +104,13 @@ describe('input-request notification channels', () => {
         const originalFetch = globalThis.fetch
         const fetchMock = mock(async (_url: string, init?: RequestInit) => {
             const fields = init?.body as URLSearchParams
-            expect(fields.get('title')).toBe(`HAPI ${expected.title}`)
-            expect(fields.get('desp')).toBe(`${expected.body}\n\nhttps://hapi.example.com${expected.url}`)
+            expect(fields.get('title')).toBe(`HAMLET ${expected.title}`)
+            expect(fields.get('desp')).toBe(`${expected.body}\n\nhttps://hamlet.example.com${expected.url}`)
             return new Response('ok')
         })
         globalThis.fetch = fetchMock as unknown as typeof fetch
         try {
-            await new ServerChanChannel('SCT_TEST', 'https://hapi.example.com').sendPermissionRequest(session)
+            await new ServerChanChannel('SCT_TEST', 'https://hamlet.example.com').sendPermissionRequest(session)
             expect(fetchMock).toHaveBeenCalledTimes(1)
         } finally {
             globalThis.fetch = originalFetch

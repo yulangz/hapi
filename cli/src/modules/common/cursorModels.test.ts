@@ -4,19 +4,19 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-// Isolate the on-disk cursor-models cache to this file's own HAPI_HOME so
-// parallel vitest workers don't race on the shared $HAPI_HOME/cache path
-// (see heavygee/hapi#101).
-const previousHapiHome = process.env.HAPI_HOME
-const testHapiHome = mkdtempSync(join(tmpdir(), 'hapi-cursor-models-'))
-process.env.HAPI_HOME = testHapiHome
+// Isolate the on-disk cursor-models cache to this file's own HAMLET_HOME so
+// parallel vitest workers don't race on the shared $HAMLET_HOME/cache path
+// (see heavygee/hamlet#101).
+const previousHamletHome = process.env.HAMLET_HOME
+const testHamletHome = mkdtempSync(join(tmpdir(), 'hamlet-cursor-models-'))
+process.env.HAMLET_HOME = testHamletHome
 
 // Remove the per-file temp root after the suite so runs don't leak dirs into
 // the system temp dir (afterEach only clears the cache file inside it).
 afterAll(() => {
-    if (previousHapiHome === undefined) delete process.env.HAPI_HOME
-    else process.env.HAPI_HOME = previousHapiHome
-    rmSync(testHapiHome, { recursive: true, force: true })
+    if (previousHamletHome === undefined) delete process.env.HAMLET_HOME
+    else process.env.HAMLET_HOME = previousHamletHome
+    rmSync(testHamletHome, { recursive: true, force: true })
 })
 
 const { spawnMock } = vi.hoisted(() => ({
@@ -406,9 +406,9 @@ describe('listCursorModels', () => {
 
     test('skips CLI slug probe when spawn lease is held after guard reads inactive', async () => {
         const { acquireAgentCliSpawnLeaseSync, _resetAgentCliSpawnLeaseForTests } = await import(
-            '@hapi/protocol/agentCliSpawnLease'
+            '@hamlet/protocol/agentCliSpawnLease'
         )
-        acquireAgentCliSpawnLeaseSync(testHapiHome)
+        acquireAgentCliSpawnLeaseSync(testHamletHome)
         vi.mocked(isAgentAcpTransportActive).mockReturnValueOnce(false)
         acpProbeMock.runCursorAcpModelProbe.mockResolvedValue({
             success: false,
@@ -420,7 +420,7 @@ describe('listCursorModels', () => {
         expect(spawnMock).not.toHaveBeenCalled()
         expect(result.success).toBe(false)
         expect(result.error).toContain('ACP transport is active')
-        _resetAgentCliSpawnLeaseForTests(testHapiHome)
+        _resetAgentCliSpawnLeaseForTests(testHamletHome)
     })
 
     test('does not spawn list-models when ACP marker appears after lease acquire', async () => {

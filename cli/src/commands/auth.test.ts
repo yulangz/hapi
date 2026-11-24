@@ -11,7 +11,7 @@ const {
     clearMachineIdMock: vi.fn(),
     updateSettingsMock: vi.fn(),
     initializeApiUrlMock: vi.fn(async () => {
-        configuration._setApiUrl('https://hapi.example.com')
+        configuration._setApiUrl('https://hamlet.example.com')
     })
 }))
 
@@ -42,7 +42,7 @@ describe('handleAuthCommand', () => {
 
     it('loads the configured api url before printing status', async () => {
         readSettingsMock.mockResolvedValue({
-            apiUrl: 'https://hapi.example.com',
+            apiUrl: 'https://hamlet.example.com',
             cliApiToken: 'token-from-settings',
             machineId: 'machine-123'
         })
@@ -57,7 +57,7 @@ describe('handleAuthCommand', () => {
                 .map((call) => stripAnsi(String(call[0])))
                 .join('\n')
 
-            expect(output).toContain('HAPI_API_URL: https://hapi.example.com')
+            expect(output).toContain('HAMLET_API_URL: https://hamlet.example.com')
             expect(output).toContain('CLI_API_TOKEN: set')
             expect(output).toContain('Machine ID: machine-123')
         } finally {

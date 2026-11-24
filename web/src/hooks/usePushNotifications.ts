@@ -27,7 +27,7 @@ function base64UrlToUint8Array(base64Url: string): Uint8Array {
  * subscriptions become undeliverable (push services reject them with
  * VapidPkHashMismatch), so we compare and re-create them on the next load.
  */
-const PUSH_VAPID_KEY_STORAGE = 'hapi.push.vapidKey'
+const PUSH_VAPID_KEY_STORAGE = 'hamlet.push.vapidKey'
 
 function readStoredVapidKey(): string | null {
     try {

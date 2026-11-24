@@ -21,7 +21,7 @@ describe('extractSessionCitationIds', () => {
     })
 
     it('extracts id from empty-title Copy-reference form', () => {
-        expect(extractSessionCitationIds(`See HAPI session /sessions/${UUID} for context`)).toEqual([
+        expect(extractSessionCitationIds(`See HAMLET session /sessions/${UUID} for context`)).toEqual([
             UUID,
         ])
     })
@@ -51,7 +51,7 @@ describe('extractSessionCitationIds', () => {
     })
 
     it('accepts BASE_URL-prefixed session paths', () => {
-        expect(extractSessionCitationIds(`(/hapi/sessions/${UUID})`)).toEqual([UUID])
+        expect(extractSessionCitationIds(`(/hamlet/sessions/${UUID})`)).toEqual([UUID])
     })
 })
 
@@ -100,16 +100,16 @@ describe('normalizeSessionIdPrefix', () => {
 describe('buildSessionCitationSteerInstruction', () => {
     it('mentions both citation forms and forbids local FS search', () => {
         const text = buildSessionCitationSteerInstruction({
-            inspectTool: 'mcp__hapi__inspect_peer',
-            pingTool: 'mcp__hapi__ping_peer',
-            listPeersTool: 'mcp__hapi__list_peers',
+            inspectTool: 'mcp__hamlet__inspect_peer',
+            pingTool: 'mcp__hamlet__ping_peer',
+            listPeersTool: 'mcp__hamlet__list_peers',
         })
         expect(text).toContain('[title](/sessions/<id>)')
         expect(text).toContain('See session')
         expect(text).toContain('/sessions/<id>')
-        expect(text).toContain('mcp__hapi__inspect_peer')
-        expect(text).toContain('mcp__hapi__ping_peer')
-        expect(text).toContain('mcp__hapi__list_peers')
+        expect(text).toContain('mcp__hamlet__inspect_peer')
+        expect(text).toContain('mcp__hamlet__ping_peer')
+        expect(text).toContain('mcp__hamlet__list_peers')
         expect(text.toLowerCase()).toMatch(/not.*(grep|glob|filesystem|local file)/i)
     })
 })

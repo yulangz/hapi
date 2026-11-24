@@ -3,13 +3,13 @@ import {
     DISPLAY_IMAGE_PROMPT_CLAUDE,
     DISPLAY_IMAGE_PROMPT_CODEX,
     DISPLAY_IMAGE_PROMPT_CURSOR,
-    DISPLAY_IMAGE_PROMPT_HAPI_MCP,
+    DISPLAY_IMAGE_PROMPT_HAMLET_MCP,
 } from './displayImagePrompt'
 
 const displayImagePrompts = [
     DISPLAY_IMAGE_PROMPT_CLAUDE,
     DISPLAY_IMAGE_PROMPT_CODEX,
-    DISPLAY_IMAGE_PROMPT_HAPI_MCP,
+    DISPLAY_IMAGE_PROMPT_HAMLET_MCP,
     DISPLAY_IMAGE_PROMPT_CURSOR,
 ]
 
@@ -25,9 +25,9 @@ describe('display_image prompt semantics', () => {
     })
 
     it('keeps each agent flavor instruction pointed at the corresponding tool alias', () => {
-        expect(DISPLAY_IMAGE_PROMPT_CLAUDE).toContain('mcp__hapi__display_image')
-        expect(DISPLAY_IMAGE_PROMPT_CODEX).toContain('functions.hapi__display_image')
-        expect(DISPLAY_IMAGE_PROMPT_HAPI_MCP).toContain('hapi_display_image')
+        expect(DISPLAY_IMAGE_PROMPT_CLAUDE).toContain('mcp__hamlet__display_image')
+        expect(DISPLAY_IMAGE_PROMPT_CODEX).toContain('functions.hamlet__display_image')
+        expect(DISPLAY_IMAGE_PROMPT_HAMLET_MCP).toContain('hamlet_display_image')
         expect(DISPLAY_IMAGE_PROMPT_CURSOR).toContain('"display_image"')
     })
 })

@@ -2,15 +2,15 @@
  * Resume-if-inactive + wait-active + POST /api/sessions/:id/messages,
  * plus read-only inspectPeer (GET session + messages, never resume).
  *
- * Shared by `hapi ping-peer` / `hapi inspect-peer` and MCP `ping_peer` /
+ * Shared by `hamlet ping-peer` / `hamlet inspect-peer` and MCP `ping_peer` /
  * `inspect_peer`. Uses the same hub JWT flow as the web app
  * (`POST /api/auth` with CLI_API_TOKEN), scoped to the token's namespace.
  * Callers must not invent parallel auth or arbitrary hosts.
  */
 
 import axios, { type AxiosInstance } from 'axios'
-import { extractAssistantPlainText, isObject } from '@hapi/protocol'
-import { normalizeSessionIdPrefix } from '@hapi/protocol/sessionCitation'
+import { extractAssistantPlainText, isObject } from '@hamlet/protocol'
+import { normalizeSessionIdPrefix } from '@hamlet/protocol/sessionCitation'
 import { configuration } from '@/configuration'
 import { getAuthToken } from '@/api/auth'
 import { buildHubRequestHeaders } from '@/api/hubExtraHeaders'
@@ -85,8 +85,8 @@ function defaultSleep(ms: number): Promise<void> {
 }
 
 const AUTH_RECOVERY_HINT =
-    'On a remote runner, set HAPI_API_URL to the runner hub, and set CLI_API_TOKEN ' +
-    'or run `hapi auth login` to save the token. Inside a HAPI session prefer MCP ' +
+    'On a remote runner, set HAMLET_API_URL to the runner hub, and set CLI_API_TOKEN ' +
+    'or run `hamlet auth login` to save the token. Inside a HAMLET session prefer MCP ' +
     '`list_peers` / `ping_peer` / `inspect_peer`, which use the session CLI credentials.'
 
 function resolveApiUrl(apiUrl?: string): string {
@@ -94,7 +94,7 @@ function resolveApiUrl(apiUrl?: string): string {
     if (!raw) {
         throw new PingPeerError(
             'bad_args',
-            `HAPI API URL is empty. ${AUTH_RECOVERY_HINT}`
+            `HAMLET API URL is empty. ${AUTH_RECOVERY_HINT}`
         )
     }
     // Peer messaging only targets the configured hub - never accept host overrides
@@ -112,7 +112,7 @@ function resolveAccessToken(accessToken?: string): string {
     if (!token) {
         throw new PingPeerError(
             'bad_args',
-            `CLI_API_TOKEN is required (run \`hapi auth login\`). ${AUTH_RECOVERY_HINT}`
+            `CLI_API_TOKEN is required (run \`hamlet auth login\`). ${AUTH_RECOVERY_HINT}`
         )
     }
     return token
@@ -425,7 +425,7 @@ export function resolvePeerSessionLabel(session: PingPeerSessionSummary): string
 }
 
 /**
- * Human/agent-readable shortlist for MCP `list_peers` and `hapi ping-peer --list`.
+ * Human/agent-readable shortlist for MCP `list_peers` and `hamlet ping-peer --list`.
  * Newest `updatedAt` first. Same hub/namespace as the caller credentials.
  */
 export function formatPeerSessionsList(

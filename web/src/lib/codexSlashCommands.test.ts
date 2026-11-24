@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getPermissionModesForFlavor } from '@hapi/protocol/modes'
+import { getPermissionModesForFlavor } from '@hamlet/protocol/modes'
 import {
     findCodexCustomPromptExpansion,
     findUnsupportedCodexBuiltinSlashCommand,
@@ -8,7 +8,7 @@ import {
 } from './codexSlashCommands'
 
 describe('getBuiltinSlashCommands', () => {
-    it('exposes HAPI-supported codex built-ins in remote web mode', () => {
+    it('exposes HAMLET-supported codex built-ins in remote web mode', () => {
         expect(getBuiltinSlashCommands('codex').map((command) => command.name)).toEqual(expect.arrayContaining([
             'clear',
             'compact',

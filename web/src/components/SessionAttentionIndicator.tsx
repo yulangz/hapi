@@ -15,7 +15,7 @@ const ATTENTION_DOT_CLASS: Record<SessionAttention['kind'], string> = {
  * Visible attention dot + hover tooltip explaining the indicator.
  *
  * The tooltip body composes from `summary.pendingRequests` (capped oldest-first;
- * see `PENDING_REQUEST_SUMMARY_CAP` in `@hapi/protocol`) for permission / input
+ * see `PENDING_REQUEST_SUMMARY_CAP` in `@hamlet/protocol`) for permission / input
  * attention; from counts and timestamps for background / unread.
  */
 export function SessionAttentionIndicator(props: {

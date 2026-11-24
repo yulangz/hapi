@@ -5,19 +5,19 @@ import { join } from 'node:path'
 import { refreshRejectedRelayAuthKey, resolveRelayAuthKey } from './relayAuth'
 
 function makeSettingsFile(): { dir: string; file: string } {
-    const dir = mkdtempSync(join(tmpdir(), 'hapi-relay-auth-test-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hamlet-relay-auth-test-'))
     return { dir, file: join(dir, 'settings.json') }
 }
 
 describe('relay auth recovery', () => {
-    const originalEnvKey = process.env.HAPI_RELAY_AUTH
+    const originalEnvKey = process.env.HAMLET_RELAY_AUTH
     const tempDirs: string[] = []
 
     afterEach(() => {
         if (originalEnvKey === undefined) {
-            delete process.env.HAPI_RELAY_AUTH
+            delete process.env.HAMLET_RELAY_AUTH
         } else {
-            process.env.HAPI_RELAY_AUTH = originalEnvKey
+            process.env.HAMLET_RELAY_AUTH = originalEnvKey
         }
         for (const dir of tempDirs.splice(0)) {
             rmSync(dir, { recursive: true, force: true })
@@ -25,7 +25,7 @@ describe('relay auth recovery', () => {
     })
 
     it('replaces a rejected persisted key', async () => {
-        delete process.env.HAPI_RELAY_AUTH
+        delete process.env.HAMLET_RELAY_AUTH
         const { dir, file } = makeSettingsFile()
         tempDirs.push(dir)
         writeFileSync(file, JSON.stringify({ relayAuthKey: 'rejected-key', listenPort: 3000 }))
@@ -45,7 +45,7 @@ describe('relay auth recovery', () => {
     })
 
     it('does not overwrite an explicitly configured rejected key', async () => {
-        process.env.HAPI_RELAY_AUTH = 'env-key'
+        process.env.HAMLET_RELAY_AUTH = 'env-key'
         const { dir, file } = makeSettingsFile()
         tempDirs.push(dir)
 
@@ -58,7 +58,7 @@ describe('relay auth recovery', () => {
     })
 
     it('explains shared-IP issuance limits and discards the rejected key', async () => {
-        delete process.env.HAPI_RELAY_AUTH
+        delete process.env.HAMLET_RELAY_AUTH
         const { dir, file } = makeSettingsFile()
         tempDirs.push(dir)
         writeFileSync(file, JSON.stringify({ relayAuthKey: 'rejected-key' }))
@@ -75,7 +75,7 @@ describe('relay auth recovery', () => {
     })
 
     it('reports a clear 429 error during initial resolution', async () => {
-        delete process.env.HAPI_RELAY_AUTH
+        delete process.env.HAMLET_RELAY_AUTH
         const { dir, file } = makeSettingsFile()
         tempDirs.push(dir)
 
@@ -83,6 +83,6 @@ describe('relay auth recovery', () => {
             'relay.example.com',
             file,
             async () => new Response(null, { status: 429 })
-        )).rejects.toThrow('Configure HAPI_RELAY_AUTH')
+        )).rejects.toThrow('Configure HAMLET_RELAY_AUTH')
     })
 })

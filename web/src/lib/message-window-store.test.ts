@@ -386,7 +386,7 @@ describe('message tail synchronization', () => {
     it('renders a persisted window immediately, then requests the latest tail on re-entry', async () => {
         const id = sessionId('reentry')
         const cached = makeAgentMessage({ id: 'cached', seq: 40, at: 40_000 })
-        sessionStorage.setItem(`hapi:message-window:v2:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v2:${id}`, JSON.stringify({
             messages: [cached],
             hasMore: true,
             oldestPositionAt: 40_000,
@@ -426,7 +426,7 @@ describe('message tail synchronization', () => {
             invokedAt: null,
             status: 'queued'
         })
-        sessionStorage.setItem(`hapi:message-window:v2:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v2:${id}`, JSON.stringify({
             messages: [cached, queued],
             hasMore: true,
             oldestPositionAt: 4_000,
@@ -455,7 +455,7 @@ describe('message tail synchronization', () => {
     it('keeps incremental synchronization for non-activation refreshes', async () => {
         const id = sessionId('incremental-refresh')
         const cached = makeAgentMessage({ id: 'cached', seq: 40, at: 40_000 })
-        sessionStorage.setItem(`hapi:message-window:v2:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v2:${id}`, JSON.stringify({
             messages: [cached],
             hasMore: true,
             oldestPositionAt: 40_000,
@@ -684,7 +684,7 @@ describe('message tail synchronization', () => {
     it('invalidates an in-flight incremental request when re-entry prioritizes latest', async () => {
         const id = sessionId('reentry-in-flight')
         const cached = makeAgentMessage({ id: 'cached', seq: 40, at: 40_000 })
-        sessionStorage.setItem(`hapi:message-window:v2:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v2:${id}`, JSON.stringify({
             messages: [cached],
             hasMore: true,
             oldestPositionAt: 40_000,
@@ -1459,7 +1459,7 @@ describe('optimistic and queued-message operations', () => {
 describe('V2 persistence boundary', () => {
     it('ignores the V1 pending-buffer state entirely', () => {
         const id = sessionId('ignore-v1')
-        sessionStorage.setItem(`hapi:message-window:v1:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v1:${id}`, JSON.stringify({
             messages: [makeAgentMessage({ id: 'legacy', seq: 1, at: 1 })],
             pending: []
         }))
@@ -1469,7 +1469,7 @@ describe('V2 persistence boundary', () => {
 
     it('hydrates V2 sending rows as queued reconciliation candidates', () => {
         const id = sessionId('hydrate-sending')
-        sessionStorage.setItem(`hapi:message-window:v2:${id}`, JSON.stringify({
+        sessionStorage.setItem(`hamlet:message-window:v2:${id}`, JSON.stringify({
             messages: [makeUserMessage({
                 id: 'local-1',
                 localId: 'local-1',

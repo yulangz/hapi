@@ -91,7 +91,7 @@ describe('FilePage markdown preview', () => {
         expect(screen.getByText(formatFileMetadata(fileSize, fileModified, 'en')!)).toBeInTheDocument()
         expect(screen.getAllByText(filePath)).toHaveLength(1)
         const previewCopyButton = screen.getByRole('button', { name: 'Copy file content' })
-        expect(previewCopyButton.closest('[data-hapi-file-content-header="true"]')).not.toBeNull()
+        expect(previewCopyButton.closest('[data-hamlet-file-content-header="true"]')).not.toBeNull()
         expect(previewCopyButton).not.toHaveClass('absolute')
         fireEvent.click(previewCopyButton)
         expect(copyMock).toHaveBeenCalledWith(sampleMarkdown)
@@ -102,11 +102,11 @@ describe('FilePage markdown preview', () => {
         await waitFor(() => {
             expect(screen.getByRole('code')).toHaveTextContent('# Heading')
         })
-        const sourcePreview = screen.getByRole('code').closest('[data-hapi-file-source-preview="true"]')
+        const sourcePreview = screen.getByRole('code').closest('[data-hamlet-file-source-preview="true"]')
         const sourceCopyButton = screen.getByRole('button', { name: 'Copy file content' })
         expect(sourcePreview).not.toBeNull()
         expect(sourcePreview).toContainElement(sourceCopyButton)
-        expect(sourceCopyButton.closest('[data-hapi-file-content-header="true"]')).not.toBeNull()
+        expect(sourceCopyButton.closest('[data-hamlet-file-content-header="true"]')).not.toBeNull()
         expect(sourceCopyButton).not.toHaveClass('absolute')
         expect(screen.queryByTestId('markdown-preview')).not.toBeInTheDocument()
 
@@ -117,7 +117,7 @@ describe('FilePage markdown preview', () => {
     })
 
     it('uses the shared code-wrap preference for the source preview', async () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
         renderWithProviders()
 
         await waitFor(() => {
@@ -139,7 +139,7 @@ describe('FilePage markdown preview', () => {
 
         expect(screen.getByRole('button', { pressed: false })).toBeInTheDocument()
         expect(sourcePre).toHaveStyle({ whiteSpace: 'pre' })
-        expect(window.localStorage.getItem('hapi-code-wrap')).toBeNull()
+        expect(window.localStorage.getItem('hamlet-code-wrap')).toBeNull()
     })
 
     it('preserves the file preview scroll position across route remounts', async () => {
@@ -148,7 +148,7 @@ describe('FilePage markdown preview', () => {
         await waitFor(() => {
             expect(screen.getByTestId('markdown-preview')).toBeInTheDocument()
         })
-        const firstScrollRegion = document.querySelector('[data-hapi-file-scroll="true"]') as HTMLElement
+        const firstScrollRegion = document.querySelector('[data-hamlet-file-scroll="true"]') as HTMLElement
         expect(firstScrollRegion).not.toBeNull()
         firstScrollRegion.scrollTop = 123
         firstRender.unmount()
@@ -157,7 +157,7 @@ describe('FilePage markdown preview', () => {
         await waitFor(() => {
             expect(screen.getByTestId('markdown-preview')).toBeInTheDocument()
         })
-        const secondScrollRegion = document.querySelector('[data-hapi-file-scroll="true"]') as HTMLElement
+        const secondScrollRegion = document.querySelector('[data-hamlet-file-scroll="true"]') as HTMLElement
         expect(secondScrollRegion.scrollTop).toBe(123)
     })
 })

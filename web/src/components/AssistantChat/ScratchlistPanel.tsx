@@ -19,13 +19,13 @@ import {
     type ScratchlistEntry,
 } from '@/lib/scratchlist'
 import type { ApiClient } from '@/api/client'
-import type { ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 import { isImageMimeType } from '@/lib/fileAttachments'
 import { safeCopyToClipboard } from '@/lib/clipboard'
 import { useTranslation } from '@/lib/use-translation'
 import { formatAbsoluteDateTime, formatRelativeTime } from '@/lib/relativeTime'
 
-const STORAGE_KEY_PREFIX = 'hapi.scratchlist-collapsed.v1.'
+const STORAGE_KEY_PREFIX = 'hamlet.scratchlist-collapsed.v1.'
 
 function readCollapsedPref(sessionId: string): boolean {
     if (typeof window === 'undefined') return true

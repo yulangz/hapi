@@ -3,7 +3,7 @@
  * Placed between Input and Result sections.
  */
 import { useState } from 'react'
-import { isObject, safeStringify } from '@hapi/protocol'
+import { isObject, safeStringify } from '@hamlet/protocol'
 import type { ChatBlock, ToolCallBlock } from '@/chat/types'
 import type { SessionMetadataSummary } from '@/types/api'
 import { getToolFullViewComponent } from '@/components/ToolCard/views/_all'

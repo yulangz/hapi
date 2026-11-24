@@ -1,14 +1,14 @@
 import { closeSync, openSync, readdirSync, readFileSync, readSync, statSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { homedir } from 'node:os'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
-import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hapi/protocol/usage'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
+import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hamlet/protocol/usage'
 import type {
     PiImportedMessage,
     PiImportedMessageContent,
     PiLocalSessionSummary,
     PiLocalSessionWithMessages
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 
 const DEFAULT_PI_SESSION_SCAN_LIMIT = 200
 

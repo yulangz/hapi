@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const STORAGE_KEY = 'hapi-sidebar-width'
+const STORAGE_KEY = 'hamlet-sidebar-width'
 const MIN_WIDTH = 280
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 420

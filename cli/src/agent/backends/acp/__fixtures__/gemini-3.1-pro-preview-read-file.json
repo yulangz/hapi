@@ -38,7 +38,7 @@
       "content": [],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/README.md"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/README.md"
         }
       ],
       "kind": "read"
@@ -51,7 +51,7 @@
       "content": [],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/README.md"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/README.md"
         }
       ],
       "kind": "read"
@@ -67,21 +67,21 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": ":\n\n```markdown\n# HAPI\n\nRun official Claude Code / Codex / Gemini / OpenCode sessions locally and control"
+        "text": ":\n\n```markdown\n# HAMLET\n\nRun official Claude Code / Codex / Gemini / OpenCode sessions locally and control"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " them remotely through a Web / PWA / Telegram Mini App.\n\n> **Why HAPI?** HAPI is"
+        "text": " them remotely through a Web / PWA / Telegram Mini App.\n\n> **Why HAMLET?** HAMLET is"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " a local-first alternative to Happy. See [Why Not Happy?](docs/guide/why-hapi.md"
+        "text": " a local-first alternative to Happy. See [Why Not Happy?](docs/guide/why-hamlet.md"
       }
     },
     {
@@ -95,7 +95,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " when needed, switch back anytime. No context loss, no session restart.\n- **Native First** - HAPI"
+        "text": " when needed, switch back anytime. No context loss, no session restart.\n- **Native First** - HAMLET"
       }
     },
     {
@@ -137,7 +137,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "- **Workspace Browser** - Opt-in via `hapi runner start --workspace-root <path>`: browse a"
+        "text": "- **Workspace Browser** - Opt-in via `hamlet runner start --workspace-root <path>`: browse a"
       }
     },
     {
@@ -165,14 +165,14 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "px @twsxtd/hapi hub --relay     # start hub with E2E encrypted relay\nnpx"
+        "text": "px @twsxtd/hamlet hub --relay     # start hub with E2E encrypted relay\nnpx"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " @twsxtd/hapi                 # run claude code\n```\n\n`hapi server` remains supported as an"
+        "text": " @twsxtd/hamlet                 # run claude code\n```\n\n`hamlet server` remains supported as an"
       }
     },
     {
@@ -221,7 +221,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": ".md)\n- [Why HAPI](docs/guide/why-hapi.md)\n- [FAQ]("
+        "text": ".md)\n- [Why HAMLET](docs/guide/why-hamlet.md)\n- [FAQ]("
       }
     },
     {
@@ -235,7 +235,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "single-exe\n```\n\n## Credits\n\nHAPI means \"哈皮\" a Chinese transliteration of [Happy]("
+        "text": "single-exe\n```\n\n## Credits\n\nHAMLET means \"哈皮\" a Chinese transliteration of [Happy]("
       }
     },
     {

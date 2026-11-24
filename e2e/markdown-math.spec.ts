@@ -16,7 +16,7 @@ for (const viewport of [
         await expect(fixture.locator('.katex-display')).toHaveCount(1)
         await expect(fixture.locator('.katex')).toHaveCount(2)
 
-        const codeBody = fixture.locator('[data-hapi-code-body="true"]')
+        const codeBody = fixture.locator('[data-hamlet-code-body="true"]')
         await expect(codeBody).toBeVisible()
         await expect(codeBody).toContainText('\\[x^2\\]')
         await expect(codeBody.locator('.katex')).toHaveCount(0)

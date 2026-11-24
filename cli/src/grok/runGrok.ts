@@ -111,7 +111,7 @@ export async function runGrok(opts: {
     try {
         await grokLoop({
             path: workingDirectory,
-            hapiSessionId: sessionInfo.id,
+            hamletSessionId: sessionInfo.id,
             startingMode,
             startedBy,
             messageQueue: queue,

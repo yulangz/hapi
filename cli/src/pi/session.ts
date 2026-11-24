@@ -1,7 +1,7 @@
 import type { ApiClient, ApiSessionClient } from '@/lib';
 import type { Metadata } from '@/api/types';
 import type { PiCommandSummary, PiThinkingLevel } from './types';
-import type { PiModelSummary } from '@hapi/protocol/apiTypes';
+import type { PiModelSummary } from '@hamlet/protocol/apiTypes';
 import type { PiRpcResolver } from './loop';
 
 /**
@@ -152,7 +152,7 @@ export class PiSession {
      * Establish a stable native baseline before buffered prompts are released.
      * Pi's history cursor must be read before the first web prompt is allowed
      * to append, otherwise an old duplicate user message could be paired with
-     * a new HAPI localId.
+     * a new HAMLET localId.
      */
     setNativeReadyPreparation(fn: () => Promise<void>): void {
         this.nativeReadyPreparation = fn;

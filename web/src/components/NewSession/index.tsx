@@ -1,7 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { ApiClient } from '@/api/client'
 import type { CodexDuplicateSessionGroup, CodexLocalSessionSummary, Machine, PiLocalSessionSummary } from '@/types/api'
-import type { CodexCollaborationMode, GrokPermissionMode, PermissionMode, CopilotAgentMode } from '@hapi/protocol'
+import type { CodexCollaborationMode, GrokPermissionMode, PermissionMode, CopilotAgentMode } from '@hamlet/protocol'
 import { codexModelAdvertisesFastTier } from '@/components/AssistantChat/codexFastMode'
 import { usePlatform } from '@/hooks/usePlatform'
 import { useMachinePathsExists } from '@/hooks/useMachinePathsExists'
@@ -126,6 +126,7 @@ export function NewSession(props: {
     const [sessionType, setSessionType] = useState<SessionType>('simple')
     const [worktreeName, setWorktreeName] = useState('')
     const [directoryCreationConfirmed, setDirectoryCreationConfirmed] = useState(false)
+    const [openingMain, setOpeningMain] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [codexImportSessions, setCodexImportSessions] = useState<CodexLocalSessionSummary[]>([])
     const [selectedCodexImportSessionId, setSelectedCodexImportSessionId] = useState<string | null>(null)
@@ -148,7 +149,7 @@ export function NewSession(props: {
     const [isBulkImportingCodexSessions, setIsBulkImportingCodexSessions] = useState(false)
     const [isRestartingCodexDesktop, setIsRestartingCodexDesktop] = useState(false)
     const [pendingDuplicateSessionIds, setPendingDuplicateSessionIds] = useState<string[]>([])
-    const [pendingDuplicateHapiSessionIds, setPendingDuplicateHapiSessionIds] = useState<string[]>([])
+    const [pendingDuplicateHamletSessionIds, setPendingDuplicateHamletSessionIds] = useState<string[]>([])
     const [duplicateSessionGroups, setDuplicateSessionGroups] = useState<CodexDuplicateSessionGroup[]>([])
     const [isDuplicateMergeConfirmOpen, setIsDuplicateMergeConfirmOpen] = useState(false)
     const [isMergingDuplicateSessions, setIsMergingDuplicateSessions] = useState(false)
@@ -1061,7 +1062,7 @@ export function NewSession(props: {
         const raw = (message ?? '').trim()
         if (!raw) return fallback
         if (/执行超时|timed\s*out|timeout/i.test(raw)) return t('codexSync.error.timeout')
-        if (/当前会话仍处于活跃状态，请等待会话结束后重试|Active Hapi process already has this Codex thread/i.test(raw)) {
+        if (/当前会话仍处于活跃状态，请等待会话结束后重试|Active Hamlet process already has this Codex thread/i.test(raw)) {
             return t('codexSync.error.active')
         }
         if (/未安装\/找不到codex客户端|unable to find codex launcher|找不到.*codex/i.test(raw)) {
@@ -1115,7 +1116,7 @@ export function NewSession(props: {
     const closeDuplicateMergeDialog = useCallback(() => {
         setIsDuplicateMergeConfirmOpen(false)
         setPendingDuplicateSessionIds([])
-        setPendingDuplicateHapiSessionIds([])
+        setPendingDuplicateHamletSessionIds([])
         setDuplicateSessionGroups([])
     }, [])
 
@@ -1147,7 +1148,7 @@ export function NewSession(props: {
             await refetchSessions()
 
             closeDuplicateMergeDialog()
-            setPendingDuplicateHapiSessionIds(result.hapiSessionIds ?? [])
+            setPendingDuplicateHamletSessionIds(result.hamletSessionIds ?? [])
             try {
                 const duplicateResult = await props.api.getCodexDuplicateSessions({ sessionIds })
                 if (!duplicateResult.success) {
@@ -1158,7 +1159,7 @@ export function NewSession(props: {
                 }
                 if (duplicateResult.duplicates.length > 0) {
                     setPendingDuplicateSessionIds(sessionIds)
-                    setPendingDuplicateHapiSessionIds(result.hapiSessionIds ?? [])
+                    setPendingDuplicateHamletSessionIds(result.hamletSessionIds ?? [])
                     setDuplicateSessionGroups(duplicateResult.duplicates)
                     setIsDuplicateMergeConfirmOpen(true)
                 }
@@ -1219,7 +1220,7 @@ export function NewSession(props: {
             })
             const redirectSessionId = resolveCodexImportRedirectSessionId(
                 result.merged,
-                pendingDuplicateHapiSessionIds
+                pendingDuplicateHamletSessionIds
             )
             closeDuplicateMergeDialog()
             await refetchSessions()
@@ -1243,7 +1244,7 @@ export function NewSession(props: {
         closeDuplicateMergeDialog,
         isMergingDuplicateSessions,
         normalizeCodexScriptError,
-        pendingDuplicateHapiSessionIds,
+        pendingDuplicateHamletSessionIds,
         pendingDuplicateSessionIds,
         props.api,
         props.onSuccess,
@@ -1260,7 +1261,7 @@ export function NewSession(props: {
                 cwd: trimmedDirectory || null,
                 machineId: piImportMachineId ?? machineId
             })
-            const importedCount = result.results.filter((item) => item.hapiSessionId && !item.error).length
+            const importedCount = result.results.filter((item) => item.hamletSessionId && !item.error).length
             const failed = result.results.filter((item) => item.error)
             if (importedCount > 0) {
                 addToast({
@@ -1572,11 +1573,11 @@ export function NewSession(props: {
                     yolo: nativePermissionMode === 'yolo'
                 })
                 if (result.success) {
-                    const importedSessionId = result.hapiSessionIds?.[0]
+                    const importedSessionId = result.hamletSessionIds?.[0]
                     if (!importedSessionId) {
                         throw new Error('Imported session id missing')
                     }
-                    // 中文注释：Codex transcript 导入只会创建 Hapi 记录，不会自动启动 agent。
+                    // 中文注释：Codex transcript 导入只会创建 Hamlet 记录，不会自动启动 agent。
                     // 这里立刻 resume，避免进入会话页时先看到离线，等首条消息才触发启动。
                     const resumedSessionId = await props.api.resumeSession(
                         importedSessionId,
@@ -1613,8 +1614,8 @@ export function NewSession(props: {
                     setError(formatPiImportError(imported.error.code, imported.error.message))
                     return
                 }
-                if (!imported?.hapiSessionId) throw new Error(result.error || t('piImport.failed.body'))
-                const reopened = await props.api.reopenSession(imported.hapiSessionId)
+                if (!imported?.hamletSessionId) throw new Error(result.error || t('piImport.failed.body'))
+                const reopened = await props.api.reopenSession(imported.hamletSessionId)
                 haptic.notification('success')
                 savePreferredLaunchSettings(machineId, agent, preferredLaunchSettings)
                 clearNewSessionFormDraft()
@@ -1720,6 +1721,12 @@ export function NewSession(props: {
 
     return (
         <div className="flex flex-col divide-y divide-[var(--app-divider)] [&>div]:pr-[10px] lg:[&>div]:pr-3">
+            <button type="button" disabled={openingMain} className="px-3 py-2 text-left text-[var(--app-link)]" onClick={async () => {
+                setOpeningMain(true)
+                try { props.onSuccess((await props.api.openHamletMain()).agent_id) }
+                catch (err) { setError(err instanceof Error ? err.message : String(err)) }
+                finally { setOpeningMain(false) }
+            }}>{t('newSession.hamletMain')}</button>
             <MachineSelector
                 machines={props.machines}
                 machineId={machineId}

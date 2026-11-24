@@ -5,11 +5,11 @@ describe("RawJSONLinesSchema", () => {
     it("accepts Claude Code native ai-title events", () => {
         expect(RawJSONLinesSchema.parse({
             type: "ai-title",
-            aiTitle: "根据交接文档部署 HAPI 服务",
+            aiTitle: "根据交接文档部署 HAMLET 服务",
             sessionId: "session-1"
         })).toEqual({
             type: "ai-title",
-            aiTitle: "根据交接文档部署 HAPI 服务",
+            aiTitle: "根据交接文档部署 HAMLET 服务",
             sessionId: "session-1"
         });
     });

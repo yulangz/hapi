@@ -44,7 +44,7 @@ export function annotatedVideoUseOption(mode = 'on', size) {
 }
 
 export function shouldRecordAnnotatedVideo() {
-    return process.env.HAPI_PEER_RECORD_VIDEO === '1' || process.env.PLAYWRIGHT_RECORD_VIDEO === '1'
+    return process.env.HAMLET_PEER_RECORD_VIDEO === '1' || process.env.PLAYWRIGHT_RECORD_VIDEO === '1'
 }
 
 /**

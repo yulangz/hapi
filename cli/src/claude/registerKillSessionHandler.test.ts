@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import { registerKillSessionHandler } from './registerKillSessionHandler'
 
 // tiann/hapi#914: the KillSession RPC is the authoritative "user-terminated"
@@ -34,7 +34,7 @@ describe('registerKillSessionHandler (tiann/hapi#914)', () => {
         expect(handler).toBeDefined()
 
         const result = await handler?.()
-        expect(result).toEqual({ success: true, message: 'Killing hapi CLI process' })
+        expect(result).toEqual({ success: true, message: 'Killing hamlet CLI process' })
 
         // setArchiveReason MUST be called BEFORE cleanupAndExit so the archive
         // metadata write reads the correct reason.

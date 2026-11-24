@@ -1,4 +1,4 @@
-import { isObject, safeStringify } from '@hapi/protocol'
+import { isObject, safeStringify } from '@hamlet/protocol'
 import { getInputStringAny, truncate } from '@/lib/toolInputUtils'
 
 export const codexAgentToolNames = [

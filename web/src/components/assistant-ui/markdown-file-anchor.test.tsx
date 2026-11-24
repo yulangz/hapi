@@ -25,7 +25,7 @@ function renderFileAnchor(filePath: string) {
     return render(
         <I18nProvider>
             <UriConfirmProvider>
-                <AnchorComponent href={`hapi-file:${encodeURIComponent(filePath)}`}>
+                <AnchorComponent href={`hamlet-file:${encodeURIComponent(filePath)}`}>
                     {filePath}
                 </AnchorComponent>
             </UriConfirmProvider>
@@ -42,7 +42,7 @@ describe('chat file anchors', () => {
         const filePath = 'docs/guide.md'
         renderFileAnchor(filePath)
         const link = screen.getByRole('link', { name: filePath })
-        const href = new URL(link.getAttribute('href')!, 'https://hapi.example')
+        const href = new URL(link.getAttribute('href')!, 'https://hamlet.example')
 
         expect(href.pathname).toBe('/sessions/session-1/file')
         expect(href.searchParams.get('path')).toBe(encodeBase64(filePath))

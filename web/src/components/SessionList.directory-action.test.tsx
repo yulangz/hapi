@@ -12,8 +12,8 @@ const SEARCH_PLACEHOLDER = 'Search title/path/Agent/machine/ID…'
 
 afterEach(() => {
     cleanup()
-    localStorage.removeItem('hapi-session-preview-limit')
-    localStorage.removeItem('hapi-pin-in-progress-sessions')
+    localStorage.removeItem('hamlet-session-preview-limit')
+    localStorage.removeItem('hamlet-pin-in-progress-sessions')
 })
 
 function makeSession(overrides: Partial<SessionSummary> & { id: string }): SessionSummary {
@@ -250,7 +250,7 @@ describe('SessionList time filter', () => {
         const session = makeSession({
             id: 'session-1',
             updatedAt: Date.now(),
-            metadata: { path: '/work/hapi', name: 'Session' }
+            metadata: { path: '/work/hamlet', name: 'Session' }
         })
 
         renderWithProviders(
@@ -284,7 +284,7 @@ describe('SessionList time filter', () => {
         const session = makeSession({
             id: 'session-1',
             updatedAt: Date.now(),
-            metadata: { path: '/work/hapi', name: 'Session' }
+            metadata: { path: '/work/hamlet', name: 'Session' }
         })
 
         renderWithProviders(
@@ -382,7 +382,7 @@ describe('SessionList collapse behavior', () => {
     }
 
     function getProjectPanel(): Element {
-        const header = screen.getByTitle('/work/hapi')
+        const header = screen.getByTitle('/work/hamlet')
         const panel = header.nextElementSibling
         if (!panel) {
             throw new Error('Expected project collapse panel')
@@ -391,7 +391,7 @@ describe('SessionList collapse behavior', () => {
     }
 
     it('keeps a selected running path collapsed across live session-list refreshes', async () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const baseSessions = [
             makeSession({
                 id: 'session-running',
@@ -399,12 +399,12 @@ describe('SessionList collapse behavior', () => {
                 thinking: true,
                 pendingRequestsCount: 1,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-old',
                 updatedAt: 50,
-                metadata: { path: '/work/hapi', name: 'Older task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Older task', flavor: 'codex' },
             })
         ]
         const { rerender } = render(renderSessionList(baseSessions))
@@ -435,7 +435,7 @@ describe('SessionList collapse behavior', () => {
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-idle',
@@ -446,26 +446,26 @@ describe('SessionList collapse behavior', () => {
         render(renderSessionList(sessions, null))
 
         expect(screen.queryByTitle('In progress')).toBeNull()
-        expect(screen.getByTitle('/work/hapi')).toBeInTheDocument()
+        expect(screen.getByTitle('/work/hamlet')).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /Running task/ })).toBeInTheDocument()
         // Active group stays expanded by default so the project glance is immediate.
-        expect(screen.getByTitle('/work/hapi').nextElementSibling?.getAttribute('data-open')).toBe('true')
+        expect(screen.getByTitle('/work/hamlet').nextElementSibling?.getAttribute('data-open')).toBe('true')
     })
 
     it('pins active sessions into In progress when the preference is on', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-running',
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-idle',
                 updatedAt: 50,
-                metadata: { path: '/work/hapi', name: 'Idle task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Idle task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions, null))
@@ -477,7 +477,7 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('keeps project-pinned active sessions in their project group when the preference is on', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-pinned-running',
@@ -485,12 +485,12 @@ describe('SessionList collapse behavior', () => {
                 thinking: true,
                 pinned: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Pinned running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Pinned running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-idle',
                 updatedAt: 50,
-                metadata: { path: '/work/hapi', name: 'Idle task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Idle task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions, null))
@@ -501,7 +501,7 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('keeps In progress above project-pin groups; project pin stays first inside its group', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-global',
@@ -558,7 +558,7 @@ describe('SessionList collapse behavior', () => {
                 id: 'session-quiet',
                 active: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Quiet task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Quiet task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions, null))
@@ -569,20 +569,20 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('keeps quiet active sessions in the Active section when pin-in-progress is on', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-running',
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-quiet',
                 active: true,
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Quiet task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Quiet task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-pending',
@@ -604,21 +604,21 @@ describe('SessionList collapse behavior', () => {
         expect(screen.getByRole('button', { name: /Quiet task/ })).toBeInTheDocument()
         // The directory header survives as an action-only header (copy-path /
         // new-session-in-directory) even though every row floated.
-        expect(screen.getByTitle('/work/hapi')).toBeInTheDocument()
-        expect(screen.getByTitle('/work/hapi').nextElementSibling).toBeNull()
+        expect(screen.getByTitle('/work/hamlet')).toBeInTheDocument()
+        expect(screen.getByTitle('/work/hamlet').nextElementSibling).toBeNull()
         expect(screen.getByTitle('/work/other')).toBeInTheDocument()
         expect(screen.getByTitle('/work/other').nextElementSibling).toBeNull()
     })
 
     it('keeps new-session-in-directory actions for projects whose rows all floated', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const onNewSessionInDirectory = vi.fn()
         const sessions = [
             makeSession({
                 id: 'session-quiet',
                 active: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', machineId: 'machine-1', name: 'Quiet task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', machineId: 'machine-1', name: 'Quiet task', flavor: 'codex' },
             }),
         ]
         renderWithProviders(
@@ -637,13 +637,13 @@ describe('SessionList collapse behavior', () => {
 
         expect(screen.getByTitle('Active sessions')).toBeInTheDocument()
         // The project header survives as an action-only header.
-        const header = screen.getByTitle('/work/hapi')
+        const header = screen.getByTitle('/work/hamlet')
         expect(header.nextElementSibling).toBeNull()
 
         fireEvent.click(screen.getByRole('button', { name: 'New session in this directory' }))
         expect(onNewSessionInDirectory).toHaveBeenCalledWith({
             machineId: 'machine-1',
-            directory: '/work/hapi',
+            directory: '/work/hamlet',
         })
     })
 
@@ -652,12 +652,12 @@ describe('SessionList collapse behavior', () => {
             makeSession({
                 id: 'session-first',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-next',
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Next task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Next task', flavor: 'codex' },
             })
         ]
         const { rerender } = render(renderSessionList(sessions))
@@ -673,7 +673,7 @@ describe('SessionList collapse behavior', () => {
                 active: true,
                 thinking: true,
                 updatedAt: 110,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
         ], 'session-next'))
 
@@ -688,12 +688,12 @@ describe('SessionList collapse behavior', () => {
                 id: 'session-pinned',
                 pinned: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Pinned task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Pinned task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-idle',
                 updatedAt: 50,
-                metadata: { path: '/work/hapi', name: 'Idle task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Idle task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions, null))
@@ -704,20 +704,20 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('toggles the Active section independently of In progress', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-running',
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-quiet',
                 active: true,
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Quiet task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Quiet task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions, null))
@@ -742,19 +742,19 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('keeps the running section open while searching even when collapsed', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-running',
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-idle',
                 updatedAt: 50,
-                metadata: { path: '/work/hapi', name: 'Idle task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Idle task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions))
@@ -780,14 +780,14 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('toggles the running section with the keyboard', () => {
-        localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+        localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
         const sessions = [
             makeSession({
                 id: 'session-running',
                 active: true,
                 thinking: true,
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Running task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Running task', flavor: 'codex' },
             }),
         ]
         render(renderSessionList(sessions))
@@ -828,12 +828,12 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('keeps the configured session preview fold while searching', () => {
-        localStorage.setItem('hapi-session-preview-limit', '2')
+        localStorage.setItem('hamlet-session-preview-limit', '2')
         const sessions = Array.from({ length: 4 }, (_, index) => makeSession({
             id: `matching-${index + 1}`,
             updatedAt: 100 - index,
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: `Matching task ${index + 1}`,
                 flavor: 'codex',
             },
@@ -857,12 +857,12 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('expands and collapses the session preview one batch at a time', () => {
-        localStorage.setItem('hapi-session-preview-limit', '2')
+        localStorage.setItem('hamlet-session-preview-limit', '2')
         const sessions = Array.from({ length: 6 }, (_, index) => makeSession({
             id: `session-${index + 1}`,
             updatedAt: 100 - index,
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: `Task ${index + 1}`,
                 flavor: 'codex',
             },
@@ -900,13 +900,13 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('does not offer a no-op collapse when required sessions exceed the preview limit', () => {
-        localStorage.setItem('hapi-session-preview-limit', '2')
+        localStorage.setItem('hamlet-session-preview-limit', '2')
         const sessions = Array.from({ length: 4 }, (_, index) => makeSession({
             id: `session-${index + 1}`,
             updatedAt: 100 - index,
             pendingRequestsCount: index > 0 ? 1 : 0,
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: `Task ${index + 1}`,
                 flavor: 'codex',
             },
@@ -930,13 +930,13 @@ describe('SessionList collapse behavior', () => {
     })
 
     it('expands from the rendered count when required sessions exceed the preview limit', () => {
-        localStorage.setItem('hapi-session-preview-limit', '2')
+        localStorage.setItem('hamlet-session-preview-limit', '2')
         const sessions = Array.from({ length: 8 }, (_, index) => makeSession({
             id: `session-${index + 1}`,
             updatedAt: 100 - index,
             pendingRequestsCount: index < 5 ? 1 : 0,
             metadata: {
-                path: '/work/hapi',
+                path: '/work/hamlet',
                 name: `Task ${index + 1}`,
                 flavor: 'codex',
             },
@@ -963,12 +963,12 @@ describe('SessionList search toggle', () => {
             makeSession({
                 id: 'session-match',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Matching task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Matching task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-other',
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Other task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Other task', flavor: 'codex' },
             }),
         ]
 
@@ -1009,12 +1009,12 @@ describe('SessionList search toggle', () => {
             makeSession({
                 id: 'session-jelly',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'jellybot task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'jellybot task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-other',
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Other task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Other task', flavor: 'codex' },
             }),
         ]
 
@@ -1054,12 +1054,12 @@ describe('SessionList search toggle', () => {
             makeSession({
                 id: 'session-match',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Matching task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Matching task', flavor: 'codex' },
             }),
             makeSession({
                 id: 'session-other',
                 updatedAt: 90,
-                metadata: { path: '/work/hapi', name: 'Other task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Other task', flavor: 'codex' },
             }),
         ]
 
@@ -1097,7 +1097,7 @@ describe('SessionList search toggle', () => {
                 sessions={[makeSession({
                     id: 'session-1',
                     updatedAt: 100,
-                    metadata: { path: '/work/hapi', name: 'Task', flavor: 'codex' },
+                    metadata: { path: '/work/hamlet', name: 'Task', flavor: 'codex' },
                 })]}
                 selectedSessionId={null}
                 onSelect={vi.fn()}
@@ -1151,7 +1151,7 @@ describe('SessionList search toggle', () => {
             makeSession({
                 id: 'session-1',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', name: 'Task', flavor: 'codex' },
+                metadata: { path: '/work/hamlet', name: 'Task', flavor: 'codex' },
             }),
         ]))
 

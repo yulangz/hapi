@@ -17,10 +17,10 @@ describe('isFullyHookCoveredExecSource', () => {
 
     it('accepts literal MCP property access', () => {
         expect(isFullyHookCoveredExecSource(`
-            await tools.mcp__hapi__change_title({ title: 'Title' });
+            await tools.mcp__hamlet__change_title({ title: 'Title' });
         `)).toBe(true);
         expect(isFullyHookCoveredExecSource(`
-            await tools['mcp__hapi__change_title']({ title: 'Title' });
+            await tools['mcp__hamlet__change_title']({ title: 'Title' });
         `)).toBe(true);
     });
 

@@ -4,8 +4,8 @@ import {
     getPermissionModeLabel,
     getPermissionModeTone,
     isPermissionModeAllowedForFlavor
-} from '@hapi/protocol'
-import type { PermissionModeTone } from '@hapi/protocol'
+} from '@hamlet/protocol'
+import type { PermissionModeTone } from '@hamlet/protocol'
 import * as Popover from '@radix-ui/react-popover'
 import { useMemo } from 'react'
 import type { AgentState, CodexCollaborationMode, PermissionMode } from '@/types/api'
@@ -212,7 +212,7 @@ export function StatusBar(props: {
     serviceTier?: string | null
     permissionMode?: PermissionMode
     collaborationMode?: CodexCollaborationMode
-    copilotAgentMode?: import('@hapi/protocol').CopilotAgentMode
+    copilotAgentMode?: import('@hamlet/protocol').CopilotAgentMode
     agentFlavor?: string | null
     voiceStatus?: ConversationStatus
 }) {

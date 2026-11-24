@@ -52,14 +52,14 @@ function createFakeChild() {
 
 afterEach(() => {
     vi.clearAllMocks()
-    delete process.env.HAPI_CLAUDE_PATH
+    delete process.env.HAMLET_CLAUDE_PATH
 })
 
 describe('claudeRemote/query real seam', () => {
     it('propagates scheduled nextMessage failures through real query prompt plumbing', async () => {
         const child = createFakeChild()
         spawnMock.mockReturnValueOnce(child)
-        process.env.HAPI_CLAUDE_PATH = 'claude'
+        process.env.HAMLET_CLAUDE_PATH = 'claude'
         const { claudeRemote } = await import('./claudeRemote')
 
         const received: SDKMessage[] = []

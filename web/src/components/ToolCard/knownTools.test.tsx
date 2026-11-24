@@ -7,11 +7,11 @@ describe('formatTerminalCommandTitle', () => {
         ['bun run test --watch', 'bun run test'],
         ['git status --short', 'git status'],
         ['rg -n "foo" web/src', 'rg'],
-        ['sudo systemctl restart hapi', 'systemctl restart'],
+        ['sudo systemctl restart hamlet', 'systemctl restart'],
         ['CI=1 env NODE_ENV=test npm run lint -- --fix', 'npm run lint'],
         ['/usr/bin/docker compose up -d', 'docker compose up'],
         ['git -C /tmp/repo status', 'git'],
-        ['sudo -u root systemctl restart hapi', null],
+        ['sudo -u root systemctl restart hamlet', null],
         ['bun test && bun typecheck', null],
         ['', null],
     ])('formats %j as %j', (command, expected) => {
@@ -413,5 +413,12 @@ describe('getToolPresentation — request_user_input', () => {
 
         expect(presentation.title).toBe('Question')
         expect(presentation.subtitle).toBe('Continue?')
+    })
+})
+
+describe('Hamlet tool cards', () => {
+    it.each(['mcp__hamlet__agent_steer', 'mcp__hapi__agent_steer', 'functions.hamlet__agent_steer'])('labels %s consistently', name => {
+        expect(getToolPresentation({ toolName: name, input: {}, result: null, childrenCount: 0, description: null, metadata: null }).title)
+            .toBe('Hamlet · Agent Steer')
     })
 })

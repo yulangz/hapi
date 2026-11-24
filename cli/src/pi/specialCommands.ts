@@ -1,5 +1,5 @@
 /**
- * Pi built-in commands that exist in the pi TUI but cannot run through HAPI
+ * Pi built-in commands that exist in the pi TUI but cannot run through HAMLET
  * (pi only runs as `pi --mode rpc` with piped stdio; these commands need the
  * interactive TUI). Typing them in web today passes the literal text to the
  * LLM as an ordinary prompt — silently doing nothing. Intercepting them with

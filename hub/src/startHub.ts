@@ -108,7 +108,7 @@ export interface StartHubOptions {
 }
 
 export async function startHub(options: StartHubOptions = {}): Promise<HubInstance> {
-    console.log('HAPI Hub starting...')
+    console.log('HAMLET Hub starting...')
 
     let syncEngine: SyncEngine | null = null
     let happyBot: HappyBot | null = null
@@ -119,9 +119,9 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     let tunnelManager: TunnelManager | null = null
 
     // Load configuration (async - loads from env/file with persistence)
-    const relayApiDomain = process.env.HAPI_RELAY_API || 'relay.hapi.run'
+    const relayApiDomain = process.env.HAMLET_RELAY_API || 'relay.hapi.run'
     const relayFlag = resolveRelayFlag(options.args ?? process.argv)
-    const officialWebUrl = process.env.HAPI_OFFICIAL_WEB_URL || 'https://app.hapi.run'
+    const officialWebUrl = process.env.HAMLET_OFFICIAL_WEB_URL || 'https://app.hapi.run'
     const config = await createConfiguration()
     const baseCorsOrigins = normalizeOrigins(config.corsOrigins)
     const relayCorsOrigin = normalizeOrigin(officialWebUrl)
@@ -147,9 +147,9 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     }
 
     // Display other configuration sources
-    console.log(`[Hub] HAPI_LISTEN_HOST: ${config.listenHost} (${formatSource(config.sources.listenHost)})`)
-    console.log(`[Hub] HAPI_LISTEN_PORT: ${config.listenPort} (${formatSource(config.sources.listenPort)})`)
-    console.log(`[Hub] HAPI_PUBLIC_URL: ${config.publicUrl} (${formatSource(config.sources.publicUrl)})`)
+    console.log(`[Hub] HAMLET_LISTEN_HOST: ${config.listenHost} (${formatSource(config.sources.listenHost)})`)
+    console.log(`[Hub] HAMLET_LISTEN_PORT: ${config.listenPort} (${formatSource(config.sources.listenPort)})`)
+    console.log(`[Hub] HAMLET_PUBLIC_URL: ${config.publicUrl} (${formatSource(config.sources.publicUrl)})`)
 
     if (!config.telegramEnabled) {
         console.log('[Hub] Telegram: disabled (no TELEGRAM_BOT_TOKEN)')
@@ -208,6 +208,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     })
 
     syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager)
+    syncEngine.hamlet.start()
     // Accountable principal for A2A work-graph notify ingest (P3).
     syncEngine.setHubOwnerUserId(await getOrCreateOwnerId())
 
@@ -314,7 +315,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
                     config.settingsFile,
                     rejectedKey
                 ),
-                useRelay: process.env.HAPI_RELAY_FORCE_TCP === 'true' || process.env.HAPI_RELAY_FORCE_TCP === '1'
+                useRelay: process.env.HAMLET_RELAY_FORCE_TCP === 'true' || process.env.HAMLET_RELAY_FORCE_TCP === '1'
             })
             tunnelUrl = await tunnelManager.start()
         } catch (error) {
@@ -366,9 +367,9 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
                 hub: tunnelUrl,
                 code: config.cliApiToken
             })
-            const companionDeeplink = `hapicompanion://bind?${companionParams.toString()}`
+            const companionDeeplink = `hamletcompanion://bind?${companionParams.toString()}`
             console.log('')
-            console.log('Or pair the HAPI companion app (iOS / Android / Wear OS):')
+            console.log('Or pair the HAMLET companion app (iOS / Android / Wear OS):')
             console.log(`  ${companionDeeplink}`)
             try {
                 const companionQrString = await QRCode.toString(companionDeeplink, {
@@ -387,7 +388,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
         void announceTunnelAccess()
     }
     console.log('')
-    console.log('HAPI Hub is ready!')
+    console.log('HAMLET Hub is ready!')
 
     return {
         stop: async () => {

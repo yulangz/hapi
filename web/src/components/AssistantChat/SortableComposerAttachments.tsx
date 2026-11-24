@@ -43,8 +43,8 @@ function findAttachmentDropTarget(clientX: number, clientY: number): AttachmentD
     if (typeof document.elementsFromPoint !== 'function') return null
 
     for (const element of document.elementsFromPoint(clientX, clientY)) {
-        const target = element.closest<HTMLElement>('[data-hapi-composer-attachment-id]')
-        const id = target?.dataset.hapiComposerAttachmentId
+        const target = element.closest<HTMLElement>('[data-hamlet-composer-attachment-id]')
+        const id = target?.dataset.hamletComposerAttachmentId
         if (id && target) {
             const rect = target.getBoundingClientRect()
             const position = clientX >= rect.left + rect.width / 2 ? 'after' : 'before'
@@ -106,8 +106,8 @@ function SortableComposerAttachment(props: SortableComposerAttachmentProps) {
 
     return (
         <div
-            data-hapi-composer-attachment-id={attachment.id}
-            data-hapi-composer-attachment-dragging={isDragging || undefined}
+            data-hamlet-composer-attachment-id={attachment.id}
+            data-hamlet-composer-attachment-dragging={isDragging || undefined}
             className={isDragging ? 'opacity-60' : undefined}
         >
             <ComposerPrimitive.AttachmentByIndex

@@ -1,4 +1,4 @@
-import { PI_THINKING_LEVELS, PI_THINKING_LEVEL_LABELS, type PiThinkingLevel } from '@hapi/protocol'
+import { PI_THINKING_LEVELS, PI_THINKING_LEVEL_LABELS, type PiThinkingLevel } from '@hamlet/protocol'
 import type { PiThinkingLevelMap } from '@/types/api'
 
 type PiThinkingLevelOption = {

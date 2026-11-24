@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { isMachineCapabilitySkewed, cliBinaryUpdatedOnDisk } from '@hapi/protocol/runnerCapabilities'
+import { isMachineCapabilitySkewed, cliBinaryUpdatedOnDisk } from '@hamlet/protocol/runnerCapabilities'
 import type { Machine } from '@/types/api'
 import { useMachines } from '@/hooks/queries/useMachines'
 import { useTranslation } from '@/lib/use-translation'
@@ -32,7 +32,7 @@ export function listSkewedMachines(machines: Machine[]): Machine[] {
  * Compact, minimizable skew banner (#1084 dogfood).
  * Temp-dismiss (1h, sessionStorage) or minimize so sessions stay clickable.
  * Manual Restart asks hub to stop-runner (escape hatch when version handoff
- * is stuck or HAPI_DISABLE_VERSION_HANDOFF=1). Normal upgrades self-restart.
+ * is stuck or HAMLET_DISABLE_VERSION_HANDOFF=1). Normal upgrades self-restart.
  */
 export function RunnerVersionSkewBanner({ topClassName }: { topClassName?: string } = {}) {
     const { api } = useAppContext()

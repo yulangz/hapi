@@ -5,7 +5,7 @@ import { fetchQwenToken } from '@/api/voice'
 import { GeminiAudioRecorder } from './gemini/audioRecorder'
 import { GeminiAudioPlayer } from './gemini/audioPlayer'
 import { realtimeClientTools } from './realtimeClientTools'
-import { resolveQwenRealtimeVoice } from '@hapi/protocol/voicePickerCatalog'
+import { resolveQwenRealtimeVoice } from '@hamlet/protocol/voicePickerCatalog'
 import {
     buildResolvedVoiceSystemPrompt,
     encodeVoiceSystemPromptForProxy,

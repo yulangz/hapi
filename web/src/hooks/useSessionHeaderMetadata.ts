@@ -27,7 +27,7 @@ export const DEFAULT_SESSION_HEADER_METADATA: SessionHeaderMetadataPreferences =
     worktree: true,
 }
 
-const STORAGE_KEY = 'hapi-session-header-metadata'
+const STORAGE_KEY = 'hamlet-session-header-metadata'
 
 function isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof document !== 'undefined'

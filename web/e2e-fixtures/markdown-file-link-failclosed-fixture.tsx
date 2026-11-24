@@ -16,9 +16,9 @@ const SAMPLE = `## Fail-closed markdown file links (#1452)
 
 Allowlisted relative (preview): [docs](docs/foo.md)
 
-Absolute in workspace (preview): [abs](/home/ada/coding/hapi/docs/a.md)
+Absolute in workspace (preview): [abs](/home/ada/coding/hamlet/docs/a.md)
 
-Tilde in workspace (preview): [tilde](~/coding/hapi/docs/a.md)
+Tilde in workspace (preview): [tilde](~/coding/hamlet/docs/a.md)
 
 Fragment (preview): [frag](docs/foo.md#section)
 
@@ -37,7 +37,7 @@ function chatValue(): HappyChatContextValue {
     return {
         api: {} as ApiClient,
         sessionId: 'fixture-session',
-        metadata: { path: '/home/ada/coding/hapi', host: 'local' },
+        metadata: { path: '/home/ada/coding/hamlet', host: 'local' },
         terminalToolDisplayMode: 'compact',
         disabled: false,
         onRefresh: () => {},

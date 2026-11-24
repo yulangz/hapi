@@ -1,6 +1,6 @@
-# HAPI push relay - build with the relay/ directory as context:
+# HAMLET push relay - build with the relay/ directory as context:
 #
-#   docker build -t hapi-push-relay relay/
+#   docker build -t hamlet-push-relay relay/
 #
 # The relay has a single runtime dependency (jose), so a fresh install from
 # the package manifest is deliberate - no workspace lockfile gymnastics.

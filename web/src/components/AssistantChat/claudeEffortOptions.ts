@@ -1,4 +1,4 @@
-import { CLAUDE_EFFORT_LABELS, CLAUDE_EFFORT_LEVELS, type ClaudeEffortLevel } from '@hapi/protocol'
+import { CLAUDE_EFFORT_LABELS, CLAUDE_EFFORT_LEVELS, type ClaudeEffortLevel } from '@hamlet/protocol'
 
 export type ClaudeComposerEffortOption = {
     value: string | null

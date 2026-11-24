@@ -113,7 +113,7 @@ describe('kimiLocalLauncher title sync', () => {
         expect(harness.titleWatcherCleanup).toHaveBeenCalledTimes(1);
     });
 
-    it('does not update metadata when the resumed HAPI title already matches', async () => {
+    it('does not update metadata when the resumed HAMLET title already matches', async () => {
         const metadata: Metadata = {
             path: '/tmp/workspace',
             host: 'localhost',

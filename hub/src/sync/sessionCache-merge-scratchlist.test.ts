@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SyncEvent } from '@hapi/protocol/types'
+import type { SyncEvent } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import type { EventPublisher } from './eventPublisher'
 import { SessionCache } from './sessionCache'
@@ -78,15 +78,15 @@ describe('mergeSessions (deleteOldSession=true) - scratchlist transfer', () => {
         const { mkdtempSync, rmSync } = await import('node:fs')
         const { join } = await import('node:path')
         const { tmpdir } = await import('node:os')
-        const hapiHome = mkdtempSync(join(tmpdir(), 'hapi-merge-att-'))
-        const prevHome = process.env.HAPI_HOME
-        process.env.HAPI_HOME = hapiHome
+        const hamletHome = mkdtempSync(join(tmpdir(), 'hamlet-merge-att-'))
+        const prevHome = process.env.HAMLET_HOME
+        process.env.HAMLET_HOME = hamletHome
         try {
             const { store, cache } = setup()
             const { oldSession, newSession } = makeSessions(cache)
             const { writeScratchlistAttachmentFile } = await import('../scratchlistAttachments/storage')
             const att = await writeScratchlistAttachmentFile(
-                hapiHome,
+                hamletHome,
                 'default',
                 oldSession.id,
                 'note.png',
@@ -108,19 +108,19 @@ describe('mergeSessions (deleteOldSession=true) - scratchlist transfer', () => {
 
             const { sumScratchlistAttachmentBytesOnDisk, resolveScratchlistAttachmentsForSession } =
                 await import('../scratchlistAttachments/storage')
-            expect(await sumScratchlistAttachmentBytesOnDisk(hapiHome, 'default', newSession.id)).toBe(3)
-            expect(await sumScratchlistAttachmentBytesOnDisk(hapiHome, 'default', oldSession.id)).toBe(0)
+            expect(await sumScratchlistAttachmentBytesOnDisk(hamletHome, 'default', newSession.id)).toBe(3)
+            expect(await sumScratchlistAttachmentBytesOnDisk(hamletHome, 'default', oldSession.id)).toBe(0)
             const resolved = await resolveScratchlistAttachmentsForSession(
-                hapiHome,
+                hamletHome,
                 'default',
                 newSession.id,
                 onNew[0]!.attachments
             )
             expect(resolved.ok).toBe(true)
         } finally {
-            if (prevHome === undefined) delete process.env.HAPI_HOME
-            else process.env.HAPI_HOME = prevHome
-            rmSync(hapiHome, { recursive: true, force: true })
+            if (prevHome === undefined) delete process.env.HAMLET_HOME
+            else process.env.HAMLET_HOME = prevHome
+            rmSync(hamletHome, { recursive: true, force: true })
         }
     })
 
@@ -216,7 +216,7 @@ describe('mergeSessionHistory (deleteOldSession=false) - scratchlist transfer', 
     })
 
     it('emits scratchlistUpdatedAt on the still-alive old session when every entry collides (moved=0)', async () => {
-        // HAPI Bot PR #896: all-collision transfer deletes old rows
+        // HAMLET Bot PR #896: all-collision transfer deletes old rows
         // without moving any; the old session stays visible in the
         // mergeSessionHistory path and must still get an invalidation.
         const { store, events, cache } = setup()

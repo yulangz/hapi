@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import type { TextMessagePartComponent } from '@assistant-ui/react'
-import { splitNotifySummary, stripNotifySummaryFooter, type NotifySummary } from '@hapi/protocol/messages'
+import { splitNotifySummary, stripNotifySummaryFooter, type NotifySummary } from '@hamlet/protocol/messages'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { MarkdownText } from '@/components/assistant-ui/markdown-text'
 import { CheckIcon } from '@/components/icons'

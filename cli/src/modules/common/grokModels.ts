@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand'
-import { asString, isObject } from '@hapi/protocol'
-import type { GrokModelSummary, GrokModelsResponse, GrokReasoningEffortOption } from '@hapi/protocol/apiTypes'
+import { asString, isObject } from '@hamlet/protocol'
+import type { GrokModelSummary, GrokModelsResponse, GrokReasoningEffortOption } from '@hamlet/protocol/apiTypes'
 import { AcpStdioTransport } from '@/agent/backends/acp/AcpStdioTransport'
 import { assertSafeWindowsShellArg } from '@/grok/utils/windowsShellArgs'
 import { getErrorMessage } from './rpcResponses'
@@ -182,7 +182,7 @@ async function runGrokModelsProbe(cwd: string): Promise<ListGrokModelsForCwdResp
                 terminal: false,
                 _meta: { parameterizedModelPicker: true }
             },
-            clientInfo: { name: 'hapi-grok-models', version: packageJson.version }
+            clientInfo: { name: 'hamlet-grok-models', version: packageJson.version }
         }, { timeoutMs: PROBE_TIMEOUT_MS })
         const parsed = parseGrokInitializeModels(response)
         if (parsed.availableModels.length > 0) {

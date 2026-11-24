@@ -16,7 +16,7 @@ afterEach(async () => {
 
 describe('GET/PUT /api/hub-settings', () => {
     async function createApp(namespace = 'default') {
-        const dataDir = await mkdtemp(join(tmpdir(), 'hapi-hub-settings-'))
+        const dataDir = await mkdtemp(join(tmpdir(), 'hamlet-hub-settings-'))
         directories.push(dataDir)
         const app = new Hono<WebAppEnv>()
         app.use('*', async (c, next) => {

@@ -6,9 +6,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { materializePiTitleExtension, PI_TITLE_EXTENSION_SOURCE } from './titleExtension';
 
 describe('pi title extension source', () => {
-    it('registers a namespaced hapi_change_title tool and applies it via setTitle', () => {
+    it('registers a namespaced hamlet_change_title tool and applies it via setTitle', () => {
         expect(PI_TITLE_EXTENSION_SOURCE).toContain("name: TOOL_NAME");
-        expect(PI_TITLE_EXTENSION_SOURCE).toContain("'hapi_change_title'");
+        expect(PI_TITLE_EXTENSION_SOURCE).toContain("'hamlet_change_title'");
         expect(PI_TITLE_EXTENSION_SOURCE).toContain('ctx.ui.setTitle');
     });
 
@@ -26,17 +26,17 @@ describe('pi title extension source', () => {
 
 describe('materializePiTitleExtension', () => {
     it('writes the extension into the target dir and returns its path', async () => {
-        const dir = await mkdtemp(join(tmpdir(), 'hapi-pi-title-'));
+        const dir = await mkdtemp(join(tmpdir(), 'hamlet-pi-title-'));
         const file = await materializePiTitleExtension(dir);
 
-        expect(file).toBe(join(dir, 'hapi-title-extension.ts'));
+        expect(file).toBe(join(dir, 'hamlet-title-extension.ts'));
         const content = await readFile(file, 'utf8');
-        expect(content).toContain('hapiTitleExtension');
-        expect(content).toContain('hapi_change_title');
+        expect(content).toContain('hamletTitleExtension');
+        expect(content).toContain('hamlet_change_title');
     });
 
     it('creates missing directories and is idempotent', async () => {
-        const root = await mkdtemp(join(tmpdir(), 'hapi-pi-title-'));
+        const root = await mkdtemp(join(tmpdir(), 'hamlet-pi-title-'));
         const dir = join(root, 'runtime', '0.0.0-test', 'pi');
 
         const first = await materializePiTitleExtension(dir);
@@ -46,21 +46,21 @@ describe('materializePiTitleExtension', () => {
     });
 
     it('publishes atomically under concurrent launches', async () => {
-        const dir = await mkdtemp(join(tmpdir(), 'hapi-pi-title-'));
+        const dir = await mkdtemp(join(tmpdir(), 'hamlet-pi-title-'));
 
         const paths = await Promise.all(
             Array.from({ length: 8 }, () => materializePiTitleExtension(dir)),
         );
 
         expect(new Set(paths).size).toBe(1);
-        const content = await readFile(join(dir, 'hapi-title-extension.ts'), 'utf8');
+        const content = await readFile(join(dir, 'hamlet-title-extension.ts'), 'utf8');
         expect(content).toBe(PI_TITLE_EXTENSION_SOURCE);
         const entries = await readdir(dir);
         expect(entries.filter((name) => name.endsWith('.tmp'))).toEqual([]);
     });
 
     it('keeps injecting the instruction on later turns so renames stay possible', async () => {
-        const dir = await mkdtemp(join(tmpdir(), 'hapi-pi-title-'));
+        const dir = await mkdtemp(join(tmpdir(), 'hamlet-pi-title-'));
         const file = await materializePiTitleExtension(dir);
 
         // The materialized source only imports typebox, which cannot be
@@ -70,7 +70,7 @@ describe('materializePiTitleExtension', () => {
             "import { Type } from '@sinclair/typebox';",
             'const Type = { Object: (properties) => ({ properties }), String: (options) => options };',
         );
-        const moduleFile = join(dir, 'hapi-title-extension.mjs');
+        const moduleFile = join(dir, 'hamlet-title-extension.mjs');
         await writeFile(moduleFile, testable, 'utf8');
         const mod = await import(pathToFileURL(moduleFile).href);
 
@@ -92,7 +92,7 @@ describe('materializePiTitleExtension', () => {
         expect(beforeAgentStart({ systemPrompt: 'base' }).systemPrompt).toContain('## Session title');
 
         const setTitle = vi.fn();
-        const tool = registered.find((definition) => definition.name === 'hapi_change_title');
+        const tool = registered.find((definition) => definition.name === 'hamlet_change_title');
         expect(tool).toBeDefined();
 
         // Current Pi call order: (toolCallId, params, signal, onUpdate, ctx).

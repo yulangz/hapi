@@ -1,4 +1,4 @@
-import { PROTOCOL_VERSION } from '@hapi/protocol'
+import { PROTOCOL_VERSION } from '@hamlet/protocol'
 import { useTranslation } from '@/lib/use-translation'
 import { SettingsPageContent, SettingsRow, SettingsSection } from '@/components/settings/SettingsPrimitives'
 

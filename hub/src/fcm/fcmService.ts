@@ -96,7 +96,7 @@ export class FcmService {
      * the gate engages from event #2 onward). Worth it for guaranteed
      * delivery on cold start.
      *
-     * Addresses HAPI Bot Major review on PR #803.
+     * Addresses HAMLET Bot Major review on PR #803.
      */
     isHealthy(): boolean {
         const successes = this.recentOutcomes.filter((o) => o === 'sent').length

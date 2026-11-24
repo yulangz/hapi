@@ -1,8 +1,8 @@
 import chalk from 'chalk'
 import { z } from 'zod'
-import { PROTOCOL_VERSION } from '@hapi/protocol'
+import { PROTOCOL_VERSION } from '@hamlet/protocol'
 import type { StartOptions } from '@/claude/runClaude'
-import { CLAUDE_PERMISSION_MODES } from '@hapi/protocol/modes'
+import { CLAUDE_PERMISSION_MODES } from '@hamlet/protocol/modes'
 import { configuration } from '@/configuration'
 import { isRunnerRunningCurrentlyInstalledHappyVersion } from '@/runner/controlClient'
 import { authAndSetupMachineIfNeeded } from '@/ui/auth'
@@ -29,7 +29,7 @@ export const claudeCommand: CommandDefinition = {
             if (arg === '--') {
                 unknownArgs.push(...args.slice(i))
                 break
-            } else if (arg === '--hapi-starting-mode') {
+            } else if (arg === '--hamlet-starting-mode') {
                 options.startingMode = z.enum(['local', 'remote']).parse(args[++i])
             } else if (arg === '--permission-mode') {
                 const mode = args[++i]
@@ -87,10 +87,10 @@ export const claudeCommand: CommandDefinition = {
         await maybeAutoStartServer()
         await authAndSetupMachineIfNeeded()
 
-        logger.debug('Ensuring hapi background service is running & matches our version...')
+        logger.debug('Ensuring hamlet background service is running & matches our version...')
 
         if (!(await isRunnerRunningCurrentlyInstalledHappyVersion())) {
-            logger.debug('Starting hapi background service...')
+            logger.debug('Starting hamlet background service...')
 
             const runnerProcess = spawnHappyCLI(['runner', 'start-sync'], {
                 detached: true,
@@ -117,13 +117,13 @@ export const claudeCommand: CommandDefinition = {
                 messageLower.includes('enotfound') ||
                 messageLower.includes('network error')
             ) {
-                console.error(chalk.yellow('Unable to connect to HAPI hub'))
+                console.error(chalk.yellow('Unable to connect to HAMLET hub'))
                 console.error(chalk.gray(`  Hub URL: ${configuration.apiUrl}`))
                 console.error(chalk.gray('  Please check your network connection or hub status'))
             } else if (httpStatus === 403 && responseErrorText === 'Machine access denied') {
                 console.error(chalk.red('Machine access denied.'))
                 console.error(chalk.gray('  This machineId is already registered under a different namespace.'))
-                console.error(chalk.gray('  Fix: run `hapi auth logout`, or set a separate HAPI_HOME per namespace.'))
+                console.error(chalk.gray('  Fix: run `hamlet auth logout`, or set a separate HAMLET_HOME per namespace.'))
             } else if (httpStatus === 403 && responseErrorText === 'Session access denied') {
                 console.error(chalk.red('Session access denied.'))
                 console.error(chalk.gray('  This session belongs to a different namespace.'))
@@ -135,7 +135,7 @@ export const claudeCommand: CommandDefinition = {
                 messageLower.includes('forbidden')
             ) {
                 console.error(chalk.red('Authentication error:'), message)
-                console.error(chalk.gray('  Run: hapi auth login'))
+                console.error(chalk.gray('  Run: hamlet auth login'))
             } else {
                 console.error(chalk.red('Error:'), message)
             }

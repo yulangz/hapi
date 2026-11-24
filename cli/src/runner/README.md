@@ -1,6 +1,6 @@
-# HAPI CLI Runner: Control Flow and Lifecycle
+# HAMLET CLI Runner: Control Flow and Lifecycle
 
-The runner is a persistent background process that starts and manages HAPI
+The runner is a persistent background process that starts and manages HAMLET
 sessions from web/phone. After you update the CLI, it can restart itself onto
 the new binary; it does not download or install updates.
 
@@ -10,7 +10,7 @@ Source paths below are relative to `cli/` unless prefixed with another package.
 
 ### Starting the Runner
 
-Command: `hapi runner start`
+Command: `hamlet runner start`
 
 Control Flow:
 1. `src/commands/runner.ts` handles `runner start`, stopping any existing runner first so new flags/environment take effect
@@ -27,11 +27,11 @@ Control Flow:
    - State persistence: writes PID, version, HTTP port, mtime to runner.state.json
    - WebSocket: establishes persistent connection to backend via `ApiMachineClient`
    - RPC registration: exposes `spawn-happy-session`, `stop-session`, `stop-runner` handlers
-   - Heartbeat loop: every 60s (or `HAPI_RUNNER_HEARTBEAT_INTERVAL`) checks for version updates, prunes dead sessions, verifies PID ownership
+   - Heartbeat loop: every 60s (or `HAMLET_RUNNER_HEARTBEAT_INTERVAL`) checks for version updates, prunes dead sessions, verifies PID ownership
 5. Awaits shutdown promise which resolves when:
    - OS signal received (SIGINT/SIGTERM) - source: `os-signal`
-   - HTTP `/stop` endpoint called - source: `hapi-cli`
-   - RPC `stop-runner` invoked - source: `hapi-app`
+   - HTTP `/stop` endpoint called - source: `hamlet-cli`
+   - RPC `stop-runner` invoked - source: `hamlet-app`
    - Uncaught exception occurs - source: `exception`
 6. On shutdown, `cleanupAndShutdown()` performs:
    - Clears heartbeat interval
@@ -44,21 +44,21 @@ Control Flow:
 
 ### Version Detection & Auto-Update
 
-The runner detects when the CLI binary changes (e.g., after `npm update -g @twsxtd/hapi`):
+The runner detects when the CLI binary changes (e.g., after `npm update -g @twsxtd/hamlet`):
 1. At startup, records `startedWithCliMtimeMs` (file modification time of CLI binary)
 2. Heartbeat compares current CLI mtime with recorded mtime via `getInstalledCliMtimeMs()`
 3. Replays the original runner arguments (including workspace roots), marking the replacement as an authorized handoff child
 4. Releases the lock and waits up to 30 seconds for a different live runner PID in the state file
 5. On confirmation, the old runner exits. On failure, it tries to reacquire the lock and stays online for a later retry; it exits if another process holds the lock
 
-`HAPI_DISABLE_VERSION_HANDOFF=1` disables this automatic replacement, not
+`HAMLET_DISABLE_VERSION_HANDOFF=1` disables this automatic replacement, not
 the rest of the heartbeat. A foreground supervisor should run
-`hapi runner start-sync`; advertise `HAPI_RUNNER_SUPERVISED=1` only when it
+`hamlet runner start-sync`; advertise `HAMLET_RUNNER_SUPERVISED=1` only when it
 will restart the process after exit.
 
 ### Heartbeat System
 
-Every 60 seconds (configurable via `HAPI_RUNNER_HEARTBEAT_INTERVAL`):
+Every 60 seconds (configurable via `HAMLET_RUNNER_HEARTBEAT_INTERVAL`):
 1. **Guard**: Skips if previous heartbeat still running (prevents concurrent heartbeats)
 2. **Session Pruning**: Checks each tracked PID with `isProcessAlive(pid)`, removes dead sessions
 3. **Version Check**: Compares CLI binary mtime, triggers self-restart if changed
@@ -67,15 +67,15 @@ Every 60 seconds (configurable via `HAPI_RUNNER_HEARTBEAT_INTERVAL`):
 
 ### Stopping the Runner
 
-Command: `hapi runner stop`
+Command: `hamlet runner stop`
 
 This stops the runner, not its detached agent sessions. Use `stop-session`
 to stop an individual session, or `doctor clean` for broader process cleanup.
 
 Control Flow:
-1. `stopRunner()` in `controlClient.ts` reads runner.state.json and verifies the PID still belongs to a HAPI runner before contacting or signaling it
+1. `stopRunner()` in `controlClient.ts` reads runner.state.json and verifies the PID still belongs to a HAMLET runner before contacting or signaling it
 2. Attempts graceful shutdown via HTTP POST to `/stop`
-3. Runner receives request, triggers shutdown with source `hapi-cli`
+3. Runner receives request, triggers shutdown with source `hamlet-cli`
 4. `cleanupAndShutdown()` executes:
    - Updates backend status to "shutting-down"
    - Closes WebSocket connection
@@ -88,22 +88,22 @@ Control Flow:
 
 The runner supports the [current agent catalog](../../../docs/guide/agents.md).
 If a spawn request omits `agent`, its fallback is still Claude; this is
-separate from the interactive `hapi` picker, which waits for your choice
+separate from the interactive `hamlet` picker, which waits for your choice
 instead of launching Claude implicitly.
 Examples of agent authentication:
 
 | Agent | Command | Token Environment |
 |-------|---------|-------------------|
-| `claude` | `hapi claude` | Agent's existing login, or supplied `CLAUDE_CODE_OAUTH_TOKEN` |
-| `codex` | `hapi codex` | Existing Codex home; a supplied token gets a temporary `CODEX_HOME` with `auth.json` and a copy of user `config.toml` |
-| `grok` | `hapi grok` | Grok CLI login or `XAI_API_KEY` |
-| `opencode` | `hapi opencode` | OpenCode config (no token injection) |
+| `claude` | `hamlet claude` | Agent's existing login, or supplied `CLAUDE_CODE_OAUTH_TOKEN` |
+| `codex` | `hamlet codex` | Existing Codex home; a supplied token gets a temporary `CODEX_HOME` with `auth.json` and a copy of user `config.toml` |
+| `grok` | `hamlet grok` | Grok CLI login or `XAI_API_KEY` |
+| `opencode` | `hamlet opencode` | OpenCode config (no token injection) |
 
 ### Token Authentication
 
 When spawning a session with a token:
 - **Claude**: Sets `CLAUDE_CODE_OAUTH_TOKEN` environment variable
-- **Codex**: Creates temp directory at `os.tmpdir()/hapi-codex-*`, copies the user's `config.toml` when present, writes the token to `auth.json`, and sets `CODEX_HOME`. Only the config file is copied so user MCP settings survive without copying unrelated Codex state; the copied config is cleaned up when the child exits or fails to start. Windows package-manager MCP commands are proxied by the Codex launcher path; listed `env_vars` remain the source of external MCP credentials.
+- **Codex**: Creates temp directory at `os.tmpdir()/hamlet-codex-*`, copies the user's `config.toml` when present, writes the token to `auth.json`, and sets `CODEX_HOME`. Only the config file is copied so user MCP settings survive without copying unrelated Codex state; the copied config is cleaned up when the child exits or fails to start. Windows package-manager MCP commands are proxied by the Codex launcher path; listed `env_vars` remain the source of external MCP credentials.
 - **Grok Build**: No token injection; relies on Grok CLI login or `XAI_API_KEY` in the runner environment
 - **OpenCode**: No token injection; relies on OpenCode's own configuration
 
@@ -117,10 +117,10 @@ Initiated by mobile app via backend RPC:
 3. `spawnSession()`:
    - Checks agent availability and workspace-root boundaries, then validates/creates the directory
    - Configures agent-specific token environment
-   - Spawns detached HAPI process with `--hapi-starting-mode remote --started-by runner`
+   - Spawns detached HAMLET process with `--hamlet-starting-mode remote --started-by runner`
    - Adds to `pidToTrackedSession` map
-   - Waits for the session-start webhook (15 seconds by default; `HAPI_RUNNER_WEBHOOK_TIMEOUT_MS` overrides)
-4. New HAPI process:
+   - Waits for the session-start webhook (15 seconds by default; `HAMLET_RUNNER_WEBHOOK_TIMEOUT_MS` overrides)
+4. New HAMLET process:
    - Creates session with backend, receives `happySessionId`
    - Calls `notifyRunnerSessionStarted()` to POST to runner's `/session-started`
 5. Runner updates tracking with `happySessionId`, resolves awaiter
@@ -130,8 +130,8 @@ Initiated by mobile app via backend RPC:
 
 User starts an agent from the terminal:
 1. Session bootstrap registers with the hub; a runner is not required for terminal use
-2. HAPI process calls `notifyRunnerSessionStarted()` if it can reach the local runner control server
-3. Runner receives webhook, creates `TrackedSession` with `startedBy: 'hapi directly - likely by user from terminal'`
+2. HAMLET process calls `notifyRunnerSessionStarted()` if it can reach the local runner control server
+3. Runner receives webhook, creates `TrackedSession` with `startedBy: 'hamlet directly - likely by user from terminal'`
 4. Session tracked for health monitoring
 
 ### Directory Creation Approval
@@ -281,14 +281,14 @@ the built-in network relay protects traffic with WireGuard + TLS.
 
 ### Doctor Command
 
-`hapi doctor` uses `ps-list` to find HAPI processes:
-- Production: matches `hapi` / `hapi.exe`
+`hamlet doctor` uses `ps-list` to find HAMLET processes:
+- Production: matches `hamlet` / `hamlet.exe`
 - Development: matches `src/index.ts` (run via `bun`)
 - Categorizes by command args: runner, runner-spawned, user-session, doctor
 
 ### Clean Runaway Processes
 
-`hapi doctor clean`:
+`hamlet doctor clean`:
 1. `findRunawayHappyProcesses()` selects runner and runner-spawned process categories (not only proven orphans); use with care
 2. `killRunawayHappyProcesses()`:
    - Sends SIGTERM
@@ -301,7 +301,7 @@ the built-in network relay protects traffic with WireGuard + TLS.
 - Run `bun run test:cli:integration` from the repo root (separate serial Vitest project)
 - Global setup starts an isolated hub on a free loopback port, with a temporary home/database and generated token
 - No `.env.integration-test` or running user hub is required
-- Real detached process trees are owned and cleaned up by the test harness; stress coverage is opt-in via `HAPI_RUN_STRESS_TESTS=true`
+- Real detached process trees are owned and cleaned up by the test harness; stress coverage is opt-in via `HAMLET_RUN_STRESS_TESTS=true`
 
 ### Key Test Scenarios
 - Session listing, spawning, stopping
@@ -316,7 +316,7 @@ the built-in network relay protects traffic with WireGuard + TLS.
 
 # Machine Sync Architecture - Separated Metadata & Runner State
 
-> Direct-connect note: the "hub" is `hapi-hub`, payloads are plain JSON (no base64/encryption),
+> Direct-connect note: the "hub" is `hamlet-hub`, payloads are plain JSON (no base64/encryption),
 > and authentication uses `CLI_API_TOKEN` (REST `Authorization: Bearer ...` + Socket.IO `handshake.auth.token`).
 
 ## Data Structure (Similar to Session's metadata + agentState)
@@ -341,7 +341,7 @@ interface RunnerState {
   httpPort?: number;
   startedAt?: number;
   shutdownRequestedAt?: number;
-  shutdownSource?: 'hapi-app' | 'hapi-cli' | 'os-signal' | 'exception';
+  shutdownSource?: 'hamlet-app' | 'hamlet-cli' | 'os-signal' | 'exception';
 }
 ```
 
@@ -362,8 +362,8 @@ the runner supplies live runner state, heartbeats, and machine-scoped RPCs.
     "platform": "darwin",
     "happyCliVersion": "1.0.0",
     "homeDir": "/Users/john",
-    "happyHomeDir": "/Users/john/.hapi",
-    "happyLibDir": "/usr/local/lib/node_modules/hapi"
+    "happyHomeDir": "/Users/john/.hamlet",
+    "happyLibDir": "/usr/local/lib/node_modules/hamlet"
   },
   "runnerState": {
     "status": "running",
@@ -428,7 +428,7 @@ socket.emit('machine-update-state', {
     "httpPort": 8080,
     "startedAt": 1703001234567,
     "shutdownRequestedAt": 1703001244567,
-    "shutdownSource": "hapi-app"
+    "shutdownSource": "hamlet-app"
   },
   "expectedVersion": 1
 }, callback)
@@ -459,16 +459,16 @@ socket.emit('machine-update-metadata', {
     "platform": "darwin",
     "happyCliVersion": "1.0.1",
     "homeDir": "/Users/john",
-    "happyHomeDir": "/Users/john/.hapi"
+    "happyHomeDir": "/Users/john/.hamlet"
   },
   "expectedVersion": 1
 }, callback)
 ```
 
-## 5. Mini App RPC Calls (via hapi-hub)
+## 5. Mini App RPC Calls (via hamlet-hub)
 
-The Telegram Mini App calls REST endpoints on `hapi-hub` (for example `POST /api/machines/:id/spawn`).
-`hapi-hub` then relays those requests to the runner via Socket.IO `rpc-request` on the `/cli` namespace.
+The Telegram Mini App calls REST endpoints on `hamlet-hub` (for example `POST /api/machines/:id/spawn`).
+`hamlet-hub` then relays those requests to the runner via Socket.IO `rpc-request` on the `/cli` namespace.
 
 RPC method naming (machine-scoped) uses a `${machineId}:` prefix, for example:
 - `${machineId}:spawn-happy-session`

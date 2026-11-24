@@ -17,12 +17,12 @@ plugins {
 // drop in their own (see ../README.md "Firebase / push"); everyone else builds
 // without it — Firebase then never initializes and PushBinding reports push as
 // unavailable, so every push code path no-ops cleanly.
-val officialBuild = providers.gradleProperty("hapiOfficialBuild").map(String::toBooleanStrict).orElse(false).get()
+val officialBuild = providers.gradleProperty("hamletOfficialBuild").map(String::toBooleanStrict).orElse(false).get()
 val googleServicesFile = file("google-services.json")
 if (officialBuild) {
     require(googleServicesFile.isFile) { "Official builds require app/google-services.json" }
-    val expectedProject = providers.gradleProperty("hapiFirebaseProjectId").orNull?.trim()
-    require(!expectedProject.isNullOrBlank()) { "Official builds require -PhapiFirebaseProjectId=<official relay project>" }
+    val expectedProject = providers.gradleProperty("hamletFirebaseProjectId").orNull?.trim()
+    require(!expectedProject.isNullOrBlank()) { "Official builds require -PhamletFirebaseProjectId=<official relay project>" }
     val firebase = JsonSlurper().parse(googleServicesFile) as? Map<*, *>
     val project = firebase?.get("project_info") as? Map<*, *>
     require(project?.get("project_id") == expectedProject) { "Firebase project must match the official relay project" }
@@ -30,8 +30,8 @@ if (officialBuild) {
     require(clients?.any { client ->
         val info = (client as? Map<*, *>)?.get("client_info") as? Map<*, *>
         val android = info?.get("android_client_info") as? Map<*, *>
-        android?.get("package_name") == "run.hapi.companion"
-    } == true) { "Official Firebase configuration must include run.hapi.companion" }
+        android?.get("package_name") == "run.hamlet.companion"
+    } == true) { "Official Firebase configuration must include run.hamlet.companion" }
 }
 if (googleServicesFile.exists()) {
     apply(plugin = "com.google.gms.google-services")
@@ -43,10 +43,10 @@ if (googleServicesFile.exists()) {
 // or -P), environment (CI secrets), or android/local.properties (the
 // conventional gitignored home for machine-local secrets — NOT part of
 // gradle's own property chain, hence loaded explicitly):
-//   hapiUploadKeystore          / HAPI_UPLOAD_KEYSTORE           keystore path (~ ok)
-//   hapiUploadKeystorePassword  / HAPI_UPLOAD_KEYSTORE_PASSWORD
-//   hapiUploadKeyAlias          / HAPI_UPLOAD_KEY_ALIAS          default "upload"
-//   hapiUploadKeyPassword       / HAPI_UPLOAD_KEY_PASSWORD       default: store password
+//   hamletUploadKeystore          / HAMLET_UPLOAD_KEYSTORE           keystore path (~ ok)
+//   hamletUploadKeystorePassword  / HAMLET_UPLOAD_KEYSTORE_PASSWORD
+//   hamletUploadKeyAlias          / HAMLET_UPLOAD_KEY_ALIAS          default "upload"
+//   hamletUploadKeyPassword       / HAMLET_UPLOAD_KEY_PASSWORD       default: store password
 // All unset → release builds unsigned; the repo needs no secrets to build.
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
@@ -58,29 +58,29 @@ fun signingSecret(property: String, env: String): String? =
         ?: System.getenv(env)?.takeIf { it.isNotBlank() }
         ?: localProperties.getProperty(property)?.takeIf { it.isNotBlank() }
 
-val uploadKeystorePath = signingSecret("hapiUploadKeystore", "HAPI_UPLOAD_KEYSTORE")
+val uploadKeystorePath = signingSecret("hamletUploadKeystore", "HAMLET_UPLOAD_KEYSTORE")
     ?.replaceFirst(Regex("^~"), System.getProperty("user.home"))
 
 if (officialBuild) {
     require(uploadKeystorePath != null && file(uploadKeystorePath).isFile) { "Official builds require a release signing keystore" }
-    require(signingSecret("hapiUploadKeystorePassword", "HAPI_UPLOAD_KEYSTORE_PASSWORD") != null) {
+    require(signingSecret("hamletUploadKeystorePassword", "HAMLET_UPLOAD_KEYSTORE_PASSWORD") != null) {
         "Official builds require a release signing password"
     }
 }
 
 android {
-    namespace = "app.hapi.companion"
+    namespace = "app.hamlet.companion"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "run.hapi.companion"
+        applicationId = "run.hamlet.companion"
         minSdk = 26
         targetSdk = 36
-        versionCode = providers.gradleProperty("hapiVersionCode").map { value ->
-            value.toInt().also { require(it > 0) { "hapiVersionCode must be positive" } }
+        versionCode = providers.gradleProperty("hamletVersionCode").map { value ->
+            value.toInt().also { require(it > 0) { "hamletVersionCode must be positive" } }
         }.orElse(1).get()
-        // Tracks the hapi CLI/hub release train.
-        versionName = providers.gradleProperty("hapiVersionName").orElse("0.30.7").get()
+        // Tracks the hamlet CLI/hub release train.
+        versionName = providers.gradleProperty("hamletVersionName").orElse("0.30.7").get()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -88,10 +88,10 @@ android {
         if (uploadKeystorePath != null) {
             create("release") {
                 storeFile = File(uploadKeystorePath)
-                storePassword = signingSecret("hapiUploadKeystorePassword", "HAPI_UPLOAD_KEYSTORE_PASSWORD")
-                keyAlias = signingSecret("hapiUploadKeyAlias", "HAPI_UPLOAD_KEY_ALIAS") ?: "upload"
-                keyPassword = signingSecret("hapiUploadKeyPassword", "HAPI_UPLOAD_KEY_PASSWORD")
-                    ?: signingSecret("hapiUploadKeystorePassword", "HAPI_UPLOAD_KEYSTORE_PASSWORD")
+                storePassword = signingSecret("hamletUploadKeystorePassword", "HAMLET_UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias = signingSecret("hamletUploadKeyAlias", "HAMLET_UPLOAD_KEY_ALIAS") ?: "upload"
+                keyPassword = signingSecret("hamletUploadKeyPassword", "HAMLET_UPLOAD_KEY_PASSWORD")
+                    ?: signingSecret("hamletUploadKeystorePassword", "HAMLET_UPLOAD_KEYSTORE_PASSWORD")
             }
         }
     }
@@ -118,7 +118,7 @@ android {
         }
     }
 
-    testBuildType = providers.gradleProperty("hapiTestBuildType").orElse("debug").get()
+    testBuildType = providers.gradleProperty("hamletTestBuildType").orElse("debug").get()
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -136,7 +136,7 @@ android {
             // Chat pipeline smoke tests replay golden fixtures from the repo
             // root (same wiring as :core:protocol / :core:data).
             test.systemProperty(
-                "hapi.fixtures.dir",
+                "hamlet.fixtures.dir",
                 rootDir.parentFile.resolve("shared/fixtures").absolutePath,
             )
         }

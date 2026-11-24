@@ -39,7 +39,7 @@ describe('SessionPatchSchema structured patches (closes #884 follow-up)', () => 
     });
 
     it('parses a teamState clear patch (null value = TeamDelete)', () => {
-        // PR #897 review (HAPI Bot, 2026-06-13 Major + 2026-07-30 Major):
+        // PR #897 review (HAMLET Bot, 2026-06-13 Major + 2026-07-30 Major):
         // teamState travels as { version, value }; value null clears the
         // cached row. Version gates dual-SSE reordering.
         const parsed = SessionPatchSchema.safeParse({

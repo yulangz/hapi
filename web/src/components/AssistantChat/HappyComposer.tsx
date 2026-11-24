@@ -3,7 +3,7 @@ import {
     getCopilotAgentModeOptions,
     getPermissionModeOptionsForFlavor,
     type CopilotAgentMode
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import { ComposerPrimitive, useAui, useAuiState } from '@assistant-ui/react'
 import { flushTapSync } from '@assistant-ui/tap'
 import {
@@ -37,8 +37,8 @@ import { useActiveSuggestions } from '@/hooks/useActiveSuggestions'
 import { applySuggestion } from '@/utils/applySuggestion'
 import { usePlatform } from '@/hooks/usePlatform'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
-import { supportsEffort, supportsModelChange, PI_THINKING_LEVEL_LABELS } from '@hapi/protocol'
-import type { PiThinkingLevel } from '@hapi/protocol'
+import { supportsEffort, supportsModelChange, PI_THINKING_LEVEL_LABELS } from '@hamlet/protocol'
+import type { PiThinkingLevel } from '@hamlet/protocol'
 import { markSkillUsed } from '@/lib/recent-skills'
 import { useComposerDraft } from '@/hooks/useComposerDraft'
 import type { AttachmentDraftInput } from '@/lib/composer-attachment-drafts'
@@ -63,7 +63,7 @@ import type { ApiClient } from '@/api/client'
 import { useVoiceInputPreferences } from '@/hooks/useVoiceInputPreferences'
 import { useDictation } from '@/hooks/useDictation'
 import type { ComposerSendIntent } from '@/lib/messageDelivery'
-import type { MessageDeliveryMode } from '@hapi/protocol'
+import type { MessageDeliveryMode } from '@hamlet/protocol'
 import { moveAttachmentId, orderItemsById, reconcileAttachmentOrder, type AttachmentDropPosition } from '@/lib/attachmentOrder'
 
 export interface TextInputState {

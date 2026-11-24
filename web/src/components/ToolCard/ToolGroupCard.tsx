@@ -5,7 +5,7 @@ import { getCodexCommandActions, type CodexCommandAction } from '@/chat/codexCom
 import type { SessionMetadataSummary } from '@/types/api'
 import { useHappyChatContext } from '@/components/AssistantChat/context'
 import { getToolTimingDetails, ToolDetailDialogContent, ToolStatusIcon, ToolTimingSummary, toolStatusColorClass } from '@/components/ToolCard/ToolCard'
-import { getToolPresentation } from '@/components/ToolCard/knownTools'
+import { hamletToolName, getToolPresentation } from '@/components/ToolCard/knownTools'
 import { formatGroupedHeaderSubtitle, formatGroupedHeaderTitle, safeGroupedLabelValue } from '@/components/ToolCard/groupedPresentation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -372,6 +372,7 @@ export function ToolGroupCard(props: {
                             return (
                                 <button
                                     key={tool.id}
+                                    data-hamlet-tool={hamletToolName(tool.tool.name) ? "row" : undefined}
                                     type="button"
                                     className="flex items-center gap-3 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-2 text-left transition-colors hover:bg-[var(--app-subtle-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-link)]"
                                     onClick={() => setSelectedToolId(tool.id)}

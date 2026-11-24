@@ -122,7 +122,7 @@ describe('convertCodexEvent', () => {
 
         expect(result?.messages?.[0]).toMatchObject({
             type: 'token_count',
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache',
             info
         });
@@ -796,7 +796,7 @@ describe('convertCodexEvent', () => {
             payload: {
                 type: 'tool_search_call',
                 call_id: 'call-tool-search',
-                arguments: { query: 'hapi change title', limit: 5 }
+                arguments: { query: 'hamlet change title', limit: 5 }
             }
         });
 
@@ -804,12 +804,12 @@ describe('convertCodexEvent', () => {
             type: 'tool-call',
             name: 'ToolSearch',
             callId: 'call-tool-search',
-            input: { query: 'hapi change title', limit: 5 }
+            input: { query: 'hamlet change title', limit: 5 }
         });
     });
 
     it('converts tool_search_output items', () => {
-        const tools = [{ name: 'mcp__hapi', description: 'Hapi tools' }];
+        const tools = [{ name: 'mcp__hamlet', description: 'Hamlet tools' }];
         const result = convertCodexEvent({
             type: 'response_item',
             payload: {

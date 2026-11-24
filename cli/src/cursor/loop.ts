@@ -4,9 +4,9 @@ import { runLocalRemoteSession } from '@/agent/loopBase';
 import { CursorSession } from './session';
 import { cursorLocalLauncher } from './cursorLocalLauncher';
 import { cursorRemoteLauncher } from './cursorRemoteLauncher';
-import type { Metadata } from '@hapi/protocol/schemas';
+import type { Metadata } from '@hamlet/protocol/schemas';
 import { ApiClient, ApiSessionClient } from '@/lib';
-import type { CursorPermissionMode } from '@hapi/protocol/types';
+import type { CursorPermissionMode } from '@hamlet/protocol/types';
 
 export type PermissionMode = CursorPermissionMode;
 

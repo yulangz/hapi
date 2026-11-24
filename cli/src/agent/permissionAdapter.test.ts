@@ -215,7 +215,7 @@ describe('PermissionAdapter', () => {
         harness.emitPermissionRequest(buildRequest({
             id: 'perm-title',
             toolCallId: 'perm-title',
-            title: 'hapi_change_title',
+            title: 'hamlet_change_title',
             rawInput: { title: 'Rename chat' }
         }));
 
@@ -226,7 +226,7 @@ describe('PermissionAdapter', () => {
                 sessionId: 'session-1',
                 request: expect.objectContaining({
                     id: 'perm-title',
-                    title: 'hapi_change_title'
+                    title: 'hamlet_change_title'
                 }),
                 response: { outcome: 'selected', optionId: 'allow-once' }
             }
@@ -234,7 +234,7 @@ describe('PermissionAdapter', () => {
         expect(harness.getAgentState().requests).toEqual({});
         expect(harness.getAgentState().completedRequests).toMatchObject({
             'perm-title': {
-                tool: 'hapi_change_title',
+                tool: 'hamlet_change_title',
                 status: 'approved',
                 decision: 'approved'
             }
@@ -245,8 +245,8 @@ describe('PermissionAdapter', () => {
         const harness = createHarness();
 
         harness.emitPermissionRequest(buildRequest({
-            id: 'mcp__hapi__change_title-1',
-            toolCallId: 'mcp__hapi__change_title-1',
+            id: 'mcp__hamlet__change_title-1',
+            toolCallId: 'mcp__hamlet__change_title-1',
             title: undefined,
             rawInput: { title: 'Rename chat' }
         }));
@@ -256,7 +256,7 @@ describe('PermissionAdapter', () => {
         expect(harness.respondCalls).toHaveLength(1);
         expect(harness.getAgentState().requests).toEqual({});
         expect(harness.getAgentState().completedRequests).toMatchObject({
-            'mcp__hapi__change_title-1': {
+            'mcp__hamlet__change_title-1': {
                 status: 'approved',
                 decision: 'approved'
             }

@@ -6,7 +6,7 @@ import {
     useCodexExplorationCollapse,
 } from './useCodexExplorationCollapse'
 
-const STORAGE_KEY = 'hapi-codex-exploration-collapsed'
+const STORAGE_KEY = 'hamlet-codex-exploration-collapsed'
 
 describe('useCodexExplorationCollapse helpers', () => {
     beforeEach(() => {

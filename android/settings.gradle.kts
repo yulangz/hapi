@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "hapi-android"
+rootProject.name = "hamlet-android"
 
 include(":app")
 include(":core:protocol")

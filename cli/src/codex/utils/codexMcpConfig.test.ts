@@ -9,8 +9,8 @@ describe('codexMcpConfig', () => {
     describe('buildMcpServerConfigArgs', () => {
         it('builds config args for a single MCP server', () => {
             const mcpServers = {
-                hapi: {
-                    command: 'hapi',
+                hamlet: {
+                    command: 'hamlet',
                     args: ['mcp', '--url', 'http://localhost:3000']
                 }
             };
@@ -18,15 +18,15 @@ describe('codexMcpConfig', () => {
             const args = buildMcpServerConfigArgs(mcpServers);
 
             expect(args).toEqual([
-                '-c', 'mcp_servers.hapi.command="hapi"',
-                '-c', "mcp_servers.hapi.args=['mcp','--url','http://localhost:3000']"
+                '-c', 'mcp_servers.hamlet.command="hamlet"',
+                '-c', "mcp_servers.hamlet.args=['mcp','--url','http://localhost:3000']"
             ]);
         });
 
         it('builds per-tool approval mode config', () => {
             const mcpServers = {
-                hapi: {
-                    command: 'hapi',
+                hamlet: {
+                    command: 'hamlet',
                     args: ['mcp'],
                     tools: {
                         change_title: {
@@ -47,22 +47,22 @@ describe('codexMcpConfig', () => {
 
             const args = buildMcpServerConfigArgs(mcpServers);
 
-            expect(args).toContain('mcp_servers.hapi.tools.change_title.approval_mode="approve"');
-            expect(args).toContain('mcp_servers.hapi.tools.display_image.approval_mode="prompt"');
-            expect(args).toContain('mcp_servers.hapi.tools.display_video.approval_mode="prompt"');
-            expect(args).toContain('mcp_servers.hapi.tools.display_media.approval_mode="prompt"');
+            expect(args).toContain('mcp_servers.hamlet.tools.change_title.approval_mode="approve"');
+            expect(args).toContain('mcp_servers.hamlet.tools.display_image.approval_mode="prompt"');
+            expect(args).toContain('mcp_servers.hamlet.tools.display_video.approval_mode="prompt"');
+            expect(args).toContain('mcp_servers.hamlet.tools.display_media.approval_mode="prompt"');
         });
 
         it('builds config args for multiple MCP servers', () => {
             const mcpServers = {
-                hapi: { command: 'hapi', args: ['mcp'] },
+                hamlet: { command: 'hamlet', args: ['mcp'] },
                 other: { command: 'node', args: ['server.js'] }
             };
 
             const args = buildMcpServerConfigArgs(mcpServers);
 
             expect(args).toContain('-c');
-            expect(args).toContain('mcp_servers.hapi.command="hapi"');
+            expect(args).toContain('mcp_servers.hamlet.command="hamlet"');
             expect(args).toContain('mcp_servers.other.command="node"');
         });
 
@@ -89,13 +89,13 @@ describe('codexMcpConfig', () => {
 
     describe('buildDeveloperInstructionsArg', () => {
         it('builds developer instructions arg', () => {
-            const instructions = 'Call functions.hapi__change_title to set title.';
+            const instructions = 'Call functions.hamlet__change_title to set title.';
 
             const args = buildDeveloperInstructionsArg(instructions);
 
             expect(args).toEqual([
                 '-c',
-                'developer_instructions="Call functions.hapi__change_title to set title."'
+                'developer_instructions="Call functions.hamlet__change_title to set title."'
             ]);
         });
 

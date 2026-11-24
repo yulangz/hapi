@@ -46,7 +46,7 @@ describe('truncateOversizedMessageContent', () => {
         expect(stdout.length).toBeLessThanOrEqual(TRUNCATE_STRING_LIMIT)
         expect(stdout.startsWith('HEAD')).toBe(true)
         expect(stdout.endsWith('TAIL')).toBe(true)
-        expect(stdout).toContain('[hapi: truncated')
+        expect(stdout).toContain('[hamlet: truncated')
         // Untouched siblings keep their values, original object is not mutated
         expect(result.content.data.output.exit).toBe(0)
         expect(content.content.data.output.stdout).toBe(payload)

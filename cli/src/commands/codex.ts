@@ -3,9 +3,9 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { CODEX_PERMISSION_MODES } from '@hapi/protocol/modes'
-import type { CodexPermissionMode } from '@hapi/protocol/types'
-import { CodexCollaborationModeSchema } from '@hapi/protocol/schemas'
+import { CODEX_PERMISSION_MODES } from '@hamlet/protocol/modes'
+import type { CodexPermissionMode } from '@hamlet/protocol/types'
+import { CodexCollaborationModeSchema } from '@hamlet/protocol/schemas'
 import type { ReasoningEffort } from '@/codex/appServerTypes'
 import { parseReasoningEffortValue } from '@/codex/utils/reasoningEffort'
 import { resolveSharedCodex } from '@/codex/shared/launch'
@@ -56,7 +56,7 @@ export const codexCommand: CommandDefinition = {
                 if (i === 0 && arg === 'resume') {
                     const candidate = commandArgs[i + 1]
                     if (!candidate || candidate.startsWith('-')) {
-                        if (!commandArgs.includes('--last')) throw new Error('Use hapi resume to choose a HAPI session, or hapi codex resume <native-id> / --last')
+                        if (!commandArgs.includes('--last')) throw new Error('Use hamlet resume to choose a HAMLET session, or hamlet codex resume <native-id> / --last')
                         options.resumeLast = true
                         continue
                     }
@@ -72,7 +72,7 @@ export const codexCommand: CommandDefinition = {
                     unknownArgs.push(...commandArgs.slice(i))
                     break
                 } else if (i === 0 && ['fork', 'exec', 'review', 'login', 'logout'].includes(arg)) {
-                    throw new Error(`Use native codex ${arg} outside HAPI, or /${arg} in an attached terminal`)
+                    throw new Error(`Use native codex ${arg} outside HAMLET, or /${arg} in an attached terminal`)
                 } else if (arg === '--started-by') {
                     options.startedBy = commandArgs[++i] as 'runner' | 'terminal'
                 } else if (arg === '--existing-session-id') {

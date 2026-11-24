@@ -1,4 +1,4 @@
-import type { CodexPermissionMode } from '@hapi/protocol/types';
+import type { CodexPermissionMode } from '@hamlet/protocol/types';
 import type { ApprovalPolicyPreset, SandboxMode, SandboxPolicy } from '../appServerTypes';
 
 export type CodexPermissionModeConfig = {
@@ -11,7 +11,7 @@ export function resolveCodexPermissionModeConfig(mode: CodexPermissionMode): Cod
     switch (mode) {
         case 'default':
             return {
-                // Remote Codex sessions rely on HAPI's approval UI for sandbox escalation.
+                // Remote Codex sessions rely on HAMLET's approval UI for sandbox escalation.
                 // `on-request` keeps workspace-write sandboxing while still surfacing a
                 // user-approvable elevation request when the model needs it.
                 approvalPolicy: 'on-request',
@@ -27,7 +27,7 @@ export function resolveCodexPermissionModeConfig(mode: CodexPermissionMode): Cod
         case 'safe-yolo':
             return {
                 // Current Codex versions reject the removed `on-failure` policy. Keep
-                // escalation available through `on-request`; HAPI auto-approves these
+                // escalation available through `on-request`; HAMLET auto-approves these
                 // requests in safe-yolo mode.
                 approvalPolicy: 'on-request',
                 sandbox: 'workspace-write',

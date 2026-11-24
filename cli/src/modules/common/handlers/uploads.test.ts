@@ -1,16 +1,16 @@
 import { basename, join } from 'node:path';
 import { realpath, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { describe, expect, it, vi } from 'vitest';
-import { getHapiBlobsDir } from '@/constants/uploadPaths';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { getHamletBlobsDir } from '@/constants/uploadPaths';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { readBoundedAttachmentFile } from '../attachmentFile';
 import { cleanupUploadDir, isAuthorizedUploadFile, isPathWithinUploadDir, registerUploadHandlers } from './uploads';
 
 describe('isPathWithinUploadDir', () => {
     it('accepts only paths under the matching session upload directory', () => {
         const sessionId = 'session-allowed';
-        const ownUpload = join(getHapiBlobsDir(), `${sessionId}-random`, 'image.png');
-        const otherUpload = join(getHapiBlobsDir(), 'session-other-random', 'image.png');
+        const ownUpload = join(getHamletBlobsDir(), `${sessionId}-random`, 'image.png');
+        const otherUpload = join(getHamletBlobsDir(), 'session-other-random', 'image.png');
 
         expect(isPathWithinUploadDir(ownUpload, sessionId)).toBe(true);
         expect(isPathWithinUploadDir(otherUpload, sessionId)).toBe(false);

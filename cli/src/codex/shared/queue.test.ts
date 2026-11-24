@@ -8,7 +8,7 @@ const input = [{ type: 'text', text: 'hello' }];
 const directories: string[] = [];
 afterEach(async () => { await Promise.all(directories.splice(0).map(path => rm(path, { recursive: true, force: true }))); });
 async function fixture() {
-    const dir = await mkdtemp(join(tmpdir(), 'hapi-queue-')); directories.push(dir);
+    const dir = await mkdtemp(join(tmpdir(), 'hamlet-queue-')); directories.push(dir);
     const rpc = vi.fn<(method: string, params: unknown) => Promise<unknown>>();
     const client = { request: async <T>(method: string, params?: unknown) => await rpc(method, params) as T };
     const consumed = vi.fn(); const uncertain = vi.fn();

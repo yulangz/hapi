@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { ApiSessionClient } from '@/api/apiSession'
-import { startHappyServer, toClaudeAllowedHapiMcpTools } from './startHappyServer'
+import { startHappyServer, toClaudeAllowedHamletMcpTools } from './startHappyServer'
 
 type ToolResult = {
     content?: Array<{ type: string; text?: string }>
@@ -21,7 +21,7 @@ describe('startHappyServer skill_lookup', () => {
     let sendAgentMessage: ReturnType<typeof vi.fn>
 
     beforeEach(async () => {
-        sandboxDir = await mkdtemp(join(tmpdir(), 'hapi-skill-mcp-'))
+        sandboxDir = await mkdtemp(join(tmpdir(), 'hamlet-skill-mcp-'))
         workingDirectory = join(sandboxDir, 'repo')
         process.env.HOME = join(sandboxDir, 'home')
         await mkdir(join(workingDirectory, '.git'), { recursive: true })
@@ -59,7 +59,7 @@ describe('startHappyServer skill_lookup', () => {
         stopServer = server.stop
 
         client = new Client(
-            { name: 'hapi-skill-lookup-test', version: '1.0.0' },
+            { name: 'hamlet-skill-lookup-test', version: '1.0.0' },
             { capabilities: {} }
         )
         await client.connect(new StreamableHTTPClientTransport(new URL(server.url)))
@@ -176,7 +176,7 @@ describe('startHappyServer skill_lookup', () => {
         } as unknown as ApiSessionClient
         const server = await startHappyServer(sessionClient, { enableChangeTitle: false })
         stopServer = server.stop
-        const mcp = new Client({ name: 'hapi-test', version: '1.0.0' })
+        const mcp = new Client({ name: 'hamlet-test', version: '1.0.0' })
         client = mcp
 
         await mcp.connect(new StreamableHTTPClientTransport(new URL(server.url)))
@@ -195,9 +195,9 @@ describe('startHappyServer skill_lookup', () => {
 
 })
 
-describe('toClaudeAllowedHapiMcpTools', () => {
+describe('toClaudeAllowedHamletMcpTools', () => {
     it('keeps local-path and peer tools registered but out of Claude --allowedTools', () => {
-        expect(toClaudeAllowedHapiMcpTools([
+        expect(toClaudeAllowedHamletMcpTools([
             'change_title',
             'display_image',
             'display_video',
@@ -207,12 +207,12 @@ describe('toClaudeAllowedHapiMcpTools', () => {
             'inspect_peer',
             'skill_lookup'
         ])).toEqual([
-            'mcp__hapi__change_title',
-            'mcp__hapi__display_image',
-            'mcp__hapi__list_peers',
-            'mcp__hapi__skill_lookup'
+            'mcp__hamlet__change_title',
+            'mcp__hamlet__display_image',
+            'mcp__hamlet__list_peers',
+            'mcp__hamlet__skill_lookup'
         ])
-        expect(toClaudeAllowedHapiMcpTools(['display_video'])).not.toContain('mcp__hapi__display_video')
-        expect(toClaudeAllowedHapiMcpTools(['display_media'])).not.toContain('mcp__hapi__display_media')
+        expect(toClaudeAllowedHamletMcpTools(['display_video'])).not.toContain('mcp__hamlet__display_video')
+        expect(toClaudeAllowedHamletMcpTools(['display_media'])).not.toContain('mcp__hamlet__display_media')
     })
 })

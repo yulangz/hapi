@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 
 export type ChecklistStatus = 'pending' | 'in_progress' | 'completed'
 

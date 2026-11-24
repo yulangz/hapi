@@ -10,37 +10,37 @@ import { DecryptedMessageSchema, ScratchlistEntrySchema, SessionSchema } from '.
  *     is enough for cold archive; download URLs only work while the session
  *     still exists on the hub.
  */
-export const HAPI_SESSION_EXPORT_SCHEMA_VERSION = 2
+export const HAMLET_SESSION_EXPORT_SCHEMA_VERSION = 2
 export const SESSION_EXPORT_MESSAGE_LIMIT = 20_000
 export const SESSION_EXPORT_MAX_BYTES = 100 * 1024 * 1024
 
-export const HapiSessionExportSchema = z.object({
-    schemaVersion: z.literal(HAPI_SESSION_EXPORT_SCHEMA_VERSION),
+export const HamletSessionExportSchema = z.object({
+    schemaVersion: z.literal(HAMLET_SESSION_EXPORT_SCHEMA_VERSION),
     exportedAt: z.number().int().nonnegative(),
     session: SessionSchema,
     messages: z.array(DecryptedMessageSchema),
     scratchlist: z.array(ScratchlistEntrySchema)
 })
 
-export type HapiSessionExport = z.infer<typeof HapiSessionExportSchema>
+export type HamletSessionExport = z.infer<typeof HamletSessionExportSchema>
 
-export type HapiSessionExportWarning = {
+export type HamletSessionExportWarning = {
     type: 'warning'
     count: number
     limit: number
     estimatedBytes: number
 }
 
-export type HapiSessionExportTooLarge = {
+export type HamletSessionExportTooLarge = {
     type: 'too-large'
     count: number
     estimatedBytes: number
     maxBytes: number
 }
 
-export type HapiSessionExportResponse = HapiSessionExport | HapiSessionExportWarning
+export type HamletSessionExportResponse = HamletSessionExport | HamletSessionExportWarning
 
-export type HapiSessionExportResult =
-    | { type: 'success'; payload: HapiSessionExport }
-    | HapiSessionExportWarning
-    | HapiSessionExportTooLarge
+export type HamletSessionExportResult =
+    | { type: 'success'; payload: HamletSessionExport }
+    | HamletSessionExportWarning
+    | HamletSessionExportTooLarge

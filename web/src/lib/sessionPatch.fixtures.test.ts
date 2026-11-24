@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { SessionPatchSchema, SessionSchema } from '@hapi/protocol/schemas'
+import { SessionPatchSchema, SessionSchema } from '@hamlet/protocol/schemas'
 import { FIXTURE_VERSION } from '../../scripts/fixtures/fixtureTypes'
 import { toCanonicalJson } from '../../scripts/fixtures/serialize'
 import { runSessionPatchScript } from '../../scripts/fixtures/sse/apply'

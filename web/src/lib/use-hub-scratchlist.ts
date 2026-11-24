@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import { ApiError } from '@/api/client'
 import { queryKeys } from '@/lib/query-keys'
@@ -50,14 +50,14 @@ import {
  * v1 AND the hub returns no entries AND the per-session migration flag
  * has not been set, we push the localStorage entries up via POST,
  * preserving their original `id` and `createdAt`. The flag
- * `hapi.scratchlist.v2.migrated.${sessionId}` then prevents repeated
+ * `hamlet.scratchlist.v2.migrated.${sessionId}` then prevents repeated
  * migrations across reloads. The per-session banner status reflects
  * whether the migration just ran (`completed`) or was acknowledged
  * (`dismissed`); the banner component listens for this signal.
  */
 
-const MIGRATION_FLAG_PREFIX = 'hapi.scratchlist.v2.migrated.'
-const MIGRATION_BANNER_DISMISSED_PREFIX = 'hapi.scratchlist.v2.banner-dismissed.'
+const MIGRATION_FLAG_PREFIX = 'hamlet.scratchlist.v2.migrated.'
+const MIGRATION_BANNER_DISMISSED_PREFIX = 'hamlet.scratchlist.v2.banner-dismissed.'
 
 export type ScratchlistMigrationStatus =
     | 'idle'        // no localStorage entries; nothing to migrate
@@ -175,7 +175,7 @@ export function useHubScratchlist(
     const [migrationStatus, setMigrationStatus] = useState<ScratchlistMigrationStatus>(() => {
         if (!sessionId) return 'idle'
         if (readBannerDismissed(sessionId)) return 'dismissed'
-        // HAPI Bot, PR #896 follow-up: the migration flag alone does
+        // HAMLET Bot, PR #896 follow-up: the migration flag alone does
         // NOT mean the operator saw the banner. If they reloaded
         // before clicking dismiss, they need to see it again on
         // remount - so 'completed' is sticky until the dismiss flag
@@ -262,7 +262,7 @@ export function useHubScratchlist(
         setMigrationStatus('migrating')
 
         void (async () => {
-            // HAPI Bot review on PR #896 caught a data-loss path here:
+            // HAMLET Bot review on PR #896 caught a data-loss path here:
             // swallowing per-entry POST failures and still writing the
             // migration flag would strand entries (the offline-cache
             // mirror would replace the original localStorage with the
@@ -529,7 +529,7 @@ export function useHubScratchlist(
     // CRITICAL: gate on the migration flag. Pre-migration, localStorage
     // holds the v1 entries that the migration effect needs to read; if
     // we mirrored an empty hub fetch into localStorage on first render
-    // we'd wipe the very entries we're about to upload (HAPI Bot
+    // we'd wipe the very entries we're about to upload (HAMLET Bot
     // review on PR #896 caught a closely-related data-loss path). The
     // flag also stays unset on partial-failure migrations, which keeps
     // the failed-entry localStorage write from being clobbered.
@@ -546,7 +546,7 @@ export function useHubScratchlist(
                 updatedAt: e.updatedAt
             }))
             window.localStorage.setItem(
-                `hapi.scratchlist.v1.${sessionId}`,
+                `hamlet.scratchlist.v1.${sessionId}`,
                 JSON.stringify(cached)
             )
         } catch {

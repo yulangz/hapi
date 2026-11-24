@@ -107,8 +107,8 @@ export function utf8ByteLength(text: string): number {
     return new TextEncoder().encode(text).length
 }
 
-export const VOICE_PERSONALITY_STORAGE_KEY = 'hapi-voice-personality'
-export const VOICE_CONTEXT_NOTICE_STORAGE_KEY = 'hapi-voice-context-notice'
+export const VOICE_PERSONALITY_STORAGE_KEY = 'hamlet-voice-personality'
+export const VOICE_CONTEXT_NOTICE_STORAGE_KEY = 'hamlet-voice-context-notice'
 
 export const DEFAULT_ELEVENLABS_VOICE_SETTINGS: ElevenLabsVoiceSettings = {
     stability: 0.5,

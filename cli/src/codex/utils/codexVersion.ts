@@ -21,7 +21,7 @@ function parseVersionTuple(value: string): [number, number, number] | null {
 }
 
 function getLocalModeRequirementMessage(): string {
-    return `Codex CLI ${MIN_CODEX_HOOKS_VERSION}+ is required for hapi codex local mode because HAPI depends on stable hooks.`
+    return `Codex CLI ${MIN_CODEX_HOOKS_VERSION}+ is required for hamlet codex local mode because HAMLET depends on stable hooks.`
 }
 
 export function parseCodexVersion(output: string): string | null {

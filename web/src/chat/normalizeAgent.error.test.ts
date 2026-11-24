@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeAgentRecord } from './normalizeAgent'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
 
 describe('normalizeAgentRecord — agent error payloads', () => {
     it('normalizes codex error payloads into error-styled agent events', () => {

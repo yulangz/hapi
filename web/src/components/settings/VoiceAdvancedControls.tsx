@@ -18,7 +18,7 @@ import {
     type VoiceBackendKind,
     type VoicePersonalityPresetId,
     type ResponseLengthOption
-} from '@hapi/protocol/voice-personality'
+} from '@hamlet/protocol/voice-personality'
 import { readVoiceContextNotice } from '@/lib/voiceContextStream'
 import { useVoicePersonality } from '@/hooks/useVoicePersonality'
 import { useMemo } from 'react'

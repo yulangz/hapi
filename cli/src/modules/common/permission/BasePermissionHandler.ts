@@ -1,6 +1,6 @@
 import type { AgentState } from "@/api/types";
-import type { PermissionMode } from "@hapi/protocol/types";
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import type { PermissionMode } from "@hamlet/protocol/types";
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 type RpcHandlerManagerLike = {
     registerHandler<TRequest = unknown, TResponse = unknown>(
@@ -20,7 +20,7 @@ export type AutoApprovalRuleSet = {
 const AUTO_APPROVE_TOOL_NAME_HINTS = [
     'change_title',
     'happy__change_title',
-    'hapi_change_title',  // OpenCode MCP tool pattern
+    'hamlet_change_title',  // OpenCode MCP tool pattern
     'geminireasoning',
     'codexreasoning',
     'think',
@@ -28,14 +28,14 @@ const AUTO_APPROVE_TOOL_NAME_HINTS = [
 ];
 const AUTO_APPROVE_EXACT_TOOL_NAMES = new Set([
     'skill_lookup',
-    'hapi_skill_lookup',
+    'hamlet_skill_lookup',
     'happy__skill_lookup',
-    'mcp__hapi__skill_lookup',
+    'mcp__hamlet__skill_lookup',
     // Discovery shortlist only (id/active/flavor/name) - same as ping-peer --list.
     'list_peers',
-    'hapi_list_peers',
+    'hamlet_list_peers',
     'happy__list_peers',
-    'mcp__hapi__list_peers',
+    'mcp__hamlet__list_peers',
     // ACP permission requests often surface MCP tool title, not the snake_case name.
     'list peer sessions'
 ]);

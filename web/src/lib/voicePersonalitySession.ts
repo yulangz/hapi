@@ -1,4 +1,4 @@
-import { buildVoiceAgentConfig, VOICE_TOOLS } from '@hapi/protocol/voice'
+import { buildVoiceAgentConfig, VOICE_TOOLS } from '@hamlet/protocol/voice'
 import {
     DEFAULT_ELEVENLABS_VOICE_SETTINGS,
     ELEVENLABS_WEBRTC_CONTEXT_MAX_BYTES,
@@ -8,7 +8,7 @@ import {
     truncateUtf8ByteLength,
     type ElevenLabsVoiceSettings,
     type VoicePersonalityPreferences
-} from '@hapi/protocol/voice-personality'
+} from '@hamlet/protocol/voice-personality'
 import { loadVoicePersonalityFromStorage } from '@/hooks/useVoicePersonality'
 
 /**

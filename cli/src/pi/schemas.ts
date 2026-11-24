@@ -10,8 +10,8 @@
  */
 
 import { z } from 'zod';
-import { PI_THINKING_LEVELS } from '@hapi/protocol';
-import type { PiModelSummary } from '@hapi/protocol/apiTypes';
+import { PI_THINKING_LEVELS } from '@hamlet/protocol';
+import type { PiModelSummary } from '@hamlet/protocol/apiTypes';
 import type { PiContextUsage, PiExtensionUiRequest } from './types';
 
 // ============================================================================
@@ -398,7 +398,7 @@ export const SetSessionConfigPayloadSchema = z.object({
 }).passthrough();
 
 // ============================================================================
-// Pi thinking level — enum sourced from @hapi/protocol (single definition)
+// Pi thinking level — enum sourced from @hamlet/protocol (single definition)
 // ============================================================================
 
 export const PiThinkingLevelSchema = z.enum(PI_THINKING_LEVELS);

@@ -24,7 +24,7 @@ function fixture(parentThreadId?: string, deferWrites = false) {
 }
 
 function titleItem(id: string, title: string) {
-    return { id, type: 'mcpToolCall', server: 'hapi', tool: 'change_title', arguments: { title },
+    return { id, type: 'mcpToolCall', server: 'hamlet', tool: 'change_title', arguments: { title },
         status: 'completed', result: { content: [{ type: 'text', text: 'Successfully changed chat title' }], isError: false } };
 }
 function params(item: unknown, turnId = 'turn') { return { threadId: 'thread', turnId, item }; }

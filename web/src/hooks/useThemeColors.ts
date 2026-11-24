@@ -33,7 +33,7 @@ interface ThemeColorKey {
     derive?: (hex: string, scheme: ThemeScheme) => Record<string, string>
 }
 
-const STORAGE_KEY = 'hapi-theme-colors'
+const STORAGE_KEY = 'hamlet-theme-colors'
 
 export const THEME_COLOR_KEYS: readonly ThemeColorKey[] = [
     {
@@ -283,7 +283,7 @@ export function initializeThemeColors(): void {
     window.addEventListener('storage', (event: StorageEvent) => {
         if (event.key === STORAGE_KEY || event.key === getColorThemeStorageKey()) applyThemeColors()
     })
-    window.addEventListener('hapi-color-theme-change', applyThemeColors)
+    window.addEventListener('hamlet-color-theme-change', applyThemeColors)
 
     const themeObserver = new MutationObserver(() => {
         applyThemeColors()
@@ -329,12 +329,12 @@ export function useThemeColors(): {
         }
         const onColorThemeChange = () => refresh()
         window.addEventListener('storage', onStorage)
-        window.addEventListener('hapi-color-theme-change', onColorThemeChange)
+        window.addEventListener('hamlet-color-theme-change', onColorThemeChange)
 
         return () => {
             themeObserver.disconnect()
             window.removeEventListener('storage', onStorage)
-            window.removeEventListener('hapi-color-theme-change', onColorThemeChange)
+            window.removeEventListener('hamlet-color-theme-change', onColorThemeChange)
         }
     }, [])
 

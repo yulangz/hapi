@@ -1,22 +1,22 @@
-import { SESSION_EXPORT_MAX_BYTES } from '@hapi/protocol/sessionExport'
+import { SESSION_EXPORT_MAX_BYTES } from '@hamlet/protocol/sessionExport'
 import type { ApiClient } from '@/api/client'
 import type {
-    HapiSessionExport,
-    HapiSessionExportResponse,
-    HapiSessionExportWarning
+    HamletSessionExport,
+    HamletSessionExportResponse,
+    HamletSessionExportWarning
 } from '@/types/api'
 import { serializeSessionMarkdown } from './markdown'
 
 export type SessionExportFormat = 'json' | 'markdown'
 
 export type SessionExportDownloadResult =
-    | { type: 'warning'; warning: HapiSessionExportWarning }
+    | { type: 'warning'; warning: HamletSessionExportWarning }
     | { type: 'too-large'; count: number; estimatedBytes: number; maxBytes: number }
     | { type: 'downloaded'; filename: string; messageCount: number }
 
-export const SESSION_EXPORT_FORMAT_STORAGE_KEY = 'hapi.sessionExportFormat'
+export const SESSION_EXPORT_FORMAT_STORAGE_KEY = 'hamlet.sessionExportFormat'
 
-function isSessionExportWarning(response: HapiSessionExportResponse): response is HapiSessionExportWarning {
+function isSessionExportWarning(response: HamletSessionExportResponse): response is HamletSessionExportWarning {
     return 'type' in response && response.type === 'warning'
 }
 
@@ -31,7 +31,7 @@ export function writeSessionExportFormat(format: SessionExportFormat): void {
     window.localStorage.setItem(SESSION_EXPORT_FORMAT_STORAGE_KEY, format)
 }
 
-function getSessionTitle(payload: HapiSessionExport): string {
+function getSessionTitle(payload: HamletSessionExport): string {
     const metadata = payload.session.metadata
     return metadata?.name
         ?? metadata?.summary?.text
@@ -54,14 +54,14 @@ function formatDate(value: number): string {
     return date.toISOString().slice(0, 10)
 }
 
-export function buildSessionExportFilename(payload: HapiSessionExport, format: SessionExportFormat): string {
+export function buildSessionExportFilename(payload: HamletSessionExport, format: SessionExportFormat): string {
     const extension = format === 'json' ? 'json' : 'md'
     const slug = slugify(getSessionTitle(payload)).slice(0, 80)
     const shortId = payload.session.id.slice(0, 8)
     return `${slug}-${shortId}-${formatDate(payload.exportedAt)}.${extension}`
 }
 
-function downloadBlobFile(filename: string, blob: Blob): void {
+export function downloadBlobFile(filename: string, blob: Blob): void {
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
@@ -79,7 +79,7 @@ export async function downloadSessionExport(
     format: SessionExportFormat,
     options?: { force?: boolean; signal?: AbortSignal }
 ): Promise<SessionExportDownloadResult> {
-    const response: HapiSessionExportResponse = await api.getSessionExport(sessionId, {
+    const response: HamletSessionExportResponse = await api.getSessionExport(sessionId, {
         force: options?.force,
         signal: options?.signal
     })
@@ -87,7 +87,7 @@ export async function downloadSessionExport(
         return { type: 'warning', warning: response }
     }
 
-    const payload: HapiSessionExport = response
+    const payload: HamletSessionExport = response
     const filename = buildSessionExportFilename(payload, format)
     const text = format === 'json'
         ? `${JSON.stringify(payload, null, 2)}\n`

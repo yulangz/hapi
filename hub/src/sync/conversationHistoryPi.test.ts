@@ -146,7 +146,7 @@ describe('Pi conversation-history hub integration', () => {
         }
     })
 
-    it('scrubs Pi entry-id locators when rewind truncates their HAPI messages', () => {
+    it('scrubs Pi entry-id locators when rewind truncates their HAMLET messages', () => {
         const { store, engine } = createEngine()
         try {
             const session = engine.getOrCreateSession('pi-scrub', {

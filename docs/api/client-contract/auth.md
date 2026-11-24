@@ -22,9 +22,9 @@ The hub terminal (when started with `--relay`) prints two QR codes; the web app'
 | QR | Format | Params |
 |----|--------|--------|
 | Web direct-access | `https://app.hapi.run/?hub=<url>&token=<accessToken>` | `hub`, `token` |
-| Companion deeplink | `hapicompanion://bind?hub=<url>&code=<accessToken>` | `hub`, `code` |
+| Companion deeplink | `hamletcompanion://bind?hub=<url>&code=<accessToken>` | `hub`, `code` |
 
-Native clients register the `hapicompanion://` scheme and parse `bind` links: `hub` is the hub base URL, `code` is the access token. Note the param-name mismatch: the web QR carries the same value under `token=`, the companion deeplink under `code=`. A robust scanner may accept both forms; the deeplink form is the canonical one for natives. Always provide a manual fallback (type hub URL + access token) for `--relay`-less local hubs.
+Native clients register the `hamletcompanion://` scheme and parse `bind` links: `hub` is the hub base URL, `code` is the access token. Note the param-name mismatch: the web QR carries the same value under `token=`, the companion deeplink under `code=`. A robust scanner may accept both forms; the deeplink form is the canonical one for natives. Always provide a manual fallback (type hub URL + access token) for `--relay`-less local hubs.
 
 Both repository apps accept both QR forms in their in-app scanners. Android
 requires HTTPS for the hub and web-QR URL, and disables cleartext traffic in
@@ -35,7 +35,7 @@ the pairing examples. See [Native apps → Pairing](../../guide/native-apps.md#p
 Both apps normalize hub identities to `scheme://host[:port]`, lowercasing
 scheme/host and removing default ports, paths, queries and fragments. Reverse
 proxies must expose the hub at that origin, not solely under a path prefix.
-Sources: iOS `HapiClient/Auth/HubRegistry.swift` (`HubURLNormalization`),
+Sources: iOS `HamletClient/Auth/HubRegistry.swift` (`HubURLNormalization`),
 Android `core/data/.../auth/HubUrls.kt` and `core/protocol/.../pairing/PairingLinks.kt`.
 
 ## Access-token grammar
@@ -96,8 +96,8 @@ Source of truth: `hub/src/web/middleware/auth.ts`.
 
 ## Silent re-auth (401 handling)
 
-Native implementations: iOS `HapiClient/Auth/AuthManager.swift` and
-`HapiClient/APIClient.swift`; Android `core/data/.../auth/TokenAuthenticator.kt`.
+Native implementations: iOS `HamletClient/Auth/AuthManager.swift` and
+`HamletClient/APIClient.swift`; Android `core/data/.../auth/TokenAuthenticator.kt`.
 Web reference: `web/src/api/client.ts` (`request()`),
 `web/src/hooks/useAuth.ts` (`refreshAuth`).
 
@@ -137,7 +137,7 @@ namespace suffix. The hub remains authoritative for every owner-only request.
 ## Credential storage guidance
 
 - Store the **access token** in platform-secure storage: iOS Keychain, Android `EncryptedSharedPreferences` (behind an interface so the mechanism can be swapped). Never plain files, never logs.
-- Key credentials **per hub base URL** (normalized), since a client can pair with several hubs. Web reference: localStorage key `hapi_access_token::<baseUrl>` (`web/src/hooks/useAuth.ts`, `web/src/components/settings/CompanionPairing.tsx`).
+- Key credentials **per hub base URL** (normalized), since a client can pair with several hubs. Web reference: localStorage key `hamlet_access_token::<baseUrl>` (`web/src/hooks/useAuth.ts`, `web/src/components/settings/CompanionPairing.tsx`).
 - The JWT is a sensitive bearer credential, but need not be persisted: hold it in memory and re-exchange on cold start. If persisted (to save one round-trip at launch), store it alongside the access token with the same protection.
 - On unpair/sign-out: delete both credentials, and unregister native push (`DELETE /api/devices/register`) first while you still hold a valid JWT.
 

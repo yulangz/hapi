@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { CursorChatStoreStatus } from '@hapi/protocol/apiTypes'
+import type { CursorChatStoreStatus } from '@hamlet/protocol/apiTypes'
 
 type InspectCursorChatStoreOptions = {
     home: string

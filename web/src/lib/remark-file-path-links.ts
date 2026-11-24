@@ -1,7 +1,7 @@
-const FILE_PATH_HREF_PREFIX = 'hapi-file:'
+const FILE_PATH_HREF_PREFIX = 'hamlet-file:'
 // Encoded Windows abs handoff: raw `C:\…` is URI-normalized to `%5C` before <A>,
 // which breaks drive detection. Candidate scheme preserves the path through hast.
-const FILE_PATH_CANDIDATE_HREF_PREFIX = 'hapi-file-candidate:'
+const FILE_PATH_CANDIDATE_HREF_PREFIX = 'hamlet-file-candidate:'
 
 const PATH_PATTERN = /(?:[A-Za-z]:[\\/]|\.\/|[A-Za-z0-9_.-]+\/)[^\s`"\'<>]*?\.(?:[A-Za-z0-9]{1,12}|lock)(?::\d+(?::\d+)?)?|(?:[A-Za-z0-9_.-]+\.(?:[A-Za-z0-9]{1,12}|lock))(?::\d+(?::\d+)?)?/g
 
@@ -44,7 +44,7 @@ export function decodeFilePathHref(href: string): string | null {
 }
 
 export function decodeFilePathCandidateHref(href: string): string | null {
-    // Decode scheme bypass spellings (`HAPI-FILE-CANDIDATE:`, percent-encoded)
+    // Decode scheme bypass spellings (`HAMLET-FILE-CANDIDATE:`, percent-encoded)
     // before extracting the payload. Empty payload → null (caller fails closed).
     let value = href.trimStart()
     for (let i = 0; i < 2; i++) {
@@ -56,7 +56,7 @@ export function decodeFilePathCandidateHref(href: string): string | null {
             break
         }
     }
-    const match = /^hapi-file-candidate:(.*)$/i.exec(value)
+    const match = /^hamlet-file-candidate:(.*)$/i.exec(value)
     if (!match) return null
     const payload = match[1]
     if (!payload) return null
@@ -119,7 +119,7 @@ function shouldLinkPath(value: string): boolean {
     if (path.length < 3) return false
     if (path.startsWith('/') || path.startsWith('~/')) return false
     if (path.startsWith('../') || path.includes('/../')) return false
-    // Windows abs: autolink with the raw path (not hapi-file:) so <A> can
+    // Windows abs: autolink with the raw path (not hamlet-file:) so <A> can
     // apply workspace containment before painting FilePathAnchor.
     if (isWindowsAbsolutePath(path)) return hasKnownFileExtension(path)
     if (path.includes('/')) return hasKnownFileExtension(path)
@@ -203,7 +203,7 @@ function linkInlineCodeNode(node: MarkdownNode): MarkdownNode | null {
     }
 }
 
-// Rewrite an explicit markdown link `[label](…file.ext)` into a `hapi-file:` href
+// Rewrite an explicit markdown link `[label](…file.ext)` into a `hamlet-file:` href
 // so it opens the session file viewer instead of dead-ending in the SPA router.
 //
 // Accepts:
@@ -245,8 +245,8 @@ function rewriteFileLinkNode(node: MarkdownNode): void {
 }
 
 export type RemarkFilePathLinksOptions = {
-    // Rewrite explicit markdown links `[label](relative/file.ext)` → `hapi-file:`.
-    // Routing a `hapi-file:` href needs session context (FilePathAnchor); surfaces
+    // Rewrite explicit markdown links `[label](relative/file.ext)` → `hamlet-file:`.
+    // Routing a `hamlet-file:` href needs session context (FilePathAnchor); surfaces
     // that render without HappyChatContext (standalone file-preview) must disable
     // this or the anchor collapses to plain text (`A` returns props.children when
     // `!chat`). Bare-path / inlineCode autolinks are unaffected — they were already

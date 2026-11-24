@@ -7,7 +7,7 @@ import { ReasoningProcessor } from './utils/reasoningProcessor';
 import { DiffProcessor } from './utils/diffProcessor';
 import { logger } from '@/ui/logger';
 import { CodexDisplay } from '@/ui/ink/CodexDisplay';
-import { buildHapiMcpBridge } from './utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from './utils/buildHamletMcpBridge';
 import { emitReadyIfIdle } from './utils/emitReadyIfIdle';
 import type { CodexSession } from './session';
 import type { EnhancedMode } from './loop';
@@ -31,7 +31,7 @@ import type { SkillMetadata, ThreadGoal, ThreadGoalStatus } from './appServerTyp
 import { shouldIgnoreTerminalEvent } from './utils/terminalEventGuard';
 import { parseCodexSpecialCommand } from './codexSpecialCommands';
 import { extractErrorInfo } from '@/utils/errorUtils';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import {
     RemoteLauncherBase,
     type RemoteLauncherDisplayContext,
@@ -53,7 +53,7 @@ async function registerGeneratedImageFromPathWrapper(args: { id: string; path: s
     return image;
 }
 
-type HappyServer = Awaited<ReturnType<typeof buildHapiMcpBridge>>['server'];
+type HappyServer = Awaited<ReturnType<typeof buildHamletMcpBridge>>['server'];
 type QueuedMessage = {
     message: string
     mode: EnhancedMode
@@ -114,7 +114,7 @@ const TRUSTED_ACCESS_FOR_CYBER_URL = 'https://chatgpt.com/cyber';
 const CYBER_POLICY_TRUSTED_ACCESS_URL = 'https://openai.com/form/enterprise-trusted-access-for-cyber/';
 const CODEX_GOALS_UNSUPPORTED_MESSAGE = 'Codex goals are not supported by this Codex runtime. Upgrade Codex or enable features.goals.';
 const MAX_CODEX_GOAL_OBJECTIVE_CHARS = 4_000;
-const HAPI_TOP_LEVEL_THREAD_SOURCE = 'user';
+const HAMLET_TOP_LEVEL_THREAD_SOURCE = 'user';
 
 type GoalForwardSignature = {
     objective: string | null;
@@ -468,8 +468,8 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
             return `mcp__${serverName}__${toolName}`;
         };
 
-        const isHapiChangeTitleToolName = (toolName: string | null): boolean => {
-            return toolName === 'mcp__hapi__change_title';
+        const isHamletChangeTitleToolName = (toolName: string | null): boolean => {
+            return toolName === 'mcp__hamlet__change_title';
         };
 
         const sendTitleSummary = (title: string): void => {
@@ -1695,7 +1695,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                     const input = invocation.arguments ?? invocation.input ?? msg.arguments ?? msg.input ?? {};
                     const inputRecord = asRecord(input);
                     const requestedTitle = inputRecord ? asString(inputRecord.title) : null;
-                    if (isHapiChangeTitleToolName(name) && requestedTitle) {
+                    if (isHamletChangeTitleToolName(name) && requestedTitle) {
                         runtime.pendingTitleByCallId.set(callId, requestedTitle);
                     }
                     emitAgentRunTraceMessage(agentId, {
@@ -2040,7 +2040,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
             await appServerClient.connect();
             await appServerClient.initialize({
                 clientInfo: {
-                    name: 'hapi-codex-client',
+                    name: 'hamlet-codex-client',
                     version: '1.0.0'
                 },
                 capabilities: {
@@ -3336,7 +3336,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                     const input = invocation.arguments ?? invocation.input ?? msg.arguments ?? msg.input ?? {};
                     const inputRecord = asRecord(input);
                     const requestedTitle = inputRecord ? asString(inputRecord.title) : null;
-                    if (isHapiChangeTitleToolName(name) && requestedTitle) {
+                    if (isHamletChangeTitleToolName(name) && requestedTitle) {
                         mcpTitleByCallId.set(callId, requestedTitle);
                     }
                     session.sendAgentMessage({
@@ -3536,16 +3536,16 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
             failPendingAgentStartsForSpawnArgumentError(spawnAgentError);
         });
 
-        const { server: happyServer, mcpServers: hapiMcpServers } = await buildHapiMcpBridge(session.client, {
+        const { server: happyServer, mcpServers: hamletMcpServers } = await buildHamletMcpBridge(session.client, {
             // In app-server/collab mode, child agents share this MCP bridge.
             // If the MCP handler writes the title directly, child title calls
-            // leak into the parent HAPI session. Defer the side effect until
+            // leak into the parent HAMLET session. Defer the side effect until
             // parent-thread mcp_tool_call_end reaches this launcher; child
             // events are filtered above by thread id.
             emitTitleSummary: false
         });
         this.happyServer = happyServer;
-        let mcpServers: CodexMcpServersConfig = hapiMcpServers;
+        let mcpServers: CodexMcpServersConfig = hamletMcpServers;
 
         this.setupAbortHandlers(session.client.rpcHandlerManager, {
             onAbort: () => this.handleAbort(),
@@ -3571,7 +3571,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
         await appServerClient.connect();
         await appServerClient.initialize({
             clientInfo: {
-                name: 'hapi-codex-client',
+                name: 'hamlet-codex-client',
                 version: '1.0.0'
             },
             capabilities: {
@@ -3589,7 +3589,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                 const userMcpServers = extractCodexMcpServers(effectiveConfig);
                 const preparedMcpServers = await prepareCodexMcpServers(userMcpServers);
                 this.mcpProxyCleanup = preparedMcpServers.cleanup;
-                mcpServers = mergeCodexMcpServers(preparedMcpServers.servers, hapiMcpServers);
+                mcpServers = mergeCodexMcpServers(preparedMcpServers.servers, hamletMcpServers);
                 if (Object.keys(userMcpServers).length > 0) {
                     logger.debug(`[Codex] Loaded ${Object.keys(userMcpServers).length} user MCP server(s)`);
                 }
@@ -3599,7 +3599,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                     );
                 }
             } catch (error) {
-                logger.warn(`[Codex] Failed to merge user MCP servers; using HAPI bridge only: ${errorMessage(error)}`);
+                logger.warn(`[Codex] Failed to merge user MCP servers; using HAMLET bridge only: ${errorMessage(error)}`);
             }
             const modelContextWindow = effectiveConfig.model_context_window;
             const modelAutoCompactTokenLimit = effectiveConfig.model_auto_compact_token_limit;
@@ -3873,7 +3873,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                 });
                 const threadResponse = await appServerClient.startThread({
                     ...threadParams,
-                    threadSource: HAPI_TOP_LEVEL_THREAD_SOURCE
+                    threadSource: HAMLET_TOP_LEVEL_THREAD_SOURCE
                 }, {
                     signal: this.abortController.signal
                 });
@@ -4167,7 +4167,7 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                     if (!threadId) {
                         const threadResponse = await appServerClient.startThread({
                             ...threadParams,
-                            threadSource: HAPI_TOP_LEVEL_THREAD_SOURCE
+                            threadSource: HAMLET_TOP_LEVEL_THREAD_SOURCE
                         }, {
                             signal: this.abortController.signal
                         });

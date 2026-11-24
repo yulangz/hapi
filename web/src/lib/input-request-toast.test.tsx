@@ -11,7 +11,7 @@ describe('input request toast title', () => {
         ['en', 'Codex needs your input'],
         ['zh-CN', 'Codex 需要你回答']
     ])('localizes the title in %s', (locale, expected) => {
-        localStorage.setItem('hapi-lang', locale)
+        localStorage.setItem('hamlet-lang', locale)
         const { result } = renderHook(() => useTranslation(), { wrapper: I18nProvider })
         expect(translateInputRequestTitle(' Codex needs your input ', result.current.t)).toBe(expected)
     })

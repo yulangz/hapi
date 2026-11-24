@@ -4,7 +4,7 @@ import {
     MachineMetadataSchema,
     MetadataSchema,
     RunnerStateSchema
-} from '@hapi/protocol/schemas'
+} from '@hamlet/protocol/schemas'
 import {
     ClearOpencodeSessionResponseSchema,
     ClearOpencodeSessionCallbackRequestSchema,
@@ -21,8 +21,8 @@ import {
     type CreateMachineResponse,
     type CreateSessionResponse,
     type GetSessionResponse
-} from '@hapi/protocol'
-import type { CodexCollaborationMode, Machine, MachineMetadata, PermissionMode, RunnerState } from '@hapi/protocol/types'
+} from '@hamlet/protocol'
+import type { CodexCollaborationMode, Machine, MachineMetadata, PermissionMode, RunnerState } from '@hamlet/protocol/types'
 import { z } from 'zod'
 import { UsageSchema } from '@/claude/types'
 
@@ -39,7 +39,7 @@ export type {
     Metadata,
     RunnerState,
     Session
-} from '@hapi/protocol/types'
+} from '@hamlet/protocol/types'
 export type SessionPermissionMode = PermissionMode
 export type SessionCollaborationMode = CodexCollaborationMode
 export type SessionModel = string | null

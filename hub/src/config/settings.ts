@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { chmod, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { dirname, join } from 'node:path'
-import { withSettingsFileLock } from '@hapi/protocol/settingsFileLock'
+import { withSettingsFileLock } from '@hamlet/protocol/settingsFileLock'
 
 export interface Settings {
     machineId?: string

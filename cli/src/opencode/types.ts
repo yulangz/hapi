@@ -1,4 +1,4 @@
-import type { OpencodePermissionMode } from '@hapi/protocol/types';
+import type { OpencodePermissionMode } from '@hamlet/protocol/types';
 
 export type PermissionMode = OpencodePermissionMode;
 

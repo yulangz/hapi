@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { getFlavorLabel, type AgentAvailabilityEntry, type AgentFlavor } from '@hapi/protocol'
+import { getFlavorLabel, type AgentAvailabilityEntry, type AgentFlavor } from '@hamlet/protocol'
 
 export type AgentPickerProps = {
     agents: readonly AgentAvailabilityEntry[]

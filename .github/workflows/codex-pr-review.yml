@@ -41,7 +41,7 @@ jobs:
             const { prepareReview } = require('./.github/scripts/pr-review.cjs');
             await prepareReview({ github, context, core });
         env:
-          HAPI_BOT_LOGINS: ${{ vars.HAPI_BOT_LOGINS }}
+          HAMLET_BOT_LOGINS: ${{ vars.HAMLET_BOT_LOGINS }}
 
       - name: Fetch fixed review commits
         if: steps.prepare.outputs.should_review == 'true'
@@ -76,7 +76,7 @@ jobs:
         if: steps.prepare.outputs.should_review == 'true'
         uses: actions/github-script@v7
         env:
-          HAPI_BOT_LOGINS: ${{ vars.HAPI_BOT_LOGINS }}
+          HAMLET_BOT_LOGINS: ${{ vars.HAMLET_BOT_LOGINS }}
           REVIEW_CONTEXT_PATH: ${{ steps.prepare.outputs.context_path }}
           REVIEW_RESULT: ${{ steps.run_codex.outputs.final-message }}
         with:

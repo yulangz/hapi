@@ -1,5 +1,5 @@
-import type { CursorPermissionMode } from '@hapi/protocol/types';
-import { cursorCliSkuBaseId, cursorModelBaseId, matchCliSkuToAcpWireId, resolveCursorLegacyModelBase } from '@hapi/protocol';
+import type { CursorPermissionMode } from '@hamlet/protocol/types';
+import { cursorCliSkuBaseId, cursorModelBaseId, matchCliSkuToAcpWireId, resolveCursorLegacyModelBase } from '@hamlet/protocol';
 import type { AcpSdkBackend } from '@/agent/backends/acp';
 import { logger } from '@/ui/logger';
 
@@ -32,7 +32,7 @@ export function resolveCursorModeAfterPlanApproval(
     return mode;
 }
 
-/** True when HAPI permission mode should spawn/toggle Cursor Auto-review. */
+/** True when HAMLET permission mode should spawn/toggle Cursor Auto-review. */
 export function isCursorAutoReviewMode(mode: CursorPermissionMode | undefined): boolean {
     return mode === 'autoReview';
 }

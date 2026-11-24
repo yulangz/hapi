@@ -1,4 +1,4 @@
-import type { GrokPermissionMode } from '@hapi/protocol/types'
+import type { GrokPermissionMode } from '@hamlet/protocol/types'
 
 export type PermissionMode = GrokPermissionMode
 

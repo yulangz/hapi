@@ -9,7 +9,7 @@ const { dir } = vi.hoisted(() => {
     const { tmpdir } = require('node:os') as typeof import('node:os')
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { join: pathJoin } = require('node:path') as typeof import('node:path')
-    return { dir: mkdtempSync(pathJoin(tmpdir(), 'hapi-cli-settings-')) }
+    return { dir: mkdtempSync(pathJoin(tmpdir(), 'hamlet-cli-settings-')) }
 })
 
 vi.mock('@/configuration', () => ({

@@ -10,8 +10,8 @@ import type { CopilotMode, PermissionMode } from './types';
 import { bootstrapExistingSession, bootstrapSession } from '@/agent/sessionFactory';
 import { registerLocalHandoffHandler } from '@/agent/localHandoff';
 import { createModeChangeHandler, createRunnerLifecycle, setControlledByUser } from '@/agent/runnerLifecycle';
-import { isCopilotAgentMode, isPermissionModeAllowedForFlavor } from '@hapi/protocol';
-import { PermissionModeSchema } from '@hapi/protocol/schemas';
+import { isCopilotAgentMode, isPermissionModeAllowedForFlavor } from '@hamlet/protocol';
+import { PermissionModeSchema } from '@hamlet/protocol/schemas';
 import { formatMessageWithAttachments } from '@/utils/attachmentFormatter';
 import { getInvokedCwd } from '@/utils/invokedCwd';
 import { resolveCopilotRuntimeConfig } from './utils/config';
@@ -19,10 +19,10 @@ import { listSlashCommands } from '@/modules/common/slashCommands';
 import { resolveCopilotSlashCommand } from './utils/slashCommands';
 
 export async function applyCopilotSlashAgentMode(
-    currentAgentMode: import('@hapi/protocol').CopilotAgentMode,
-    nextAgentMode: import('@hapi/protocol').CopilotAgentMode | undefined,
+    currentAgentMode: import('@hamlet/protocol').CopilotAgentMode,
+    nextAgentMode: import('@hamlet/protocol').CopilotAgentMode | undefined,
     activeSession: CopilotSession | null
-): Promise<import('@hapi/protocol').CopilotAgentMode> {
+): Promise<import('@hamlet/protocol').CopilotAgentMode> {
     if (nextAgentMode === undefined || nextAgentMode === currentAgentMode) {
         return currentAgentMode;
     }
@@ -42,7 +42,7 @@ export async function runCopilot(opts: {
     startingMode?: 'local' | 'remote';
     permissionMode?: PermissionMode;
     model?: string;
-    copilotAgentMode?: import('@hapi/protocol').CopilotAgentMode;
+    copilotAgentMode?: import('@hamlet/protocol').CopilotAgentMode;
     resumeSessionId?: string;
     existingSessionId?: string;
     workingDirectory?: string;

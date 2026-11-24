@@ -15,7 +15,7 @@ afterEach(() => {
 })
 
 function makeP8File(baseDir: string = tmpdir()): string {
-    const dir = mkdtempSync(join(baseDir, 'hapi-apns-key-'))
+    const dir = mkdtempSync(join(baseDir, 'hamlet-apns-key-'))
     tempDirs.push(dir)
     const path = join(dir, 'AuthKey_TEST.p8')
     writeFileSync(path, '-----BEGIN PRIVATE KEY-----\nMIG\n-----END PRIVATE KEY-----\n')
@@ -68,13 +68,13 @@ describe('resolveIosPushConfig', () => {
             apnsKeyP8Path: p8Path,
             apnsKeyId: 'KEY123',
             apnsTeamId: 'TEAM456',
-            apnsBundleId: 'run.hapi.ios'
+            apnsBundleId: 'run.hamlet.ios'
         }))
         expect(config.mode).toBe('apns')
         if (config.mode !== 'apns') throw new Error('unreachable')
         expect(config.keyId).toBe('KEY123')
         expect(config.teamId).toBe('TEAM456')
-        expect(config.bundleId).toBe('run.hapi.ios')
+        expect(config.bundleId).toBe('run.hamlet.ios')
         expect(config.env).toBe('production')
         expect(config.host).toBe(APNS_PRODUCTION_HOST)
         expect(config.keyP8).toContain('BEGIN PRIVATE KEY')

@@ -11,11 +11,11 @@ export function readWorktreeEnv(): WorktreeInfo | null {
 }
 
 function readWorktreeFromEnv(): WorktreeInfo | null {
-    const basePath = process.env.HAPI_WORKTREE_BASE_PATH?.trim();
-    const branch = process.env.HAPI_WORKTREE_BRANCH?.trim();
-    const name = process.env.HAPI_WORKTREE_NAME?.trim();
-    const worktreePath = process.env.HAPI_WORKTREE_PATH?.trim();
-    const createdAtRaw = process.env.HAPI_WORKTREE_CREATED_AT?.trim();
+    const basePath = process.env.HAMLET_WORKTREE_BASE_PATH?.trim();
+    const branch = process.env.HAMLET_WORKTREE_BRANCH?.trim();
+    const name = process.env.HAMLET_WORKTREE_NAME?.trim();
+    const worktreePath = process.env.HAMLET_WORKTREE_PATH?.trim();
+    const createdAtRaw = process.env.HAMLET_WORKTREE_CREATED_AT?.trim();
 
     if (!basePath || !branch || !name || !worktreePath || !createdAtRaw) {
         return null;

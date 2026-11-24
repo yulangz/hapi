@@ -21,7 +21,7 @@ describe('ToolCard CodexDiff inline interactions', () => {
         )
 
         expect(container.querySelectorAll('[role="button"] button')).toHaveLength(0)
-        const wrapToggle = container.querySelector('[data-hapi-code-wrap-toggle="true"]')!
+        const wrapToggle = container.querySelector('[data-hamlet-code-wrap-toggle="true"]')!
         fireEvent.click(wrapToggle)
         expect(screen.queryByRole('dialog')).toBeNull()
         fireEvent.click(screen.getByRole('button', { name: 'Open diff preview' }))

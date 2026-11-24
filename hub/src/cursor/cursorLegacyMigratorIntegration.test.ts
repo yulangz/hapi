@@ -9,7 +9,7 @@
  *
  * This is the same verify recipe the production migrator runs in its
  * temp-HOME staging step. The test exists to detect drift between the
- * cursor-agent on the developer's machine and HAPI's assumptions about
+ * cursor-agent on the developer's machine and HAMLET's assumptions about
  * its on-disk layout (#824).
  *
  * Opt-in: set CURSOR_AGENT_INTEGRATION=1 to enable. In CI without auth,
@@ -31,8 +31,8 @@ import { join } from 'node:path'
 import { homedir, tmpdir } from 'node:os'
 import { spawnSync } from 'node:child_process'
 
-import type { Metadata } from '@hapi/protocol/schemas'
-import type { Session } from '@hapi/protocol/types'
+import type { Metadata } from '@hamlet/protocol/schemas'
+import type { Session } from '@hamlet/protocol/types'
 import { CursorLegacyMigrator } from './cursorLegacyMigrator'
 import { AcpVerifyProbe, tryAcquireAcpActiveLock } from './acpVerifyProbe'
 import { buildSyntheticLegacyStore } from './fixtures/buildSyntheticLegacyStore'
@@ -66,8 +66,8 @@ describeIntegration('CursorLegacyMigrator INTEGRATION (real agent acp)', () => {
         if (!agentBinaryAvailable()) {
             throw new Error('agent binary not on PATH; install cursor-agent or unset CURSOR_AGENT_INTEGRATION')
         }
-        fakeHome = mkdtempSync(join(tmpdir(), 'hapi-migrator-integration-home-'))
-        tmp = mkdtempSync(join(tmpdir(), 'hapi-migrator-integration-tmp-'))
+        fakeHome = mkdtempSync(join(tmpdir(), 'hamlet-migrator-integration-home-'))
+        tmp = mkdtempSync(join(tmpdir(), 'hamlet-migrator-integration-tmp-'))
         copyAuthFiles(homedir(), fakeHome)
         mkdirSync(join(fakeHome, '.cursor', 'chats'), { recursive: true })
         mkdirSync(join(fakeHome, '.cursor', 'acp-sessions'), { recursive: true })
@@ -94,7 +94,7 @@ describeIntegration('CursorLegacyMigrator INTEGRATION (real agent acp)', () => {
                 hostName: () => "integration",
                 tmpDir: () => tmp,
                 now: () => Date.now(),
-                createProbe: (env) => new AcpVerifyProbe({ env, timeoutMs: 60_000, hapiHome: tmp, skipLockAcquire: true }),
+                createProbe: (env) => new AcpVerifyProbe({ env, timeoutMs: 60_000, hamletHome: tmp, skipLockAcquire: true }),
                 awaitLockRelease: async () => true,
                 isAgentAcpTransportActive: () => ({ active: false, holderPid: null }),
                 acquireAcpActiveLock: () => tryAcquireAcpActiveLock(tmp),
@@ -169,7 +169,7 @@ describeIntegration('CursorLegacyMigrator INTEGRATION (real agent acp)', () => {
                 hostName: () => "integration",
                 tmpDir: () => tmp,
                 now: () => Date.now(),
-                createProbe: (env) => new AcpVerifyProbe({ env, timeoutMs: 120_000, hapiHome: tmp, skipLockAcquire: true }),
+                createProbe: (env) => new AcpVerifyProbe({ env, timeoutMs: 120_000, hamletHome: tmp, skipLockAcquire: true }),
                 awaitLockRelease: async () => true,
                 isAgentAcpTransportActive: () => ({ active: false, holderPid: null }),
                 acquireAcpActiveLock: () => tryAcquireAcpActiveLock(tmp),
@@ -235,7 +235,7 @@ describeIntegration('CursorLegacyMigrator INTEGRATION (real agent acp)', () => {
                 hostName: () => "integration",
             tmpDir: () => tmp,
             now: () => Date.now(),
-            createProbe: (env) => new AcpVerifyProbe({ env, hapiHome: tmp, skipLockAcquire: true }),
+            createProbe: (env) => new AcpVerifyProbe({ env, hamletHome: tmp, skipLockAcquire: true }),
             awaitLockRelease: async () => true,
                 isAgentAcpTransportActive: () => ({ active: false, holderPid: null }),
                 acquireAcpActiveLock: () => tryAcquireAcpActiveLock(tmp),

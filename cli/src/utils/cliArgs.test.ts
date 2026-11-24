@@ -45,7 +45,7 @@ describe('CLI argv normalization', () => {
     })
 
     it('handles Bun virtual entrypoints and compiled process argv', () => {
-        const main = '/$bunfs/root/hapi'
+        const main = '/$bunfs/root/hamlet'
         vi.stubGlobal('Bun', { main })
         expect(normalizeCliArgs(['bun', main, 'codex', '--', '--help']))
             .toEqual(['codex', '--', '--help'])

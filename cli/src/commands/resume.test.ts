@@ -88,9 +88,9 @@ describe('resumeCommand', () => {
         existsSyncMock.mockReturnValue(true)
     })
 
-    it('resumes a Codex target by HAPI session id', async () => {
+    it('resumes a Codex target by HAMLET session id', async () => {
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             flavor: 'codex',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -104,12 +104,12 @@ describe('resumeCommand', () => {
             collaborationMode: 'default'
         })
 
-        await resumeCommand.run(createContext(['hapi-session-1']))
+        await resumeCommand.run(createContext(['hamlet-session-1']))
 
         expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
         expect(assertCodexLocalSupportedMock).not.toHaveBeenCalled()
         expect(runCodexMock).toHaveBeenCalledWith({
-            existingSessionId: 'hapi-session-1',
+            existingSessionId: 'hamlet-session-1',
             workingDirectory: '/tmp/project',
             resumeSessionId: 'codex-thread-1',
             startedBy: 'terminal',
@@ -127,7 +127,7 @@ describe('resumeCommand', () => {
         }) as never)
 
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-agy',
+            sessionId: 'hamlet-session-agy',
             flavor: 'agy',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -140,7 +140,7 @@ describe('resumeCommand', () => {
         })
 
         try {
-            await expect(resumeCommand.run(createContext(['hapi-session-agy']))).rejects.toThrow('process.exit:1')
+            await expect(resumeCommand.run(createContext(['hamlet-session-agy']))).rejects.toThrow('process.exit:1')
             expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
             expect(runAgyMock).not.toHaveBeenCalled()
             expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(String), expect.stringContaining('is active'))
@@ -152,7 +152,7 @@ describe('resumeCommand', () => {
 
     it('resumes an AGY target in remote mode instead of falling through to Cursor', async () => {
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-agy',
+            sessionId: 'hamlet-session-agy',
             flavor: 'agy',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -165,11 +165,11 @@ describe('resumeCommand', () => {
             permissionMode: 'default'
         })
 
-        await resumeCommand.run(createContext(['hapi-session-agy']))
+        await resumeCommand.run(createContext(['hamlet-session-agy']))
 
         expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
         expect(runAgyMock).toHaveBeenCalledWith({
-            existingSessionId: 'hapi-session-agy',
+            existingSessionId: 'hamlet-session-agy',
             workingDirectory: '/tmp/project',
             resumeSessionId: 'agy-brain-1',
             startedBy: 'terminal',
@@ -182,7 +182,7 @@ describe('resumeCommand', () => {
 
     it('resumes an inactive Claude target without handoff', async () => {
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-2',
+            sessionId: 'hamlet-session-2',
             flavor: 'claude',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -195,11 +195,11 @@ describe('resumeCommand', () => {
             permissionMode: 'default'
         })
 
-        await resumeCommand.run(createContext(['hapi-session-2']))
+        await resumeCommand.run(createContext(['hamlet-session-2']))
 
         expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
         expect(runClaudeMock).toHaveBeenCalledWith({
-            existingSessionId: 'hapi-session-2',
+            existingSessionId: 'hamlet-session-2',
             workingDirectory: '/tmp/project',
             resumeSessionId: '11111111-1111-4111-8111-111111111111',
             startedBy: 'terminal',
@@ -212,7 +212,7 @@ describe('resumeCommand', () => {
 
     it('resumes a Grok target in the native local TUI', async () => {
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-grok',
+            sessionId: 'hamlet-session-grok',
             flavor: 'grok',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -225,10 +225,10 @@ describe('resumeCommand', () => {
             permissionMode: 'plan'
         })
 
-        await resumeCommand.run(createContext(['hapi-session-grok']))
+        await resumeCommand.run(createContext(['hamlet-session-grok']))
 
         expect(runGrokMock).toHaveBeenCalledWith({
-            existingSessionId: 'hapi-session-grok',
+            existingSessionId: 'hamlet-session-grok',
             workingDirectory: '/tmp/project',
             resumeSessionId: 'grok-session-1',
             startedBy: 'terminal',
@@ -246,7 +246,7 @@ describe('resumeCommand', () => {
         }) as never)
 
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-gemini',
+            sessionId: 'hamlet-session-gemini',
             flavor: 'gemini',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -259,7 +259,7 @@ describe('resumeCommand', () => {
         })
 
         try {
-            await expect(resumeCommand.run(createContext(['hapi-session-gemini']))).rejects.toThrow('process.exit:1')
+            await expect(resumeCommand.run(createContext(['hamlet-session-gemini']))).rejects.toThrow('process.exit:1')
             // Regression (#953): the gemini guard must fire BEFORE handoff so an
             // active Gemini session is not stopped and then left failing locally.
             expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
@@ -277,7 +277,7 @@ describe('resumeCommand', () => {
         }) as never)
 
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-3',
+            sessionId: 'hamlet-session-3',
             flavor: 'codex',
             directory: '/tmp/project',
             machineId: 'machine-2',
@@ -288,7 +288,7 @@ describe('resumeCommand', () => {
         })
 
         try {
-            await expect(resumeCommand.run(createContext(['hapi-session-3']))).rejects.toThrow('process.exit:1')
+            await expect(resumeCommand.run(createContext(['hamlet-session-3']))).rejects.toThrow('process.exit:1')
             expect(runCodexMock).not.toHaveBeenCalled()
             expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(String), expect.stringContaining('another machine'))
         } finally {
@@ -304,7 +304,7 @@ describe('resumeCommand', () => {
         }) as never)
 
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-4',
+            sessionId: 'hamlet-session-4',
             flavor: 'claude',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -316,13 +316,13 @@ describe('resumeCommand', () => {
         })
 
         try {
-            await resumeCommand.run(createContext(['hapi-session-4']))
+            await resumeCommand.run(createContext(['hamlet-session-4']))
 
             expect(exitSpy).not.toHaveBeenCalled()
             expect(consoleErrorSpy).not.toHaveBeenCalled()
             expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
             expect(runClaudeMock).toHaveBeenCalledWith(expect.objectContaining({
-                existingSessionId: 'hapi-session-4',
+                existingSessionId: 'hamlet-session-4',
                 resumeSessionId: '11111111-1111-4111-8111-111111111111'
             }))
         } finally {
@@ -381,7 +381,7 @@ describe('resumeCommand', () => {
 
     it('resumes a Pi target with effort', async () => {
         getLocalResumeTargetMock.mockResolvedValue({
-            sessionId: 'hapi-session-pi',
+            sessionId: 'hamlet-session-pi',
             flavor: 'pi',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -394,11 +394,11 @@ describe('resumeCommand', () => {
             permissionMode: 'yolo'
         })
 
-        await resumeCommand.run(createContext(['hapi-session-pi']))
+        await resumeCommand.run(createContext(['hamlet-session-pi']))
 
         expect(handoffSessionToLocalMock).not.toHaveBeenCalled()
         expect(runPiMock).toHaveBeenCalledWith({
-            existingSessionId: 'hapi-session-pi',
+            existingSessionId: 'hamlet-session-pi',
             workingDirectory: '/tmp/project',
             resumeSessionId: 'pi-session-123',
             startedBy: 'terminal',
@@ -422,7 +422,7 @@ describe('resumeCommand', () => {
         })
         listResumableSessionsMock.mockResolvedValue([
             {
-                sessionId: 'hapi-session-1',
+                sessionId: 'hamlet-session-1',
                 flavor: 'claude',
                 directory: '/tmp/project',
                 machineId: 'machine-1',
@@ -437,8 +437,8 @@ describe('resumeCommand', () => {
         try {
             await expect(resumeCommand.run(createContext([]))).rejects.toThrow('process.exit:1')
             expect(renderMock).not.toHaveBeenCalled()
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('hapi-session-1'))
-            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(String), 'Run: hapi resume <session-id>')
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('hamlet-session-1'))
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(String), 'Run: hamlet resume <session-id>')
         } finally {
             Object.defineProperty(process.stdin, 'isTTY', {
                 configurable: true,

@@ -23,7 +23,7 @@ describe('runnerSkewBannerState', () => {
     it('persists minimize to sessionStorage', () => {
         setRunnerSkewMinimized(true)
         expect(isRunnerSkewMinimized()).toBe(true)
-        expect(window.sessionStorage.getItem('hapi.runnerSkew.minimized.v1')).toBe('1')
+        expect(window.sessionStorage.getItem('hamlet.runnerSkew.minimized.v1')).toBe('1')
     })
 
     it('still minimizes when sessionStorage setItem throws QuotaExceededError', () => {

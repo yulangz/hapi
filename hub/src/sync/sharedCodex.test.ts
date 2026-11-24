@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { Metadata } from '@hapi/protocol/types'
+import type { Metadata } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { SyncEngine } from './syncEngine'

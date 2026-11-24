@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getInitialCodeWrap, useCodeWrap } from '@/hooks/useCodeWrap'
 
-const STORAGE_KEY = 'hapi-code-wrap'
+const STORAGE_KEY = 'hamlet-code-wrap'
 
 describe('useCodeWrap helpers', () => {
     beforeEach(() => {
@@ -81,7 +81,7 @@ describe('useCodeWrap', () => {
 
         act(() => {
             window.dispatchEvent(new StorageEvent('storage', {
-                key: 'hapi-some-other-key',
+                key: 'hamlet-some-other-key',
                 newValue: '1',
             }))
         })

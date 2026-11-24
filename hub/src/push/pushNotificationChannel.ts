@@ -18,13 +18,13 @@ export class PushNotificationChannel implements NotificationChannel {
     ) {}
 
     /**
-     * Debug observability: gated on `HAPI_NOTIFY_DEBUG=1`. Lets the operator
+     * Debug observability: gated on `HAMLET_NOTIFY_DEBUG=1`. Lets the operator
      * see which branch each notification took so we can root-cause "still
      * getting PWA notifications" reports without committing permanent log
      * spam to the hub journal.
      */
     private logBranch(method: string, namespace: string, branch: string, extra: string = ''): void {
-        if (process.env.HAPI_NOTIFY_DEBUG !== '1') return
+        if (process.env.HAMLET_NOTIFY_DEBUG !== '1') return
         const note = extra ? ` ${extra}` : ''
         console.log(`[Push.${method}] ns=${namespace} ${branch}${note}`)
     }

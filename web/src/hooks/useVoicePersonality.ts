@@ -11,7 +11,7 @@ import {
     type VoicePersonalityPreferences,
     type VoicePersonalityPresetId,
     type ResponseLengthOption
-} from '@hapi/protocol/voice-personality'
+} from '@hamlet/protocol/voice-personality'
 
 function readStoredVoicePersonality(): VoicePersonalityPreferences {
     try {

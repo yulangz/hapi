@@ -610,7 +610,7 @@ describe('runAgentPty', () => {
         harness.triggerData('ortcuts')
         await tick(120)
         expect(nextMessage).toHaveBeenCalledTimes(1)
-        expect(harness.m.write).not.toHaveBeenCalledWith(expect.stringContaining('hapi-ready-'))
+        expect(harness.m.write).not.toHaveBeenCalledWith(expect.stringContaining('hamlet-ready-'))
         msg.resolve(null)
         await promise
     })

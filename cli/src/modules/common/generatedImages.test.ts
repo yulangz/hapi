@@ -194,7 +194,7 @@ describe('generatedImages', () => {
     })
 
     it('ignores URI-only ACP image blocks that would read local disk without a permission prompt', async () => {
-        const dir = join(tmpdir(), `hapi-acp-uri-only-${Date.now()}`)
+        const dir = join(tmpdir(), `hamlet-acp-uri-only-${Date.now()}`)
         mkdirSync(dir, { recursive: true })
         const path = join(dir, 'secret.png')
         writeFileSync(path, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]))
@@ -211,7 +211,7 @@ describe('generatedImages', () => {
     })
 
     it('registers images from local file paths in ACP uri blocks', async () => {
-        const dir = join(tmpdir(), `hapi-acp-image-${Date.now()}`)
+        const dir = join(tmpdir(), `hamlet-acp-image-${Date.now()}`)
         mkdirSync(dir, { recursive: true })
         const path = join(dir, 'inline.png')
         const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
@@ -223,7 +223,7 @@ describe('generatedImages', () => {
     })
 
     it('registers mp4 from local file paths after MIME sniffing', async () => {
-        const dir = join(tmpdir(), `hapi-inline-mp4-${Date.now()}`)
+        const dir = join(tmpdir(), `hamlet-inline-mp4-${Date.now()}`)
         mkdirSync(dir, { recursive: true })
         const path = join(dir, 'inline.mp4')
         const bytes = Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d])
@@ -235,7 +235,7 @@ describe('generatedImages', () => {
     })
 
     it('readBoundedRegularFile rejects oversize files without allocating the full path size', async () => {
-        const dir = join(tmpdir(), `hapi-bounded-read-${Date.now()}`)
+        const dir = join(tmpdir(), `hamlet-bounded-read-${Date.now()}`)
         mkdirSync(dir, { recursive: true })
         const path = join(dir, 'big.bin')
         writeFileSync(path, Buffer.alloc(1024, 0xab))

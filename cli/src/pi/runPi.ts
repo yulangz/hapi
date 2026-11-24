@@ -18,9 +18,9 @@ import { parsePiSpecialCommand, parseLeadingSlashName, type PiSpecialCommand } f
 import { PiPromptQueue, isPiSpecialQueued, type PiPreparedPrompt } from './promptQueue';
 import { PiSteerDispatcher } from './steerDispatcher';
 import { materializePiTitleExtension } from './titleExtension';
-import { getBuiltinSlashCommands, mergeSlashCommands } from '@hapi/protocol/slashCommands';
-import type { ListPiModelsResponse, PiCommandSummary, PiModelSummary, SlashCommand, SlashCommandsResponse } from '@hapi/protocol/apiTypes';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { getBuiltinSlashCommands, mergeSlashCommands } from '@hamlet/protocol/slashCommands';
+import type { ListPiModelsResponse, PiCommandSummary, PiModelSummary, SlashCommand, SlashCommandsResponse } from '@hamlet/protocol/apiTypes';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import type { ListSkillsResponse, SkillSummary } from '@/modules/common/skills';
 import type { AttachmentMetadata } from '@/api/types';
 import { readBoundedAttachmentFile } from '@/modules/common/attachmentFile';
@@ -37,7 +37,7 @@ const PI_ABORT_OPERATION_TIMEOUT_MS = 25_000;
 const PI_COMPACT_TIMEOUT_MS = 120_000;
 
 const PI_HELP_TEXT = [
-    'Supported HAPI Pi commands:',
+    'Supported HAMLET Pi commands:',
     '/compact [instructions] — compress conversation history to save context',
     '/session — show session stats (tokens, cost, context usage)',
     '/model [modelId] — show or switch the active model',
@@ -388,7 +388,7 @@ export async function runPi(opts: {
     const failNativeStartup = (error: Error) => {
         // A wrapper socket can already be active while Pi rejects --session.
         // End this process immediately so the hub's Pi-ready wait fails and
-        // an archived HAPI row is restored rather than shown as reopened.
+        // an archived HAMLET row is restored rather than shown as reopened.
         logger.debug(`[pi] Native startup failed: ${error.message}`);
         lifecycle.markCrash(error);
         lifecycle.setExitCode(1);
@@ -526,7 +526,7 @@ export async function runPi(opts: {
         ) return;
         // A head-of-line /compact stays interruptible while Pi is streaming:
         // Pi's compact() aborts the active generation itself, so a long or
-        // stuck turn can still be compacted from HAPI. Every other item waits
+        // stuck turn can still be compacted from HAMLET. Every other item waits
         // for the stream to settle (FIFO order preserved).
         const next = promptQueue.peek();
         const canInterrupt = next !== undefined
@@ -543,7 +543,7 @@ export async function runPi(opts: {
             if (dequeued.command.type === 'compact') {
                 activeCompact = { rpcStarted: false, cancelled: false };
             }
-            // Special commands are executed by HAPI itself and are never
+            // Special commands are executed by HAMLET itself and are never
             // delivered to Pi as prompts. Consume the queue row the moment
             // dispatch starts: deferring consumption until the command
             // finishes would keep the row stuck in the web queued bar for the
@@ -907,7 +907,7 @@ export async function runPi(opts: {
                 success: true,
                 // Pi's get_commands only reports extension commands, prompt
                 // templates, and skills — never its TUI builtins. Merge the
-                // HAPI-side builtin list (the subset translatable to Pi RPC)
+                // HAMLET-side builtin list (the subset translatable to Pi RPC)
                 // so the web / menu exposes /compact, /session, /model, /help.
                 commands: mergeSlashCommands([...getBuiltinSlashCommands('pi'), ...slashCommands]),
             };
@@ -925,7 +925,7 @@ export async function runPi(opts: {
     // --- Pi built-in slash commands ---
     // pi only runs as `pi --mode rpc` over piped stdio, so TUI slash commands
     // typed in web would otherwise fall through to the LLM as plain text and
-    // silently do nothing. Intercept the subset HAPI can translate to Pi RPC
+    // silently do nothing. Intercept the subset HAMLET can translate to Pi RPC
     // (compact/session/model/help) and make terminal-only commands explicit.
     const handlePiSpecialCommand = async (command: PiSpecialCommand): Promise<void> => {
         const sendEvent = (message: string): void => {
@@ -1096,7 +1096,7 @@ export async function runPi(opts: {
                 return;
             }
             case 'unsupported':
-                sendEvent(`⚠️ /${command.name} is a Pi terminal-only command and cannot run from HAPI web. Supported here: /compact, /session, /model, /help.`);
+                sendEvent(`⚠️ /${command.name} is a Pi terminal-only command and cannot run from HAMLET web. Supported here: /compact, /session, /model, /help.`);
                 return;
         }
     };
@@ -1119,7 +1119,7 @@ export async function runPi(opts: {
             }
 
             const name = parseLeadingSlashName(message.content.text);
-            // Discovered extension commands / prompt templates win over HAPI
+            // Discovered extension commands / prompt templates win over HAMLET
             // builtins: the menu already lets them override same-name entries,
             // so a user extension named "compact" must keep executing instead
             // of being swallowed by the builtin interception.
@@ -1174,7 +1174,7 @@ export async function runPi(opts: {
             }
             if (!prepared.message.trim() && prepared.images.length === 0) {
                 // An image-only prompt can lose every image during asynchronous
-                // preparation. Never issue an empty Pi prompt; resolve the HAPI
+                // preparation. Never issue an empty Pi prompt; resolve the HAMLET
                 // queue row so QueuedMessagesBar cannot remain stuck forever.
                 if (localId) piSession.emitMessagesConsumed([localId], { clearQueuedThinkingGrace: true });
                 return;
@@ -1217,7 +1217,7 @@ export async function runPi(opts: {
     });
 
     // --- Cancel-queued-message handler ---
-    // HAPI owns both asynchronous preparation and the local FIFO. A cancel may
+    // HAMLET owns both asynchronous preparation and the local FIFO. A cancel may
     // arrive before image preparation completes or while the ready/settled queue
     // holds the item; both cases are removable. Once sent to Pi it is best-effort
     // only, matching other harness queues.

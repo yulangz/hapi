@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { UsageSummaryResponse } from '@hapi/protocol/apiTypes'
+import type { UsageSummaryResponse } from '@hamlet/protocol/apiTypes'
 import type { WebAppEnv } from '../middleware/auth'
 import type { Store } from '../../store'
 import { getUsageSummary } from '../../sync/usageService'

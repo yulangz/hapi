@@ -2,7 +2,7 @@ import React, { act } from 'react'
 import { PassThrough } from 'node:stream'
 import { render, type Instance } from 'ink'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AgentAvailabilityEntry } from '@hapi/protocol'
+import type { AgentAvailabilityEntry } from '@hamlet/protocol'
 import { AgentPicker } from './AgentPicker'
 
 type InputHandler = (input: string, key: {

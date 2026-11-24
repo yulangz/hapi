@@ -187,7 +187,7 @@ describe('FilesPage tab preference', () => {
         expect(screen.getByRole('tab', { name: 'Changes' })).toHaveAttribute('aria-selected', 'true')
 
         fireEvent.click(screen.getByRole('tab', { name: 'Directories' }))
-        expect(window.localStorage.getItem('hapi-files-tab')).toBe('directories')
+        expect(window.localStorage.getItem('hamlet-files-tab')).toBe('directories')
         firstRender.unmount()
 
         mocks.sessionId = 'session-2'
@@ -197,13 +197,13 @@ describe('FilesPage tab preference', () => {
     })
 
     it('remembers Changes after the user switches back from Directories', () => {
-        window.localStorage.setItem('hapi-files-tab', 'directories')
+        window.localStorage.setItem('hamlet-files-tab', 'directories')
         const firstRender = renderFilesPage()
 
         expect(screen.getByRole('tab', { name: 'Directories' })).toHaveAttribute('aria-selected', 'true')
 
         fireEvent.click(screen.getByRole('tab', { name: 'Changes' }))
-        expect(window.localStorage.getItem('hapi-files-tab')).toBe('changes')
+        expect(window.localStorage.getItem('hamlet-files-tab')).toBe('changes')
         firstRender.unmount()
 
         renderFilesPage()
@@ -212,13 +212,13 @@ describe('FilesPage tab preference', () => {
     })
 
     it('uses an explicit route tab before the stored browser preference', () => {
-        window.localStorage.setItem('hapi-files-tab', 'directories')
+        window.localStorage.setItem('hamlet-files-tab', 'directories')
         mocks.search = { tab: 'changes' }
 
         renderFilesPage()
 
         expect(screen.getByRole('tab', { name: 'Changes' })).toHaveAttribute('aria-selected', 'true')
-        expect(window.localStorage.getItem('hapi-files-tab')).toBe('changes')
+        expect(window.localStorage.getItem('hamlet-files-tab')).toBe('changes')
     })
 })
 
@@ -253,12 +253,12 @@ describe('FilesPage reopen draft transfer', () => {
 
     it('preserves the directory scroll position across route remounts', () => {
         const firstRender = renderFilesPage()
-        const firstScrollRegion = document.querySelector('[data-hapi-session-files-scroll="true"]') as HTMLElement
+        const firstScrollRegion = document.querySelector('[data-hamlet-session-files-scroll="true"]') as HTMLElement
         firstScrollRegion.scrollTop = 87
         firstRender.unmount()
 
         renderFilesPage()
-        const secondScrollRegion = document.querySelector('[data-hapi-session-files-scroll="true"]') as HTMLElement
+        const secondScrollRegion = document.querySelector('[data-hamlet-session-files-scroll="true"]') as HTMLElement
         expect(secondScrollRegion.scrollTop).toBe(87)
     })
 })

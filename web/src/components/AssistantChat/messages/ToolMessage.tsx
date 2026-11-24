@@ -3,7 +3,7 @@ import type { ToolCallMessagePartProps } from '@assistant-ui/react'
 import type { ChatBlock } from '@/chat/types'
 import type { GeneratedImageBlock, ToolCallBlock } from '@/chat/types'
 import type { ToolGroupBlock } from '@/chat/toolGroups'
-import { isObject, safeStringify } from '@hapi/protocol'
+import { isObject, safeStringify } from '@hamlet/protocol'
 import { isSubagentToolName } from '@/chat/subagentTool'
 import { ToolGroupCard } from '@/components/ToolCard/ToolGroupCard'
 import { getEventPresentation } from '@/chat/presentation'
@@ -293,7 +293,7 @@ function HappyNestedBlockList(props: {
                     const taskChildren = isTask ? splitTaskChildren(block) : null
 
                     return (
-                        <div key={`tool:${block.id}`} data-hapi-share-exclude="true" className="py-1">
+                        <div key={`tool:${block.id}`} data-hamlet-share-exclude="true" className="py-1">
                             <ToolCard
                                 api={ctx.api}
                                 sessionId={ctx.sessionId}
@@ -344,7 +344,7 @@ export function HappyToolMessage(props: ToolCallMessagePartProps) {
 
     if (isToolGroupBlock(artifact)) {
         return (
-            <div data-hapi-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
+            <div data-hamlet-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
                 <ToolGroupCard
                     block={artifact}
                     metadata={ctx.metadata}
@@ -368,7 +368,7 @@ export function HappyToolMessage(props: ToolCallMessagePartProps) {
         const resultText = hasResult ? safeStringify(props.result) : ''
 
         return (
-            <div data-hapi-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
+            <div data-hamlet-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
                 <div className="overflow-hidden rounded-[20px] bg-[var(--app-tool-card-bg)] p-3 shadow-none">
                     <div className="flex items-center gap-2 text-xs">
                         <div className="font-mono text-[var(--app-tool-card-accent)]">
@@ -404,7 +404,7 @@ export function HappyToolMessage(props: ToolCallMessagePartProps) {
     const taskChildren = isTask ? splitTaskChildren(block) : null
 
     return (
-        <div data-hapi-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
+        <div data-hamlet-share-exclude="true" className="py-1 min-w-0 max-w-full overflow-x-hidden">
             <ToolCard
                 api={ctx.api}
                 sessionId={ctx.sessionId}

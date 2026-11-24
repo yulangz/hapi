@@ -3,7 +3,7 @@ import { registerAcpSessionTitleSync } from './acpSessionTitle';
 import type { AcpSessionInfoUpdate } from './backends/acp/AcpSdkBackend';
 
 describe('registerAcpSessionTitleSync', () => {
-    it('forwards normalized unique ACP titles as HAPI summaries', () => {
+    it('forwards normalized unique ACP titles as HAMLET summaries', () => {
         let listener: ((update: AcpSessionInfoUpdate) => void) | null = null;
         const backend = {
             setSessionInfoUpdateListener(next: ((update: AcpSessionInfoUpdate) => void) | null) {

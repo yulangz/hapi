@@ -44,13 +44,13 @@ jobs:
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: ghcr.io/${{ github.repository_owner }}/hapi-push-relay
+                  images: ghcr.io/${{ github.repository_owner }}/hamlet-push-relay
                   tags: |
                       type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
                       type=sha,format=long
                   labels: |
-                      org.opencontainers.image.title=HAPI Push Relay
-                      org.opencontainers.image.description=Forwards encrypted HAPI push envelopes to APNs and FCM
+                      org.opencontainers.image.title=HAMLET Push Relay
+                      org.opencontainers.image.description=Forwards encrypted HAMLET push envelopes to APNs and FCM
                       org.opencontainers.image.licenses=AGPL-3.0-only
 
             - name: Log in to GHCR

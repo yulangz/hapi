@@ -1,7 +1,7 @@
 /*
  * Standalone Vite-served fixture for the file-pane markdown Source |
  * Preview Playwright smoke. Mounts the same toggle + MarkdownRenderer
- * path as `file.tsx` without the HAPI auth / git / socket stack.
+ * path as `file.tsx` without the HAMLET auth / git / socket stack.
  */
 
 import React from 'react'

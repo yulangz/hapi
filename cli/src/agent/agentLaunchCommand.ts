@@ -1,7 +1,7 @@
 import { accessSync, existsSync, statSync } from 'node:fs'
 import { constants } from 'node:fs'
 import { delimiter, posix, win32 } from 'node:path'
-import type { AgentFlavor } from '@hapi/protocol'
+import type { AgentFlavor } from '@hamlet/protocol'
 
 type LaunchEnvironment = Record<string, string | undefined>
 
@@ -24,9 +24,9 @@ export function getAgentLaunchCommand(
     flavor: AgentFlavor,
     env: LaunchEnvironment = process.env,
 ): string {
-    if (flavor === 'claude') return env.HAPI_CLAUDE_PATH?.trim() || DEFAULT_COMMANDS.claude
+    if (flavor === 'claude') return env.HAMLET_CLAUDE_PATH?.trim() || DEFAULT_COMMANDS.claude
     if (flavor === 'copilot') return env.COPILOT_CLI_PATH?.trim() || DEFAULT_COMMANDS.copilot
-    if (flavor === 'dsh') return env.HAPI_DSH_ACP_COMMAND?.trim() || DEFAULT_COMMANDS.dsh
+    if (flavor === 'dsh') return env.HAMLET_DSH_ACP_COMMAND?.trim() || DEFAULT_COMMANDS.dsh
     return DEFAULT_COMMANDS[flavor]
 }
 

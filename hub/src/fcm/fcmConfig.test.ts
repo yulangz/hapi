@@ -17,7 +17,7 @@ function makeServiceAccountFile(
     contents: object,
     baseDir: string = tmpdir()
 ): string {
-    const dir = mkdtempSync(join(baseDir, 'hapi-fcm-sa-'))
+    const dir = mkdtempSync(join(baseDir, 'hamlet-fcm-sa-'))
     tempDirs.push(dir)
     const path = join(dir, 'service-account.json')
     writeFileSync(path, JSON.stringify(contents))

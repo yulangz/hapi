@@ -20,12 +20,12 @@ describe('useComposerEnterBehavior helpers', () => {
     it('falls back to the default behavior for missing or invalid storage values', () => {
         expect(getInitialComposerEnterBehavior()).toBe(DEFAULT_COMPOSER_ENTER_BEHAVIOR)
 
-        window.localStorage.setItem('hapi-composer-enter-behavior', 'invalid')
+        window.localStorage.setItem('hamlet-composer-enter-behavior', 'invalid')
         expect(getInitialComposerEnterBehavior()).toBe(DEFAULT_COMPOSER_ENTER_BEHAVIOR)
     })
 
     it('reads a valid stored enter behavior', () => {
-        window.localStorage.setItem('hapi-composer-enter-behavior', 'newline')
+        window.localStorage.setItem('hamlet-composer-enter-behavior', 'newline')
 
         expect(getInitialComposerEnterBehavior()).toBe('newline')
     })

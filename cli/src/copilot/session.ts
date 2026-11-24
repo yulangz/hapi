@@ -2,7 +2,7 @@ import { ApiClient, ApiSessionClient } from '@/lib';
 import { MessageQueue2 } from '@/utils/MessageQueue2';
 import { AgentSessionBase } from '@/agent/sessionBase';
 import type { CopilotMode, PermissionMode } from './types';
-import type { CopilotAgentMode } from '@hapi/protocol';
+import type { CopilotAgentMode } from '@hamlet/protocol';
 import type { LocalLaunchExitReason } from '@/agent/localLaunchPolicy';
 
 type LocalLaunchFailure = {

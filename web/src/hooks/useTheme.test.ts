@@ -10,7 +10,7 @@ describe('useTheme', () => {
     })
 
     it('applies the stored dark appearance to the document and browser theme color', () => {
-        localStorage.setItem('hapi-appearance', 'dark')
+        localStorage.setItem('hamlet-appearance', 'dark')
 
         initializeTheme()
 
@@ -32,7 +32,7 @@ describe('useTheme', () => {
 
     it('clears the boot-time inline html background when runtime theme initializes', () => {
         document.documentElement.style.backgroundColor = '#fbfbff'
-        localStorage.setItem('hapi-color-theme', 'one')
+        localStorage.setItem('hamlet-color-theme', 'one')
 
         initializeTheme()
 
@@ -41,13 +41,13 @@ describe('useTheme', () => {
     })
 
     it('updates browser theme color after a cross-tab color theme change', () => {
-        localStorage.setItem('hapi-color-theme', 'one')
+        localStorage.setItem('hamlet-color-theme', 'one')
         initializeTheme()
         expect(document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content).toBe('#fbfbff')
 
-        localStorage.setItem('hapi-color-theme', 'notion')
+        localStorage.setItem('hamlet-color-theme', 'notion')
         act(() => {
-            window.dispatchEvent(new StorageEvent('storage', { key: 'hapi-color-theme', newValue: 'notion' }))
+            window.dispatchEvent(new StorageEvent('storage', { key: 'hamlet-color-theme', newValue: 'notion' }))
         })
 
         expect(document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content).toBe('#fafafa')
@@ -76,7 +76,7 @@ describe('useTheme', () => {
     })
 
     it('applies the OLED appearance with a pure-black browser theme color', () => {
-        localStorage.setItem('hapi-appearance', 'oled')
+        localStorage.setItem('hamlet-appearance', 'oled')
 
         initializeTheme()
 

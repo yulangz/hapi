@@ -8,7 +8,7 @@ import {
     type ParkAttachmentMetadata,
 } from './scratchlistAttachmentFlow'
 
-function chatAttachment(path = '/tmp/hapi-blobs/a.png'): AttachmentMetadata {
+function chatAttachment(path = '/tmp/hamlet-blobs/a.png'): AttachmentMetadata {
     return {
         id: 'att-1',
         filename: 'a.png',
@@ -25,7 +25,7 @@ function hubAttachment(): AttachmentMetadata {
         filename: 'a.png',
         mimeType: 'image/png',
         size: 4,
-        path: 'hapi-hub:scratchlist/default/session-1/hub-1-a.png',
+        path: 'hamlet-hub:scratchlist/default/session-1/hub-1-a.png',
     }
 }
 
@@ -49,7 +49,7 @@ describe('migrateChatPathAttachmentsToScratchlist (#1226)', () => {
             filename: 'a.png',
             mimeType: 'image/png',
             size: 4,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-new-a.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-new-a.png',
         }
         const uploadScratchlistAttachment = vi.fn().mockResolvedValue({
             success: true,
@@ -95,7 +95,7 @@ describe('migrateChatPathAttachmentsToScratchlist (#1226)', () => {
                     filename: 'a.png',
                     mimeType: 'image/png',
                     size: 1,
-                    path: 'hapi-hub:scratchlist/default/session-1/hub-ok-a.png',
+                    path: 'hamlet-hub:scratchlist/default/session-1/hub-ok-a.png',
                 },
             })
             .mockResolvedValueOnce({ success: false, error: 'too big' })
@@ -125,14 +125,14 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
             filename: 'hub.png',
             mimeType: 'image/png',
             size: 2,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-1-hub.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-1-hub.png',
         }
         const migrated = {
             id: 'hub-new',
             filename: 'chat.png',
             mimeType: 'image/png',
             size: 1,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-new-chat.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-new-chat.png',
         }
         const uploadScratchlistAttachment = vi.fn().mockResolvedValue({
             success: true,
@@ -155,7 +155,7 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
                 name: 'chat.png',
                 contentType: 'image/png',
                 file: chatFile,
-                path: '/tmp/hapi-blobs/chat.png',
+                path: '/tmp/hamlet-blobs/chat.png',
                 previewUrl: 'data:image/png;base64,chat',
             },
         ])
@@ -167,7 +167,7 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
             {
                 ...migrated,
                 previewUrl: 'data:image/png;base64,chat',
-                migratedFromPath: '/tmp/hapi-blobs/chat.png',
+                migratedFromPath: '/tmp/hamlet-blobs/chat.png',
             },
         ])
     })
@@ -175,7 +175,7 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
     it('reuses a restored hub path without re-uploading', async () => {
         const uploadScratchlistAttachment = vi.fn()
         const api = { uploadScratchlistAttachment } as never
-        const hubPath = 'hapi-hub:scratchlist/default/session-1/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee-photo.png'
+        const hubPath = 'hamlet-hub:scratchlist/default/session-1/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee-photo.png'
         const file = new File([new Uint8Array([1, 2])], 'photo.png', { type: 'image/png' })
 
         const result = await prepareScratchlistParkAttachments(api, 'session-1', [
@@ -209,7 +209,7 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
                     filename: 'a.png',
                     mimeType: 'image/png',
                     size: 1,
-                    path: 'hapi-hub:scratchlist/default/session-1/hub-ok-a.png',
+                    path: 'hamlet-hub:scratchlist/default/session-1/hub-ok-a.png',
                 },
             })
             .mockResolvedValueOnce({ success: false, error: 'quota' })
@@ -227,8 +227,8 @@ describe('prepareScratchlistParkAttachments (#1226)', () => {
 })
 
 describe('finalizeMigratedScratchlistParkCleanup (#1226)', () => {
-    const hubPath = 'hapi-hub:scratchlist/default/session-1/hub-1-a.png'
-    const chatPath = '/tmp/hapi-blobs/a.png'
+    const hubPath = 'hamlet-hub:scratchlist/default/session-1/hub-1-a.png'
+    const chatPath = '/tmp/hamlet-blobs/a.png'
 
     it('deletes chat uploads after accepted park', async () => {
         const deleteUploadFile = vi.fn().mockResolvedValue(undefined)

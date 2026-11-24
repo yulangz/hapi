@@ -1,12 +1,13 @@
-import type { AgentFlavor, CodexCollaborationMode, CopilotAgentMode, PermissionMode } from '@hapi/protocol/types'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import type { AgentFlavor, CodexCollaborationMode, CopilotAgentMode, PermissionMode } from '@hamlet/protocol/types'
+import { HamletTurn } from '@hamlet/protocol/hamlet'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import {
     ArchiveCodexSessionRpcResponseSchema,
     AgentAvailabilityResponseSchema,
     CursorChatStoreStatusSchema,
     ListCodexSessionsRpcResponseSchema,
     ListPiSessionsRpcResponseSchema
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 import type {
     AgyModelsResponse,
     AgentAvailabilityResponse,
@@ -37,7 +38,7 @@ import type {
     SlashCommandsResponse,
     StatFilesResponse,
     UploadFileResponse
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 import type { Server } from 'socket.io'
 import type { RpcRegistry } from '../socket/rpcRegistry'
 import { GENERATED_MEDIA_RPC_TIMEOUT_MS } from '../socket/socketLimits'
@@ -110,7 +111,8 @@ export class RpcGateway {
 
     constructor(
         private readonly io: Server,
-        private readonly rpcRegistry: RpcRegistry
+        private readonly rpcRegistry: RpcRegistry,
+        private readonly managedAgent?: (id: string) => { token: string; parent_id: string | null; machine_id: string } | null | undefined
     ) {
     }
 
@@ -211,7 +213,7 @@ export class RpcGateway {
         copilotAgentMode?: CopilotAgentMode,
         startingMode?: 'remote' | 'pty',
         // Hub session id to reuse for this spawn. When set, the runner boots the
-        // CLI with `--hapi-session-id`, so the child reuses the existing hub
+        // CLI with `--hamlet-session-id`, so the child reuses the existing hub
         // session row (same id) instead of minting a new one.
         forkSession?: boolean
     ): Promise<
@@ -223,12 +225,17 @@ export class RpcGateway {
             agent?: AgentFlavor
         }
     > {
+        const managed = existingSessionId ? this.managedAgent?.(existingSessionId) : undefined
+        if (managed && (machineId !== managed.machine_id || agent !== 'codex' || forkSession)) {
+            return { type: 'error', message: 'Resume Hamlet agents on their assigned Codex runner' }
+        }
         try {
             const result = await this.machineRpc(
                 machineId,
                 RPC_METHODS.SpawnHappySession,
                 {
                     type: 'spawn-in-directory',
+                    ...(managed ? { hamletToken: managed.token, hamletMain: managed.parent_id === null } : {}),
                     directory,
                     agent,
                     model,
@@ -536,13 +543,13 @@ export class RpcGateway {
     async forkConversation(
         sessionId: string,
         params: { messageLocalId?: string }
-    ): Promise<import('@hapi/protocol/apiTypes').ForkConversationRpcResult> {
+    ): Promise<import('@hamlet/protocol/apiTypes').ForkConversationRpcResult> {
         return await this.sessionRpc(
             sessionId,
             RPC_METHODS.ForkConversation,
             params,
             120_000
-        ) as import('@hapi/protocol/apiTypes').ForkConversationRpcResult
+        ) as import('@hamlet/protocol/apiTypes').ForkConversationRpcResult
     }
 
     async clearConversation(sessionId: string): Promise<{ sessionId: string }> {
@@ -556,13 +563,13 @@ export class RpcGateway {
     async rewindConversation(
         sessionId: string,
         params: { messageLocalId: string }
-    ): Promise<import('@hapi/protocol/apiTypes').RewindConversationRpcResult> {
+    ): Promise<import('@hamlet/protocol/apiTypes').RewindConversationRpcResult> {
         return await this.sessionRpc(
             sessionId,
             RPC_METHODS.RewindConversation,
             params,
             120_000
-        ) as import('@hapi/protocol/apiTypes').RewindConversationRpcResult
+        ) as import('@hamlet/protocol/apiTypes').RewindConversationRpcResult
     }
 
     async listOpencodeReasoningEffortOptionsForSession(sessionId: string): Promise<RpcListOpencodeReasoningEffortOptionsResponse> {
@@ -585,6 +592,33 @@ export class RpcGateway {
         timeoutMs: number = DEFAULT_RPC_TIMEOUT_MS
     ): Promise<unknown> {
         return await this.rpcCall(`${sessionId}:${method}`, params, timeoutMs)
+    }
+
+    async hamletControlTurn(agent: string, turn_id: string, batch?: import('@hamlet/protocol/hamlet').HamletBatch) {
+        return this.sessionRpc(agent, RPC_METHODS.HamletControlTurn, { turn_id, batch })
+    }
+
+    async hamletCurrentTurn(sessionId: string) {
+        return HamletTurn.nullable().parse(await this.sessionRpc(sessionId, RPC_METHODS.HamletCurrentTurn, {}, 5000))
+    }
+
+    async hamletExec(machine: string, command: string, cwd?: string) {
+        return this.machineRpc(machine, 'hamlet-exec', { command, cwd }, 65_000)
+    }
+
+    hasHamletRunner(machine: string): boolean {
+        return this.rpcRegistry.getSocketIdForMethod(machine + ':hamlet-doorbells') !== null
+    }
+
+    async hamletDoorbellLog(machine: string, id: string) {
+        return this.machineRpc(machine, 'hamlet-doorbell-log', { id })
+    }
+
+    async hamletDoorbells(machine: string, revision: string, bells?: import('../hamlet/store').Doorbell[]) {
+        const states = await this.machineRpc(machine, 'hamlet-doorbells', { revision, bells })
+        if (states === null) return null
+        if (!Array.isArray(states)) throw new Error('Invalid doorbell reconciliation reply')
+        return states as { id: string; status: string; error: string | null }[]
     }
 
     private async machineRpc(

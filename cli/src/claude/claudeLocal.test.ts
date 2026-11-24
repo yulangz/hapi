@@ -25,7 +25,7 @@ vi.mock('./utils/mcpConfig', () => ({
 }))
 
 vi.mock('./utils/systemPrompt', () => ({
-    getSystemPrompt: () => 'HAPI system prompt'
+    getSystemPrompt: () => 'HAMLET system prompt'
 }))
 
 vi.mock('@/utils/bunRuntime', () => ({
@@ -37,7 +37,7 @@ vi.mock('@/utils/spawnWithTerminalGuard', () => ({
 }))
 
 vi.mock('@/constants/uploadPaths', () => ({
-    getHapiBlobsDir: () => '/tmp/hapi-blobs'
+    getHamletBlobsDir: () => '/tmp/hamlet-blobs'
 }))
 
 vi.mock('@/utils/shellEscape', () => ({
@@ -71,10 +71,10 @@ describe('claudeLocal model arguments', () => {
         })
 
         expect(getSpawnArgs()).toEqual([
-            '--append-system-prompt', 'HAPI system prompt',
+            '--append-system-prompt', 'HAMLET system prompt',
             '--model', 'claude-opus-4-1',
             '--settings', '/tmp/hooks.json',
-            '--add-dir', '/tmp/hapi-blobs'
+            '--add-dir', '/tmp/hamlet-blobs'
         ])
     })
 

@@ -97,7 +97,7 @@ export interface HookServer {
 }
 
 function readHookToken(req: IncomingMessage): string | null {
-    const header = req.headers['x-hapi-hook-token'];
+    const header = req.headers['x-hamlet-hook-token'];
     if (Array.isArray(header)) {
         return header[0] ?? null;
     }
@@ -232,7 +232,7 @@ export async function startHookServer(options: HookServerOptions): Promise<HookS
 
                     try {
                         // Dispatch before acknowledging so Codex cannot append the matching
-                        // transcript output before HAPI records the nested tool lifecycle.
+                        // transcript output before HAMLET records the nested tool lifecycle.
                         onSessionHook(sessionId, data);
                     } catch (error) {
                         logger.debug('[hookServer] Error dispatching session hook:', error);

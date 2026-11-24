@@ -163,7 +163,7 @@ describe('registerAppServerPermissionHandlers', () => {
         await expect(handler?.({
             threadId: 'thread-1',
             turnId: 'turn-1',
-            serverName: 'hapi',
+            serverName: 'hamlet',
             mode: 'form',
             message: 'Approve MCP tool call?',
             _meta: null,
@@ -654,7 +654,7 @@ describe('registerAppServerPermissionHandlers', () => {
         });
     });
 
-    it('cancels non-HAPI MCP elicitation requests', async () => {
+    it('cancels non-HAMLET MCP elicitation requests', async () => {
         const { client, handlers } = createClient();
         const permissionHandler = {
             handleToolCall: vi.fn()

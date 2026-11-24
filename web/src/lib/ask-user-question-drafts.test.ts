@@ -53,7 +53,7 @@ describe('ask-user-question-drafts', () => {
     it('persists drafts to sessionStorage', async () => {
         const mod = await import('./ask-user-question-drafts')
         mod.saveAskUserQuestionDraft('session-1:tool-1', filledDraft)
-        const stored = JSON.parse(storage['hapi:ask-user-question-drafts'] ?? '{}')
+        const stored = JSON.parse(storage['hamlet:ask-user-question-drafts'] ?? '{}')
         expect(stored['session-1:tool-1']).toEqual(filledDraft)
     })
 
@@ -68,7 +68,7 @@ describe('ask-user-question-drafts', () => {
         const mod = await import('./ask-user-question-drafts')
         mod.saveAskUserQuestionDraft('session-1:tool-1', blankDraft)
         expect(mod.getAskUserQuestionDraft('session-1:tool-1')).toBeNull()
-        const stored = JSON.parse(storage['hapi:ask-user-question-drafts'] ?? '{}')
+        const stored = JSON.parse(storage['hamlet:ask-user-question-drafts'] ?? '{}')
         expect(stored).not.toHaveProperty('session-1:tool-1')
     })
 
@@ -87,13 +87,13 @@ describe('ask-user-question-drafts', () => {
     })
 
     it('hydrates from existing sessionStorage data', async () => {
-        storage['hapi:ask-user-question-drafts'] = JSON.stringify({ 'session-1:tool-1': filledDraft })
+        storage['hamlet:ask-user-question-drafts'] = JSON.stringify({ 'session-1:tool-1': filledDraft })
         const mod = await import('./ask-user-question-drafts')
         expect(mod.getAskUserQuestionDraft('session-1:tool-1')).toEqual(filledDraft)
     })
 
     it('recovers from invalid sessionStorage data', async () => {
-        storage['hapi:ask-user-question-drafts'] = 'not valid json'
+        storage['hamlet:ask-user-question-drafts'] = 'not valid json'
         const mod = await import('./ask-user-question-drafts')
         expect(mod.getAskUserQuestionDraft('any')).toBeNull()
         mod.saveAskUserQuestionDraft('any', filledDraft)
@@ -101,7 +101,7 @@ describe('ask-user-question-drafts', () => {
     })
 
     it('ignores malformed entries during hydration', async () => {
-        storage['hapi:ask-user-question-drafts'] = JSON.stringify({
+        storage['hamlet:ask-user-question-drafts'] = JSON.stringify({
             'valid:tool': filledDraft,
             'invalid:missing-fields': { step: 0 },
             'invalid:not-an-object': 'oops',

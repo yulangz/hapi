@@ -3,7 +3,7 @@ const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const SIGNATURE = '*HAPI Bot*';
+const SIGNATURE = '*HAMLET Bot*';
 const VERSION = 2;
 const SEVERITIES = ['Blocker', 'Major', 'Minor', 'Nit'];
 const DECISIONS = ['pass', 'needs_changes', 'needs_clarification'];
@@ -40,7 +40,7 @@ function inputId(pull, digest) {
 }
 
 function marker(id) {
-    return `<!-- hapi-pr-review:v${VERSION}:${id} -->`;
+    return `<!-- hamlet-pr-review:v${VERSION}:${id} -->`;
 }
 
 function botReviews(reviews, logins = '') {
@@ -88,7 +88,7 @@ async function listBotReviews(github, request, env) {
     return botReviews(await github.paginate(github.rest.pulls.listReviews, {
         ...request,
         per_page: 100,
-    }), env.HAPI_BOT_LOGINS);
+    }), env.HAMLET_BOT_LOGINS);
 }
 
 async function prepareReview({ github, context, core, env = process.env }) {
@@ -121,7 +121,7 @@ async function prepareReview({ github, context, core, env = process.env }) {
         commit_id: latest.commit_id,
         body: latest.body,
     } : null;
-    const contextPath = path.join(env.RUNNER_TEMP, 'hapi-pr-review-context.json');
+    const contextPath = path.join(env.RUNNER_TEMP, 'hamlet-pr-review-context.json');
     fs.writeFileSync(contextPath, JSON.stringify(snapshot, null, 2));
     core.setOutput('context_path', contextPath);
     core.setOutput('current_head_sha', snapshot.pull.head_sha);

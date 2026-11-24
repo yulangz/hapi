@@ -39,7 +39,7 @@ vi.mock('./session', () => ({
 vi.mock('@/ui/logger', () => ({
     logger: {
         debug: vi.fn(),
-        getLogPath: () => '/tmp/hapi-loop-test.log'
+        getLogPath: () => '/tmp/hamlet-loop-test.log'
     }
 }));
 
@@ -47,7 +47,7 @@ import { opencodeLoop } from './loop';
 
 function baseOpts(overrides: Record<string, unknown> = {}) {
     return {
-        path: '/tmp/hapi-loop-test',
+        path: '/tmp/hamlet-loop-test',
         messageQueue: {} as never,
         session: { rpcHandlerManager: {} } as never,
         api: {} as never,

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'bun:test'
-import type { Session } from '@hapi/protocol/types'
+import type { Session } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { SyncEngine } from './syncEngine'

@@ -30,7 +30,7 @@ describe('DirectorySection', () => {
 
     it('shows the last two path segments while preserving the full path on click', () => {
         const onPathClick = vi.fn()
-        const path = 'C:\\Users\\Ananovo\\Downloads\\Agent\\Hapi'
+        const path = 'C:\\Users\\Ananovo\\Downloads\\Agent\\Hamlet'
 
         render(
             <DirectorySection
@@ -49,7 +49,7 @@ describe('DirectorySection', () => {
         )
 
         const recentPath = screen.getByRole('button', { name: path })
-        expect(recentPath).toHaveTextContent('Agent/Hapi')
+        expect(recentPath).toHaveTextContent('Agent/Hamlet')
         expect(recentPath).toHaveAttribute('title', path)
 
         fireEvent.click(recentPath)

@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react'
  * deliberately not provided — reading speed varies, and a popover that
  * disappears on its own undercuts the affirmative-action model.
  *
- * Storage:  hapi.fue.v1.<featureId>  ('1' once acknowledged, absent otherwise)
+ * Storage:  hamlet.fue.v1.<featureId>  ('1' once acknowledged, absent otherwise)
  *
  * Status machine:
  *   unseen        — initial. Badge visible, callout primed.
@@ -21,13 +21,13 @@ import { useCallback, useEffect, useState } from 'react'
  *                   suppressed forever (until storage is cleared).
  *
  * Independence from any upstream FUE: the storage namespace is
- * `hapi.fue.v1.*` and feature IDs are caller-defined. If upstream/tiann
+ * `hamlet.fue.v1.*` and feature IDs are caller-defined. If upstream/tiann
  * adds a different onboarding flow that uses other keys / mechanisms,
  * this system stays out of the way (caller decides whether to wrap a
  * given affordance with FUE or not).
  */
 
-const STORAGE_PREFIX = 'hapi.fue.v1.'
+const STORAGE_PREFIX = 'hamlet.fue.v1.'
 
 export type FueStatus = 'unseen' | 'engaging' | 'acknowledged'
 
@@ -84,7 +84,7 @@ export function useFue(featureId: string): {
  * Test / dev-tool helper: clear acknowledgement for a feature so the FUE
  * badge re-appears. Not used at runtime; expose via window for manual QA:
  *
- *   localStorage.removeItem('hapi.fue.v1.scratchlist-toggle')
+ *   localStorage.removeItem('hamlet.fue.v1.scratchlist-toggle')
  *
  * Or call from a dev console: resetFue('scratchlist-toggle').
  */

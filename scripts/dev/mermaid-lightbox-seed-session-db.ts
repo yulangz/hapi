@@ -1,8 +1,8 @@
 /**
  * Seed assistant messages with mermaid fixtures into a hub SQLite DB.
- * Run on the host that owns HAPI_DB_PATH (usually the hub machine).
+ * Run on the host that owns HAMLET_DB_PATH (usually the hub machine).
  *
- *   HAPI_DB_PATH=~/.hapi/hapi.db SESSION_ID=<uuid> bun run scripts/dev/mermaid-lightbox-seed-session-db.ts
+ *   HAMLET_DB_PATH=~/.hamlet/hamlet.db SESSION_ID=<uuid> bun run scripts/dev/mermaid-lightbox-seed-session-db.ts
  */
 import { Database } from 'bun:sqlite'
 import { randomUUID } from 'node:crypto'
@@ -13,7 +13,7 @@ import {
     MERMAID_LIGHTBOX_CASES,
 } from '../../web/src/dev/mermaid-lightbox-cases'
 
-const dbPath = process.env.HAPI_DB_PATH ?? join(homedir(), '.hapi', 'hapi.db')
+const dbPath = process.env.HAMLET_DB_PATH ?? join(homedir(), '.hamlet', 'hamlet.db')
 /** Stable id for mermaid Playwright live session (create if missing). */
 const sessionId = process.env.SESSION_ID ?? 'a7370000-0000-4000-8000-000000000737'
 const sessionTag = 'mermaid-lightbox-e2e'

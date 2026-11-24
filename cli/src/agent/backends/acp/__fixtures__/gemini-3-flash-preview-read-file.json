@@ -38,7 +38,7 @@
       "content": [],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/cli/README.md"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/cli/README.md"
         }
       ],
       "kind": "read"
@@ -51,7 +51,7 @@
       "content": [],
       "locations": [
         {
-          "path": "/home/lupin/workspace/hapi-fix-gemini-display/cli/README.md"
+          "path": "/home/lupin/workspace/hamlet-fix-gemini-display/cli/README.md"
         }
       ],
       "kind": "read"
@@ -60,7 +60,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "The `README.md` file for the **hapi CLI** project describes it as a"
+        "text": "The `README.md` file for the **hamlet CLI** project describes it as a"
       }
     },
     {
@@ -74,7 +74,7 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " from the terminal via a \"hapi hub.\"\n\n### Key Features\n*   **Multi-Agent Support:** Integrates with Claude CLI"
+        "text": " from the terminal via a \"hamlet hub.\"\n\n### Key Features\n*   **Multi-Agent Support:** Integrates with Claude CLI"
       }
     },
     {
@@ -102,42 +102,42 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "*   **Session Management:** `hapi` (Claude), `hapi codex`, `hapi cursor`, `hapi gemini`, "
+        "text": "*   **Session Management:** `hamlet` (Claude), `hamlet codex`, `hamlet cursor`, `hamlet gemini`, "
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "`hapi opencode`.\n*   **Runner Control:** `hapi runner start/stop/status/list/logs`."
+        "text": "`hamlet opencode`.\n*   **Runner Control:** `hamlet runner start/stop/status/list/logs`."
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": "\n*   **Authentication:** `hapi auth login/logout/status`.\n*   **Diagnostics:** `hapi doctor` and"
+        "text": "\n*   **Authentication:** `hamlet auth login/logout/status`.\n*   **Diagnostics:** `hamlet doctor` and"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " `hapi doctor clean`.\n\n### Configuration & Requirements\n*   **Environment Variables:** Requires `CLI_API_TOKEN` and"
+        "text": " `hamlet doctor clean`.\n\n### Configuration & Requirements\n*   **Environment Variables:** Requires `CLI_API_TOKEN` and"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " `HAPI_API_URL`.\n*   **Dependencies:** Needs the respective agent CLIs (Claude, Cursor,"
+        "text": " `HAMLET_API_URL`.\n*   **Dependencies:** Needs the respective agent CLIs (Claude, Cursor,"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " OpenCode) installed and Bun for building from source.\n*   **Storage:** Defaults to `~/.hapi/` for"
+        "text": " OpenCode) installed and Bun for building from source.\n*   **Storage:** Defaults to `~/.hamlet/` for"
       }
     },
     {

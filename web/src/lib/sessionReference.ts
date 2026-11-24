@@ -2,7 +2,7 @@ import type { SessionSummary } from '@/types/api'
 import { normalizeSearch, prepareSidebarSessions, sessionMatchesQuery } from '@/components/SessionList'
 import { truncateGraphemes } from '@/lib/graphemes'
 import { getSessionTitle } from '@/lib/sessionTitle'
-import { SESSION_REFERENCE_STEER_SUFFIX } from '@hapi/protocol/sessionCitation'
+import { SESSION_REFERENCE_STEER_SUFFIX } from '@hamlet/protocol/sessionCitation'
 
 export function buildSessionReferencePath(sessionId: string): string {
     const base = import.meta.env.BASE_URL ?? '/'
@@ -14,13 +14,13 @@ function sanitizeSessionReferenceTitle(sessionTitle: string): string {
     return truncateGraphemes(sessionTitle.replace(/\s+/g, ' ').trim(), 120)
 }
 
-/** Clipboard text for citing this session in another HAPI chat (not a public share link). */
+/** Clipboard text for citing this session in another HAMLET chat (not a public share link). */
 export function buildSessionReferenceText(sessionTitle: string, sessionId: string): string {
     const path = buildSessionReferencePath(sessionId)
     const title = sanitizeSessionReferenceTitle(sessionTitle)
     const base = title
         ? `See session ${JSON.stringify(title)} (${path}) for context`
-        : `See HAPI session ${path} for context`
+        : `See HAMLET session ${path} for context`
     return `${base}.${SESSION_REFERENCE_STEER_SUFFIX}`
 }
 

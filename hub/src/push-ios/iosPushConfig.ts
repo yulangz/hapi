@@ -8,8 +8,8 @@ import { DEFAULT_PUSH_RELAY_URL } from '../push-native/relayClient'
  * Transport selection (PUSH SPEC v1), resolved from hub configuration —
  * env vs settings.json precedence is folded upstream (serverSettings.ts;
  * env names in parentheses):
- *   iosPushMode (HAPI_IOS_PUSH) = apns | relay | off      (default: relay)
- *   iosPushRelayUrl (HAPI_PUSH_RELAY_URL)                 (default: https://push.hapi.run)
+ *   iosPushMode (HAMLET_IOS_PUSH) = apns | relay | off      (default: relay)
+ *   iosPushRelayUrl (HAMLET_PUSH_RELAY_URL)                 (default: https://push.hapi.run)
  *   direct mode requires apnsKeyP8Path, apnsKeyId, apnsTeamId, apnsBundleId
  *   (APNS_KEY_P8_PATH, APNS_KEY_ID, APNS_TEAM_ID, APNS_BUNDLE_ID);
  *   apnsEnv (APNS_ENV) = production | sandbox (default: production).

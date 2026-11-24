@@ -47,7 +47,7 @@ describe('getProjectPath', () => {
     });
 
     it('should replace underscores with hyphens in the project path', () => {
-        const workingDir = '/data/github/hapi__worktrees/ime';
+        const workingDir = '/data/github/hamlet__worktrees/ime';
         const result = getProjectPath(workingDir);
         expect(result).toBe(expectedProjectPath(workingDir));
     });

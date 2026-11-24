@@ -1,4 +1,4 @@
-import { isCursorAcpCatalogModelId } from '@hapi/protocol'
+import { isCursorAcpCatalogModelId } from '@hamlet/protocol'
 import type { CursorModelSummary } from '@/types/api'
 import {
     appendCliSkusToCatalog,

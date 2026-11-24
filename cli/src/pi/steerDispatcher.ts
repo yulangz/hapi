@@ -5,7 +5,7 @@ import type { PiTransport } from './piTransport';
 import type { PiPreparedPrompt } from './promptQueue';
 
 export type PiPreparedSteer = PiPreparedPrompt & {
-    /** Active Pi generation observed when this message arrived at HAPI. */
+    /** Active Pi generation observed when this message arrived at HAMLET. */
     targetStreamingGeneration: number | null;
 };
 
@@ -19,7 +19,7 @@ type ActiveSteer = {
  * Serializes explicit native Pi steers by their RPC responses. Pi lifecycle
  * events intentionally do not affect this dispatcher: a steer can be accepted
  * while the main prompt continues streaming, and Pi's steeringMode is only a
- * native policy, not a HAPI ordering signal.
+ * native policy, not a HAMLET ordering signal.
  */
 export class PiSteerDispatcher {
     private readonly entries: PiPreparedSteer[] = [];

@@ -23,7 +23,7 @@ export function androidRelayPlaintext(data: FcmSendPayload['data']): string | nu
         sessionId: data.sessionId,
         requestId: data.requestId,
         contractVersion: data.contractVersion,
-        title: 'HAPI',
+        title: 'HAMLET',
         body: 'New activity'
     })
     return fitsEnvelope(minimal) ? minimal : null

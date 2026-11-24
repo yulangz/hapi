@@ -1,4 +1,4 @@
-import { SessionPatchSchema, SessionSchema } from '@hapi/protocol/schemas'
+import { SessionPatchSchema, SessionSchema } from '@hamlet/protocol/schemas'
 import type { Session, SessionPatch } from '@/types/api'
 import { FIXTURE_VERSION } from '../fixtureTypes'
 import { toCanonicalJson } from '../serialize'

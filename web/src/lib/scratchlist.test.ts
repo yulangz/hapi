@@ -166,14 +166,14 @@ describe('localStorage round-trip', () => {
     })
 
     it('returns [] when stored value is malformed JSON', () => {
-        localStorage.setItem(`hapi.scratchlist.v1.${SID}`, '{not-json')
+        localStorage.setItem(`hamlet.scratchlist.v1.${SID}`, '{not-json')
         expect(readScratchlist(SID)).toEqual([])
     })
 
     it('skips invalid entries inside the stored array (forward compatibility)', () => {
         const valid = makeEntry({ id: 'valid', text: 'ok' })
         localStorage.setItem(
-            `hapi.scratchlist.v1.${SID}`,
+            `hamlet.scratchlist.v1.${SID}`,
             JSON.stringify([
                 valid,
                 { id: '', text: 'no id', createdAt: 1 }, // invalid id

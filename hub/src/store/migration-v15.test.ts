@@ -19,12 +19,12 @@ describe('Store V14→V15 migration: scratchlist attachments column', () => {
         expect(cols).toContain('attachments')
         expect(getColumns(store, 'usage_events')).toContain('last_input_tokens')
         expect(getColumns(store, 'usage_scan_state')).toContain('last_seq')
-        expect(getUserVersion(store)).toBe(26)
+        expect(getUserVersion(store)).toBe(28)
         store.close()
     })
 
     it('V14 text-only scratchlist migrates to V15 and gains attachments column', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v14-to-v15-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v14-to-v15-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -40,7 +40,7 @@ describe('Store V14→V15 migration: scratchlist attachments column', () => {
             expect(cols).toContain('attachments')
             expect(getColumns(store, 'usage_events')).toContain('last_input_tokens')
             expect(getColumns(store, 'usage_scan_state')).toContain('last_seq')
-            expect(getUserVersion(store)).toBe(26)
+            expect(getUserVersion(store)).toBe(28)
         } finally {
             store?.close()
             rmSync(dir, { recursive: true, force: true })
@@ -48,7 +48,7 @@ describe('Store V14→V15 migration: scratchlist attachments column', () => {
     })
 
     it('latest DB reopen is idempotent: schema unchanged', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v15-idempotent-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v15-idempotent-'))
         const dbPath = join(dir, 'test.db')
         let store1: Store | undefined
         let store2: Store | undefined
@@ -60,7 +60,7 @@ describe('Store V14→V15 migration: scratchlist attachments column', () => {
             store2 = new Store(dbPath)
             const cols2 = getColumns(store2, 'session_scratchlist')
             expect(cols2).toEqual(cols1)
-            expect(getUserVersion(store2)).toBe(26)
+            expect(getUserVersion(store2)).toBe(28)
         } finally {
             store2?.close()
             store1?.close()

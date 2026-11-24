@@ -7,7 +7,7 @@ import { copyCodexConfigFile, resolveCodexHome } from './codexHome';
 const temporaryDirectories: string[] = [];
 
 async function createTemporaryDirectory(): Promise<string> {
-    const directory = await mkdtemp(join(tmpdir(), 'hapi-codex-home-test-'));
+    const directory = await mkdtemp(join(tmpdir(), 'hamlet-codex-home-test-'));
     temporaryDirectories.push(directory);
     return directory;
 }

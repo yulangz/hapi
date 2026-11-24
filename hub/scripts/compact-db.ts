@@ -2,7 +2,7 @@
 /**
  * Offline DB compactor: retroactively applies the message content codec
  * (truncate oversized agent tool output + zstd-compress content, see
- * hub/src/store/contentCodec.ts) to an existing hapi.db, then VACUUMs.
+ * hub/src/store/contentCodec.ts) to an existing hamlet.db, then VACUUMs.
  *
  * The source database is only ever opened read-only. All work happens on a
  * snapshot; the result is written to a NEW file which you swap in manually.
@@ -11,7 +11,7 @@
  *   bun run hub/scripts/compact-db.ts [options]
  *
  * Options:
- *   --db=PATH          Source database (default: $HAPI_HOME/hapi.db or ~/.hapi/hapi.db)
+ *   --db=PATH          Source database (default: $HAMLET_HOME/hamlet.db or ~/.hamlet/hamlet.db)
  *   --out=PATH         Output path (default: <db>.compacted)
  *   --keep-oversized   Do not truncate oversized agent output, compress only
  *   --force            Overwrite an existing output file
@@ -19,9 +19,9 @@
  *
  * Swap procedure (after the script succeeds):
  *   1. Stop the hub (and re-run this script if it wrote during the run)
- *   2. mv ~/.hapi/hapi.db ~/.hapi/hapi.db.pre-compact
- *   3. mv ~/.hapi/hapi.db.compacted ~/.hapi/hapi.db
- *   4. rm -f ~/.hapi/hapi.db-wal ~/.hapi/hapi.db-shm   (they belong to the old file)
+ *   2. mv ~/.hamlet/hamlet.db ~/.hamlet/hamlet.db.pre-compact
+ *   3. mv ~/.hamlet/hamlet.db.compacted ~/.hamlet/hamlet.db
+ *   4. rm -f ~/.hamlet/hamlet.db-wal ~/.hamlet/hamlet.db-shm   (they belong to the old file)
  *   5. Start the hub; keep the .pre-compact backup until satisfied
  */
 
@@ -42,10 +42,10 @@ import {
 const CODEC_SCHEMA_VERSION = 16
 
 function getDefaultDbPath(): string {
-    const dataDir = process.env.HAPI_HOME
-        ? process.env.HAPI_HOME.replace(/^~/, homedir())
-        : join(homedir(), '.hapi')
-    return join(dataDir, 'hapi.db')
+    const dataDir = process.env.HAMLET_HOME
+        ? process.env.HAMLET_HOME.replace(/^~/, homedir())
+        : join(homedir(), '.hamlet')
+    return join(dataDir, 'hamlet.db')
 }
 
 function parseArgs(argv: string[]) {
@@ -101,7 +101,7 @@ message content and VACUUMs — writing a NEW file, never touching the source.
 Usage: bun run hub/scripts/compact-db.ts [options]
 
 Options:
-  --db=PATH          Source database (default: $HAPI_HOME/hapi.db or ~/.hapi/hapi.db)
+  --db=PATH          Source database (default: $HAMLET_HOME/hamlet.db or ~/.hamlet/hamlet.db)
   --out=PATH         Output path (default: <db>.compacted)
   --keep-oversized   Do not truncate oversized agent output, compress only
   --force            Overwrite an existing output file
@@ -169,7 +169,7 @@ if (versionRow.user_version < CODEC_SCHEMA_VERSION - 1) {
     process.exit(1)
 }
 if (versionRow.user_version > CODEC_SCHEMA_VERSION) {
-    console.error(`Schema version ${versionRow.user_version} is newer than this script understands (V${CODEC_SCHEMA_VERSION}); update hapi and use its compact script.`)
+    console.error(`Schema version ${versionRow.user_version} is newer than this script understands (V${CODEC_SCHEMA_VERSION}); update hamlet and use its compact script.`)
     work.close()
     rmSync(workPath)
     process.exit(1)

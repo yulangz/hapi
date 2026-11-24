@@ -8,7 +8,7 @@
  * This is intentionally NOT a full ACP client (those live in cli/src/agent/...).
  * It speaks only the three calls verify needs: initialize, session/load, and
  * (optionally) session/prompt. It is decoupled from the launcher loop so it
- * can spawn against a temp $HOME without engaging any of HAPI's per-session
+ * can spawn against a temp $HOME without engaging any of HAMLET's per-session
  * machinery.
  */
 
@@ -25,12 +25,12 @@ export interface AcpProbeOptions {
     /** Default per-request timeout, ms. */
     timeoutMs?: number
     /**
-     * Override the $HAPI_HOME directory used for the agent-acp-active lock.
-     * Defaults to `process.env.HAPI_HOME` (with tmpdir/hapi fallback) — same
+     * Override the $HAMLET_HOME directory used for the agent-acp-active lock.
+     * Defaults to `process.env.HAMLET_HOME` (with tmpdir/hamlet fallback) — same
      * scheme as cli/src/agent/backends/acp/agentCliGuard.ts. Tests can pass a
      * temp dir here to avoid clobbering the operator's real lock.
      */
-    hapiHome?: string
+    hamletHome?: string
     /**
      * When true, the probe will NOT acquire the agent-acp-active lock in
      * start() and will NOT release it in stop(). Caller is responsible
@@ -71,17 +71,17 @@ export interface AcpActiveLockHandle {
 
 /**
  * Acquire the global agent-acp-active lock at the well-known path
- * `<hapiHome>/locks/agent-acp-active/`. Returns a handle whose
+ * `<hamletHome>/locks/agent-acp-active/`. Returns a handle whose
  * release() removes the lock dir; returns null if the lock is held
  * by another live (or mid-startup) process. Throws on
- * non-EEXIST mkdir failures (root-owned HAPI_HOME, read-only fs).
+ * non-EEXIST mkdir failures (root-owned HAMLET_HOME, read-only fs).
  *
  * Codex review #34 P2 v7: extracted so the legacy migrator can
  * reserve the lock BEFORE archive — closing the gap where another
  * agent acp could start between preflight and verifyInTempHome.
  */
-export function tryAcquireAcpActiveLock(hapiHome: string): AcpActiveLockHandle | null {
-    const lockDir = join(hapiHome, 'locks', 'agent-acp-active')
+export function tryAcquireAcpActiveLock(hamletHome: string): AcpActiveLockHandle | null {
+    const lockDir = join(hamletHome, 'locks', 'agent-acp-active')
     const pidFile = join(lockDir, 'pid')
     const parentDir = join(lockDir, '..')
     try {
@@ -220,7 +220,7 @@ export class AcpVerifyProbe {
 
     constructor(private readonly options: AcpProbeOptions = {}) {
         this.defaultTimeoutMs = options.timeoutMs ?? 20_000
-        const home = options.hapiHome ?? process.env.HAPI_HOME?.trim() ?? join(tmpdir(), 'hapi')
+        const home = options.hamletHome ?? process.env.HAMLET_HOME?.trim() ?? join(tmpdir(), 'hamlet')
         this.lockDir = join(home, 'locks', 'agent-acp-active')
         this.lockPidFile = join(this.lockDir, 'pid')
     }
@@ -249,11 +249,11 @@ export class AcpVerifyProbe {
         // shell:true + windowsHide:true the spawn fails with ENOENT even
         // though normal Cursor ACP sessions work.
         const isWin = process.platform === 'win32'
-        // Live dogfood (2026-06-07) on hapi-hub.service surfaced
+        // Live dogfood (2026-06-07) on hamlet-hub.service surfaced
         // `Executable not found in $PATH: "agent"` — the hub's systemd unit
         // ships a minimal PATH (/usr/local/sbin:/usr/local/bin:/usr/sbin:
         // /usr/bin:/sbin:/bin) and never sees Cursor's standard install
-        // location at ~/.local/bin/agent. hapi-runner.service hand-fixes
+        // location at ~/.local/bin/agent. hamlet-runner.service hand-fixes
         // this via Environment=PATH=$HOME/.local/bin:... in its unit file;
         // we replicate that in code so the hub doesn't depend on the
         // operator hand-tuning their systemd dropin.
@@ -268,7 +268,7 @@ export class AcpVerifyProbe {
         //
         // Independently of where the LOOKUP home comes from, options.env
         // may override HOME for the spawned agent's cache/state isolation
-        // (HAPI_HOME-style sandboxing in the migrator's verifyInTempHome).
+        // (HAMLET_HOME-style sandboxing in the migrator's verifyInTempHome).
         // The two HOMEs are deliberately separate concerns.
         //
         // PATH precedence: we APPEND the fallback bin dirs after the
@@ -391,7 +391,7 @@ export class AcpVerifyProbe {
             mkdirSync(parentDir, { recursive: true })
         } catch (err) {
             // Codex review #34 P2 v7: previously silently swallowed. If
-            // we can't even create the parent dir (root-owned HAPI_HOME,
+            // we can't even create the parent dir (root-owned HAMLET_HOME,
             // read-only fs), we cannot claim a lock. Fail loud so start()
             // refuses rather than running unguarded.
             const msg = err instanceof Error ? err.message : String(err)
@@ -537,7 +537,7 @@ export class AcpVerifyProbe {
                 fs: { readTextFile: false, writeTextFile: false },
                 terminal: false
             },
-            clientInfo: { name: 'hapi-cursor-legacy-migrator-verify', version: '1' }
+            clientInfo: { name: 'hamlet-cursor-legacy-migrator-verify', version: '1' }
         }, timeoutMs)
     }
 

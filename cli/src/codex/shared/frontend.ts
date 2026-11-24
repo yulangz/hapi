@@ -20,11 +20,11 @@ export async function runtimeControl(runtime: CodexRuntimeRecord, method: string
 export async function attachSharedSession(runtime: CodexRuntimeRecord, sessionId: string, args: string[] = [], signal?: AbortSignal): Promise<void> {
     const session = await (await ApiClient.create()).getSession(sessionId);
     if (runtime.sessions[sessionId]?.namespace !== session.namespace) throw new Error('Shared runtime namespace mismatch');
-    const { threadId } = z.object({ threadId: z.string() }).parse(await runtimeControl(runtime, 'hapi/attach', sessionId));
+    const { threadId } = z.object({ threadId: z.string() }).parse(await runtimeControl(runtime, 'hamlet/attach', sessionId));
     if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error(`Native Codex attachment needs a terminal: ${sessionId}`);
     signal?.throwIfAborted();
     const env: NodeJS.ProcessEnv = { ...process.env, CODEX_HOME: runtime.codexHome };
-    const authEnv = 'HAPI_CODEX_REMOTE_TOKEN';
+    const authEnv = 'HAMLET_CODEX_REMOTE_TOKEN';
     if (runtime.token) env[authEnv] = runtime.token;
     // The same executable that owns this runtime; never resolve PATH again at attach.
     const child = spawn(runtime.command, [...runtime.args, '--remote', runtime.endpoint,
@@ -59,12 +59,15 @@ export async function runSharedCodex(raw: SharedLaunchOptions): Promise<void> {
             return attachSharedSession(runtime, session.id);
         }
         if (session.active) throw new Error('Existing session is active in another or legacy runtime. Stop it explicitly before cold resume; no hot migration.');
+        if (session.metadata?.hamletAgent && (process.env.HAMLET_AGENT_ID !== session.id || !process.env.HAMLET_TOKEN)) {
+            throw new Error('Resume this Hamlet agent through its HAMLET Hub');
+        }
         options.resumeSessionId ??= session.metadata?.codexSessionId;
-        if (!options.resumeSessionId) throw new Error('Existing HAPI session has no Codex thread binding');
+        if (!options.resumeSessionId && process.env.HAMLET_AGENT_ID !== session.id) throw new Error('Existing HAMLET session has no Codex thread binding');
     }
     const runner = await readRunnerState();
     if (runner && isProcessAlive(runner.pid) && !runner.sharedCodexRuntime) {
-        throw new Error('Running HAPI runner predates shared Codex sessions. Upgrade/restart the runner first; existing sessions are not migrated or stopped automatically.');
+        throw new Error('Running HAMLET runner predates shared Codex sessions. Upgrade/restart the runner first; existing sessions are not migrated or stopped automatically.');
     }
     const launch = sharedLaunchConfig(options, options.workingDirectory!);
     if (options.startedBy === 'runner') return runSharedRuntime(options);

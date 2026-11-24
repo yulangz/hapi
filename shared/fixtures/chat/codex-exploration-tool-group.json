@@ -36,7 +36,7 @@
                     "name": "CodexBash",
                     "result": {
                         "exit_code": 0,
-                        "stdout": "{\n  \"name\": \"hapi\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
+                        "stdout": "{\n  \"name\": \"hamlet\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
                     },
                     "state": "completed"
                 }
@@ -118,7 +118,7 @@
                             "name": "CodexBash",
                             "result": {
                                 "exit_code": 0,
-                                "stdout": "{\n  \"name\": \"hapi\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
+                                "stdout": "{\n  \"name\": \"hamlet\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
                             },
                             "state": "completed"
                         }
@@ -220,7 +220,7 @@
                             "is_error": false,
                             "output": {
                                 "exit_code": 0,
-                                "stdout": "{\n  \"name\": \"hapi\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
+                                "stdout": "{\n  \"name\": \"hamlet\",\n  \"workspaces\": [\"cli\", \"hub\", \"web\", \"shared\"]\n}"
                             },
                             "type": "tool-call-result"
                         },

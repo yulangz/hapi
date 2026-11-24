@@ -10,7 +10,7 @@ import {
 import { resolveGeminiLiveVoice, resolveQwenRealtimeVoice } from './voicePickerCatalog'
 
 describe('buildGeminiLiveSetupMessage', () => {
-    test('locks model and voice to HAPI defaults', () => {
+    test('locks model and voice to HAMLET defaults', () => {
         const msg = buildGeminiLiveSetupMessage()
         expect(msg.setup.model).toBe(`models/${GEMINI_LIVE_MODEL}`)
         const speech = msg.setup.generationConfig as {
@@ -52,7 +52,7 @@ describe('buildGeminiLiveSetupMessage', () => {
 })
 
 describe('buildQwenSessionUpdateMessage', () => {
-    test('locks voice to HAPI default when no voice name supplied', () => {
+    test('locks voice to HAMLET default when no voice name supplied', () => {
         const msg = buildQwenSessionUpdateMessage()
         const session = msg.session as { voice: string }
         expect(session.voice).toBe(QWEN_REALTIME_VOICE)

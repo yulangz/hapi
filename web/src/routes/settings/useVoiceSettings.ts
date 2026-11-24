@@ -11,7 +11,7 @@ import {
     writeStoredVoiceBackendPreference,
     writeStoredVoiceSelection,
 } from '@/lib/voicePickerPreferences'
-import type { VoiceBackendType } from '@hapi/protocol/voice'
+import type { VoiceBackendType } from '@hamlet/protocol/voice'
 import { useVoiceInputPreferences } from '@/hooks/useVoiceInputPreferences'
 
 export function useVoiceSettings() {
@@ -22,7 +22,7 @@ export function useVoiceSettings() {
     const [backend, setBackendState] = useState<VoiceBackendType | null>(null)
     const [voiceId, setVoiceIdState] = useState<string | null>(null)
     const [dynamicVoices, setDynamicVoices] = useState<VoiceInfo[] | null>(null)
-    const [voiceLanguage, setVoiceLanguageState] = useState<string | null>(() => localStorage.getItem('hapi-voice-lang'))
+    const [voiceLanguage, setVoiceLanguageState] = useState<string | null>(() => localStorage.getItem('hamlet-voice-lang'))
     const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null)
     const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -45,15 +45,15 @@ export function useVoiceSettings() {
         }
         load()
         const onRefresh = () => load()
-        window.addEventListener('hapi-voice-backends-refresh', onRefresh)
+        window.addEventListener('hamlet-voice-backends-refresh', onRefresh)
         return () => {
             cancelled = true
-            window.removeEventListener('hapi-voice-backends-refresh', onRefresh)
+            window.removeEventListener('hamlet-voice-backends-refresh', onRefresh)
         }
     }, [api])
 
     const refreshBackends = useCallback(() => {
-        window.dispatchEvent(new Event('hapi-voice-backends-refresh'))
+        window.dispatchEvent(new Event('hamlet-voice-backends-refresh'))
     }, [])
 
     useEffect(() => {
@@ -94,8 +94,8 @@ export function useVoiceSettings() {
 
     const setVoiceLanguage = useCallback((language: Language) => {
         setVoiceLanguageState(language.code)
-        if (language.code === null) localStorage.removeItem('hapi-voice-lang')
-        else localStorage.setItem('hapi-voice-lang', language.code)
+        if (language.code === null) localStorage.removeItem('hamlet-voice-lang')
+        else localStorage.setItem('hamlet-voice-lang', language.code)
     }, [])
 
     const stopPreview = useCallback(() => {

@@ -8,7 +8,7 @@ import {
     type NotifySummary,
     type WorkGraphEvent,
     type WorkGraphEventCreate
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { Store, StoredMessage } from '../store'
 import { WorkGraphValidationError } from '../store'
 import type { InsertWorkGraphEventResult } from '../store/workGraph'

@@ -13,7 +13,7 @@ const fixtureImage = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
         <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
         <rect width="480" height="240" rx="28" fill="url(#g)"/>
         <circle cx="90" cy="120" r="52" fill="white" fill-opacity=".85"/>
-        <text x="165" y="112" fill="white" font-family="system-ui" font-size="28" font-weight="700">HAPI export</text>
+        <text x="165" y="112" fill="white" font-family="system-ui" font-size="28" font-weight="700">HAMLET export</text>
         <text x="165" y="148" fill="white" font-family="system-ui" font-size="18">image attachment fixture</text>
     </svg>
 `)
@@ -30,7 +30,7 @@ const markdown = `## Complex response fixture
 
 ## ✅ AList 的 frp 和 Caddy 配置已彻底移除
 
-This paragraph contains **bold text**, *emphasis*, ~~strikethrough~~, inline \`code\`, a [safe link](https://example.com), 中文内容，以及一段足够长的文字，用于验证换行、行高和宽屏导出效果是否与原始 HAPI 页面保持一致。
+This paragraph contains **bold text**, *emphasis*, ~~strikethrough~~, inline \`code\`, a [safe link](https://example.com), 中文内容，以及一段足够长的文字，用于验证换行、行高和宽屏导出效果是否与原始 HAMLET 页面保持一致。
 
 > A multi-line blockquote used to verify borders, indentation, colors, and wrapping.  \n> 第二行引用包含中文。
 
@@ -61,7 +61,7 @@ Final paragraph after the divider.
 
 \`alist.techotaku39.top\` 已失效，5244 端口也不再监听。
 
-请将 \`machine-status-widget/hapi-machine-status.user.js\` 全文覆盖到油猴脚本中，然后强制刷新页面。
+请将 \`machine-status-widget/hamlet-machine-status.user.js\` 全文覆盖到油猴脚本中，然后强制刷新页面。
 
 ### LaTeX
 
@@ -120,7 +120,7 @@ function App() {
             }))
         if (includeToolOnlySnapshot) {
             messages.push({
-                html: '<div data-hapi-message-role="assistant"><div data-hapi-share-exclude="true">TOOL_ONLY_SECRET_SHOULD_NOT_EXPORT</div></div>',
+                html: '<div data-hamlet-message-role="assistant"><div data-hamlet-share-exclude="true">TOOL_ONLY_SECRET_SHOULD_NOT_EXPORT</div></div>',
                 text: 'TOOL_ONLY_SECRET_SHOULD_NOT_EXPORT',
                 role: 'assistant'
             })
@@ -133,23 +133,23 @@ function App() {
         <I18nProvider>
             <main className={`mx-auto max-w-full bg-[var(--app-bg)] p-5 text-[var(--app-fg)] ${wideSource ? 'w-[1120px]' : 'w-[960px]'}`}>
                 <div ref={sourceRef} data-testid="source-turn" className="flex flex-col gap-3">
-                    <div data-hapi-message-role="user" className="happy-message flex flex-col items-end">
+                    <div data-hamlet-message-role="user" className="happy-message flex flex-col items-end">
                         <div className={getUserBubbleClassName()}>
                             <UserBubbleContent text={'这个失败不用说吧：`bun run test` was also attempted. The Web suite passes, but the complete repository run is currently blocked on Windows by unrelated tests.\n第二行用于验证换行。'} />
-                            <div className="hapi-share-media-grid mt-3 flex flex-wrap gap-2" data-hapi-image-count="2">
-                                <button type="button" title="Click to zoom" data-image-preview-trigger="" data-image-preview-label="HAPI landscape export fixture" className="overflow-hidden rounded-xl">
-                                    <img className="max-h-60" src={fixtureImage} alt="HAPI landscape export fixture" />
+                            <div className="hamlet-share-media-grid mt-3 flex flex-wrap gap-2" data-hamlet-image-count="2">
+                                <button type="button" title="Click to zoom" data-image-preview-trigger="" data-image-preview-label="HAMLET landscape export fixture" className="overflow-hidden rounded-xl">
+                                    <img className="max-h-60" src={fixtureImage} alt="HAMLET landscape export fixture" />
                                 </button>
-                                <button type="button" title="Click to zoom" data-image-preview-trigger="" data-image-preview-label="HAPI portrait export fixture" className="overflow-hidden rounded-xl">
-                                    <img className="max-h-60" src={portraitFixtureImage} alt="HAPI portrait export fixture" />
+                                <button type="button" title="Click to zoom" data-image-preview-trigger="" data-image-preview-label="HAMLET portrait export fixture" className="overflow-hidden rounded-xl">
+                                    <img className="max-h-60" src={portraitFixtureImage} alt="HAMLET portrait export fixture" />
                                 </button>
                             </div>
                         </div>
                     </div>
-                    <div data-hapi-message-role="assistant" className="happy-message share-turn-network-style px-1 min-w-0 max-w-full overflow-x-hidden">
+                    <div data-hamlet-message-role="assistant" className="happy-message share-turn-network-style px-1 min-w-0 max-w-full overflow-x-hidden">
                         <MarkdownRenderer content={markdown} standalone />
                         <p data-testid="before-hidden-tool">Visible content before the hidden tool.</p>
-                        <div data-hapi-share-exclude="true" className="mt-3 rounded-xl border p-3">Excluded tool output</div>
+                        <div data-hamlet-share-exclude="true" className="mt-3 rounded-xl border p-3">Excluded tool output</div>
                         <p data-testid="after-hidden-tool">Visible content after the hidden tool.</p>
                         <div className="happy-message-actions mt-1 flex h-5 items-center gap-1" data-testid="localized-message-actions">
                             <button type="button" title="已复制" aria-label="已复制">Copied state control</button>
@@ -162,7 +162,7 @@ function App() {
             </main>
             <ShareTurnDialog
                 isOpen={open}
-                title="Complex HAPI turn"
+                title="Complex HAMLET turn"
                 metadataItems={metadataItems}
                 sourceSnapshots={snapshots}
                 sourceContentWidth={sourceRef.current?.getBoundingClientRect().width ?? null}

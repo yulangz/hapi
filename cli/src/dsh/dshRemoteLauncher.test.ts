@@ -48,7 +48,7 @@ function createSession() {
 
     return {
         path: '/tmp/dsh-test',
-        logPath: '/tmp/dsh-test/hapi.log',
+        logPath: '/tmp/dsh-test/hamlet.log',
         client: { rpcHandlerManager: { registerHandler: vi.fn() } },
         queue,
         sessionId: null as string | null,

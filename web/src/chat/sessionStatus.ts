@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 import type { ThreadGoal, TodoItem } from '@/types/api'
 import type { ChatBlock, NormalizedMessage, ToolCallBlock } from '@/chat/types'
 import { isSubagentToolName } from '@/chat/subagentTool'

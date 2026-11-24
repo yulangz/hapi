@@ -11,7 +11,7 @@ import { TEST_OWNED_MARKER_KEY } from './integrationEnv'
 
 // Workers can't inherit process.env from globalSetup, so we write config to a file
 // and let setupFile.ts read it in each worker.
-export const TEST_CONFIG_FILE = join(tmpdir(), 'hapi-test-config.json')
+export const TEST_CONFIG_FILE = join(tmpdir(), 'hamlet-test-config.json')
 
 async function getFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ let tmpHome: string | null = null
 
 export async function setup() {
     const port = await getFreePort()
-    tmpHome = mkdtempSync(join(tmpdir(), 'hapi-test-'))
+    tmpHome = mkdtempSync(join(tmpdir(), 'hamlet-test-'))
     const token = randomBytes(20).toString('base64url')
     const bunExec = findBunExec()
 
@@ -79,11 +79,11 @@ export async function setup() {
         HOME: process.env.HOME,
         ...(process.env.TMPDIR ? { TMPDIR: process.env.TMPDIR } : {}),
         ...(process.env.BUN_INSTALL ? { BUN_INSTALL: process.env.BUN_INSTALL } : {}),
-        HAPI_HOME: tmpHome,
-        DB_PATH: join(tmpHome, 'hapi.db'),
-        HAPI_LISTEN_PORT: String(port),
-        HAPI_LISTEN_HOST: '127.0.0.1',
-        HAPI_PUBLIC_URL: `http://127.0.0.1:${port}`,
+        HAMLET_HOME: tmpHome,
+        DB_PATH: join(tmpHome, 'hamlet.db'),
+        HAMLET_LISTEN_PORT: String(port),
+        HAMLET_LISTEN_HOST: '127.0.0.1',
+        HAMLET_PUBLIC_URL: `http://127.0.0.1:${port}`,
         CLI_API_TOKEN: token,
         TELEGRAM_NOTIFICATION: 'false',
         SERVERCHAN_NOTIFICATION: 'false',
@@ -126,7 +126,7 @@ export async function teardown() {
     await stopHubProcess()
     try { rmSync(TEST_CONFIG_FILE) } catch {}
 
-    // Final audit: test children carry `HAPI_TEST_MARKER=<tmpHome>` in their
+    // Final audit: test children carry `HAMLET_TEST_MARKER=<tmpHome>` in their
     // environment (see integrationEnv.ts). Anything still alive after the
     // suites ran is a test-owned leak — reap it, then fail the run with
     // PID/command diagnostics if something could not be reaped. The temp home

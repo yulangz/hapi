@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { serializeSessionMarkdown } from './markdown'
-import type { HapiSessionExport } from '@hapi/protocol/sessionExport'
+import type { HamletSessionExport } from '@hamlet/protocol/sessionExport'
 
 function makeExport(
-    messages: HapiSessionExport['messages'],
-    scratchlist: HapiSessionExport['scratchlist'] = []
-): HapiSessionExport {
+    messages: HamletSessionExport['messages'],
+    scratchlist: HamletSessionExport['scratchlist'] = []
+): HamletSessionExport {
     return {
         schemaVersion: 2,
         exportedAt: Date.UTC(2026, 5, 5, 12, 0, 0),
@@ -50,7 +50,7 @@ describe('serializeSessionMarkdown', () => {
                 createdAt: Date.UTC(2026, 5, 5, 10, 1, 0),
                 invokedAt: Date.UTC(2026, 5, 5, 10, 1, 1),
                 scheduledAt: null,
-                content: { role: 'user', content: 'Hello **HAPI**' }
+                content: { role: 'user', content: 'Hello **HAMLET**' }
             },
             {
                 id: 'msg-2',
@@ -66,7 +66,7 @@ describe('serializeSessionMarkdown', () => {
         expect(markdown).toContain('title: "Export Demo"')
         expect(markdown).toContain('# Export Demo')
         expect(markdown).toContain('## User')
-        expect(markdown).toContain('Hello **HAPI**')
+        expect(markdown).toContain('Hello **HAMLET**')
         expect(markdown).toContain('## Assistant')
         expect(markdown).toContain('Hi there')
     })
@@ -102,7 +102,7 @@ describe('serializeSessionMarkdown', () => {
                     filename: 'sketch.png',
                     mimeType: 'image/png',
                     size: 128,
-                    path: 'hapi-hub:scratchlist/att-1'
+                    path: 'hamlet-hub:scratchlist/att-1'
                 }]
             },
             {

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import React from 'react'
 import { logger } from '@/ui/logger'
-import { buildHapiMcpBridge } from '@/codex/utils/buildHapiMcpBridge'
+import { buildHamletMcpBridge } from '@/codex/utils/buildHamletMcpBridge'
 import { convertAgentMessage } from '@/agent/messageConverter'
 import type { AgentMessage, McpServerStdio, PromptContent } from '@/agent/types'
 import {
@@ -18,10 +18,10 @@ import {
     isGrokBuildAuxiliaryQuotaError
 } from './utils/grokBackend'
 import { GrokPermissionHandler } from './utils/permissionHandler'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import { getGrokTitleInstruction } from './utils/systemPrompt'
 import { GrokConversationHistory } from './conversationHistory'
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 
 const PLAN_MODE_INSTRUCTION =
     'Work in plan-only mode. Analyze and propose a plan, but do not execute commands or modify files.'
@@ -70,7 +70,7 @@ class GrokRemoteLauncher extends RemoteLauncherBase {
 
     protected async runMainLoop(): Promise<void> {
         const session = this.session
-        const { server, mcpServers } = await buildHapiMcpBridge(session.client, {
+        const { server, mcpServers } = await buildHamletMcpBridge(session.client, {
             skillLookup: { workingDirectory: session.path, flavor: 'grok' }
         })
         this.happyServer = server
@@ -106,7 +106,7 @@ class GrokRemoteLauncher extends RemoteLauncherBase {
 
         const acpMcpServers = toAcpMcpServers(mcpServers)
         // Fork children must load the exact native id hub forked. Falling back to
-        // newSession() would leave hydrated HAPI history without matching model context.
+        // newSession() would leave hydrated HAMLET history without matching model context.
         const strictForkResume = session.client.getMetadata()?.forkedFrom != null
         let acpSessionId: string
         try {

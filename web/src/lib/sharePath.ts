@@ -4,7 +4,7 @@
  * scope and under the service worker's control.
  */
 
-const RESOLVE_ORIGIN = 'https://hapi.local/'
+const RESOLVE_ORIGIN = 'https://hamlet.local/'
 
 /** Build the share-target pathname from an explicit Vite base (build-time). */
 export function shareTargetPathnameFromBase(baseUrl: string): string {

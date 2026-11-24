@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { VOICE_BACKEND_LABELS } from '@hapi/protocol/voicePickerCatalog'
+import { VOICE_BACKEND_LABELS } from '@hamlet/protocol/voicePickerCatalog'
 import { getLanguageDisplayName } from '@/lib/languages'
 import { useTranslation } from '@/lib/use-translation'
 import { useAppContext } from '@/lib/app-context'
@@ -16,7 +16,7 @@ export default function SettingsVoicePage() {
     const { api, token } = useAppContext()
     const navigate = useNavigate()
     const voice = useVoiceSettings()
-    const [opening, setOpening] = useState<'greet' | 'brief'>(() => localStorage.getItem('hapi-voice-proactive') === 'true' ? 'brief' : 'greet')
+    const [opening, setOpening] = useState<'greet' | 'brief'>(() => localStorage.getItem('hamlet-voice-proactive') === 'true' ? 'brief' : 'greet')
     const [showCredentials, setShowCredentials] = useState(false)
     const selectedLanguage = voice.voiceLanguages.find((language) => language.code === voice.voiceLanguage)
     const selectedVoice = voice.voices.find((option) => option.id === voice.voiceId)
@@ -28,8 +28,8 @@ export default function SettingsVoicePage() {
 
     const setVoiceOpening = (value: 'greet' | 'brief') => {
         setOpening(value)
-        if (value === 'brief') localStorage.setItem('hapi-voice-proactive', 'true')
-        else localStorage.removeItem('hapi-voice-proactive')
+        if (value === 'brief') localStorage.setItem('hamlet-voice-proactive', 'true')
+        else localStorage.removeItem('hamlet-voice-proactive')
     }
 
     const onCredentialsConfigured = () => {

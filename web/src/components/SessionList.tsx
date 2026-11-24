@@ -1204,7 +1204,7 @@ export function SessionList(props: {
     const isFiltering = normalizedQuery.length > 0 || timeRange !== null
 
     useEffect(() => {
-        // 中文注释：监听导入标记变化，让列表在“导入完成”或“用户已在 Hapi 中继续会话”后立即刷新时间文案。
+        // 中文注释：监听导入标记变化，让列表在“导入完成”或“用户已在 Hamlet 中继续会话”后立即刷新时间文案。
         return subscribeCodexImportedSessions(() => {
             setCodexImportedSessionsVersion((value) => value + 1)
         })
