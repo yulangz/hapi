@@ -853,6 +853,7 @@ export function reduceTimeline(
                         const existing = textBlocksByStreamId.get(streamId)
                         if (existing) {
                             existing.text = c.text
+                            existing.phase = c.phase ?? existing.phase
                             existing.usage = msg.usage
                             existing.model = msg.model
                             existing.meta = msg.meta
@@ -876,6 +877,7 @@ export function reduceTimeline(
                         usage: msg.usage,
                         model: msg.model,
                         text: c.text,
+                        ...(c.phase !== undefined ? { phase: c.phase } : {}),
                         meta: msg.meta
                     }
                     blocks.push(block)

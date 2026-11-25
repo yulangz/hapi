@@ -15,6 +15,7 @@ export type CodexMessage = {
     type: 'message';
     message: string;
     id: string;
+    phase?: string;
 } | {
     type: 'proposed_plan';
     plan: string;
@@ -175,12 +176,13 @@ type AssistantMessageProjection = {
     itemId: string | null;
 };
 
-type PendingResponseFinal = {
+type PendingAssistantResponse = {
     key: string;
     text: string;
     itemId: string | null;
     turnId: string | null;
     messages: CodexMessage[];
+    finalAnswer: boolean;
 };
 
 function extractEventTurnId(event: CodexSessionEvent): string | null {
@@ -256,8 +258,8 @@ function isFinalAnswerResponse(event: CodexSessionEvent): boolean {
         && normalizeItemType(payload.phase) === 'finalanswer';
 }
 
-function findPendingResponseFinalIndex(
-    pending: PendingResponseFinal[],
+function findPendingAssistantResponseIndex(
+    pending: PendingAssistantResponse[],
     projection: AssistantMessageProjection,
     key: string
 ): number {
@@ -281,7 +283,7 @@ function checkpointEndsWithSummary(checkpointMessage: string, summaryText: strin
 }
 
 function findCompactionSummaryIndex(
-    pending: PendingResponseFinal[],
+    pending: PendingAssistantResponse[],
     payload: Record<string, unknown> | null
 ): number {
     const rawCheckpointMessage = asString(payload?.message);
@@ -289,7 +291,8 @@ function findCompactionSummaryIndex(
     if (!checkpointMessage) return -1;
 
     for (let index = pending.length - 1; index >= 0; index -= 1) {
-        const text = normalizeCompactionText(pending[index]?.text ?? '');
+        if (!pending[index]?.finalAnswer) continue;
+        const text = normalizeCompactionText(pending[index].text);
         if (text && checkpointEndsWithSummary(checkpointMessage, text)) {
             return index;
         }
@@ -327,7 +330,7 @@ function convertProjectionToActions(
     return actions;
 }
 
-function confirmsPendingFinalVisibility(actions: CodexConversionAction[]): boolean {
+function confirmsPendingResponseVisibility(actions: CodexConversionAction[]): boolean {
     return actions.some((action) => (
         action.type === 'user-message'
         || action.type === 'user-activity'
@@ -338,17 +341,17 @@ function confirmsPendingFinalVisibility(actions: CodexConversionAction[]): boole
 /**
  * Project transcript records into one ordered action stream. Raw final-answer
  * response items are ambiguous: they can be visible fallback messages or
- * internal compaction summaries. Hold them in arrival order until a semantic
- * mirror, subsequent visible activity, compaction checkpoint, or turn boundary
- * resolves them. Later actions must never overtake an older pending final.
+ * internal compaction summaries. Unphased responses can also precede a
+ * phase-bearing semantic mirror. Keep both kinds in arrival order until a
+ * mirror, visible activity, compaction checkpoint, or turn boundary resolves them.
  */
 export function createCodexEventConverter(): CodexEventConverter {
     let currentTurnId: string | null = null;
     const unmatchedSemanticMessages = new Map<string, number>();
     const unmatchedResponseMessages = new Map<string, number>();
-    const pendingResponseFinals: PendingResponseFinal[] = [];
+    const pendingResponses: PendingAssistantResponse[] = [];
 
-    const emitPendingFinals = (entries: PendingResponseFinal[]): CodexConversionAction[] => {
+    const emitPendingResponses = (entries: PendingAssistantResponse[]): CodexConversionAction[] => {
         const actions: CodexConversionAction[] = [];
         for (const entry of entries) {
             rememberProjection(unmatchedResponseMessages, entry.key);
@@ -364,11 +367,11 @@ export function createCodexEventConverter(): CodexEventConverter {
     };
 
     const drainPendingPrefix = (count: number): CodexConversionAction[] => (
-        emitPendingFinals(pendingResponseFinals.splice(0, count))
+        emitPendingResponses(pendingResponses.splice(0, count))
     );
 
-    const drainAllPendingFinals = (): CodexConversionAction[] => (
-        drainPendingPrefix(pendingResponseFinals.length)
+    const drainAllPendingResponses = (): CodexConversionAction[] => (
+        drainPendingPrefix(pendingResponses.length)
     );
 
     const convert = (rawEvent: unknown): CodexConversionAction[] => {
@@ -379,7 +382,7 @@ export function createCodexEventConverter(): CodexEventConverter {
             currentTurnId = null;
             unmatchedSemanticMessages.clear();
             unmatchedResponseMessages.clear();
-            pendingResponseFinals.length = 0;
+            pendingResponses.length = 0;
         }
 
         currentTurnId = extractEventTurnId(parsed.data) ?? currentTurnId;
@@ -393,53 +396,59 @@ export function createCodexEventConverter(): CodexEventConverter {
             // checkpoint.message. Remote compaction leaves message empty and
             // stores the summary only in replacement_history, so adjacency is
             // insufficient evidence that the latest pending final is internal.
-            const summaryIndex = findCompactionSummaryIndex(pendingResponseFinals, payload);
+            const summaryIndex = findCompactionSummaryIndex(pendingResponses, payload);
             if (summaryIndex === -1) return convertedActions;
 
-            const earlierVisibleFinals = drainPendingPrefix(summaryIndex);
-            pendingResponseFinals.shift();
-            return [...earlierVisibleFinals, ...convertedActions];
+            const earlierVisibleResponses = drainPendingPrefix(summaryIndex);
+            pendingResponses.shift();
+            return [...earlierVisibleResponses, ...convertedActions];
         }
 
         const eventType = parsed.data.type === 'event_msg' ? asString(payload?.type) : null;
         if (eventType === 'task_complete') {
-            return [...drainAllPendingFinals(), ...convertedActions];
+            return [...drainAllPendingResponses(), ...convertedActions];
         }
         if (eventType === 'turn_aborted' || eventType === 'task_failed') {
-            pendingResponseFinals.length = 0;
-            return convertedActions;
+            const visible = emitPendingResponses(pendingResponses.splice(0).filter((entry) => !entry.finalAnswer));
+            return [...visible, ...convertedActions];
         }
 
         if (!projection || !converted) {
-            return confirmsPendingFinalVisibility(convertedActions)
-                ? [...drainAllPendingFinals(), ...convertedActions]
+            return confirmsPendingResponseVisibility(convertedActions)
+                ? [...drainAllPendingResponses(), ...convertedActions]
                 : convertedActions;
         }
 
         const key = `${projection.turnId ?? ''}\u0000${projection.text}`;
 
         const pendingIndex = projection.source === 'semantic'
-            ? findPendingResponseFinalIndex(pendingResponseFinals, projection, key)
+            ? findPendingAssistantResponseIndex(pendingResponses, projection, key)
             : -1;
         if (pendingIndex !== -1) {
-            const earlierVisibleFinals = drainPendingPrefix(pendingIndex);
-            pendingResponseFinals.shift();
-            return [...earlierVisibleFinals, ...convertedActions];
+            const earlierVisibleResponses = drainPendingPrefix(pendingIndex);
+            const pending = pendingResponses.shift();
+            const final = pending?.messages.find((message) => message.type === 'message');
+            return [...earlierVisibleResponses, ...convertedActions.map((action) =>
+                action.type === 'agent-message' && action.message.type === 'message' && !action.message.phase && final?.phase
+                    ? { ...action, message: { ...action.message, phase: final.phase } }
+                    : action
+            )];
         }
 
-        if (projection.source === 'response' && isFinalAnswerResponse(parsed.data)) {
+        const finalAnswer = isFinalAnswerResponse(parsed.data);
+        if (projection.source === 'response' && (finalAnswer || typeof payload?.phase !== 'string')) {
             if (consumeProjection(unmatchedSemanticMessages, key)) {
                 return [];
             }
-            // A response-only final answer is ambiguous until the next
-            // boundary: task_complete confirms visible output, while compacted
-            // identifies an internal context summary. Hold it briefly.
-            pendingResponseFinals.push({
+            // Wait for the semantic mirror's phase or a visibility boundary
+            // before committing this record to storage.
+            pendingResponses.push({
                 key,
                 text: projection.text,
                 itemId: projection.itemId,
                 turnId: projection.turnId,
-                messages: converted.messages ?? []
+                messages: converted.messages ?? [],
+                finalAnswer
             });
             return [];
         }
@@ -451,16 +460,16 @@ export function createCodexEventConverter(): CodexEventConverter {
             return [];
         }
 
-        const earlierVisibleFinals = drainAllPendingFinals();
+        const earlierVisibleResponses = drainAllPendingResponses();
         rememberProjection(
             projection.source === 'semantic' ? unmatchedSemanticMessages : unmatchedResponseMessages,
             key
         );
-        return [...earlierVisibleFinals, ...convertedActions];
+        return [...earlierVisibleResponses, ...convertedActions];
     };
 
     return Object.assign(convert, {
-        finalize: drainAllPendingFinals
+        finalize: drainAllPendingResponses
     });
 }
 
@@ -512,6 +521,7 @@ export function convertCodexEvent(rawEvent: unknown): CodexEventProjection | nul
                 messages: [{
                     type: 'message',
                     message,
+                    ...(typeof payloadRecord.phase === 'string' ? { phase: payloadRecord.phase } : {}),
                     id: randomUUID()
                 }]
             };
@@ -539,6 +549,7 @@ export function convertCodexEvent(rawEvent: unknown): CodexEventProjection | nul
                     messages: [{
                         type: 'message',
                         message,
+                        ...(typeof item?.phase === 'string' ? { phase: item?.phase } : {}),
                         id: asString(item?.id) ?? randomUUID()
                     }]
                 };
@@ -630,6 +641,7 @@ export function convertCodexEvent(rawEvent: unknown): CodexEventProjection | nul
                 messages: [{
                     type: 'message',
                     message,
+                    ...(typeof payloadRecord.phase === 'string' ? { phase: payloadRecord.phase } : {}),
                     id: asString(payloadRecord.id) ?? randomUUID()
                 }]
             };

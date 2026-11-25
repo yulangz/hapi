@@ -115,6 +115,7 @@ export type NormalizedAgentContent =
     | {
         type: 'text'
         text: string
+        phase?: string
         uuid: string
         streamId?: string
         parentUUID: string | null
@@ -242,6 +243,7 @@ export type AgentTextBlock = {
     model?: string | null
     roundSummary?: RoundSummary
     text: string
+    phase?: string
     meta?: unknown
 }
 

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { ThreadAssistantMessagePart } from '@assistant-ui/react'
+import { renderHook } from '@testing-library/react'
+import { DecryptedMessageSchema } from '@hamlet/protocol/schemas'
+import { normalizeDecryptedMessage } from '@/chat/normalize'
+import { reduceChatBlocks } from '@/chat/reducer'
+import { buildVisibleChatBlocks } from '@/chat/toolGroups'
+import { useHappyRuntime } from '@/lib/assistant-runtime'
 import { getAssistantCopyText } from '@/components/AssistantChat/messages/assistantCopyText'
 
 describe('getAssistantCopyText', () => {
@@ -48,5 +54,65 @@ describe('getAssistantCopyText', () => {
 
         expect(getAssistantCopyText(parts, { stripNotifySummary: true })).toBe('Did the work.')
         expect(getAssistantCopyText(parts)).toContain('AGENT_NOTIFY_SUMMARY')
+    })
+})
+
+describe('copying stored Codex replies', () => {
+    function copyStoredMessages(data: Record<string, unknown>[]): string {
+        const messages = data.flatMap((record, index) => normalizeDecryptedMessage(DecryptedMessageSchema.parse({
+            id: `message-${index}`,
+            seq: index + 1,
+            localId: null,
+            createdAt: index,
+            content: { role: 'agent', content: { type: 'codex', data: record } }
+        })) ?? [])
+        const blocks = buildVisibleChatBlocks(reduceChatBlocks(messages, null).blocks, { hasMoreMessages: false })
+        const { result } = renderHook(() => useHappyRuntime({
+            session: { active: true, thinking: false } as Parameters<typeof useHappyRuntime>[0]['session'],
+            blocks,
+            messagesVersion: 1,
+            historyVersion: 1,
+            viewMode: 'history',
+            isSending: false,
+            onSendMessage: () => {},
+            onAbort: async () => {}
+        }))
+        const [assistant] = result.current.thread.getState().messages
+        if (assistant?.role !== 'assistant') throw new Error('Expected a joined assistant message')
+        return getAssistantCopyText(assistant.content)
+    }
+
+    const tool = { type: 'tool-call', callId: 'call-1', name: 'CodexBash', input: { command: 'test' } }
+    const result = { type: 'tool-call-result', callId: 'call-1', output: 'tool output' }
+    const commentary = { type: 'message', phase: 'commentary', message: 'I have the result. I will verify it.' }
+
+    it('copies all final blocks and excludes progress after a tool result', () => {
+        expect(copyStoredMessages([
+            tool, result, commentary,
+            { type: 'message', phase: 'final_answer', message: 'Verified **result**.' },
+            { type: 'message', phase: 'finalAnswer', message: '    indented code\n' }
+        ])).toBe('Verified **result**.\n\n    indented code\n')
+    })
+
+    it('does not copy commentary when the turn ends without a final answer', () => {
+        expect(copyStoredMessages([tool, result, commentary])).toBe('')
+    })
+
+    it.each([undefined, 'final_answer', 'futurePhase'])('copies a plan preface followed by its synthetic plan card (%s)', (phase) => {
+        const callId = 'codex-proposed-plan:plan-1'
+        expect(copyStoredMessages([
+            tool, result,
+            { type: 'message', phase, message: 'Plan **preface**.' },
+            { type: 'tool-call', name: 'ExitPlanMode', callId, input: { plan: '## Proposed plan' } },
+            { type: 'tool-call-result', callId, output: null }
+        ])).toBe('Plan **preface**.')
+    })
+
+    it('continues to use real ExitPlanMode calls as tool boundaries', () => {
+        expect(copyStoredMessages([
+            { type: 'message', message: 'Pre-tool text' },
+            { type: 'tool-call', name: 'ExitPlanMode', callId: 'actual-tool', input: { plan: '## Actual plan' } },
+            { type: 'tool-call-result', callId: 'actual-tool', output: null }
+        ])).toBe('')
     })
 })

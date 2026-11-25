@@ -4,6 +4,27 @@ import { SharedCodexProjection, inputText } from './projection';
 import { codexPlanProposalId } from './plan';
 
 describe('shared history projection', () => {
+    it('persists agent message phases through live delivery and replay', async () => {
+        const send = vi.fn();
+        const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;
+        const projection = new SharedCodexProjection(session, 'thread', async () => {});
+        const items = [
+            { id: 'progress', type: 'agentMessage', phase: 'commentary', text: 'I have the result. I will verify it.' },
+            { id: 'answer', type: 'agentMessage', phase: 'finalAnswer', text: 'Verified **result**.' },
+            { id: 'future', type: 'agentMessage', phase: 'futurePhase', text: 'Future phase' }
+        ];
+        for (const item of items) {
+            await projection.notification('item/completed', { threadId: 'thread', turnId: 'turn', item });
+        }
+        expect(send.mock.calls.map(([message]) => ({ text: message.message, phase: message.phase })))
+            .toEqual(items.map(({ text, phase }) => ({ text, phase })));
+        const live = send.mock.calls.slice();
+        projection.reset();
+        send.mockClear();
+        await projection.history({ turns: [{ id: 'turn', status: 'completed', items }] });
+        expect(send.mock.calls).toEqual(live);
+    });
+
     it('stops historical backfill when its owning session closes', async () => {
         const send = vi.fn();
         const projection = new SharedCodexProjection({ getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient, 'child', async () => {});

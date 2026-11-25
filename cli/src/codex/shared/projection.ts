@@ -139,6 +139,7 @@ export class SharedCodexProjection {
                     this.send({ type: 'tool-call', name: 'request_user_input', callId, input }, `${key}:async-question`);
                     this.send({ type: 'tool-call-result', callId, output: { status: 'non-blocking' } }, `${key}:async-question:result`);
                 } else this.send({ type: 'message', message: event.message,
+                    ...(typeof event.phase === 'string' ? { phase: event.phase } : {}),
                     ...(questions.length ? { questions, questionCallId: itemId } : {}) }, key);
             }
             else if (event.type === 'agent_reasoning') this.send({ type: 'reasoning', message: event.text }, key);
