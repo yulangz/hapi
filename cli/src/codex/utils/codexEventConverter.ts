@@ -77,6 +77,8 @@ export type CodexConversionAction = {
 export interface CodexEventConverter {
     (rawEvent: unknown): CodexConversionAction[];
     finalize: () => CodexConversionAction[];
+    hasPendingSemantic: () => boolean;
+    flushPendingSemantic: () => CodexConversionAction[];
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -238,16 +240,21 @@ function extractAssistantMessageProjection(
     return null;
 }
 
-function consumeProjection(counts: Map<string, number>, key: string): boolean {
-    const count = counts.get(key) ?? 0;
-    if (count === 0) return false;
-    if (count === 1) counts.delete(key);
-    else counts.set(key, count - 1);
+function consumeProjection(matches: Map<string, (string | null)[]>, key: string, itemId: string | null): boolean {
+    const entries = matches.get(key);
+    if (!entries) return false;
+    const exact = itemId === null ? 0 : entries.indexOf(itemId);
+    const index = exact >= 0 ? exact : entries.indexOf(null);
+    if (index < 0) return false;
+    entries.splice(index, 1);
+    if (entries.length === 0) matches.delete(key);
     return true;
 }
 
-function rememberProjection(counts: Map<string, number>, key: string): void {
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+function rememberProjection(matches: Map<string, (string | null)[]>, key: string, itemId: string | null): void {
+    const entries = matches.get(key);
+    if (entries) entries.push(itemId);
+    else matches.set(key, [itemId]);
 }
 
 function isFinalAnswerResponse(event: CodexSessionEvent): boolean {
@@ -267,7 +274,7 @@ function findPendingAssistantResponseIndex(
         const itemIndex = pending.findIndex((entry) => entry.itemId === projection.itemId);
         if (itemIndex !== -1) return itemIndex;
     }
-    return pending.findIndex((entry) => entry.key === key);
+    return pending.findIndex((entry) => entry.key === key && (!projection.itemId || !entry.itemId));
 }
 
 function normalizeCompactionText(value: string): string {
@@ -341,20 +348,33 @@ function confirmsPendingResponseVisibility(actions: CodexConversionAction[]): bo
 /**
  * Project transcript records into one ordered action stream. Raw final-answer
  * response items are ambiguous: they can be visible fallback messages or
- * internal compaction summaries. Unphased responses can also precede a
- * phase-bearing semantic mirror. Keep both kinds in arrival order until a
- * mirror, visible activity, compaction checkpoint, or turn boundary resolves them.
+ * internal compaction summaries. Unphased assistant text can acquire its
+ * phase from either mirror order. Resolve it before the next visible action,
+ * or let the live caller flush an unmatched semantic message after a brief wait.
  */
 export function createCodexEventConverter(): CodexEventConverter {
     let currentTurnId: string | null = null;
-    const unmatchedSemanticMessages = new Map<string, number>();
-    const unmatchedResponseMessages = new Map<string, number>();
+    const unmatchedSemanticMessages = new Map<string, (string | null)[]>();
+    const unmatchedResponseMessages = new Map<string, (string | null)[]>();
     const pendingResponses: PendingAssistantResponse[] = [];
+    let pendingSemantic: {
+        key: string;
+        itemId: string | null;
+        actions: CodexConversionAction[];
+    } | undefined;
+
+    const flushPendingSemantic = (): CodexConversionAction[] => {
+        if (!pendingSemantic) return [];
+        const { key, itemId, actions } = pendingSemantic;
+        pendingSemantic = undefined;
+        rememberProjection(unmatchedSemanticMessages, key, itemId);
+        return actions;
+    };
 
     const emitPendingResponses = (entries: PendingAssistantResponse[]): CodexConversionAction[] => {
         const actions: CodexConversionAction[] = [];
         for (const entry of entries) {
-            rememberProjection(unmatchedResponseMessages, entry.key);
+            rememberProjection(unmatchedResponseMessages, entry.key, entry.itemId);
             for (const message of entry.messages) {
                 actions.push({
                     type: 'agent-message',
@@ -374,24 +394,20 @@ export function createCodexEventConverter(): CodexEventConverter {
         drainPendingPrefix(pendingResponses.length)
     );
 
-    const convert = (rawEvent: unknown): CodexConversionAction[] => {
-        const parsed = CodexSessionEventSchema.safeParse(rawEvent);
-        if (!parsed.success) return [];
-
-        if (parsed.data.type === 'session_meta') {
-            currentTurnId = null;
+    const convertEvent = (
+        event: CodexSessionEvent,
+        projection: AssistantMessageProjection | null,
+        converted: CodexEventProjection | null,
+        convertedActions: CodexConversionAction[],
+        payload: Record<string, unknown> | null
+    ): CodexConversionAction[] => {
+        if (event.type === 'session_meta') {
             unmatchedSemanticMessages.clear();
             unmatchedResponseMessages.clear();
             pendingResponses.length = 0;
         }
 
-        currentTurnId = extractEventTurnId(parsed.data) ?? currentTurnId;
-        const projection = extractAssistantMessageProjection(parsed.data, currentTurnId);
-        const converted = convertCodexEvent(parsed.data);
-        const convertedActions = convertProjectionToActions(converted, projection?.turnId ?? null);
-        const payload = asRecord(parsed.data.payload);
-
-        if (parsed.data.type === 'compacted') {
+        if (event.type === 'compacted') {
             // Local compaction stores its raw assistant summary at the end of
             // checkpoint.message. Remote compaction leaves message empty and
             // stores the summary only in replacement_history, so adjacency is
@@ -404,7 +420,7 @@ export function createCodexEventConverter(): CodexEventConverter {
             return [...earlierVisibleResponses, ...convertedActions];
         }
 
-        const eventType = parsed.data.type === 'event_msg' ? asString(payload?.type) : null;
+        const eventType = event.type === 'event_msg' ? asString(payload?.type) : null;
         if (eventType === 'task_complete') {
             return [...drainAllPendingResponses(), ...convertedActions];
         }
@@ -435,9 +451,9 @@ export function createCodexEventConverter(): CodexEventConverter {
             )];
         }
 
-        const finalAnswer = isFinalAnswerResponse(parsed.data);
+        const finalAnswer = isFinalAnswerResponse(event);
         if (projection.source === 'response' && (finalAnswer || typeof payload?.phase !== 'string')) {
-            if (consumeProjection(unmatchedSemanticMessages, key)) {
+            if (consumeProjection(unmatchedSemanticMessages, key, projection.itemId)) {
                 return [];
             }
             // Wait for the semantic mirror's phase or a visibility boundary
@@ -456,20 +472,70 @@ export function createCodexEventConverter(): CodexEventConverter {
         const opposite = projection.source === 'semantic'
             ? unmatchedResponseMessages
             : unmatchedSemanticMessages;
-        if (consumeProjection(opposite, key)) {
+        if (consumeProjection(opposite, key, projection.itemId)) {
             return [];
         }
 
         const earlierVisibleResponses = drainAllPendingResponses();
+        const message = converted.messages?.find((entry) => entry.type === 'message');
+        if (projection.source === 'semantic' && message?.phase === undefined) {
+            pendingSemantic = { key, itemId: projection.itemId, actions: convertedActions };
+            return earlierVisibleResponses;
+        }
         rememberProjection(
             projection.source === 'semantic' ? unmatchedSemanticMessages : unmatchedResponseMessages,
-            key
+            key,
+            projection.itemId
         );
         return [...earlierVisibleResponses, ...convertedActions];
     };
 
+    const convert = (rawEvent: unknown): CodexConversionAction[] => {
+        const parsed = CodexSessionEventSchema.safeParse(rawEvent);
+        if (!parsed.success) return [];
+        const event = parsed.data;
+        currentTurnId = event.type === 'session_meta' ? null : extractEventTurnId(event) ?? currentTurnId;
+        const projection = extractAssistantMessageProjection(event, currentTurnId);
+        const converted = convertCodexEvent(event);
+        const actions = convertProjectionToActions(converted, projection?.turnId ?? null);
+        const payload = asRecord(event.payload);
+
+        if (pendingSemantic && projection?.source === 'response') {
+            const key = `${projection.turnId ?? ''}\u0000${projection.text}`;
+            const { itemId } = pendingSemantic;
+            const sameItem = itemId !== null && itemId === projection.itemId;
+            // An older occurrence can already be visible. Match that instance
+            // first when neither record provides an exact ID for the pending one.
+            if (!sameItem && consumeProjection(unmatchedSemanticMessages, key, projection.itemId)) return [];
+            if (key === pendingSemantic.key && (sameItem || !itemId || !projection.itemId)) {
+                const { actions: semanticActions } = pendingSemantic;
+                pendingSemantic = undefined;
+                const phase = payload?.phase;
+                return typeof phase === 'string' ? semanticActions.map((action) =>
+                    action.type === 'agent-message' && action.message.type === 'message'
+                        ? { ...action, message: { ...action.message, phase } }
+                        : action
+                ) : semanticActions;
+            }
+        }
+        if (pendingSemantic && pendingSemantic.actions.length < 8 && actions.length && actions.every((action) =>
+            action.type === 'agent-message' && action.message.type === 'token_count'
+        )) {
+            pendingSemantic.actions.push(...actions);
+            return [];
+        }
+        const eventType = event.type === 'event_msg' ? payload?.type : null;
+        const terminal = eventType === 'turn_aborted' || eventType === 'task_failed' || eventType === 'task_complete';
+        const earlier = projection || actions.length || terminal || event.type === 'session_meta'
+            ? flushPendingSemantic()
+            : [];
+        return [...earlier, ...convertEvent(event, projection, converted, actions, payload)];
+    };
+
     return Object.assign(convert, {
-        finalize: drainAllPendingResponses
+        finalize: () => [...flushPendingSemantic(), ...drainAllPendingResponses()],
+        hasPendingSemantic: () => pendingSemantic !== undefined,
+        flushPendingSemantic
     });
 }
 

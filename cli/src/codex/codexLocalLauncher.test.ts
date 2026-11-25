@@ -441,17 +441,19 @@ describe('codexLocalLauncher', () => {
         );
 
         await wait(700);
+        const liveMessages = agentMessages.slice();
         if (releaseRunBarrier) {
             releaseRunBarrier();
         }
         await launcherPromise;
 
         expect(session.transcriptPath).toBe(transcriptPath);
-        expect(agentMessages).toContainEqual({
+        expect(liveMessages).toEqual([{
             type: 'message',
             message: 'hello from transcript',
             id: expect.any(String)
-        });
+        }]);
+        expect(agentMessages).toEqual(liveMessages);
     });
 
     it('tracks local turn context and stamps its model on usage', async () => {
