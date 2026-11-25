@@ -10,12 +10,12 @@ describe('Store V12/V13→V14 schema reconciliation', () => {
         const store = new Store(':memory:')
         expect(tableExists(store, 'message_epochs')).toBe(true)
         expect(tableExists(store, 'session_scratchlist')).toBe(true)
-        expect(getUserVersion(store)).toBe(26)
+        expect(getUserVersion(store)).toBe(29)
         store.close()
     })
 
     it('scratchlist V12 DB migrates to V14 and preserves existing messages', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v14-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v14-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -34,7 +34,7 @@ describe('Store V12/V13→V14 schema reconciliation', () => {
             store = new Store(dbPath)
             expect(tableExists(store, 'message_epochs')).toBe(true)
             expect(tableExists(store, 'session_scratchlist')).toBe(true)
-            expect(getUserVersion(store)).toBe(26)
+            expect(getUserVersion(store)).toBe(29)
             expect(store.messages.getMessageEpoch('session-1')).toBe(0)
             expect(store.messages.getMessages('session-1')).toHaveLength(1)
         } finally {
@@ -47,7 +47,7 @@ describe('Store V12/V13→V14 schema reconciliation', () => {
         ['V12', 12],
         ['V13', 13]
     ] as const)('repairs divergent %s DB missing session_scratchlist', (_label, version) => {
-        const dir = mkdtempSync(join(tmpdir(), `hapi-migration-v${version}-repair-test-`))
+        const dir = mkdtempSync(join(tmpdir(), `hamlet-migration-v${version}-repair-test-`))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -72,7 +72,7 @@ describe('Store V12/V13→V14 schema reconciliation', () => {
             store = new Store(dbPath)
             expect(tableExists(store, 'message_epochs')).toBe(true)
             expect(tableExists(store, 'session_scratchlist')).toBe(true)
-            expect(getUserVersion(store)).toBe(26)
+            expect(getUserVersion(store)).toBe(29)
             expect(store.messages.getMessages('session-1')).toHaveLength(1)
         } finally {
             store?.close()

@@ -17,7 +17,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('V8 DB migrates to V9 via Store: scheduled_at added, existing rows have NULL scheduled_at', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v9-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v9-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -54,7 +54,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('V7 DB migrates to V9 (multi-hop: V7→V8→V9)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v7-to-v9-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v7-to-v9-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -76,7 +76,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('V6 DB migrates to V9 (multi-hop)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v6-to-v9-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v6-to-v9-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -99,7 +99,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('V9 DB reopen is idempotent: schema unchanged', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v9-idempotent-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v9-idempotent-'))
         const dbPath = join(dir, 'test.db')
         let store1: Store | undefined
         let store2: Store | undefined
@@ -120,7 +120,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('migrateFromV8ToV9 PRAGMA guard: scheduled_at column appears exactly once', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v9-guard-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v9-guard-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -151,7 +151,7 @@ describe('Store V8→V9 migration: scheduled_at column', () => {
     })
 
     it('idx_messages_scheduled_pending index exists after V8→V9 migration', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-index-v8-v9-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-index-v8-v9-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -236,7 +236,7 @@ describe('Store V9: scheduled_at store operations', () => {
         expect(results.map(m => m.id)).toEqual([msg1.id, msg2.id])
     })
 
-    it('getImmediateQueuedLocalMessages: returns only immediate queued, excludes mature AND future scheduled (HAPI Bot R4)', () => {
+    it('getImmediateQueuedLocalMessages: returns only immediate queued, excludes mature AND future scheduled (HAMLET Bot R4)', () => {
         const store = new Store(':memory:')
         const session = store.sessions.getOrCreateSession('test', { path: '/tmp' }, null, 'default')
         const now = Date.now()
@@ -278,7 +278,7 @@ describe('Store V9: scheduled_at store operations', () => {
     })
 
     it('legacy DB (user_version=0 with V8-shape tables): step ladder backfills scheduled_at', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-legacy-v0-v9-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-legacy-v0-v9-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {

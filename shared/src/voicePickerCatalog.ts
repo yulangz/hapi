@@ -31,16 +31,16 @@ export const QWEN_REALTIME_VOICE_OPTIONS: readonly VoicePickerOption[] = [
 ] as const
 
 export const VOICE_PICKER_STORAGE_KEYS = {
-    elevenlabs: 'hapi-voice-elevenlabs',
-    'gemini-live': 'hapi-voice-gemini',
-    'qwen-realtime': 'hapi-voice-qwen'
+    elevenlabs: 'hamlet-voice-elevenlabs',
+    'gemini-live': 'hamlet-voice-gemini',
+    'qwen-realtime': 'hamlet-voice-qwen'
 } as const
 
 /** Legacy ElevenLabs key from #690 — read for migration. */
-export const LEGACY_ELEVENLABS_VOICE_STORAGE_KEY = 'hapi-voice-id'
+export const LEGACY_ELEVENLABS_VOICE_STORAGE_KEY = 'hamlet-voice-id'
 
 /** User-selected voice backend when hub has more than one configured. */
-export const VOICE_BACKEND_PREFERENCE_STORAGE_KEY = 'hapi-voice-backend'
+export const VOICE_BACKEND_PREFERENCE_STORAGE_KEY = 'hamlet-voice-backend'
 
 export const VOICE_BACKEND_LABELS = {
     elevenlabs: 'ElevenLabs',

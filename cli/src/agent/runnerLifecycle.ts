@@ -1,5 +1,5 @@
 import type { ApiSessionClient } from '@/api/apiSession'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import { logger } from '@/ui/logger'
 import { restoreTerminalState } from '@/ui/terminalState'
 
@@ -34,10 +34,10 @@ export function createRunnerLifecycle(options: RunnerLifecycleOptions): RunnerLi
     //   - uncaughtException/Reject → 'Session crashed' (via markCrash)
     //
     // Out-of-band SIGTERM (hub-restart cascade, systemd cgroup kill on
-    // hapi-runner.service stop, `kill <pid>` from the operator) keeps the
+    // hamlet-runner.service stop, `kill <pid>` from the operator) keeps the
     // default and is correctly labelled 'Hub restart' on the audit trail.
     //
-    // Runner-internal stop paths (`hapi runner stop-session`, webhook-timeout
+    // Runner-internal stop paths (`hamlet runner stop-session`, webhook-timeout
     // cleanup at run.ts:587, orphan cleanup at run.ts:267) also currently
     // hit this default - that is technically inaccurate but follows the
     // friction-mode "smallest defensible change" rule for this PR. Finer

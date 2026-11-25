@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 export const DEFAULT_SHOW_ACTIVE_SESSIONS_ONLY = false
 
 function getShowActiveSessionsOnlyStorageKey(): string {
-    return 'hapi-show-active-sessions-only'
+    return 'hamlet-show-active-sessions-only'
 }
 
 function isBrowser(): boolean {

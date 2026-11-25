@@ -37,7 +37,7 @@ export type HookSettingsOptions = {
     hooksEnabled?: boolean;
     /**
      * Also forward UserPromptSubmit and PreToolUse hooks. Unlike SessionStart,
-     * their payloads carry `permission_mode`, letting HAPI track the mode the
+     * their payloads carry `permission_mode`, letting HAMLET track the mode the
      * user picks inside the interactive TUI (shift+tab). Keep this off for the
      * remote SDK process: these hooks block Claude while the forwarder runs,
      * and remote permission state is owned by the hub/RPC path anyway.

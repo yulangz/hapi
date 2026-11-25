@@ -116,7 +116,7 @@ class CodexSessionScannerImpl extends BaseSessionScanner<CodexSessionEvent> {
     private async prepareTranscript(filePath: string): Promise<void> {
         if (this.replayExistingHistoryOnNextAttach) {
             // 中文注释：导入既有 Codex thread 时，首次挂接 transcript 不能先 prime 到 EOF，
-            // 否则 Hapi 只会看到后续增量，客户端里已经存在的最新消息会被跳过。
+            // 否则 Hamlet 只会看到后续增量，客户端里已经存在的最新消息会被跳过。
             this.replayExistingHistoryOnNextAttach = false;
             this.replayingExistingHistory = true;
             return;

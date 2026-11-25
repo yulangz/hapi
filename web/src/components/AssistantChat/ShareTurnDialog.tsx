@@ -25,7 +25,7 @@ const SHARE_EXPORT_WIDTH = 960
 const SHARE_EXPORT_HORIZONTAL_PADDING = 40
 const SHARE_EXPORT_SCALE = 2
 const MAX_EXPORT_PIXELS = 24_000_000
-const SHARE_HIDDEN_CONTENT_SELECTOR = '[data-hapi-share-exclude="true"], .aui-reasoning-group'
+const SHARE_HIDDEN_CONTENT_SELECTOR = '[data-hamlet-share-exclude="true"], .aui-reasoning-group'
 
 function nextFrame(): Promise<void> {
     return new Promise((resolve) => {
@@ -44,17 +44,17 @@ function stripCaptureOnlyControls(root: HTMLElement): void {
 
         const separatesVisibleContent = previous != null
             && next != null
-            && !previous.matches('.hapi-share-hidden-content-spacer')
+            && !previous.matches('.hamlet-share-hidden-content-spacer')
         if (separatesVisibleContent) {
             const spacer = document.createElement('div')
-            spacer.className = 'hapi-share-hidden-content-spacer'
+            spacer.className = 'hamlet-share-hidden-content-spacer'
             spacer.setAttribute('aria-hidden', 'true')
             element.replaceWith(spacer)
         } else {
             element.remove()
         }
     }
-    for (const element of Array.from(root.querySelectorAll('.happy-message-actions, .happy-message-actions-first-line, [data-hapi-share-action="true"], button[aria-expanded], input, textarea, select'))) {
+    for (const element of Array.from(root.querySelectorAll('.happy-message-actions, .happy-message-actions-first-line, [data-hamlet-share-action="true"], button[aria-expanded], input, textarea, select'))) {
         element.remove()
     }
     for (const anchor of Array.from(root.querySelectorAll('a'))) {
@@ -72,7 +72,7 @@ function stripCaptureOnlyControls(root: HTMLElement): void {
 }
 
 function stripExportControls(root: HTMLElement): void {
-    for (const element of Array.from(root.querySelectorAll('[data-hapi-share-export-exclude="true"]'))) {
+    for (const element of Array.from(root.querySelectorAll('[data-hamlet-share-export-exclude="true"]'))) {
         element.remove()
     }
     for (const imageButton of Array.from(root.querySelectorAll('button:has(img)'))) {
@@ -83,16 +83,16 @@ function stripExportControls(root: HTMLElement): void {
 }
 
 function getPreviewCodeBody(control: HTMLElement): HTMLElement | null {
-    const block = control.closest<HTMLElement>('[data-hapi-code-block="true"]')
-    if (block) return block.querySelector<HTMLElement>('[data-hapi-code-body="true"]')
-    const header = control.closest<HTMLElement>('[data-hapi-code-header="true"]')
+    const block = control.closest<HTMLElement>('[data-hamlet-code-block="true"]')
+    if (block) return block.querySelector<HTMLElement>('[data-hamlet-code-body="true"]')
+    const header = control.closest<HTMLElement>('[data-hamlet-code-header="true"]')
     const body = header?.nextElementSibling
-    return body instanceof HTMLElement && body.matches('[data-hapi-code-body="true"]') ? body : null
+    return body instanceof HTMLElement && body.matches('[data-hamlet-code-body="true"]') ? body : null
 }
 
 function setPreviewCodeWrap(control: HTMLElement, enabled: boolean): void {
     const body = getPreviewCodeBody(control)
-    const grid = body?.querySelector<HTMLElement>('[data-hapi-code-grid="true"]')
+    const grid = body?.querySelector<HTMLElement>('[data-hamlet-code-grid="true"]')
     if (!body || !grid) return
 
     body.classList.toggle('overflow-x-auto', !enabled)
@@ -139,7 +139,7 @@ function sanitizeShareFileNamePart(title: string): string {
 }
 
 function getShareFileName(title: string): string {
-    return `HAPI-${sanitizeShareFileNamePart(title)}-${formatShareTimestamp()}.png`
+    return `HAMLET-${sanitizeShareFileNamePart(title)}-${formatShareTimestamp()}.png`
 }
 
 function prepareExportElement(element: HTMLElement, exportWidth: number, preserveSourceLayout: boolean): HTMLElement {
@@ -151,7 +151,7 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
     for (const code of Array.from(captureElement.querySelectorAll<HTMLElement>('code'))) {
         if (code.closest('pre')) continue
         const textWrapper = document.createElement('span')
-        textWrapper.dataset.hapiInlineCodeText = 'true'
+        textWrapper.dataset.hamletInlineCodeText = 'true'
         while (code.firstChild) textWrapper.appendChild(code.firstChild)
         code.appendChild(textWrapper)
     }
@@ -162,7 +162,7 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
         : (getComputedStyle(document.documentElement).getPropertyValue('--app-bg').trim() || '#ffffff')
     const color = elementStyle.color || getComputedStyle(document.documentElement).getPropertyValue('--app-fg').trim() || '#111827'
 
-    captureElement.classList.add('hapi-share-export-root')
+    captureElement.classList.add('hamlet-share-export-root')
     stripExportControls(captureElement)
     captureElement.style.cssText += [
         'position:absolute',
@@ -185,7 +185,7 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
 
     const style = document.createElement('style')
     style.textContent = `
-        .hapi-share-export-root {
+        .hamlet-share-export-root {
             background: ${backgroundColor} !important;
             color: ${color} !important;
             box-sizing: border-box !important;
@@ -196,28 +196,28 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
                 line-height: 1.6 !important;
             `}
         }
-        .hapi-share-export-root [data-hapi-share-exclude="true"],
-        .hapi-share-export-root .aui-reasoning-group,
-        .hapi-share-export-root button[aria-expanded],
-        .hapi-share-export-root [data-hapi-share-export-exclude="true"] {
+        .hamlet-share-export-root [data-hamlet-share-exclude="true"],
+        .hamlet-share-export-root .aui-reasoning-group,
+        .hamlet-share-export-root button[aria-expanded],
+        .hamlet-share-export-root [data-hamlet-share-export-exclude="true"] {
             display: none !important;
         }
-        .hapi-share-export-root,
-        .hapi-share-export-root * {
+        .hamlet-share-export-root,
+        .hamlet-share-export-root * {
             /* html2canvas-pro renders non-zero letter spacing one grapheme at
                a time and switches CJK glyphs to an ideographic baseline.
                Mixed CJK/Latin text then no longer shares the browser's single
                shaped baseline. Zero spacing keeps each text run intact. */
             letter-spacing: 0 !important;
         }
-        .hapi-share-export-root .katex,
-        .hapi-share-export-root .katex * {
+        .hamlet-share-export-root .katex,
+        .hamlet-share-export-root .katex * {
             letter-spacing: normal !important;
         }
-        .hapi-share-export-root .katex {
+        .hamlet-share-export-root .katex {
             line-height: 1.2 !important;
         }
-        .hapi-share-export-root :not(pre) > code {
+        .hamlet-share-export-root :not(pre) > code {
             position: relative !important;
             /* html2canvas-pro paints an inline element's background using its
                full inherited line box. Collapse the code element's own line
@@ -225,26 +225,26 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
                same pill height as the browser for both message roles. */
             line-height: 1em !important;
         }
-        .hapi-share-export-root [data-hapi-inline-code-text="true"] {
+        .hamlet-share-export-root [data-hamlet-inline-code-text="true"] {
             /* Move only the monospace glyphs. Keep the inline-code border and
                background in the same position as the browser layout. */
             position: relative !important;
             top: -1px !important;
         }
         ${preserveSourceLayout ? '' : `
-        .hapi-share-export-root img,
-        .hapi-share-export-root video,
-        .hapi-share-export-root canvas,
-        .hapi-share-export-root svg {
+        .hamlet-share-export-root img,
+        .hamlet-share-export-root video,
+        .hamlet-share-export-root canvas,
+        .hamlet-share-export-root svg {
             max-width: 100% !important;
             height: auto !important;
             object-fit: contain !important;
         }
-        .hapi-share-export-root button:has(img),
-        .hapi-share-export-root img {
+        .hamlet-share-export-root button:has(img),
+        .hamlet-share-export-root img {
             max-height: 16rem !important;
         }
-        .hapi-share-export-root button:has(img) {
+        .hamlet-share-export-root button:has(img) {
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -259,27 +259,27 @@ function prepareExportElement(element: HTMLElement, exportWidth: number, preserv
             color: transparent !important;
             vertical-align: top !important;
         }
-        .hapi-share-export-root button:has(img) img {
+        .hamlet-share-export-root button:has(img) img {
             display: block !important;
             max-width: min(100%, 18rem) !important;
             max-height: 12rem !important;
             border-radius: 0.75rem !important;
         }
-        .hapi-share-export-root button:has(img) > :not(img) {
+        .hamlet-share-export-root button:has(img) > :not(img) {
             display: none !important;
         }
         `}
-        .hapi-share-export-root .sr-only {
+        .hamlet-share-export-root .sr-only {
             display: none !important;
         }
-        .hapi-share-export-root .hapi-share-hidden-content-spacer {
+        .hamlet-share-export-root .hamlet-share-hidden-content-spacer {
             display: block !important;
             height: 0.75rem !important;
         }
-        .hapi-share-export-root [data-hapi-code-body="true"] {
+        .hamlet-share-export-root [data-hamlet-code-body="true"] {
             scrollbar-width: none !important;
         }
-        .hapi-share-export-root [data-hapi-code-body="true"]::-webkit-scrollbar {
+        .hamlet-share-export-root [data-hamlet-code-body="true"]::-webkit-scrollbar {
             display: none !important;
         }
     `
@@ -392,7 +392,7 @@ function appendTextFallback(target: DocumentFragment | HTMLElement, snapshot: Sh
     fallback.className = snapshot.role === 'user'
         ? 'happy-user-bubble happy-chat-text ml-auto w-fit min-w-0 max-w-[92%] whitespace-pre-wrap break-words rounded-2xl bg-[var(--app-chat-user-surface-bg)] px-4 py-2.5 text-[var(--app-chat-user-fg)] shadow-none'
         : 'whitespace-pre-wrap break-words rounded-2xl border border-[var(--app-border)] px-4 py-2.5 text-sm leading-6 text-[var(--app-fg)]'
-    if (snapshot.role) fallback.dataset.hapiMessageRole = snapshot.role
+    if (snapshot.role) fallback.dataset.hamletMessageRole = snapshot.role
     fallback.textContent = snapshot.text
     target.appendChild(fallback)
 }
@@ -428,7 +428,7 @@ function copyLoadedStyleSheets(source: Document, target: Document): void {
             )
             if (!cssText) continue
             const style = target.createElement('style')
-            style.dataset.hapiShareStyles = 'inlined'
+            style.dataset.hamletShareStyles = 'inlined'
             style.textContent = cssText
             target.head.appendChild(style)
             if (sheet.ownerNode) copiedOwners.add(sheet.ownerNode)
@@ -599,7 +599,7 @@ async function shareImageBlob(blob: Blob, fileName: string): Promise<void> {
         throw new Error('Image sharing is not supported in this browser')
     }
     if (!navigator.canShare || navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'HAPI shared turn' })
+        await navigator.share({ files: [file], title: 'HAMLET shared turn' })
         return
     }
     throw new Error('File sharing is not supported in this browser')
@@ -658,7 +658,7 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
                 if (!(node instanceof HTMLElement)) continue
                 node.removeAttribute('id')
                 node.classList.remove('scroll-mt-4')
-                if (node.matches('[data-hapi-share-exclude="true"]')) continue
+                if (node.matches('[data-hamlet-share-exclude="true"]')) continue
                 stripCaptureOnlyControls(node)
                 if ((node.innerText || node.textContent || '').trim().length === 0 && node.querySelector('img, video, canvas, svg') == null) continue
                 fragment.appendChild(node)
@@ -704,7 +704,7 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
         const target = event.target
         if (!(target instanceof Element)) return
 
-        const wrapButton = target.closest<HTMLButtonElement>('[data-hapi-code-wrap-toggle="true"]')
+        const wrapButton = target.closest<HTMLButtonElement>('[data-hamlet-code-wrap-toggle="true"]')
         if (wrapButton) {
             event.preventDefault()
             event.stopPropagation()
@@ -712,15 +712,15 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
             const enabled = wrapButton.getAttribute('aria-pressed') !== 'true'
             wrapButton.setAttribute('aria-pressed', String(enabled))
             wrapButton.title = enabled
-                ? (wrapButton.dataset.hapiWrapDisableLabel ?? '')
-                : (wrapButton.dataset.hapiWrapEnableLabel ?? '')
+                ? (wrapButton.dataset.hamletWrapDisableLabel ?? '')
+                : (wrapButton.dataset.hamletWrapEnableLabel ?? '')
             setPreviewCodeWrap(wrapButton, enabled)
             setPreparedBlob(null)
             setPreviewRevision((revision) => revision + 1)
             return
         }
 
-        const copyButton = target.closest<HTMLButtonElement>('[data-hapi-code-copy="true"]')
+        const copyButton = target.closest<HTMLButtonElement>('[data-hamlet-code-copy="true"]')
         if (copyButton) {
             event.preventDefault()
             event.stopPropagation()
@@ -731,14 +731,14 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
                 : body?.querySelector('pre')?.textContent ?? '')
             if (!code) return
             void safeCopyToClipboard(code).then(() => {
-                copyButton.querySelector('[data-hapi-copy-default="true"]')?.classList.add('hidden')
-                copyButton.querySelector('[data-hapi-copy-success="true"]')?.classList.remove('hidden')
-                copyButton.title = copyButton.dataset.hapiCopiedLabel ?? copyButton.title
+                copyButton.querySelector('[data-hamlet-copy-default="true"]')?.classList.add('hidden')
+                copyButton.querySelector('[data-hamlet-copy-success="true"]')?.classList.remove('hidden')
+                copyButton.title = copyButton.dataset.hamletCopiedLabel ?? copyButton.title
                 window.setTimeout(() => {
                     if (!copyButton.isConnected) return
-                    copyButton.querySelector('[data-hapi-copy-default="true"]')?.classList.remove('hidden')
-                    copyButton.querySelector('[data-hapi-copy-success="true"]')?.classList.add('hidden')
-                    copyButton.title = copyButton.dataset.hapiCopyLabel ?? copyButton.title
+                    copyButton.querySelector('[data-hamlet-copy-default="true"]')?.classList.remove('hidden')
+                    copyButton.querySelector('[data-hamlet-copy-success="true"]')?.classList.add('hidden')
+                    copyButton.title = copyButton.dataset.hamletCopyLabel ?? copyButton.title
                 }, 1500)
             }).catch(() => undefined)
             return
@@ -818,17 +818,17 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
                     <div
                         ref={captureRef}
                         onClick={handlePreviewClick}
-                        className="hapi-share-preview-root mx-auto w-[720px] max-w-full rounded-[28px] bg-[var(--app-bg)] p-4 text-[var(--app-fg)] sm:p-5"
+                        className="hamlet-share-preview-root mx-auto w-[720px] max-w-full rounded-[28px] bg-[var(--app-bg)] p-4 text-[var(--app-fg)] sm:p-5"
                     >
                         <style>{`
-                            .hapi-share-preview-root .hapi-share-hidden-content-spacer {
+                            .hamlet-share-preview-root .hamlet-share-hidden-content-spacer {
                                 display: block !important;
                                 height: 0.75rem !important;
                             }
-                            .hapi-share-preview-root .hapi-share-media-grid[data-hapi-image-count="2"] {
+                            .hamlet-share-preview-root .hamlet-share-media-grid[data-hamlet-image-count="2"] {
                                 flex-wrap: nowrap !important;
                             }
-                            .hapi-share-preview-root .hapi-share-media-grid > button {
+                            .hamlet-share-preview-root .hamlet-share-media-grid > button {
                                 height: auto !important;
                                 align-self: start !important;
                                 flex-shrink: 1 !important;
@@ -836,7 +836,7 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
                                 cursor: zoom-in !important;
                                 pointer-events: auto !important;
                             }
-                            .hapi-share-preview-root .hapi-share-media-grid > button > img {
+                            .hamlet-share-preview-root .hamlet-share-media-grid > button > img {
                                 width: auto !important;
                                 max-width: 100% !important;
                                 height: auto !important;
@@ -861,7 +861,7 @@ export function ShareTurnDialog(props: ShareTurnDialogProps) {
                                 ) : null}
                             </div>
                         </div>
-                        <div ref={bodyRef} data-hapi-share-body="true" className="flex flex-col gap-3" />
+                        <div ref={bodyRef} data-hamlet-share-body="true" className="flex flex-col gap-3" />
                         <div className="mt-4 border-t border-[var(--app-divider)] pt-3 text-right text-[10px] text-[var(--app-hint)]">
                             {t('shareTurn.generated')}
                         </div>

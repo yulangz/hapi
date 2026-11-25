@@ -1,6 +1,6 @@
 # Message decode tree
 
-**Audience:** Implementers of native HAPI clients (iOS / Android). This page specifies how to decode `DecryptedMessage.content` into renderable chat structure. This is the largest porting surface — the reference pipeline is `web/src/chat/` (~4600 lines); this page is its wire-level contract. Companion pages: [pagination](./pagination.md) (how messages arrive), [sse](./sse.md) (live delivery).
+**Audience:** Implementers of native HAMLET clients (iOS / Android). This page specifies how to decode `DecryptedMessage.content` into renderable chat structure. This is the largest porting surface — the reference pipeline is `web/src/chat/` (~4600 lines); this page is its wire-level contract. Companion pages: [pagination](./pagination.md) (how messages arrive), [sse](./sse.md) (live delivery).
 
 Source of truth: `shared/src/schemas.ts` (`DecryptedMessageSchema`), `shared/src/messages.ts` (envelope helpers), `web/src/chat/normalize.ts`, `web/src/chat/normalizeUser.ts`, `web/src/chat/normalizeAgent.ts`, `web/src/chat/types.ts`, `hub/src/store/contentCodec.ts`.
 
@@ -227,11 +227,11 @@ transport-only records into fallback chat bubbles.
 At ingest the hub head+tail-truncates strings longer than `64 * 1024`
 **UTF-16 code units** (`String.length`, not bytes) inside agent-role content
 (`hub/src/store/contentCodec.ts`): first `48 * 1024` units +
-`\n…[hapi: truncated N chars]…\n` + last `12 * 1024` units. User-role content
+`\n…[hamlet: truncated N chars]…\n` + last `12 * 1024` units. User-role content
 is never truncated (it is delivered verbatim to the CLI). The operation is
 idempotent and applied deep (arrays/objects).
 
-Clients must render truncated strings as-is (recognizing the `…[hapi: truncated N chars]…` marker is optional polish), must not assume tool results are complete, and must never choke on the marker.
+Clients must render truncated strings as-is (recognizing the `…[hamlet: truncated N chars]…` marker is optional polish), must not assume tool results are complete, and must never choke on the marker.
 
 ---
 

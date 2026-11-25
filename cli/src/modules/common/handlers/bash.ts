@@ -1,7 +1,7 @@
 import { logger } from '@/ui/logger'
 import { exec, type ExecOptions } from 'child_process'
 import { promisify } from 'util'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { validatePath } from '../pathSecurity'
 import { getErrorMessage, rpcError } from '../rpcResponses'

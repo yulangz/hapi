@@ -1,5 +1,5 @@
-import type { Machine, MachinePatch } from '@hapi/protocol/types'
-import { MachineHealthSchema, MachineMetadataSchema, RunnerStateSchema } from '@hapi/protocol/schemas'
+import type { Machine, MachinePatch } from '@hamlet/protocol/types'
+import { MachineHealthSchema, MachineMetadataSchema, RunnerStateSchema } from '@hamlet/protocol/schemas'
 import type { Store } from '../store'
 import { clampAliveTime } from './aliveTime'
 import { EventPublisher } from './eventPublisher'

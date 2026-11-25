@@ -74,7 +74,7 @@ const multiMachineSessions = [
     makeSession({
         id: 'session-m1',
         updatedAt: 100,
-        metadata: { path: '/work/hapi', machineId: 'machine-1', agentSessionId: 'thread-1' }
+        metadata: { path: '/work/hamlet', machineId: 'machine-1', agentSessionId: 'thread-1' }
     }),
     makeSession({
         id: 'session-m2',
@@ -93,13 +93,13 @@ describe('SessionList machine filter', () => {
             makeSession({
                 id: 'session-1',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', machineId: 'machine-1', agentSessionId: 'thread-1' }
+                metadata: { path: '/work/hamlet', machineId: 'machine-1', agentSessionId: 'thread-1' }
             })
         ])
 
         expect(screen.queryByRole('group', { name: 'Filter sessions by machine' })).toBeNull()
         expect(screen.queryByRole('button', { name: 'Filter sessions by machine' })).toBeNull()
-        expect(screen.getByTitle('/work/hapi')).toBeTruthy()
+        expect(screen.getByTitle('/work/hamlet')).toBeTruthy()
     })
 
     it('shows the filter bar and machine-suffixed group titles with multiple machines', () => {
@@ -109,7 +109,7 @@ describe('SessionList machine filter', () => {
         // Mobile (below md) counterpart: a compact filter icon button in the header
         expect(screen.getByRole('button', { name: 'Filter sessions by machine' })).toBeTruthy()
         expect(screen.getByRole('button', { name: /All \(2\)/ })).toBeTruthy()
-        expect(screen.getByText('work/hapi · Mint')).toBeTruthy()
+        expect(screen.getByText('work/hamlet · Mint')).toBeTruthy()
         expect(screen.getByText('work/docs · Teemo')).toBeTruthy()
     })
 
@@ -118,18 +118,18 @@ describe('SessionList machine filter', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /Teemo \(1\)/ }))
 
-        expect(screen.queryByTitle('/work/hapi')).toBeNull()
+        expect(screen.queryByTitle('/work/hamlet')).toBeNull()
         expect(screen.getByTitle('/work/docs')).toBeTruthy()
         // Suffix disappears once a single machine is selected
         expect(screen.getByText('work/docs')).toBeTruthy()
-        expect(window.localStorage.getItem('hapi-session-list-machine-filter')).toBe('machine-2')
+        expect(window.localStorage.getItem('hamlet-session-list-machine-filter')).toBe('machine-2')
     })
 
     it('falls back to All when the persisted machine no longer has sessions', () => {
-        window.localStorage.setItem('hapi-session-list-machine-filter', 'gone-machine')
+        window.localStorage.setItem('hamlet-session-list-machine-filter', 'gone-machine')
         renderSessionList(multiMachineSessions)
 
-        expect(screen.getByTitle('/work/hapi')).toBeTruthy()
+        expect(screen.getByTitle('/work/hamlet')).toBeTruthy()
         expect(screen.getByTitle('/work/docs')).toBeTruthy()
         expect(screen.getByRole('button', { name: /All \(2\)/ }).getAttribute('aria-pressed')).toBe('true')
     })
@@ -139,7 +139,7 @@ describe('SessionList machine filter', () => {
             makeSession({
                 id: 'session-alpha',
                 updatedAt: 100,
-                metadata: { path: '/work/hapi', machineId: 'machine-1', agentSessionId: 'thread-1', name: 'Alpha task' }
+                metadata: { path: '/work/hamlet', machineId: 'machine-1', agentSessionId: 'thread-1', name: 'Alpha task' }
             }),
             makeSession({
                 id: 'session-beta',
@@ -153,7 +153,7 @@ describe('SessionList machine filter', () => {
         fireEvent.click(screen.getByRole('button', { name: /Teemo \(1\)/ }))
 
         expect(screen.getByText('No sessions match your filters.')).toBeTruthy()
-        expect(screen.queryByTitle('/work/hapi')).toBeNull()
+        expect(screen.queryByTitle('/work/hamlet')).toBeNull()
         expect(screen.queryByTitle('/work/docs')).toBeNull()
     })
 })

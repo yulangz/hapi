@@ -5,7 +5,7 @@ import { traceMessages, type TracedMessage } from '@/chat/tracer'
 import { dedupeAgentEvents, foldApiErrorEvents } from '@/chat/reducerEvents'
 import { collectTitleChanges, collectToolIdsFromMessages, ensureToolBlock, getPermissions } from '@/chat/reducerTools'
 import { reduceTimeline } from '@/chat/reducerTimeline'
-import { isRedundantGoalStatusMessageText } from '@hapi/protocol/messages'
+import { isRedundantGoalStatusMessageText } from '@hamlet/protocol/messages'
 
 // Calculate context size from usage data
 function calculateContextSize(usage: UsageData): number {

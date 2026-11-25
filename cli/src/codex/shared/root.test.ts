@@ -5,7 +5,7 @@ import type { AgentState, Metadata } from '@/api/types';
 import type { SessionBootstrapResult } from '@/agent/sessionFactory';
 import { SharedCodexRoot, type RootHost } from './root';
 import { codexPlanProposalId } from './plan';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 type NativeTurn = { id: string; status: string; items: unknown[] };
 
@@ -29,6 +29,7 @@ vi.mock('../codexAppServerClient', () => ({
             if (method === 'thread/turns/list') return { data: this.thread.turns.map(turn => ({ ...turn, items: [] })) };
             if (method === 'thread/items/list') return { data: (this.thread.turns.find(turn => turn.id === params.turnId)?.items ?? []).map(item => ({ turnId: params.turnId, item })) };
             if (method === 'thread/list') return { data: [] };
+            if (method === 'turn/interrupt' || method === 'turn/steer' || method === 'thread/queue/start') return {};
             if (method === 'thread/queue/list') return { data: this.queue };
             if (method === 'thread/settings/update') {
                 this.settings = { ...this.settings, ...params };
@@ -45,7 +46,7 @@ vi.mock('../codexAppServerClient', () => ({
     },
     isIndeterminateError: () => false
 }));
-vi.mock('../utils/buildHapiMcpBridge', () => ({ buildHapiMcpBridge: async () => ({
+vi.mock('../utils/buildHamletMcpBridge', () => ({ buildHamletMcpBridge: async () => ({
     mcpServers: {}, server: { stop() {} }
 }) }));
 
@@ -56,7 +57,7 @@ afterEach(async () => {
 });
 
 async function fixture(historyTurns: NativeTurn[] = [], keepAlive = vi.fn()) {
-    const directory = await mkdtemp('/tmp/hapi-shared-root-');
+    const directory = await mkdtemp('/tmp/hamlet-shared-root-');
     let state: AgentState = { steeringActive: true };
     let metadata: Metadata = { path: directory, host: 'test', flavor: 'codex' };
     let reconnect: (() => void) | null = null;
@@ -105,6 +106,85 @@ async function completePlan(f: Awaited<ReturnType<typeof fixture>>, status = 'co
     return codexPlanProposalId('thread', turn.id, 'plan-item');
 }
 
+describe('parent control of a Hamlet turn', () => {
+    it('pins intervention to a turn, delivers once and never queues a correction', async () => {
+        vi.stubEnv('HAMLET_AGENT_ID', 'sid');
+        vi.stubEnv('HAMLET_TOKEN', 'fixture');
+        vi.stubGlobal('fetch', vi.fn(async () => Response.json(null)));
+        try {
+            const f = await fixture();
+            const requests = vi.spyOn(f.root.client, 'request');
+            await f.root.activate();
+            const control = f.rpc.get(RPC_METHODS.HamletControlTurn)!;
+            f.native.notify('turn/started', { threadId: 'thread', turn: { id: 'one' } });
+            expect(await control({ turn_id: 'old' })).toEqual({ status: 'turn_changed' });
+            const batch = { id: 'hamlet:steer:5', events: [{ seq: 5, sender: 'parent', kind: 'message',
+                text: 'Use the staging branch', images: [], group_id: null, created_at: 10, due_at: null }] };
+            for (let i = 0; i < 2; i++) expect(await control({ turn_id: 'one', batch })).toEqual({ status: 'delivered' });
+            expect(requests.mock.calls.filter(([method]) => method === 'turn/steer')).toHaveLength(1);
+            expect(requests).toHaveBeenCalledWith('turn/steer', expect.objectContaining({ expectedTurnId: 'one', clientUserMessageId: batch.id }));
+            expect(requests.mock.calls.some(([method]) => method === 'thread/queue/add')).toBe(false);
+            expect(await control({ turn_id: 'one' })).toEqual({ status: 'interrupt_requested' });
+            expect(requests).toHaveBeenCalledWith('turn/interrupt', { threadId: 'thread', turnId: 'one' });
+        } finally { vi.unstubAllGlobals(); vi.unstubAllEnvs(); }
+    });
+});
+
+describe('Hamlet current work', () => {
+    it('restores the active turn, includes steered messages once and clears on completion', async () => {
+        vi.stubEnv('HAMLET_AGENT_ID', 'sid');
+        vi.stubEnv('HAMLET_TOKEN', 'fixture');
+        try {
+            const f = await fixture();
+            const batch = { type: 'userMessage', id: 'b', clientUserMessageId: 'hamlet:batch', content: [{ type: 'text', text: 'input' }] };
+            f.native.thread.turns = [{ id: 'busy', status: 'inProgress', items: [batch] }];
+            await f.root.refresh();
+            await f.root.activate();
+            const query = f.rpc.get(RPC_METHODS.HamletCurrentTurn)!;
+            const message = { type: 'userMessage', id: 'u', content: [{ type: 'text', text: 'more' }, { type: 'localImage', path: '/image.png' }] };
+            for (const method of ['item/started', 'item/completed']) {
+                f.native.notify(method, { threadId: 'thread', turnId: 'busy', item: message });
+            }
+            f.native.notify('item/completed', { threadId: 'child', turnId: 'busy', item: { ...message, id: 'other' } });
+            expect(await query({})).toEqual({ turn_id: 'busy', inputs: [{ batch_id: 'hamlet:batch' }, { message_id: 'u', content: message.content }] });
+            f.native.notify('turn/completed', { threadId: 'thread', turn: { id: 'busy', status: 'completed' } });
+            expect(await query({})).toBeNull();
+        } finally {
+            vi.unstubAllEnvs();
+        }
+    });
+});
+
+describe('Hamlet wait_message', () => {
+    it('yields the calling turn once and restarts user input queued before the yield', async () => {
+        vi.stubEnv('HAMLET_AGENT_ID', 'sid');
+        vi.stubEnv('HAMLET_TOKEN', 'fixture');
+        try {
+            const f = await fixture();
+            const requests = vi.spyOn(f.root.client, 'request');
+            const item = { id: 'wait', type: 'mcpToolCall', server: 'hamlet', tool: 'wait_message',
+                status: 'completed', result: { content: [], isError: false } };
+            const completed = (turnId: string, value = item) =>
+                f.native.notify('item/completed', { threadId: 'thread', turnId, item: value });
+            f.native.notify('turn/started', { threadId: 'thread', turn: { id: 'current' } });
+            completed('stale');
+            completed('current', { ...item, server: 'other' });
+            completed('current', { ...item, result: { content: [], isError: true } });
+            expect(requests.mock.calls.some(([method]) => method === 'turn/interrupt')).toBe(false);
+            completed('current');
+            completed('current');
+            expect(requests.mock.calls.filter(([method]) => method === 'turn/interrupt')).toEqual([
+                ['turn/interrupt', { threadId: 'thread', turnId: 'current' }]
+            ]);
+            f.native.queue.push({ id: 'queued', clientUserMessageId: 'user', input: [] });
+            f.native.notify('turn/completed', { threadId: 'thread', turn: { id: 'current', status: 'interrupted' } });
+            await vi.waitFor(() => expect(requests).toHaveBeenCalledWith('thread/queue/start', { threadId: 'thread' }));
+        } finally {
+            vi.unstubAllEnvs();
+        }
+    });
+});
+
 describe('shared plan actions', () => {
     it.each(['legacy', 'paginated'])('pages %s history without requesting an unbounded snapshot', async historyMode => {
         const f = await fixture();
@@ -117,8 +197,8 @@ describe('shared plan actions', () => {
         expect(f.send).toHaveBeenCalledWith(expect.objectContaining({ type: 'message', message: 'Preserved answer' }), expect.any(String));
     });
     it('keeps the session alive before a paced cold-history bind has finished', async () => {
-        const previous = process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS;
-        process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS = '20';
+        const previous = process.env.HAMLET_CODEX_HISTORY_ITEM_DELAY_MS;
+        process.env.HAMLET_CODEX_HISTORY_ITEM_DELAY_MS = '20';
         const keepAlive = vi.fn();
         let finished = false;
         const items = Array.from({ length: 160 }, (_, i) => ({ id: `message-${i}`, type: 'agentMessage', text: `History ${i}` }));
@@ -130,14 +210,14 @@ describe('shared plan actions', () => {
             await binding;
         } finally {
             await binding;
-            if (previous === undefined) delete process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS;
-            else process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS = previous;
+            if (previous === undefined) delete process.env.HAMLET_CODEX_HISTORY_ITEM_DELAY_MS;
+            else process.env.HAMLET_CODEX_HISTORY_ITEM_DELAY_MS = previous;
         }
     });
 
     it('persists remote title tools while retaining native terminal rename events', async () => {
         const f = await fixture();
-        const item = { id: 'title', type: 'mcpToolCall', server: 'hapi', tool: 'change_title',
+        const item = { id: 'title', type: 'mcpToolCall', server: 'hamlet', tool: 'change_title',
             arguments: { title: 'Remote title' }, status: 'completed', result: { content: [], isError: false } };
         f.native.notify('item/completed', { threadId: 'thread', turnId: 'turn', item });
         await vi.waitFor(() => expect(f.metadata().summary?.text).toBe('Remote title'));

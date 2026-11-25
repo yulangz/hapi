@@ -57,7 +57,7 @@ describe('inspectPeer', () => {
                                 metadata: {
                                     name: 'hub runner version governance',
                                     flavor: 'cursor',
-                                    path: '/home/heavygee/coding/hapi'
+                                    path: '/home/heavygee/coding/hamlet'
                                 }
                             } satisfies PingPeerSessionSummary]
                         }
@@ -75,7 +75,7 @@ describe('inspectPeer', () => {
                                 metadata: {
                                     name: 'hub runner version governance',
                                     flavor: 'cursor',
-                                    path: '/home/heavygee/coding/hapi',
+                                    path: '/home/heavygee/coding/hamlet',
                                     lifecycleState: 'archived'
                                 }
                             }
@@ -130,7 +130,7 @@ describe('inspectPeer', () => {
         expect(result.name).toBe('hub runner version governance')
         expect(result.active).toBe(false)
         expect(result.flavor).toBe('cursor')
-        expect(result.path).toBe('/home/heavygee/coding/hapi')
+        expect(result.path).toBe('/home/heavygee/coding/hamlet')
         expect(result.messages).toHaveLength(2)
         expect(result.messages[0]).toMatchObject({
             role: 'user',

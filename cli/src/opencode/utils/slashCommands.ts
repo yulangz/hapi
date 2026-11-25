@@ -1,5 +1,5 @@
-import { OPENCODE_PERMISSION_MODES } from '@hapi/protocol/modes';
-import type { OpencodePermissionMode } from '@hapi/protocol/types';
+import { OPENCODE_PERMISSION_MODES } from '@hamlet/protocol/modes';
+import type { OpencodePermissionMode } from '@hamlet/protocol/types';
 import type { SlashCommand } from '@/modules/common/slashCommands';
 
 const OPENCODE_INIT_PROMPT = [
@@ -24,7 +24,7 @@ export type OpencodeSlashResolution =
     // synchronous 'handled' shape below. The launcher (runOpencode.ts)
     // intercepts this kind and drives that flow itself.
     | { kind: 'compact' }
-    // /clear exits the current runner-backed HAPI process after its FIFO
+    // /clear exits the current runner-backed HAMLET process after its FIFO
     // predecessors finish, then asks the hub to spawn a fresh OpenCode one.
     | { kind: 'clear' }
     | {
@@ -204,7 +204,7 @@ export function resolveOpencodeSlashCommand(
                 '- `/default` — return to default permission mode',
                 '- `/init [extra]` — generate or refresh AGENTS.md for this project',
                 '- `/compact` — compact (summarize) the OpenCode session context (remote sessions only)',
-                '- `/clear` — archive this HAPI session and open a fresh OpenCode session',
+                '- `/clear` — archive this HAMLET session and open a fresh OpenCode session',
                 '',
                 'Model, reasoning effort, and permission mode have dedicated buttons in the composer. ' +
                 'You can still type `/model`, `/reasoning`, or `/permissions` if you prefer.',

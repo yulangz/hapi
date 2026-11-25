@@ -1,5 +1,5 @@
-const CODEX_IMPORTED_SESSIONS_STORAGE_KEY = 'hapi.codexImportedSessions'
-const CODEX_IMPORTED_SESSIONS_EVENT = 'hapi:codex-imported-sessions-updated'
+const CODEX_IMPORTED_SESSIONS_STORAGE_KEY = 'hamlet.codexImportedSessions'
+const CODEX_IMPORTED_SESSIONS_EVENT = 'hamlet:codex-imported-sessions-updated'
 
 type CodexImportedSessionsMap = Record<string, number>
 
@@ -60,7 +60,7 @@ export function clearCodexImportedSession(codexSessionId: string | null | undefi
     const next = readCodexImportedSessions()
     if (!(codexSessionId in next)) return
 
-    // 中文注释：当用户已经在 Hapi 内继续这个会话后，移除导入标记，列表时间恢复为普通“xx 分钟前”。
+    // 中文注释：当用户已经在 Hamlet 内继续这个会话后，移除导入标记，列表时间恢复为普通“xx 分钟前”。
     delete next[codexSessionId]
     writeCodexImportedSessions(next)
 }

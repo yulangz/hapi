@@ -15,15 +15,19 @@ export function inputText(input: unknown): string {
 }
 
 function requestedTitle(item: Record<string, unknown>): string | undefined {
-    if (item.type !== 'mcpToolCall' || item.server !== 'hapi' || item.tool !== 'change_title') return;
+    if (item.type !== 'mcpToolCall' || (item.server !== 'hamlet' && item.server !== 'hapi') || item.tool !== 'change_title') return;
     return string(record(item.arguments).title)?.trim() || undefined;
 }
 
-function successfulTitle(item: Record<string, unknown>, pending?: string): string | undefined {
+export function successfulMcpCall(item: Record<string, unknown>): boolean {
     if (item.type !== 'mcpToolCall' || (item.status !== undefined && item.status !== 'completed')
-        || item.error != null || item.result == null) return;
+        || item.error != null || item.result == null) return false;
     const result = record(item.result);
-    if ('Err' in result || result.isError === true || record(result.Ok).isError === true) return;
+    return !('Err' in result) && result.isError !== true && record(result.Ok).isError !== true;
+}
+
+function successfulTitle(item: Record<string, unknown>, pending?: string): string | undefined {
+    if (!successfulMcpCall(item)) return;
     return requestedTitle(item) ?? pending;
 }
 
@@ -98,6 +102,7 @@ export class SharedCodexProjection {
                 const firstInTurn = turnId ? [...this.turns].find(([, value]) => value === turnId)?.[0] : undefined;
                 if (turnId) this.turns.set(id, turnId);
                 await this.committed(id);
+                if (id.startsWith('hamlet:')) return;
                 const text = inputText(item.content);
                 if (text) this.session.sendUserMessage(text, undefined, id);
                 this.session.updateMetadata(metadata => ({ ...metadata, conversationHistoryTurns: Object.fromEntries(this.turns),
@@ -123,7 +128,7 @@ export class SharedCodexProjection {
                     && questions.every(q => typeof record(q).title === 'string')) {
                     const callId = `codex-async:${this.threadId}:${itemId}`;
                     const input = {
-                        hapiAsyncQuestion: { threadId: this.threadId, callId: itemId },
+                        hamletAsyncQuestion: { threadId: this.threadId, callId: itemId },
                         questions: questions.map((q, index) => ({
                             id: String(index), question: record(q).title, isOther: true,
                             options: Array.isArray(record(q).options)
@@ -190,7 +195,7 @@ export class SharedCodexProjection {
         if (!Array.isArray(turns)) return;
         // Pace cold history replay for small hubs, yielding to socket I/O and
         // keepalives instead of accumulating every child transcript at once.
-        const configuredDelay = Number(process.env.HAPI_CODEX_HISTORY_ITEM_DELAY_MS ?? 0);
+        const configuredDelay = Number(process.env.HAMLET_CODEX_HISTORY_ITEM_DELAY_MS ?? 0);
         const replayDelay = Number.isFinite(configuredDelay) ? Math.max(0, Math.min(1000, configuredDelay)) : 0;
         const titleRevision = this.titleRevision;
         let latestTitle: string | undefined;

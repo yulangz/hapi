@@ -179,7 +179,7 @@ function getManualCompactionMarkerIds(entries: OpencodeMessageEntry[]): string[]
 }
 
 function isTerminal(entry: OpencodeMessageEntry): boolean {
-    // OpenCode/provider finish strings are not an enum HAPI owns. Any
+    // OpenCode/provider finish strings are not an enum HAMLET owns. Any
     // nonblank string is terminal evidence; an allowlist would reject valid
     // provider-specific values such as the observed `unknown` finish.
     return typeof entry.info?.finish === 'string' && entry.info.finish.trim().length > 0;

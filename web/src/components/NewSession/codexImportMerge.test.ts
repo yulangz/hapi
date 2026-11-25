@@ -9,7 +9,7 @@ describe('resolveCodexImportRedirectSessionId', () => {
         )).toBe('canonical-session')
     })
 
-    it('falls back to the imported Hapi session when merge omits a canonical id', () => {
+    it('falls back to the imported Hamlet session when merge omits a canonical id', () => {
         expect(resolveCodexImportRedirectSessionId(
             [{}],
             ['imported-session']

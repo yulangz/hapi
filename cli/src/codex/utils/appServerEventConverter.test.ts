@@ -185,7 +185,7 @@ describe('AppServerEventConverter', () => {
             item: {
                 id: 'call-1',
                 type: 'mcpToolCall',
-                server: 'hapi',
+                server: 'hamlet',
                 tool: 'change_title',
                 arguments: { title: 'MCP Title' }
             }
@@ -193,10 +193,10 @@ describe('AppServerEventConverter', () => {
         expect(started).toEqual([{
             type: 'mcp_tool_call_begin',
             call_id: 'call-1',
-            server: 'hapi',
+            server: 'hamlet',
             tool: 'change_title',
             invocation: {
-                server: 'hapi',
+                server: 'hamlet',
                 tool: 'change_title',
                 arguments: { title: 'MCP Title' }
             }
@@ -206,7 +206,7 @@ describe('AppServerEventConverter', () => {
             item: {
                 id: 'call-1',
                 type: 'mcpToolCall',
-                server: 'hapi',
+                server: 'hamlet',
                 tool: 'change_title',
                 result: {
                     content: [{ type: 'text', text: 'done' }]
@@ -217,7 +217,7 @@ describe('AppServerEventConverter', () => {
         expect(completed).toEqual([{
             type: 'mcp_tool_call_end',
             call_id: 'call-1',
-            server: 'hapi',
+            server: 'hamlet',
             tool: 'change_title',
             result: {
                 content: [{ type: 'text', text: 'done' }]
@@ -232,7 +232,7 @@ describe('AppServerEventConverter', () => {
             item: {
                 id: 'call-1',
                 type: 'mcpToolCall',
-                server: 'hapi',
+                server: 'hamlet',
                 tool: 'change_title',
                 error: 'boom'
             }
@@ -241,7 +241,7 @@ describe('AppServerEventConverter', () => {
         expect(completed).toEqual([{
             type: 'mcp_tool_call_end',
             call_id: 'call-1',
-            server: 'hapi',
+            server: 'hamlet',
             tool: 'change_title',
             result: { Err: 'boom' }
         }]);
@@ -652,7 +652,7 @@ describe('AppServerEventConverter', () => {
         });
         expect(tokenEvents).toEqual([{
             type: 'token_count',
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache',
             thread_id: 'child-thread',
             turn_id: 'child-turn',

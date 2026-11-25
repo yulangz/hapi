@@ -1,4 +1,4 @@
-import { getFlavorLabel, isKnownFlavor } from '@hapi/protocol'
+import { getFlavorLabel, isKnownFlavor } from '@hamlet/protocol'
 import type { Session } from '../sync/syncEngine'
 
 export function getSessionName(session: Session): string {

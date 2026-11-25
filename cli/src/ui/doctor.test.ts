@@ -4,7 +4,7 @@ import { redactSettingsForDisplay } from './doctor'
 describe('redactSettingsForDisplay', () => {
     it('redacts tokens and extra headers from diagnostic output', () => {
         const displaySettings = redactSettingsForDisplay({
-            apiUrl: 'https://hapi.example.com',
+            apiUrl: 'https://hamlet.example.com',
             cliApiToken: 'cli-secret',
             extraHeaders: {
                 'CF-Access-Client-Id': 'client-id',
@@ -13,7 +13,7 @@ describe('redactSettingsForDisplay', () => {
         })
 
         expect(displaySettings).toEqual({
-            apiUrl: 'https://hapi.example.com',
+            apiUrl: 'https://hamlet.example.com',
             cliApiToken: '***',
             extraHeaders: '***'
         })

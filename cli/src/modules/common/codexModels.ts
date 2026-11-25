@@ -1,5 +1,5 @@
 import { homedir } from 'node:os';
-import type { CodexModelsResponse, CodexModelSummary } from '@hapi/protocol/apiTypes';
+import type { CodexModelsResponse, CodexModelSummary } from '@hamlet/protocol/apiTypes';
 import { CodexAppServerClient } from '@/codex/codexAppServerClient';
 import { getErrorMessage } from './rpcResponses';
 
@@ -133,7 +133,7 @@ async function fetchCodexModelsFromAppServer(includeHidden: boolean): Promise<Co
         await client.connect();
         await client.initialize({
             clientInfo: {
-                name: 'hapi-codex-models',
+                name: 'hamlet-codex-models',
                 version: '1.0.0'
             },
             capabilities: {

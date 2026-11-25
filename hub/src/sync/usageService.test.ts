@@ -201,7 +201,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'token_count',
-                usageSchema: 'hapi.usage.v1',
+                usageSchema: 'hamlet.usage.v1',
                 inputTokenSemantics: 'unknown',
                 info: {
                     total: {
@@ -258,7 +258,7 @@ describe('usage service', () => {
         )
         const messages = [
             { type: 'token_count', info: { total: { inputTokens: 100, outputTokens: 5, cachedInputTokens: 80 } } },
-            { type: 'token_count', usageSchema: 'hapi.usage.v1', inputTokenSemantics: 'includes-cache', info: { total: { inputTokens: 180, outputTokens: 5, cachedInputTokens: 80 } } },
+            { type: 'token_count', usageSchema: 'hamlet.usage.v1', inputTokenSemantics: 'includes-cache', info: { total: { inputTokens: 180, outputTokens: 5, cachedInputTokens: 80 } } },
             { type: 'token_count', model: null, info: { total: { inputTokens: 180, outputTokens: 5, cachedInputTokens: 80 } } }
         ]
         for (const data of messages) addAgentMessage(store, session.id, { type: 'codex', data })
@@ -285,7 +285,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'token_count',
-                usageSchema: 'hapi.usage.v1',
+                usageSchema: 'hamlet.usage.v1',
                 inputTokenSemantics: 'includes-cache',
                 info: {
                     total: {
@@ -333,7 +333,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'token_count',
-                usageSchema: 'hapi.usage.v1',
+                usageSchema: 'hamlet.usage.v1',
                 inputTokenSemantics: 'excludes-cache',
                 threadId: 'thread-exclusive',
                 turnId: `turn-${index}`,
@@ -402,7 +402,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'usage',
-                usageSchema: 'hapi.usage.v1',
+                usageSchema: 'hamlet.usage.v1',
                 inputTokenSemantics: 'includes-cache',
                 inputTokens: 100,
                 outputTokens: 20,
@@ -742,7 +742,7 @@ describe('usage service', () => {
         store.close()
     })
 
-    it('excludes pre-HAPI Codex transcript usage from imported sessions', () => {
+    it('excludes pre-HAMLET Codex transcript usage from imported sessions', () => {
         const store = new Store(':memory:')
         const session = store.sessions.getOrCreateSession(
             'resumed-codex-usage-test',
@@ -802,7 +802,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'token_count',
-                hapiUsageScope: 'imported-history',
+                hamletUsageScope: 'imported-history',
                 info: {
                     total_token_usage: { input_tokens: 1_000_000, output_tokens: 10_000 },
                     last_token_usage: { input_tokens: 100_000, output_tokens: 1_000 }
@@ -813,7 +813,7 @@ describe('usage service', () => {
             type: 'codex',
             data: {
                 type: 'token_count',
-                hapiUsageScope: 'managed',
+                hamletUsageScope: 'managed',
                 thread_id: 'resumed-thread',
                 info: {
                     total_token_usage: { input_tokens: 1_100_000, output_tokens: 11_000 },

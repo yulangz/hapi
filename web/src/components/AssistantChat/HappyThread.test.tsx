@@ -44,7 +44,7 @@ const outlineItems: ConversationOutlineItem[] = [
 describe('nested scroll event ownership', () => {
     it('recognizes events from a nested scroll viewport and its descendants', () => {
         const nested = document.createElement('div')
-        nested.dataset.hapiNestedScroll = 'true'
+        nested.dataset.hamletNestedScroll = 'true'
         const child = document.createElement('span')
         child.textContent = 'reasoning'
         nested.append(child)
@@ -499,7 +499,7 @@ describe('outline target loading', () => {
         })
 
         const findTarget = vi.fn((anchorId: string) => {
-            if (anchorId !== 'hapi-message-user-text:target') {
+            if (anchorId !== 'hamlet-message-user-text:target') {
                 return null
             }
             return loadCount >= 2 ? document.createElement('div') : null
@@ -514,7 +514,7 @@ describe('outline target loading', () => {
 
         expect(target).toBeInstanceOf(HTMLElement)
         expect(loadOlderPreservingScroll).toHaveBeenCalledTimes(2)
-        expect(findTarget).toHaveBeenCalledWith('hapi-message-user-text:target')
+        expect(findTarget).toHaveBeenCalledWith('hamlet-message-user-text:target')
     })
 
     it('stops when history is exhausted before the target is loaded', async () => {
@@ -534,14 +534,14 @@ describe('outline target loading', () => {
 
 describe('share turn snapshots', () => {
     it('restores the preceding user prompt when a long rendered turn only contains assistant DOM', () => {
-        const assistant = { html: '<div data-hapi-message-role="assistant">answer</div>', text: 'answer', role: 'assistant' as const }
+        const assistant = { html: '<div data-hamlet-message-role="assistant">answer</div>', text: 'answer', role: 'assistant' as const }
         const user = { html: '', text: 'original long-conversation prompt', role: 'user' as const }
 
         expect(prependMissingUserSnapshot([assistant], user)).toEqual([user, assistant])
     })
 
     it('does not duplicate a user prompt already captured from the DOM', () => {
-        const user = { html: '<div data-hapi-message-role="user">prompt</div>', text: 'prompt' }
+        const user = { html: '<div data-hamlet-message-role="user">prompt</div>', text: 'prompt' }
         const fallback = { html: '', text: 'prompt', role: 'user' as const }
 
         expect(prependMissingUserSnapshot([user], fallback)).toEqual([user])

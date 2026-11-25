@@ -95,21 +95,21 @@ describe('claudeLocalLauncher message filtering', () => {
         expect(session.localPermissionBridge.stop).toHaveBeenCalled()
     })
 
-    it('converts Claude Code ai-title metadata into a HAPI title', async () => {
+    it('converts Claude Code ai-title metadata into a HAMLET title', async () => {
         const { session, sentMessages, getMetadata } = createSessionStub()
         await claudeLocalLauncher(session as never)
 
         harness.scannerOnMessage!({
             type: 'ai-title',
-            aiTitle: '根据交接文档部署 HAPI 服务',
+            aiTitle: '根据交接文档部署 HAMLET 服务',
             sessionId: 'test-session'
         })
 
         expect(sentMessages).toHaveLength(0)
-        expect(getMetadata().summary?.text).toBe('根据交接文档部署 HAPI 服务')
+        expect(getMetadata().summary?.text).toBe('根据交接文档部署 HAMLET 服务')
     })
 
-    it('does not replace an existing HAPI title with ai-title metadata', async () => {
+    it('does not replace an existing HAMLET title with ai-title metadata', async () => {
         const { session, sentMessages, getMetadata, setMetadata } = createSessionStub()
         setMetadata({ path: '/tmp/test', host: 'localhost', name: 'Manual title' })
         await claudeLocalLauncher(session as never)
@@ -120,7 +120,7 @@ describe('claudeLocalLauncher message filtering', () => {
         expect(getMetadata()).toEqual({ path: '/tmp/test', host: 'localhost', name: 'Manual title' })
     })
 
-    it('does not replace an existing HAPI title with a native summary', async () => {
+    it('does not replace an existing HAMLET title with a native summary', async () => {
         const { session, sentMessages, getMetadata, setMetadata } = createSessionStub()
         setMetadata({
             path: '/tmp/test',

@@ -68,8 +68,8 @@ function SortIcon() {
     )
 }
 
-const DIRECTORY_SORT_STORAGE_KEY = 'hapi-directory-sort'
-const FILES_TAB_STORAGE_KEY = 'hapi-files-tab'
+const DIRECTORY_SORT_STORAGE_KEY = 'hamlet-directory-sort'
+const FILES_TAB_STORAGE_KEY = 'hamlet-files-tab'
 
 type FilesTab = 'changes' | 'directories'
 
@@ -343,7 +343,7 @@ function FileListSkeleton(props: { label: string; rows?: number }) {
     )
 }
 
-const SCROLL_KEY_PREFIX = 'hapi-dir-scroll-'
+const SCROLL_KEY_PREFIX = 'hamlet-dir-scroll-'
 
 export default function FilesPage() {
     const { api, titleSuggestionAvailable = false } = useAppContext()
@@ -646,7 +646,7 @@ export default function FilesPage() {
 
             <div
                 ref={scrollRef}
-                data-hapi-session-files-scroll="true"
+                data-hamlet-session-files-scroll="true"
                 className="app-scroll-y flex-1 min-h-0"
             >
                 <div className="mx-auto w-full max-w-content">

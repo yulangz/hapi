@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hapi/protocol/usage';
+import { INCLUSIVE_INPUT_TOKEN_USAGE_MARKER } from '@hamlet/protocol/usage';
 import { open, stat } from 'node:fs/promises';
 import { BaseSessionScanner, type SessionFileScanResult, type SessionFileScanStats } from '@/modules/common/session/BaseSessionScanner';
 import { logger } from '@/ui/logger';
@@ -53,7 +53,7 @@ function extractInputText(input: unknown): string | null {
 }
 
 /**
- * Converts a kimi-code wire journal event into hapi's codex-family message
+ * Converts a kimi-code wire journal event into hamlet's codex-family message
  * shapes (same wire contract the hub and web already render for ACP agents).
  *
  * Mapped events (observed on wire protocol 1.4, kimi-code 0.26):
@@ -143,7 +143,7 @@ export function convertKimiWireEvent(event: KimiWireEvent, model?: string | null
             return null;
         }
         // kimi-code splits input into uncached (`inputOther`) and cached
-        // portions; hapi's inputTokens contract expects the full input total.
+        // portions; hamlet's inputTokens contract expects the full input total.
         const inputOther = asFiniteNumber(usage.inputOther) ?? 0;
         const cacheRead = asFiniteNumber(usage.inputCacheRead) ?? 0;
         const cacheCreation = asFiniteNumber(usage.inputCacheCreation) ?? 0;
@@ -204,7 +204,7 @@ class KimiWireScannerImpl extends BaseSessionScanner<KimiWireEvent> {
     }
 
     protected async initialize(): Promise<void> {
-        // Prime to EOF: only events written after hapi attaches are forwarded,
+        // Prime to EOF: only events written after hamlet attaches are forwarded,
         // so reopening an existing session does not replay its whole history.
         const { events, nextCursor } = await this.readWire(0);
         const keys = events.map((entry) => this.generateEventKey(entry.event, {

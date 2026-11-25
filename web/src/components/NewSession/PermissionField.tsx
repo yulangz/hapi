@@ -2,9 +2,9 @@ import {
     getAgentConfigDescriptor,
     getPermissionModeLabel,
     getLaunchPermissionModesForFlavor,
-    resolveHapiYoloPermissionMode,
+    resolveHamletYoloPermissionMode,
     type PermissionMode
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import { useTranslation } from '@/lib/use-translation'
 import { usesNativePermissionSelect } from '@/lib/codexFamilyPermissionAgents'
 import type { AgentType } from './types'
@@ -27,11 +27,11 @@ export type PermissionFieldProps = {
  * configuration descriptor (see shared/src/agentConfig.ts).
  *
  * - `status` fields (Pi) surface a managed note instead of a control so the
- *   HAPI YOLO policy is never silently ignored for agents that cannot apply it.
+ *   HAMLET YOLO policy is never silently ignored for agents that cannot apply it.
  * - `select` fields render the agent's native permission modes. Claude and
  *   grok get this native select at create time even though neither shares
  *   the codex-family mode set (see usesNativePermissionSelect).
- * - Remaining flavors whose create surface still carries the persistent HAPI
+ * - Remaining flavors whose create surface still carries the persistent HAMLET
  *   YOLO preference render the YOLO toggle with the native mode it maps to.
  */
 export function PermissionField(props: PermissionFieldProps) {
@@ -92,10 +92,10 @@ export function PermissionField(props: PermissionFieldProps) {
         )
     }
 
-    // Remaining flavors still carry the persistent HAPI YOLO preference at
+    // Remaining flavors still carry the persistent HAMLET YOLO preference at
     // create time. The descriptor advertises the native modes their session
     // surface supports; surface the mapping so the preference is explicit.
-    const nativeHint = resolveHapiYoloPermissionMode(props.agent)
+    const nativeHint = resolveHamletYoloPermissionMode(props.agent)
     return (
         <YoloToggle
             yoloMode={props.yoloMode}

@@ -6,7 +6,7 @@ import {
     useReasoningCollapse,
 } from './useReasoningCollapse'
 
-const STORAGE_KEY = 'hapi-reasoning-collapsed'
+const STORAGE_KEY = 'hamlet-reasoning-collapsed'
 
 describe('useReasoningCollapse helpers', () => {
     beforeEach(() => {

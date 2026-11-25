@@ -1,5 +1,5 @@
 import { stat } from 'node:fs/promises'
-import type { SqliteStorageUsageResponse } from '@hapi/protocol/apiTypes'
+import type { SqliteStorageUsageResponse } from '@hamlet/protocol/apiTypes'
 import { Hono } from 'hono'
 import type { WebAppEnv } from '../middleware/auth'
 

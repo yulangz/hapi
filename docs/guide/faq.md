@@ -2,31 +2,31 @@
 
 ## General
 
-### What is HAPI?
+### What is HAMLET?
 
-HAPI is a local-first, self-hosted platform for running and controlling AI coding agents remotely (Claude Code, Codex, Cursor Agent, Grok Build, OpenCode, and more — see [Supported Agents](./agents.md)). It lets you start coding sessions on your computer and monitor/control them from your phone.
+HAMLET is a local-first, self-hosted platform for running and controlling AI coding agents remotely (Claude Code, Codex, Cursor Agent, Grok Build, OpenCode, and more — see [Supported Agents](./agents.md)). It lets you start coding sessions on your computer and monitor/control them from your phone.
 
-### What does HAPI stand for?
+### What does HAMLET stand for?
 
-HAPI (哈皮) is a Chinese transliteration of "Happy", reflecting the project's goal of making AI coding assistance a happier experience by freeing you from the terminal.
+HAMLET (哈皮) is a Chinese transliteration of "Happy", reflecting the project's goal of making AI coding assistance a happier experience by freeing you from the terminal.
 
-### Is HAPI free?
+### Is HAMLET free?
 
-Yes, HAPI is open source and free to use under the AGPL-3.0-only license.
+Yes, HAMLET is open source and free to use under the AGPL-3.0-only license.
 
-### What AI agents does HAPI support?
+### What AI agents does HAMLET support?
 
-HAPI supports several coding agents, with Claude Code as the recommended option. See [Supported Agents](./agents.md) for the full list and per-agent setup notes.
+HAMLET supports several coding agents, with Claude Code as the recommended option. See [Supported Agents](./agents.md) for the full list and per-agent setup notes.
 
 ## Setup & Installation
 
 ### Do I need a hub?
 
-HAPI includes an embedded hub. Just run `hapi hub` on your machine - no external hub required.
+HAMLET includes an embedded hub. Just run `hamlet hub` on your machine - no external hub required.
 
-`hapi server` remains supported as an alias.
+`hamlet server` remains supported as an alias.
 
-### How do I access HAPI from my phone?
+### How do I access HAMLET from my phone?
 
 Use the [native iOS / Android apps](./native-apps.md) or open the web app in
 your browser/PWA. Native apps pair with the hub's URL and access token; the
@@ -39,13 +39,13 @@ http://<your-computer-ip>:3006
 
 That cleartext URL is for a browser/PWA on your trusted LAN. Use HTTPS for
 native pairing: Android rejects HTTP, and iOS HTTP input remains subject to
-system network policy. Run `hapi hub --relay` or place an HTTPS reverse
+system network policy. Run `hamlet hub --relay` or place an HTTPS reverse
 proxy/tunnel in front of the hub.
 
-If your phone cannot connect, make sure the hub is not only listening on `127.0.0.1`. For LAN access, set `listenHost` to `0.0.0.0` in `~/.hapi/settings.json` or set `HAPI_LISTEN_HOST=0.0.0.0`, then restart `hapi hub`.
+If your phone cannot connect, make sure the hub is not only listening on `127.0.0.1`. For LAN access, set `listenHost` to `0.0.0.0` in `~/.hamlet/settings.json` or set `HAMLET_LISTEN_HOST=0.0.0.0`, then restart `hamlet hub`.
 
 For internet access:
-- Use the built-in relay tunnel: start the hub with `hapi hub --relay` to get a public URL via the tunwg relay (defaults to the official `relay.hapi.run`)
+- Use the built-in relay tunnel: start the hub with `hamlet hub --relay` to get a public URL via the tunwg relay (defaults to the official `relay.hapi.run`)
 - If the hub has a public IP, access it directly (use HTTPS via reverse proxy for production)
 - If behind NAT, set up your own tunnel (Cloudflare Tunnel, Tailscale, or ngrok)
 
@@ -57,13 +57,13 @@ The `CLI_API_TOKEN` is a shared secret that authenticates:
 - Native app pairing and authentication
 - Telegram account binding
 
-It's auto-generated on first hub start and saved to `~/.hapi/settings.json`.
+It's auto-generated on first hub start and saved to `~/.hamlet/settings.json`.
 
 ### Do you support multiple accounts?
 
 Yes. We support lightweight multi-account access via namespaces for shared team hubs. See [Namespace (Advanced)](./namespace.md).
 
-### Can I use HAPI without Telegram?
+### Can I use HAMLET without Telegram?
 
 Yes. Telegram is optional. You can use a native iOS/Android app, open the web app in a browser, or install the PWA.
 
@@ -72,13 +72,13 @@ Yes. Telegram is optional. You can use a native iOS/Android app, open the web ap
 ### How do I approve permissions remotely?
 
 1. When your AI agent requests permission (e.g., to edit a file), you'll see a notification
-2. Open HAPI on your phone
+2. Open HAMLET on your phone
 3. Navigate to the active session
 4. Approve or deny the pending permission
 
 ### How do I receive notifications?
 
-HAPI supports these notification channels:
+HAMLET supports these notification channels:
 
 1. **PWA Push Notifications** - Enable when prompted, works even when app is closed
 2. **Telegram Bot** - See [Telegram Setup](./notifications.md#telegram-setup)
@@ -89,7 +89,7 @@ HAPI supports these notification channels:
 
 Yes, with runner mode:
 
-1. Run `hapi runner start` on your computer
+1. Run `hamlet runner start` on your computer
 2. Open New Session in a native app or the web app
 3. Select the online machine, directory and available agent, then create the session
 
@@ -108,7 +108,7 @@ Yes. Open any session and use the chat interface to send messages directly to th
 
 ### Why did my session look idle when the agent woke itself?
 
-Some agents (especially Cursor) can resume after idle from harness signals such as background Shell `notify_on_output` or `/loop`, without you sending a new HAPI message. HAPI updates the session's thinking indicator when the agent resumes work or requests permission, so the list reflects that activity.
+Some agents (especially Cursor) can resume after idle from harness signals such as background Shell `notify_on_output` or `/loop`, without you sending a new HAMLET message. HAMLET updates the session's thinking indicator when the agent resumes work or requests permission, so the list reflects that activity.
 
 ### Can I access a terminal remotely?
 
@@ -127,8 +127,8 @@ See [Voice input and assistant](./voice-assistant.md) for setup details.
 
 ### Is my data safe?
 
-HAPI keeps session history on the hub you operate, in `~/.hapi/` by default,
-rather than on a central HAPI account server. Your devices connect to that hub.
+HAMLET keeps session history on the hub you operate, in `~/.hamlet/` by default,
+rather than on a central HAMLET account server. Your devices connect to that hub.
 Coding agents still use their configured model providers; optional voice,
 title generation, and notification features also contact external services.
 See the [Privacy Policy](../privacy.md) for data handling and encrypted native push.
@@ -137,7 +137,7 @@ See the [Privacy Policy](../privacy.md) for data handling and encrypted native p
 
 The auto-generated token is 256-bit (cryptographically secure). For external access, always use HTTPS via a tunnel.
 
-### Can others access my HAPI instance?
+### Can others access my HAMLET instance?
 
 Only if they have your access token. For additional security:
 - Use a strong, unique token
@@ -154,17 +154,17 @@ First verify a small request with the laptop open. If that fails too, check the 
 
 For a MacBook that must work with the lid closed, use a supported external-display setup or a compatible closed-lid solution. Leaving the lid open with idle sleep managed is another option. Keep an active laptop powered and ventilated. After closing the lid, confirm new command output from the phone before relying on a long run.
 
-This [Apple Silicon MacBook setup guide](https://clamshell.dev/guides/keep-claude-code-running-lid-closed#phone-check) includes a two-minute timestamp check and an optional Clamshell setup. Clamshell is a separate paid app with a trial; HAPI does not require it.
+This [Apple Silicon MacBook setup guide](https://clamshell.dev/guides/keep-claude-code-running-lid-closed#phone-check) includes a two-minute timestamp check and an optional Clamshell setup. Clamshell is a separate paid app with a trial; HAMLET does not require it.
 
 ### "Connection refused" error
 
-- Ensure hub is running: `hapi hub`
+- Ensure hub is running: `hamlet hub`
 - Check firewall allows port 3006
-- Verify `HAPI_API_URL` is correct
+- Verify `HAMLET_API_URL` is correct
 
-### My phone cannot access HAPI on the local network
+### My phone cannot access HAMLET on the local network
 
-If HAPI works on your computer but not from another device on the same LAN, check the hub bind address first. By default, HAPI listens on `127.0.0.1`, which only accepts localhost connections.
+If HAMLET works on your computer but not from another device on the same LAN, check the hub bind address first. By default, HAMLET listens on `127.0.0.1`, which only accepts localhost connections.
 
 Use one of these:
 
@@ -175,50 +175,50 @@ Use one of these:
 ```
 
 ```bash
-export HAPI_LISTEN_HOST=0.0.0.0
+export HAMLET_LISTEN_HOST=0.0.0.0
 ```
 
-Then restart `hapi hub` and open:
+Then restart `hamlet hub` and open:
 
 ```bash
 http://<your-computer-ip>:3006
 ```
 
 This direct LAN URL is for browser/PWA access. The native Android companion
-requires HTTPS (`hapi hub --relay`, or your own HTTPS reverse proxy/tunnel).
+requires HTTPS (`hamlet hub --relay`, or your own HTTPS reverse proxy/tunnel).
 
 Also verify your OS firewall allows inbound connections on port `3006`.
 
 ### "Invalid token" error
 
-Run `hapi doctor` first - it shows whether `CLI_API_TOKEN` is set and where it comes from (environment variable or settings file).
+Run `hamlet doctor` first - it shows whether `CLI_API_TOKEN` is set and where it comes from (environment variable or settings file).
 
-- Re-run `hapi auth login`
+- Re-run `hamlet auth login`
 - Check token matches in CLI and hub
-- Verify `~/.hapi/settings.json` has correct `cliApiToken`
+- Verify `~/.hamlet/settings.json` has correct `cliApiToken`
 
 ### Runner won't start
 
-Run `hapi doctor` first - it shows runner status (including stale state), all hapi processes, and recent log files.
+Run `hamlet doctor` first - it shows runner status (including stale state), all hamlet processes, and recent log files.
 
 ```bash
 # Check status
-hapi runner status
+hamlet runner status
 
 # List sessions the runner is aware of
-hapi runner list
+hamlet runner list
 
 # Stop a specific runner-spawned session
-hapi runner stop-session <session-id>
+hamlet runner stop-session <session-id>
 
 # Clear stale lock file
-rm ~/.hapi/runner.state.json.lock
+rm ~/.hamlet/runner.state.json.lock
 
 # Check logs
-hapi runner logs
+hamlet runner logs
 
-# Kill runaway hapi processes
-hapi doctor clean
+# Kill runaway hamlet processes
+hamlet doctor clean
 ```
 
 ### Claude Code not found
@@ -227,7 +227,7 @@ Install Claude Code or set custom path:
 ```bash
 npm install -g @anthropic-ai/claude-code
 # or
-export HAPI_CLAUDE_PATH=/path/to/claude
+export HAMLET_CLAUDE_PATH=/path/to/claude
 ```
 
 ### Cursor Agent not found
@@ -246,7 +246,7 @@ Ensure `agent` is on your PATH.
 ### How do I run diagnostics?
 
 ```bash
-hapi doctor
+hamlet doctor
 ```
 
 This is the first diagnostic step for most issues. It prints:
@@ -256,31 +256,31 @@ This is the first diagnostic step for most issues. It prints:
 - Contents of `settings.json` (token redacted)
 - Whether `CLI_API_TOKEN` is set, and its source (it does not contact the hub or validate the token)
 - Runner status and runner state (including stale state)
-- All running hapi processes
+- All running hamlet processes
 - Recent log files (including runner logs)
 
 To clean up runaway processes:
 
 ```bash
-hapi doctor clean
+hamlet doctor clean
 ```
 
 ## Comparison
 
-### HAPI vs Happy
+### HAMLET vs Happy
 
-| Aspect | Happy | HAPI |
+| Aspect | Happy | HAMLET |
 |--------|-------|------|
 | Design | Cloud-first | Local-first |
 | Users | Multi-user | Single user by default; lightweight multi-account isolation via [namespaces](./namespace.md) |
 | Deployment | Multiple services | Single binary |
 | Session history | Encrypted on server | Stored on your own hub |
 
-See [Why HAPI](./why-hapi.md) for detailed comparison.
+See [Why HAMLET](./why-hamlet.md) for detailed comparison.
 
-### HAPI vs running Claude Code directly
+### HAMLET vs running Claude Code directly
 
-| Feature | Claude Code | HAPI + Claude Code |
+| Feature | Claude Code | HAMLET + Claude Code |
 |---------|-------------|-------------------|
 | Remote access | No | Yes |
 | Mobile control | No | Yes |

@@ -8,11 +8,11 @@ import json, sys
 items = [x for x in json.load(sys.stdin)["runtimes"] if x.get("isAvailable") and x.get("name", "").startswith("iOS")]
 print(max(items, key=lambda x: tuple(map(int, x["version"].split("."))))["identifier"])
 ')
-device_type=${HAPI_TEST_DEVICE_TYPE:-com.apple.CoreSimulator.SimDeviceType.iPhone-15}
-device=$(xcrun simctl create "HAPI Transcript Tests" "$device_type" "$runtime")
+device_type=${HAMLET_TEST_DEVICE_TYPE:-com.apple.CoreSimulator.SimDeviceType.iPhone-15}
+device=$(xcrun simctl create "HAMLET Transcript Tests" "$device_type" "$runtime")
 trap 'xcrun simctl delete "$device" >/dev/null 2>&1 || true' EXIT
 
-xcodebuild test -project ios/Hapi.xcodeproj -scheme Hapi \
+xcodebuild test -project ios/Hamlet.xcodeproj -scheme Hamlet \
     -destination "platform=iOS Simulator,id=$device" \
-    -derivedDataPath "${HAPI_TEST_DERIVED_DATA:-/tmp/hapi-transcript-tests}" \
+    -derivedDataPath "${HAMLET_TEST_DERIVED_DATA:-/tmp/hamlet-transcript-tests}" \
     -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO "$@"

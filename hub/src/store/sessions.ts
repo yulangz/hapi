@@ -388,7 +388,7 @@ export function setSessionTodos(
  * todos patches on `todosUpdatedAt`, and dual EventSources can deliver a
  * buffered pre-rewind patch after the post-rewind Session. Writing the
  * remaining message's older `createdAt` here would let that stale patch win
- * and resurrect deleted todos (PR #897 HAPI Bot 2026-08-03 Major).
+ * and resurrect deleted todos (PR #897 HAMLET Bot 2026-08-03 Major).
  *
  * Ratchet: `null → now`, else `previous + 1`. Always strictly greater than any
  * prior write on this row, so lagged pre-rewind versions are rejected.

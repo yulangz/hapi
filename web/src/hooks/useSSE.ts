@@ -8,8 +8,8 @@ import {
     isObject,
     toSessionSummary,
     toSessionSummaryMetadata
-} from '@hapi/protocol'
-import { MachinePatchSchema, MachineSchema, SessionPatchSchema, SessionSchema } from '@hapi/protocol/schemas'
+} from '@hamlet/protocol'
+import { MachinePatchSchema, MachineSchema, SessionPatchSchema, SessionSchema } from '@hamlet/protocol/schemas'
 import type {
     Machine,
     MachinesResponse,

@@ -6,13 +6,13 @@ import {
     type TranscriptionProvider,
     type TranscriptionProviderInfo,
     type VoiceMode
-} from '@hapi/protocol/voice'
+} from '@hamlet/protocol/voice'
 import { hasBrowserLocalSpeechSupport } from './browserLocalSpeech'
 
-const VOICE_MODE_KEY = 'hapi-voice-mode'
-const TRANSCRIPTION_PROVIDER_KEY = 'hapi-transcription-provider'
-const TRANSCRIPTION_MODE_KEY = 'hapi-transcription-mode'
-const CHANGE_EVENT = 'hapi-voice-input-change'
+const VOICE_MODE_KEY = 'hamlet-voice-mode'
+const TRANSCRIPTION_PROVIDER_KEY = 'hamlet-transcription-provider'
+const TRANSCRIPTION_MODE_KEY = 'hamlet-transcription-mode'
+const CHANGE_EVENT = 'hamlet-voice-input-change'
 
 function notifyChange(): void {
     window.dispatchEvent(new Event(CHANGE_EVENT))
@@ -65,15 +65,15 @@ export function useVoiceInputPreferences(api: ApiClient | null) {
         }
         load()
         const onRefresh = () => load()
-        window.addEventListener('hapi-transcription-providers-refresh', onRefresh)
+        window.addEventListener('hamlet-transcription-providers-refresh', onRefresh)
         return () => {
             cancelled = true
-            window.removeEventListener('hapi-transcription-providers-refresh', onRefresh)
+            window.removeEventListener('hamlet-transcription-providers-refresh', onRefresh)
         }
     }, [api])
 
     const refreshProviders = useCallback(() => {
-        window.dispatchEvent(new Event('hapi-transcription-providers-refresh'))
+        window.dispatchEvent(new Event('hamlet-transcription-providers-refresh'))
     }, [])
 
     useEffect(() => {

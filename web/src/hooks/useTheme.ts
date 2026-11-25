@@ -4,7 +4,7 @@ import { applyColorTheme, getColorThemeBackground, getColorThemeStorageKey, getS
 
 export type AppearancePreference = 'system' | 'dark' | 'light' | 'oled'
 
-const APPEARANCE_KEY = 'hapi-appearance'
+const APPEARANCE_KEY = 'hamlet-appearance'
 const THEME_COLORS: Record<ColorScheme, string> = {
     light: '#ffffff',
     dark: '#1c1c1e',
@@ -204,7 +204,7 @@ export function initializeTheme(): void {
                 if (event.key === APPEARANCE_KEY) updateScheme()
                 if (event.key === getColorThemeStorageKey()) updateScheme(true)
             })
-            window.addEventListener('hapi-color-theme-change', () => updateScheme(true))
+            window.addEventListener('hamlet-color-theme-change', () => updateScheme(true))
         }
     }
 }

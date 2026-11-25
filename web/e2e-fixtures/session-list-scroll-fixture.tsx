@@ -7,7 +7,7 @@ import { ToastProvider } from '../src/lib/toast-context'
 import type { SessionSummary } from '../src/types/api'
 import '../src/index.css'
 
-localStorage.setItem('hapi-pin-in-progress-sessions', 'true')
+localStorage.setItem('hamlet-pin-in-progress-sessions', 'true')
 const initialSessions: SessionSummary[] = Array.from({ length: 40 }, (_, index) => ({
     id: `session-${index}`, active: false, thinking: false, activeAt: 0,
     updatedAt: 1000 - index, metadataVersion: 0, agentStateVersion: 0,

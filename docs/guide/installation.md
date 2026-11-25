@@ -1,6 +1,6 @@
 # Installation
 
-Install the HAPI CLI and set up the hub. For phone client builds and pairing,
+Install the HAMLET CLI and set up the hub. For phone client builds and pairing,
 see [Native apps (iOS / Android)](./native-apps.md); for browser installation,
 see [PWA](./pwa.md).
 
@@ -29,7 +29,7 @@ opencode --version
 
 ## Architecture
 
-HAPI uses these runtime roles:
+HAMLET uses these runtime roles:
 
 | Component | Role | Required |
 |-----------|------|----------|
@@ -44,21 +44,21 @@ The CLI and Runner connect to the hub over Socket.IO; clients send actions
 through REST and receive live updates through SSE. The Runner spawns CLI
 sessions when requested through the hub. See the [architecture overview](./how-it-works.md#architecture-overview).
 
-- **CLI**: Choose an agent with `hapi`, or start one directly with `hapi <agent>`. The CLI wraps your AI agent and syncs with the hub. Scripts must specify the agent explicitly.
-- **Hub**: Run `hapi hub`. Stores sessions, handles permissions, enables remote access.
-- **Runner**: Run `hapi runner start`. Lets you spawn sessions from native or web clients without keeping a terminal open.
+- **CLI**: Choose an agent with `hamlet`, or start one directly with `hamlet <agent>`. The CLI wraps your AI agent and syncs with the hub. Scripts must specify the agent explicitly.
+- **Hub**: Run `hamlet hub`. Stores sessions, handles permissions, enables remote access.
+- **Runner**: Run `hamlet runner start`. Lets you spawn sessions from native or web clients without keeping a terminal open.
 - **Client**: Pair a native app with the HTTPS hub origin and access token, or log in through the web app.
 
 ### Typical workflows
 
-**Local only**: `hapi hub` → `hapi` → work in terminal
+**Local only**: `hamlet hub` → `hamlet` → work in terminal
 
-**Remote access**: `hapi hub --relay` → `hapi runner start` → pair a native app or open the web app
+**Remote access**: `hamlet hub --relay` → `hamlet runner start` → pair a native app or open the web app
 
 ## Install the CLI
 
 ```bash
-npm install -g @twsxtd/hapi --registry=https://registry.npmjs.org
+npm install -g @twsxtd/hamlet --registry=https://registry.npmjs.org
 ```
 
 > Recommendation: use the official npm registry for global install. Some mirrors may not sync platform packages in time.
@@ -66,7 +66,7 @@ npm install -g @twsxtd/hapi --registry=https://registry.npmjs.org
 Or with Homebrew:
 
 ```bash
-brew install tiann/tap/hapi
+brew install tiann/tap/hamlet
 ```
 
 ## Other install options
@@ -75,7 +75,7 @@ brew install tiann/tap/hapi
 <summary>npx (no install)</summary>
 
 ```bash
-npx @twsxtd/hapi
+npx @twsxtd/hamlet
 ```
 </details>
 
@@ -85,9 +85,9 @@ npx @twsxtd/hapi
 Download the latest release from [GitHub Releases](https://github.com/tiann/hapi/releases).
 
 ```bash
-xattr -d com.apple.quarantine ./hapi
-chmod +x ./hapi
-sudo mv ./hapi /usr/local/bin/
+xattr -d com.apple.quarantine ./hamlet
+chmod +x ./hamlet
+sudo mv ./hamlet /usr/local/bin/
 ```
 </details>
 
@@ -98,11 +98,11 @@ Requires Bun 1.4.0.
 
 ```bash
 git clone https://github.com/tiann/hapi.git
-cd hapi
+cd hamlet
 bun install
 bun build:single-exe
 
-./cli/dist-exe/<target>/hapi
+./cli/dist-exe/<target>/hamlet
 ```
 
 `<target>` is the Bun build target (e.g., `bun-linux-x64`, `bun-darwin-arm64`); it defaults to the host platform and architecture.
@@ -118,12 +118,12 @@ The hub can be deployed on:
 ### Default: Public Relay (recommended)
 
 ```bash
-hapi hub --relay
+hamlet hub --relay
 ```
 
 The terminal displays a URL and QR code. Scan to access from anywhere.
 
-`hapi server` remains supported as an alias.
+`hamlet server` remains supported as an alias.
 
 - **End-to-end encrypted** with WireGuard + TLS
 - No configuration needed
@@ -134,26 +134,26 @@ For relay key management, TCP fallback, and self-hosted tunnel alternatives, see
 ### Local Only
 
 ```bash
-hapi hub
+hamlet hub
 # or
-hapi hub --no-relay
+hamlet hub --no-relay
 ```
 
 The hub listens on `http://localhost:3006` by default.
 
-On first run, HAPI:
+On first run, HAMLET:
 
-1. Creates `~/.hapi/`
+1. Creates `~/.hamlet/`
 2. Generates a secure access token
-3. Prints the token and saves it to `~/.hapi/settings.json`
+3. Prints the token and saves it to `~/.hamlet/settings.json`
 
 <details>
 <summary>Config files</summary>
 
 ```
-~/.hapi/
+~/.hamlet/
 ├── settings.json      # Main configuration
-├── hapi.db           # SQLite database (hub)
+├── hamlet.db           # SQLite database (hub)
 ├── runner.state.json  # Runner process state
 └── logs/             # Log files
 ```
@@ -165,30 +165,30 @@ On first run, HAPI:
 | Variable | Default | settings.json | Description |
 |----------|---------|---------------|-------------|
 | `CLI_API_TOKEN` | Auto-generated | `cliApiToken` | Shared secret for authentication |
-| `HAPI_API_URL` | `http://localhost:3006` | `apiUrl` | Hub URL for CLI connections |
-| `HAPI_EXTRA_HEADERS_JSON` | - | `extraHeaders` | JSON object of extra outbound headers for CLI → hub HTTP/WebSocket requests |
-| `HAPI_LISTEN_HOST` | `127.0.0.1` | `listenHost` | Hub HTTP bind address |
-| `HAPI_LISTEN_PORT` | `3006` | `listenPort` | Hub HTTP port |
-| `HAPI_PUBLIC_URL` | - | `publicUrl` | Public URL for external access |
+| `HAMLET_API_URL` | `http://localhost:3006` | `apiUrl` | Hub URL for CLI connections |
+| `HAMLET_EXTRA_HEADERS_JSON` | - | `extraHeaders` | JSON object of extra outbound headers for CLI → hub HTTP/WebSocket requests |
+| `HAMLET_LISTEN_HOST` | `127.0.0.1` | `listenHost` | Hub HTTP bind address |
+| `HAMLET_LISTEN_PORT` | `3006` | `listenPort` | Hub HTTP port |
+| `HAMLET_PUBLIC_URL` | - | `publicUrl` | Public URL for external access |
 | `CORS_ORIGINS` | - | `corsOrigins` | Allowed CORS origins (comma-separated) |
 | `TELEGRAM_BOT_TOKEN` | - | `telegramBotToken` | Telegram Bot API token |
 | `TELEGRAM_NOTIFICATION` | `true` | `telegramNotification` | Enable Telegram notifications |
 | `SERVERCHAN_SENDKEY` | - | `serverChanSendKey` | Server酱 (ServerChan) SendKey for push notifications |
 | `SERVERCHAN_NOTIFICATION` | `true` | `serverChanNotification` | Enable ServerChan notifications |
-| `SERVERCHAN_BACKGROUND_ONLY` | `false` | `serverChanBackgroundOnly` | Only send ServerChan notifications when no visible HAPI connection exists in the namespace |
-| `HAPI_RELAY_API` | `relay.hapi.run` | - | Relay API domain for the public relay |
-| `HAPI_RELAY_AUTH` | Per-hub key issued by the relay | `relayAuthKey` | Relay auth key override (set only when an operator provides a key) |
-| `HAPI_RELAY_FORCE_TCP` | `false` | - | Force TCP mode for relay |
-| `HAPI_OFFICIAL_WEB_URL` | `https://app.hapi.run` | - | Official web app origin, added to CORS when the relay is enabled |
-| `HAPI_WEB_PUSH_FOREGROUND` | `false` | `webPushForeground` | Send Web Push alongside foreground in-page notifications; native-delivery deduplication still applies |
+| `SERVERCHAN_BACKGROUND_ONLY` | `false` | `serverChanBackgroundOnly` | Only send ServerChan notifications when no visible HAMLET connection exists in the namespace |
+| `HAMLET_RELAY_API` | `relay.hapi.run` | - | Relay API domain for the public relay |
+| `HAMLET_RELAY_AUTH` | Per-hub key issued by the relay | `relayAuthKey` | Relay auth key override (set only when an operator provides a key) |
+| `HAMLET_RELAY_FORCE_TCP` | `false` | - | Force TCP mode for relay |
+| `HAMLET_OFFICIAL_WEB_URL` | `https://app.hapi.run` | - | Official web app origin, added to CORS when the relay is enabled |
+| `HAMLET_WEB_PUSH_FOREGROUND` | `false` | `webPushForeground` | Send Web Push alongside foreground in-page notifications; native-delivery deduplication still applies |
 | `VAPID_SUBJECT` | `mailto:admin@hapi.run` | - | Web Push contact info |
-| `HAPI_ANDROID_PUSH` | `auto` | `androidPushMode` | Android push: official relay by default, direct FCM when private credentials are configured; also accepts `relay`, `fcm`, `off` |
-| `HAPI_IOS_PUSH` | `relay` | `iosPushMode` | iOS push: `relay`, direct `apns`, or `off` |
-| `HAPI_PUSH_RELAY_URL` | `https://push.hapi.run` | `iosPushRelayUrl` | Shared Android/iOS push relay, independent of the network tunnel |
+| `HAMLET_ANDROID_PUSH` | `auto` | `androidPushMode` | Android push: official relay by default, direct FCM when private credentials are configured; also accepts `relay`, `fcm`, `off` |
+| `HAMLET_IOS_PUSH` | `relay` | `iosPushMode` | iOS push: `relay`, direct `apns`, or `off` |
+| `HAMLET_PUSH_RELAY_URL` | `https://push.hapi.run` | `iosPushRelayUrl` | Shared Android/iOS push relay, independent of the network tunnel |
 | `FCM_SERVICE_ACCOUNT_PATH` | - | `fcmServiceAccountPath` | Direct FCM credentials for private builds using the same Firebase project |
-| `HAPI_HOME` | `~/.hapi` | - | Config directory path |
-| `DB_PATH` | `~/.hapi/hapi.db` | - | Database file path |
-| `HAPI_EXPERIMENTAL` | - | - | CLI: enable experimental features (`true`/`1`/`yes`) |
+| `HAMLET_HOME` | `~/.hamlet` | - | Config directory path |
+| `DB_PATH` | `~/.hamlet/hamlet.db` | - | Database file path |
+| `HAMLET_EXPERIMENTAL` | - | - | CLI: enable experimental features (`true`/`1`/`yes`) |
 | `ELEVENLABS_API_KEY` | - | Settings / env | ElevenLabs API key for voice + dictation |
 | `ELEVENLABS_AGENT_ID` | Auto-created | - | Custom ElevenLabs agent ID |
 | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | - | Settings / env | Gemini Live voice assistant |
@@ -200,17 +200,17 @@ On first run, HAPI:
 | `TRANSCRIPTION_BASE_URL` | - | Settings / env | OpenAI-compatible/local transcription base URL |
 | `TRANSCRIPTION_MODEL` | - | Settings / env | Model for the OpenAI-compatible transcription endpoint |
 | `TRANSCRIPTION_API_KEY` | - | Settings / env | Optional bearer token for that endpoint |
-| `HAPI_TITLE_PROVIDER_BASE_URL` | - | - | Server-only OpenAI-compatible Chat Completions base URL for generated session titles |
-| `HAPI_TITLE_PROVIDER_API_KEY` | - | - | Server-only API key for generated session titles; never sent to the browser |
-| `HAPI_TITLE_PROVIDER_MODEL` | - | - | Server-only lightweight model used for generated session titles |
-| `HAPI_TITLE_SUGGESTION_RATE_LIMIT` | `5` | - | Maximum title suggestions per session in the rate-limit window |
-| `HAPI_TITLE_SUGGESTION_RATE_WINDOW_MS` | `600000` | - | Title suggestion rate-limit window in milliseconds |
-| `HAPI_TITLE_PROVIDER_MAX_TOKENS` | `64` | - | Maximum completion-token budget per generated title; raise for reasoning-model providers |
-| `HAPI_TITLE_PROVIDER_TIMEOUT_MS` | `10000` | - | Title provider request timeout in milliseconds |
+| `HAMLET_TITLE_PROVIDER_BASE_URL` | - | - | Server-only OpenAI-compatible Chat Completions base URL for generated session titles |
+| `HAMLET_TITLE_PROVIDER_API_KEY` | - | - | Server-only API key for generated session titles; never sent to the browser |
+| `HAMLET_TITLE_PROVIDER_MODEL` | - | - | Server-only lightweight model used for generated session titles |
+| `HAMLET_TITLE_SUGGESTION_RATE_LIMIT` | `5` | - | Maximum title suggestions per session in the rate-limit window |
+| `HAMLET_TITLE_SUGGESTION_RATE_WINDOW_MS` | `600000` | - | Title suggestion rate-limit window in milliseconds |
+| `HAMLET_TITLE_PROVIDER_MAX_TOKENS` | `64` | - | Maximum completion-token budget per generated title; raise for reasoning-model providers |
+| `HAMLET_TITLE_PROVIDER_TIMEOUT_MS` | `10000` | - | Title provider request timeout in milliseconds |
 </details>
 
 The session rename dialog's **Generate** action is unavailable until all three
-`HAPI_TITLE_PROVIDER_*` variables are configured on the Hub. The provider is
+`HAMLET_TITLE_PROVIDER_*` variables are configured on the Hub. The provider is
 called only on demand; the existing manual rename flow does not require these
 variables. Each request sends recent visible user/assistant conversation text
 (up to 200 stored messages and a bounded prompt) to that configured provider.
@@ -221,7 +221,7 @@ variables. Each request sends recent visible user/assistant conversation text
 Configuration priority: **ENV > settings.json > default**
 
 When ENV values are set and not present in settings.json, they are automatically saved.
-`HAPI_EXTRA_HEADERS_JSON` is not automatically saved, so access credentials are not persisted unexpectedly.
+`HAMLET_EXTRA_HEADERS_JSON` is not automatically saved, so access credentials are not persisted unexpectedly.
 
 ```json
 {
@@ -240,29 +240,29 @@ JSON Schema: [settings.schema.json](https://hapi.run/docs/schemas/settings.schem
 
 ## CLI setup
 
-If the hub is not on localhost, set these before running `hapi`:
+If the hub is not on localhost, set these before running `hamlet`:
 
 ```bash
-export HAPI_API_URL="http://your-hub:3006"
+export HAMLET_API_URL="http://your-hub:3006"
 export CLI_API_TOKEN="your-token-here"
-export HAPI_EXTRA_HEADERS_JSON='{"Cookie":"CF_Authorization=..."}'
+export HAMLET_EXTRA_HEADERS_JSON='{"Cookie":"CF_Authorization=..."}'
 ```
 
 Or use interactive login:
 
 ```bash
-hapi auth login
+hamlet auth login
 ```
 
 Authentication commands:
 
 ```bash
-hapi auth status
-hapi auth login
-hapi auth logout
+hamlet auth status
+hamlet auth login
+hamlet auth logout
 ```
 
-Each machine gets a unique ID stored in `~/.hapi/settings.json`. This allows:
+Each machine gets a unique ID stored in `~/.hamlet/settings.json`. This allows:
 
 - Multiple machines to connect to one hub
 - Remote session spawning on specific machines
@@ -270,11 +270,11 @@ Each machine gets a unique ID stored in `~/.hapi/settings.json`. This allows:
 
 ### Diagnostics
 
-Run `hapi doctor` for a full diagnostics report: configuration, runner status, logs, and relevant environment info.
+Run `hamlet doctor` for a full diagnostics report: configuration, runner status, logs, and relevant environment info.
 
 ```bash
-hapi doctor          # Diagnostics report
-hapi doctor clean    # Kill runaway hapi processes
+hamlet doctor          # Diagnostics report
+hamlet doctor clean    # Kill runaway hamlet processes
 ```
 
 ## Runner setup
@@ -282,10 +282,10 @@ hapi doctor clean    # Kill runaway hapi processes
 Run a background service for remote session spawning:
 
 ```bash
-hapi runner start
-hapi runner status
-hapi runner logs
-hapi runner stop
+hamlet runner start
+hamlet runner status
+hamlet runner logs
+hamlet runner stop
 ```
 
 With the runner running:
@@ -296,14 +296,14 @@ With the runner running:
 
 #### Split hub + remote runner (peer discovery)
 
-When the hub runs on one host and the runner on another, agents inside runner-spawned sessions should discover peers via MCP **`list_peers`** (same hub credentials as the session CLI). Prefer that over shelling `hapi ping-peer --list`.
+When the hub runs on one host and the runner on another, agents inside runner-spawned sessions should discover peers via MCP **`list_peers`** (same hub credentials as the session CLI). Prefer that over shelling `hamlet ping-peer --list`.
 
 ```
-[Hub host]  hapi hub          ← sessions DB + /api/sessions
+[Hub host]  hamlet hub          ← sessions DB + /api/sessions
      ▲
-     │ HAPI_API_URL + CLI_API_TOKEN
+     │ HAMLET_API_URL + CLI_API_TOKEN
      │
-[Runner host]  hapi runner start  → spawns session CLIs
+[Runner host]  hamlet runner start  → spawns session CLIs
                      │
                      ▼
               agent session  → MCP list_peers / inspect_peer / ping_peer
@@ -312,25 +312,25 @@ When the hub runs on one host and the runner on another, agents inside runner-sp
 On the runner host, configure the **same** hub URL and token the hub uses:
 
 ```bash
-export HAPI_API_URL="http://your-hub:3006"   # or Tailscale / public URL
+export HAMLET_API_URL="http://your-hub:3006"   # or Tailscale / public URL
 export CLI_API_TOKEN="your-token-here"
-# or: hapi auth login   # saves the token; still set HAPI_API_URL for a remote hub
-hapi runner start
+# or: hamlet auth login   # saves the token; still set HAMLET_API_URL for a remote hub
+hamlet runner start
 ```
 
-Session CLI may export an **explicit** non-default `HAPI_API_URL` (from env or settings) into child env so shell helpers hit the same remote hub. It does **not** mirror `CLI_API_TOKEN` into wrapped agents (settings/prompt-backed secrets stay out of agent env; a fresh `hapi` re-reads `~/.hapi/settings.json`, and systemd/env tokens already inherit). Prefer MCP `list_peers` inside a session. Web terminal PTYs still strip hub secrets. If `--list` fails with an auth/URL error, the message points at `hapi auth login` and the configured hub URL.
+Session CLI may export an **explicit** non-default `HAMLET_API_URL` (from env or settings) into child env so shell helpers hit the same remote hub. It does **not** mirror `CLI_API_TOKEN` into wrapped agents (settings/prompt-backed secrets stay out of agent env; a fresh `hamlet` re-reads `~/.hamlet/settings.json`, and systemd/env tokens already inherit). Prefer MCP `list_peers` inside a session. Web terminal PTYs still strip hub secrets. If `--list` fails with an auth/URL error, the message points at `hamlet auth login` and the configured hub URL.
 
 Additional runner commands:
 
 ```bash
-hapi runner list                      # List active sessions
-hapi runner stop-session <sessionId>  # Stop a single session managed by the runner
+hamlet runner list                      # List active sessions
+hamlet runner stop-session <sessionId>  # Stop a single session managed by the runner
 ```
 
 Use `--workspace-root <path>` to restrict which directories the runner can browse and spawn sessions in. Repeat the flag to allow multiple directories; supports `~` expansion:
 
 ```bash
-hapi runner start --workspace-root ~/projects --workspace-root ~/work
+hamlet runner start --workspace-root ~/projects --workspace-root ~/work
 ```
 
 Without `--workspace-root`, directory browsing and spawning both accept paths
@@ -338,11 +338,11 @@ anywhere the runner's OS account can access. The iOS directory picker starts
 at the home directory and can navigate above it. Configuring roots restricts
 both browsing and spawning to those roots, including symlink targets.
 
-For running the hub and runner as persistent background services (pm2, launchd, systemd), see [Deployment](./deployment.md). Supervised installs should set `HAPI_RUNNER_SUPERVISED=1` on the runner process (systemd `Environment=` / pm2 `--env`) so the web **Restart** control can safely stop-runner knowing the supervisor will cold-start it.
+For running the hub and runner as persistent background services (pm2, launchd, systemd), see [Deployment](./deployment.md). Supervised installs should set `HAMLET_RUNNER_SUPERVISED=1` on the runner process (systemd `Environment=` / pm2 `--env`) so the web **Restart** control can safely stop-runner knowing the supervisor will cold-start it.
 
 ### Multi-machine hubs
 
-You can run **one hub** and **runners on many machines** (each machine installs its own CLI). When you upgrade the hub, upgrade the HAPI CLI on every machine that parents sessions. After the CLI binary on disk changes, that machine’s runner normally **self-restarts** via version handoff (unless `HAPI_DISABLE_VERSION_HANDOFF=1`). Until a runner reports the capabilities the hub requires, the web UI shows a **Runner out of date** banner (minimizable / snoozeable) with the host name and upgrade steps. The banner’s per-host **Restart** is only an escape hatch when handoff is stuck or disabled — the hub never downloads or installs packages on remotes.
+You can run **one hub** and **runners on many machines** (each machine installs its own CLI). When you upgrade the hub, upgrade the HAMLET CLI on every machine that parents sessions. After the CLI binary on disk changes, that machine’s runner normally **self-restarts** via version handoff (unless `HAMLET_DISABLE_VERSION_HANDOFF=1`). Until a runner reports the capabilities the hub requires, the web UI shows a **Runner out of date** banner (minimizable / snoozeable) with the host name and upgrade steps. The banner’s per-host **Restart** is only an escape hatch when handoff is stuck or disabled — the hub never downloads or installs packages on remotes.
 
 ## Security notes
 

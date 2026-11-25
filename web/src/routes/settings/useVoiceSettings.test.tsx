@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import type { TranscriptionProviderInfo } from '@hapi/protocol/voice'
+import type { TranscriptionProviderInfo } from '@hamlet/protocol/voice'
 import { I18nProvider } from '@/lib/i18n-context'
 import { useVoiceSettings } from './useVoiceSettings'
 
@@ -57,11 +57,11 @@ describe('useVoiceSettings', () => {
         await waitFor(() => expect(result.current.voices[0]?.id).toBe('dynamic-1'))
         act(() => result.current.setVoice('dynamic-1'))
 
-        expect(localStorage.getItem('hapi-voice-elevenlabs')).toBe('dynamic-1')
+        expect(localStorage.getItem('hamlet-voice-elevenlabs')).toBe('dynamic-1')
     })
 
     it('switches configured backends and restores the backend-specific selection', async () => {
-        localStorage.setItem('hapi-voice-elevenlabs', 'eleven-1')
+        localStorage.setItem('hamlet-voice-elevenlabs', 'eleven-1')
         fetchVoiceBackend.mockResolvedValue({
             backend: 'gemini-live',
             backends: ['gemini-live', 'elevenlabs'],
@@ -73,7 +73,7 @@ describe('useVoiceSettings', () => {
 
         expect(result.current.backend).toBe('elevenlabs')
         expect(result.current.voiceId).toBe('eleven-1')
-        expect(localStorage.getItem('hapi-voice-backend')).toBe('elevenlabs')
+        expect(localStorage.getItem('hamlet-voice-backend')).toBe('elevenlabs')
     })
 
     it('stops a playing preview when the picker unmounts', async () => {
@@ -97,7 +97,7 @@ describe('useVoiceSettings', () => {
         }
         Object.defineProperty(MockSpeechRecognition.prototype, 'processLocally', { value: false })
         vi.stubGlobal('SpeechRecognition', MockSpeechRecognition)
-        localStorage.setItem('hapi-transcription-mode', 'standard')
+        localStorage.setItem('hamlet-transcription-mode', 'standard')
 
         const { result } = renderHook(() => useVoiceSettings(), { wrapper: Wrapper })
 
@@ -117,7 +117,7 @@ describe('useVoiceSettings', () => {
         }
         Object.defineProperty(MockSpeechRecognition.prototype, 'processLocally', { value: false })
         vi.stubGlobal('SpeechRecognition', MockSpeechRecognition)
-        localStorage.setItem('hapi-transcription-provider', 'browser-local')
+        localStorage.setItem('hamlet-transcription-provider', 'browser-local')
 
         const { result } = renderHook(() => useVoiceSettings(), { wrapper: Wrapper })
 

@@ -13,10 +13,10 @@ function parseArgsJson(raw: string): string[] {
     try {
         value = JSON.parse(raw)
     } catch {
-        throw new Error('HAPI_DSH_ACP_ARGS_JSON must be a JSON array of strings')
+        throw new Error('HAMLET_DSH_ACP_ARGS_JSON must be a JSON array of strings')
     }
     if (!Array.isArray(value) || value.some((arg) => typeof arg !== 'string')) {
-        throw new Error('HAPI_DSH_ACP_ARGS_JSON must be a JSON array of strings')
+        throw new Error('HAMLET_DSH_ACP_ARGS_JSON must be a JSON array of strings')
     }
     return value
 }
@@ -25,11 +25,11 @@ export function resolveDshAcpCommand(env: DshAcpEnvironment = process.env): {
     command: string
     args: string[]
 } {
-    const command = env.HAPI_DSH_ACP_COMMAND?.trim() || 'dsh-acp-demo'
-    if (env.HAPI_DSH_ACP_ARGS_JSON?.trim()) {
-        return { command, args: parseArgsJson(env.HAPI_DSH_ACP_ARGS_JSON.trim()) }
+    const command = env.HAMLET_DSH_ACP_COMMAND?.trim() || 'dsh-acp-demo'
+    if (env.HAMLET_DSH_ACP_ARGS_JSON?.trim()) {
+        return { command, args: parseArgsJson(env.HAMLET_DSH_ACP_ARGS_JSON.trim()) }
     }
-    const config = env.HAPI_DSH_ACP_CONFIG?.trim()
+    const config = env.HAMLET_DSH_ACP_CONFIG?.trim()
     return { command, args: config ? ['--config', config] : [] }
 }
 

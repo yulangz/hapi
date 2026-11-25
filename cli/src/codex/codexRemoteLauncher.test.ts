@@ -19,11 +19,11 @@ const harness = vi.hoisted(() => ({
     listSkillsCalls: [] as unknown[],
     skillsListResponse: {
         data: [{
-            cwd: '/tmp/hapi-update',
+            cwd: '/tmp/hamlet-update',
             skills: [{
-                name: 'hapi',
-                description: 'Manage HAPI',
-                path: '/home/user/.agents/skills/hapi/SKILL.md',
+                name: 'hamlet',
+                description: 'Manage HAMLET',
+                path: '/home/user/.agents/skills/hamlet/SKILL.md',
                 scope: 'user',
                 enabled: true
             }],
@@ -432,7 +432,7 @@ vi.mock('./codexAppServerClient', () => {
                         item: {
                             id: 'title-parent',
                             type: 'mcpToolCall',
-                            server: 'hapi',
+                            server: 'hamlet',
                             tool: 'change_title',
                             arguments: { title: 'Parent Title' }
                         },
@@ -446,7 +446,7 @@ vi.mock('./codexAppServerClient', () => {
                         item: {
                             id: 'title-parent',
                             type: 'mcpToolCall',
-                            server: 'hapi',
+                            server: 'hamlet',
                             tool: 'change_title',
                             result: {
                                 content: [
@@ -466,7 +466,7 @@ vi.mock('./codexAppServerClient', () => {
                         id: 'cmd-1',
                         type: 'commandExecution',
                         command: 'echo ok',
-                        cwd: '/tmp/hapi-update'
+                        cwd: '/tmp/hamlet-update'
                     }
                 };
                 harness.notifications.push({ method: 'item/started', params: commandStart });
@@ -781,7 +781,7 @@ vi.mock('./codexAppServerClient', () => {
                     item: {
                         id: 'title-child',
                         type: 'mcpToolCall',
-                        server: 'hapi',
+                        server: 'hamlet',
                         tool: 'change_title',
                         arguments: { title: 'Child Title' }
                     },
@@ -795,7 +795,7 @@ vi.mock('./codexAppServerClient', () => {
                     item: {
                         id: 'title-child',
                         type: 'mcpToolCall',
-                        server: 'hapi',
+                        server: 'hamlet',
                         tool: 'change_title',
                         result: {
                             content: [
@@ -1092,8 +1092,8 @@ vi.mock('./codexAppServerClient', () => {
     };
 });
 
-vi.mock('./utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async (_client: unknown, options?: unknown) => {
+vi.mock('./utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async (_client: unknown, options?: unknown) => {
         harness.bridgeOptions.push(options);
         return {
         server: {
@@ -1106,7 +1106,7 @@ vi.mock('./utils/buildHapiMcpBridge', () => ({
 
 import { codexRemoteLauncher, isCurrentSteerHandler } from './codexRemoteLauncher';
 import { INDETERMINATE_SYMBOL } from './codexAppServerClient';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 type FakeAgentState = {
     requests: Record<string, unknown>;
@@ -1184,8 +1184,8 @@ function createSessionStub(
     };
 
     const session = {
-        path: '/tmp/hapi-update',
-        logPath: '/tmp/hapi-update/test.log',
+        path: '/tmp/hamlet-update',
+        logPath: '/tmp/hamlet-update/test.log',
         client,
         queue,
         codexArgs: undefined,
@@ -1415,11 +1415,11 @@ describe('codexRemoteLauncher', () => {
         harness.listSkillsCalls = [];
         harness.skillsListResponse = {
             data: [{
-                cwd: '/tmp/hapi-update',
+                cwd: '/tmp/hamlet-update',
                 skills: [{
-                    name: 'hapi',
-                    description: 'Manage HAPI',
-                    path: '/home/user/.agents/skills/hapi/SKILL.md',
+                    name: 'hamlet',
+                    description: 'Manage HAMLET',
+                    path: '/home/user/.agents/skills/hamlet/SKILL.md',
                     scope: 'user',
                     enabled: true
                 }],
@@ -1512,7 +1512,7 @@ describe('codexRemoteLauncher', () => {
         expect(harness.startThreadParams[0]?.threadSource).toBe('user');
         expect(harness.initializeCalls).toEqual([{
             clientInfo: {
-                name: 'hapi-codex-client',
+                name: 'hamlet-codex-client',
                 version: '1.0.0'
             },
             capabilities: {
@@ -1520,7 +1520,7 @@ describe('codexRemoteLauncher', () => {
             }
         }]);
         expect(harness.configReadCalls).toEqual([{
-            cwd: '/tmp/hapi-update',
+            cwd: '/tmp/hamlet-update',
             includeLayers: false
         }]);
         expect(harness.setFeatureEnablementCalls).toEqual([{ enablement: { goals: true } }]);
@@ -1641,21 +1641,21 @@ describe('codexRemoteLauncher', () => {
     });
 
     it('uses the native skill catalog for completion and structured turn input', async () => {
-        const { session, rpcHandlers } = createSessionStub(['$hapi inspect']);
+        const { session, rpcHandlers } = createSessionStub(['$hamlet inspect']);
 
         await codexRemoteLauncher(session as never);
 
         expect(harness.listSkillsCalls).toEqual([{
-            cwds: ['/tmp/hapi-update'],
+            cwds: ['/tmp/hamlet-update'],
             forceReload: false
         }]);
         expect(Array.from(rpcHandlers.keys())).toContain('listSkills');
         expect(await rpcHandlers.get('listSkills')?.({})).toEqual({
             success: true,
-            skills: [{ name: 'hapi', description: 'Manage HAPI' }]
+            skills: [{ name: 'hamlet', description: 'Manage HAMLET' }]
         });
         expect(harness.startTurnParams[0]?.input).toEqual([
-            { type: 'skill', name: 'hapi', path: '/home/user/.agents/skills/hapi/SKILL.md' },
+            { type: 'skill', name: 'hamlet', path: '/home/user/.agents/skills/hamlet/SKILL.md' },
             { type: 'text', text: ' inspect' }
         ]);
     });
@@ -1663,7 +1663,7 @@ describe('codexRemoteLauncher', () => {
     it('keeps the filesystem skill handler when native discovery reports errors', async () => {
         harness.skillsListResponse = {
             data: [{
-                cwd: '/tmp/hapi-update',
+                cwd: '/tmp/hamlet-update',
                 skills: [],
                 errors: ['failed to read skills']
             }]
@@ -1681,7 +1681,7 @@ describe('codexRemoteLauncher', () => {
         await codexRemoteLauncher(session as never);
         harness.skillsListResponse = {
             data: [{
-                cwd: '/tmp/hapi-update',
+                cwd: '/tmp/hamlet-update',
                 skills: [{
                     name: 'new-skill',
                     description: 'New skill',
@@ -1696,7 +1696,7 @@ describe('codexRemoteLauncher', () => {
         harness.dispatchNotification?.('skills/changed', {});
         await vi.waitFor(() => {
             expect(harness.listSkillsCalls.at(-1)).toEqual({
-                cwds: ['/tmp/hapi-update'],
+                cwds: ['/tmp/hamlet-update'],
                 forceReload: true
             });
         });
@@ -2704,7 +2704,7 @@ describe('codexRemoteLauncher', () => {
             callId: 'cmd-1',
             output: expect.objectContaining({
                 command: 'echo ok',
-                cwd: '/tmp/hapi-update',
+                cwd: '/tmp/hamlet-update',
                 stdout: 'ok\n',
                 exit_code: 0
             })
@@ -3087,7 +3087,7 @@ describe('codexRemoteLauncher', () => {
             type: 'token_count',
             flavor: 'codex',
             thread_id: 'thread-1',
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache',
             scope_role: 'parent',
             scope: expect.objectContaining({
@@ -3307,7 +3307,7 @@ describe('codexRemoteLauncher', () => {
         }));
     });
 
-    it('applies parent-thread hapi change_title after disabling MCP-side title writes', async () => {
+    it('applies parent-thread hamlet change_title after disabling MCP-side title writes', async () => {
         harness.emitParentTitleChange = true;
         const { session, codexMessages, summaryMessages } = createSessionStub();
 
@@ -3320,7 +3320,7 @@ describe('codexRemoteLauncher', () => {
         }));
         expect(codexMessages).toContainEqual(expect.objectContaining({
             type: 'tool-call',
-            name: 'mcp__hapi__change_title',
+            name: 'mcp__hamlet__change_title',
             callId: 'title-parent',
             input: { title: 'Parent Title' }
         }));

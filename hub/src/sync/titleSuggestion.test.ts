@@ -57,18 +57,18 @@ describe('title suggestion input preparation', () => {
 describe('OpenAI-compatible title provider', () => {
     it('reads server-only provider settings and posts a chat completion request', async () => {
         expect(readTitleProviderConfig({
-            HAPI_TITLE_PROVIDER_BASE_URL: 'https://example.test/v1',
-            HAPI_TITLE_PROVIDER_API_KEY: 'secret',
-            HAPI_TITLE_PROVIDER_MODEL: 'small-model'
+            HAMLET_TITLE_PROVIDER_BASE_URL: 'https://example.test/v1',
+            HAMLET_TITLE_PROVIDER_API_KEY: 'secret',
+            HAMLET_TITLE_PROVIDER_MODEL: 'small-model'
         })).toEqual({
             baseUrl: 'https://example.test/v1',
             apiKey: 'secret',
             model: 'small-model'
         })
-        expect(readTitleProviderConfig({ HAPI_TITLE_PROVIDER_API_KEY: 'secret' })).toBeNull()
+        expect(readTitleProviderConfig({ HAMLET_TITLE_PROVIDER_API_KEY: 'secret' })).toBeNull()
         expect(readTitleSuggestionLimits({
-            HAPI_TITLE_SUGGESTION_RATE_LIMIT: '2',
-            HAPI_TITLE_SUGGESTION_RATE_WINDOW_MS: '60000'
+            HAMLET_TITLE_SUGGESTION_RATE_LIMIT: '2',
+            HAMLET_TITLE_SUGGESTION_RATE_WINDOW_MS: '60000'
         })).toEqual({ rateLimit: 2, rateWindowMs: 60_000 })
 
         let request: Request | undefined
@@ -103,11 +103,11 @@ describe('OpenAI-compatible title provider', () => {
     it('honors env-tunable max_tokens and timeout', async () => {
         expect(readTitleProviderRequestLimits({})).toEqual({ maxTokens: 64, timeoutMs: 10_000 })
         expect(readTitleProviderRequestLimits({
-            HAPI_TITLE_PROVIDER_MAX_TOKENS: '4096',
-            HAPI_TITLE_PROVIDER_TIMEOUT_MS: '90000'
+            HAMLET_TITLE_PROVIDER_MAX_TOKENS: '4096',
+            HAMLET_TITLE_PROVIDER_TIMEOUT_MS: '90000'
         })).toEqual({ maxTokens: 4096, timeoutMs: 90_000 })
         // Invalid values fall back to the defaults instead of breaking startup.
-        expect(readTitleProviderRequestLimits({ HAPI_TITLE_PROVIDER_MAX_TOKENS: '-5' })).toEqual({ maxTokens: 64, timeoutMs: 10_000 })
+        expect(readTitleProviderRequestLimits({ HAMLET_TITLE_PROVIDER_MAX_TOKENS: '-5' })).toEqual({ maxTokens: 64, timeoutMs: 10_000 })
 
         let request: Request | undefined
         const provider = new OpenAICompatibleTitleProvider(

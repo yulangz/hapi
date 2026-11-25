@@ -20,12 +20,12 @@ describe('useTerminalToolDisplayMode helpers', () => {
     it('falls back to the default display mode for missing or invalid storage values', () => {
         expect(getInitialTerminalToolDisplayMode()).toBe(DEFAULT_TERMINAL_TOOL_DISPLAY_MODE)
 
-        window.localStorage.setItem('hapi-terminal-tool-display-mode', 'invalid')
+        window.localStorage.setItem('hamlet-terminal-tool-display-mode', 'invalid')
         expect(getInitialTerminalToolDisplayMode()).toBe(DEFAULT_TERMINAL_TOOL_DISPLAY_MODE)
     })
 
     it('reads a valid stored terminal tool display mode', () => {
-        window.localStorage.setItem('hapi-terminal-tool-display-mode', 'detailed')
+        window.localStorage.setItem('hamlet-terminal-tool-display-mode', 'detailed')
 
         expect(getInitialTerminalToolDisplayMode()).toBe('detailed')
     })

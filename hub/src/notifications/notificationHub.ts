@@ -1,5 +1,5 @@
 import type { Session, SyncEngine, SyncEvent } from '../sync/syncEngine'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
 import type { NotificationSendContext } from './notificationSendContext'
 import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
@@ -183,7 +183,7 @@ export class NotificationHub {
         // still active. Permission/input requests use their own channel below.
         if (this.hasActiveCodexGoal(session)) {
             this.pendingGoalReady.add(sessionId)
-            if (process.env.HAPI_NOTIFY_DEBUG === '1') {
+            if (process.env.HAMLET_NOTIFY_DEBUG === '1') {
                 console.log(`[NotificationHub] Suppressed intermediate ready session=${session.id} goal=active`)
             }
             return

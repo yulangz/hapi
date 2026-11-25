@@ -11,7 +11,7 @@ import { findRuntime, runtimeAlive, runtimeAuthHash, runtimeMayBeAlive, saveRunt
 const directories: string[] = [];
 afterEach(async () => { state.processes.clear(); state.auth = 'token'; await Promise.all(directories.splice(0).map(path => rm(path, { recursive: true, force: true }))); });
 async function fixture(): Promise<CodexRuntimeRecord> {
-    const home = await mkdtemp(join(tmpdir(), 'hapi-owner-')); directories.push(home); state.home = join(home, 'hapi');
+    const home = await mkdtemp(join(tmpdir(), 'hamlet-owner-')); directories.push(home); state.home = join(home, 'hamlet');
     return { id: 'owner', pid: 1111, marker: 'worker-start', serverPid: 2222, serverMarker: 'server-start', command: 'codex', args: [],
         codexHome: join(home, 'codex'), endpoint: 'unix://private', hub: 'hub', authHash: runtimeAuthHash(),
         sessions: { sid: { threadId: 'thread', namespace: 'ns', active: true } } };
@@ -25,18 +25,18 @@ describe('shared runtime ownership', () => {
         await saveRuntime(owner);
         await expect(withThreadOwnership(owner.codexHome, 'thread', 'new', async () => {})).rejects.toThrow('orphaned');
     });
-    it('protects one native store even across HAPI homes and scopes attach by authentication', async () => {
+    it('protects one native store even across HAMLET homes and scopes attach by authentication', async () => {
         const owner = await fixture(); state.processes.set(1111, owner.marker); await saveRuntime(owner);
         expect(await findRuntime('sid')).toMatchObject({ id: owner.id });
         state.auth = 'other'; expect(await findRuntime('sid')).toBeUndefined();
-        state.home = join(directories[0], 'different-hapi');
-        await expect(withThreadOwnership(owner.codexHome, 'thread', 'new', async () => {})).rejects.toThrow('hapi resume sid');
+        state.home = join(directories[0], 'different-hamlet');
+        await expect(withThreadOwnership(owner.codexHome, 'thread', 'new', async () => {})).rejects.toThrow('hamlet resume sid');
         state.processes.clear(); expect(await withThreadOwnership(owner.codexHome, 'thread', 'new', async () => 'safe')).toBe('safe');
     });
     it('fails closed on corrupt records and unknown thread IDs after a creation timeout', async () => {
         const owner = await fixture(); owner.pendingCreations = ['unbound']; state.processes.set(1111, owner.marker); await saveRuntime(owner);
         await expect(withThreadOwnership(owner.codexHome, 'unknown-thread', 'new', async () => {})).rejects.toThrow('unconfirmed creation');
-        const directory = join(owner.codexHome, 'hapi-runtime-owners'); await mkdir(directory, { recursive: true });
+        const directory = join(owner.codexHome, 'hamlet-runtime-owners'); await mkdir(directory, { recursive: true });
         await writeFile(join(directory, 'broken.json'), '{');
         await expect(withThreadOwnership(owner.codexHome, 'thread', 'new', async () => {})).rejects.toThrow('Cannot verify');
     });

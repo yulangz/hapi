@@ -1,8 +1,8 @@
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { availableParallelism, cpus, freemem, loadavg, platform, totalmem, uptime } from 'node:os'
-import type { MachineHealth } from '@hapi/protocol/types'
-import { MachineHealthSchema } from '@hapi/protocol/schemas'
+import type { MachineHealth } from '@hamlet/protocol/types'
+import { MachineHealthSchema } from '@hamlet/protocol/schemas'
 
 type CpuTimesSnapshot = {
     idle: number

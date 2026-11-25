@@ -1,6 +1,6 @@
 # Native client contract
 
-**Audience:** Implementers of native HAPI clients — the iOS app (`ios/`), the Android app (`android/`), and any other non-web client that talks to a hub's client API. These pages are the primary spec for that work: every claim is grounded in hub/web source, and each section names its source file so implementers (human or AI agent) can verify against code.
+**Audience:** Implementers of native HAMLET clients — the iOS app (`ios/`), the Android app (`android/`), and any other non-web client that talks to a hub's client API. These pages are the primary spec for that work: every claim is grounded in hub/web source, and each section names its source file so implementers (human or AI agent) can verify against code.
 
 **Scope:** The HTTP contract between a client and one hub — pairing and auth, REST endpoints, SSE streaming, message pagination, message decoding, and error semantics. Core session/chat features use **REST + SSE**. Web terminals additionally use the JWT-authenticated Socket.IO `/terminal` namespace, outside this contract; `/cli` is the internal CLI↔hub namespace and is not a native-client API.
 
@@ -36,7 +36,7 @@ Source of truth: `hub/src/web/server.ts` (`/health` route), `shared/src/version.
 }
 ```
 
-- `protocolVersion` is the wire-protocol generation (`PROTOCOL_VERSION` in `shared/src/version.ts`, currently `1`), separate from app/hub release versions. Both native apps require it to equal their supported version and stop pairing on any mismatch. Sources: iOS `HapiClient/Auth/HubPairingService.swift`; Android `feature/pairing/PairingViewModel.kt`.
+- `protocolVersion` is the wire-protocol generation (`PROTOCOL_VERSION` in `shared/src/version.ts`, currently `1`), separate from app/hub release versions. Both native apps require it to equal their supported version and stop pairing on any mismatch. Sources: iOS `HamletClient/Auth/HubPairingService.swift`; Android `feature/pairing/PairingViewModel.kt`.
 - `capabilities` is **additive**: new hub features appear as new keys. Clients must ignore unknown keys and treat missing keys as "not supported". Feature-gate on capability keys, never on hub build versions.
 
 ## Executable spec: golden fixtures

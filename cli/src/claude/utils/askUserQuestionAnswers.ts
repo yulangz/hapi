@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 
 export function buildAskUserQuestionUpdatedInput(input: unknown, answers: Record<string, string[]> | Record<string, { answers: string[] }>): Record<string, unknown> {
     // Normalize incoming answers (web sends Record<questionIndex, string[]>;

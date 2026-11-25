@@ -11,7 +11,7 @@ import {
     type CodexMessage,
     type CodexSessionEvent
 } from './utils/codexEventConverter';
-import { buildHapiMcpBridge } from './utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from './utils/buildHamletMcpBridge';
 import { parseCodexCliOverrides, stripCodexCliOverrides } from './utils/codexCliOverrides';
 import { buildCodexPermissionModeCliArgs } from './utils/permissionModeConfig';
 import { BaseLocalLauncher } from '@/modules/common/launcher/BaseLocalLauncher';
@@ -88,9 +88,9 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
     const cwdOverride = parseCodexCliOverrides(session.codexArgs).cwd;
     const effectiveCodexCwd = cwdOverride ? resolve(session.path, cwdOverride) : session.path;
 
-    // Start hapi hub for MCP bridge (same as remote mode)
-    const { server: happyServer, mcpServers } = await buildHapiMcpBridge(session.client);
-    logger.debug(`[codex-local]: Started hapi MCP bridge server at ${happyServer.url}`);
+    // Start hamlet hub for MCP bridge (same as remote mode)
+    const { server: happyServer, mcpServers } = await buildHamletMcpBridge(session.client);
+    logger.debug(`[codex-local]: Started hamlet MCP bridge server at ${happyServer.url}`);
 
     const reportTranscriptSyncFailure = (transcriptPath: string, error: unknown): void => {
         const detail = error instanceof Error ? error.message : String(error);
@@ -225,7 +225,7 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
                 const scopedMessage = message.type !== 'token_count'
                     ? message
                     : context.replayedHistory
-                        ? { ...message, model: transcriptModel, hapiUsageScope: 'imported-history' }
+                        ? { ...message, model: transcriptModel, hamletUsageScope: 'imported-history' }
                         : primarySessionId
                             ? {
                                 ...message,
@@ -233,7 +233,7 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
                                 model: transcriptModel,
                                 threadId: primarySessionId,
                                 thread_id: primarySessionId,
-                                hapiUsageScope: 'managed'
+                                hamletUsageScope: 'managed'
                             }
                             : { ...message, flavor: 'codex', model: transcriptModel };
                 session.sendAgentMessage(scopedMessage);
@@ -301,7 +301,7 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
         const replayExistingHistory = session.shouldReplayTranscriptHistory();
         const createdScanner = await createCodexSessionScanner({
             transcriptPath,
-            // 中文注释：导入模式下允许 scanner 首次回放 transcript 全量内容，补齐 Codex 客户端里已有但 Hapi 还未看到的消息。
+            // 中文注释：导入模式下允许 scanner 首次回放 transcript 全量内容，补齐 Codex 客户端里已有但 Hamlet 还未看到的消息。
             replayExistingHistory,
             onReplayComplete: () => {
                 finalizeTranscriptConversion(true);
@@ -498,6 +498,6 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
         if (!hookReady) {
             logger.debug('[codex-local]: SessionStart hook did not provide transcript path before shutdown');
         }
-        logger.debug('[codex-local]: Stopped hapi MCP bridge server');
+        logger.debug('[codex-local]: Stopped hamlet MCP bridge server');
     }
 }

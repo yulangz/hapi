@@ -17,7 +17,7 @@
                 "tool": {
                     "id": "toolu_01PermDeny0001",
                     "input": {
-                        "command": "rm -rf /tmp/hapi-cache",
+                        "command": "rm -rf /tmp/hamlet-cache",
                         "description": "Delete the cache directory"
                     },
                     "name": "Bash",
@@ -48,7 +48,7 @@
                 "tool": {
                     "id": "toolu_01PermDeny0001",
                     "input": {
-                        "command": "rm -rf /tmp/hapi-cache",
+                        "command": "rm -rf /tmp/hamlet-cache",
                         "description": "Delete the cache directory"
                     },
                     "name": "Bash",
@@ -68,7 +68,7 @@
             "completedRequests": {
                 "toolu_01PermDeny0001": {
                     "arguments": {
-                        "command": "rm -rf /tmp/hapi-cache",
+                        "command": "rm -rf /tmp/hamlet-cache",
                         "description": "Delete the cache directory"
                     },
                     "completedAt": 1755000009100,
@@ -104,7 +104,7 @@
                                     {
                                         "id": "toolu_01PermDeny0001",
                                         "input": {
-                                            "command": "rm -rf /tmp/hapi-cache",
+                                            "command": "rm -rf /tmp/hamlet-cache",
                                             "description": "Delete the cache directory"
                                         },
                                         "name": "Bash",

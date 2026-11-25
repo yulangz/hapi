@@ -5,8 +5,8 @@ import { fetchGeminiToken } from '@/api/voice'
 import { GeminiAudioRecorder } from './gemini/audioRecorder'
 import { GeminiAudioPlayer } from './gemini/audioPlayer'
 import { handleGeminiFunctionCalls } from './gemini/toolAdapter'
-import { buildGeminiLiveSetupMessage } from '@hapi/protocol/voice'
-import { resolveGeminiLiveVoice } from '@hapi/protocol/voicePickerCatalog'
+import { buildGeminiLiveSetupMessage } from '@hamlet/protocol/voice'
+import { resolveGeminiLiveVoice } from '@hamlet/protocol/voicePickerCatalog'
 import {
     buildResolvedVoiceSystemPrompt,
     encodeVoiceSystemPromptForProxy,
@@ -152,7 +152,7 @@ class GeminiLiveVoiceSessionImpl implements VoiceSession {
             ws.onopen = () => {
                 if (DEBUG) console.log('[GeminiLive] WebSocket connected', isProxy ? '(hub sends setup)' : ', sending setup')
 
-                // Proxied sessions: hub sends HAPI-owned setup server-side (see gemini-ws proxy).
+                // Proxied sessions: hub sends HAMLET-owned setup server-side (see gemini-ws proxy).
                 if (!isProxy) {
                     ws.send(JSON.stringify(buildGeminiLiveSetupMessage(
                         config.language,

@@ -1,5 +1,7 @@
+import { join } from 'node:path'
+import { getConfiguration } from '../../configuration'
 import { Hono } from 'hono'
-import { isWildcardSearch, matchesSearchQuery, toSearchGlob } from '@hapi/protocol'
+import { isWildcardSearch, matchesSearchQuery, toSearchGlob } from '@hamlet/protocol'
 import { z } from 'zod'
 import type { SyncEngine } from '../../sync/syncEngine'
 import type { WebAppEnv } from '../middleware/auth'
@@ -185,6 +187,21 @@ export function createGitRoutes(getSyncEngine: () => SyncEngine | null): Hono<We
             })
         }
 
+        if (parsed.data.imageId.startsWith('hamlet:')) {
+            const asset = engine.hamlet.store.attachment(parsed.data.imageId.slice(7), sessionResult.sessionId)
+            if (!asset) return c.json({ error: 'Attachment unavailable' }, 404)
+            const inline = /^(image\/(png|jpeg|webp|gif|avif)|video\/(mp4|webm)|audio\/(mpeg|wav|ogg))$/.test(asset.mime)
+            const path = join(getConfiguration().dataDir, 'hamlet-attachments', asset.id)
+            return new Response(Bun.file(path), {
+                headers: {
+                    'Content-Type': asset.mime,
+                    'Content-Disposition': (inline ? 'inline' : 'attachment') + '; filename="' + encodeURIComponent(asset.name) + '"',
+                    'Cache-Control': GENERATED_IMAGE_CACHE_CONTROL,
+                    'X-Content-Type-Options': 'nosniff',
+                    ETag: etag
+                }
+            })
+        }
         const result = await runRpc(() => engine.readGeneratedImage(sessionResult.sessionId, parsed.data.imageId))
         if (!result.success || !result.content) {
             return c.json({ success: false, error: result.error ?? 'Generated image not found' }, 404)

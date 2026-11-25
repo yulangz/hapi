@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Box, Text, useInput, useStdout } from 'ink'
-import type { ResumableSession } from '@hapi/protocol'
+import type { ResumableSession } from '@hamlet/protocol'
 import {
     filterResumeSessions,
     formatResumeSessionRelativeTime,

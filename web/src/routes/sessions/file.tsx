@@ -25,7 +25,7 @@ import { downloadBase64File } from '@/lib/file-download'
 import { useCodeWrap } from '@/hooks/useCodeWrap'
 
 const MAX_COPYABLE_FILE_BYTES = 1_000_000
-const FILE_SCROLL_KEY_PREFIX = 'hapi-file-scroll-'
+const FILE_SCROLL_KEY_PREFIX = 'hamlet-file-scroll-'
 
 function getFileScrollStorageKey(sessionId: string, filePath: string, staged: boolean | undefined): string {
     return `${FILE_SCROLL_KEY_PREFIX}${sessionId}:${encodeURIComponent(filePath)}:${staged === true ? 'staged' : 'unstaged'}`
@@ -158,7 +158,7 @@ function FileContentHeader(props: {
 
     return (
         <div
-            data-hapi-file-content-header="true"
+            data-hamlet-file-content-header="true"
             className="flex items-center justify-between gap-3 bg-[var(--app-code-header-bg)] px-3 py-2"
         >
             <div className="min-w-0 flex-1 truncate font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--app-code-header-fg)]">
@@ -168,9 +168,9 @@ function FileContentHeader(props: {
                 {showWrapToggle ? (
                     <button
                         type="button"
-                        data-hapi-code-wrap-toggle="true"
-                        data-hapi-wrap-enable-label={props.wrapEnableLabel}
-                        data-hapi-wrap-disable-label={props.wrapDisableLabel}
+                        data-hamlet-code-wrap-toggle="true"
+                        data-hamlet-wrap-enable-label={props.wrapEnableLabel}
+                        data-hamlet-wrap-disable-label={props.wrapDisableLabel}
                         onClick={props.onToggleWrap}
                         className={`rounded-md p-1 transition-colors hover:bg-[var(--app-code-copy-hover-bg)] hover:text-[var(--app-fg)] ${props.codeWrap ? 'text-[var(--app-fg)]' : 'text-[var(--app-code-header-fg)]'}`}
                         title={wrapLabel}
@@ -468,7 +468,7 @@ export default function FilePage() {
                 </div>
             ) : null}
 
-            <div ref={fileScrollRef} data-hapi-file-scroll="true" className="app-scroll-y flex-1 min-h-0">
+            <div ref={fileScrollRef} data-hamlet-file-scroll="true" className="app-scroll-y flex-1 min-h-0">
                 <div className="mx-auto w-full max-w-content p-4">
                     {diffErrorMessage ? (
                         <div className="mb-3 rounded-md bg-amber-500/10 p-2 text-xs text-[var(--app-hint)]">
@@ -514,7 +514,7 @@ export default function FilePage() {
                                     </div>
                                 ) : (
                                     <div
-                                        data-hapi-file-source-preview="true"
+                                        data-hamlet-file-source-preview="true"
                                         className="min-w-0 max-w-full overflow-hidden rounded-md bg-[var(--app-code-bg)]"
                                     >
                                         <FileContentHeader

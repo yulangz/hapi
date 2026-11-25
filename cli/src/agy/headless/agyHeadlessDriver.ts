@@ -15,7 +15,7 @@ import { createNativeSessionTitleMetadataSync } from '@/agent/nativeSessionTitle
 import { readAgyConversationTitle } from '../utils/agySessionTitle';
 import { resolveAgyTurnModels } from '../utils/agyConversationModel';
 import { killProcessByChildProcess } from '@/utils/process';
-import { AGY_MODEL_LABELS } from '@hapi/protocol';
+import { AGY_MODEL_LABELS } from '@hamlet/protocol';
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand';
 
 const AGY_PRINT_TIMEOUT = '30m';
@@ -403,7 +403,7 @@ export class AgyHeadlessDriver extends RemoteLauncherBase {
                 ? sessionEffort
                 : undefined,
         });
-        // Never persist the user's prompt to the log (HAPI debug logs can be
+        // Never persist the user's prompt to the log (HAMLET debug logs can be
         // forwarded under remote-debug configuration); keep the spawn shape.
         const safeArgs = args.map((arg, index) => (args[index - 1] === '-p' ? '<redacted>' : arg));
         logger.debug(`[agy-headless] spawn: agy ${safeArgs.map((a) => (a.length > 80 ? `${a.slice(0, 80)}…` : a)).join(' ')}`);

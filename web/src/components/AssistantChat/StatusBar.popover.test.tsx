@@ -9,7 +9,7 @@ describe('StatusBar context details popover', () => {
     })
 
     it('keeps stable connection labels in English and offsets the whole left status', () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
         const { rerender } = render(
             <I18nProvider>
                 <StatusBar active thinking={false} agentState={null} />
@@ -169,7 +169,7 @@ describe('StatusBar context details popover', () => {
     })
 
     it('opens from the mobile-accessible context trigger and keeps the requested detail order', async () => {
-        localStorage.setItem('hapi-lang', 'zh-CN')
+        localStorage.setItem('hamlet-lang', 'zh-CN')
         render(
             <I18nProvider>
                 <StatusBar
@@ -218,7 +218,7 @@ describe('StatusBar context details popover', () => {
     })
 
     it('localizes the popover content without localizing the external left label', async () => {
-        localStorage.setItem('hapi-lang', 'en')
+        localStorage.setItem('hamlet-lang', 'en')
         render(
             <I18nProvider>
                 <StatusBar

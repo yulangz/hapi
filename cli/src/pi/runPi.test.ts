@@ -13,7 +13,7 @@ const harness = vi.hoisted(() => ({
     killCount: 0,
     cleanupCount: 0,
     session: {
-        sessionId: 'hapi-session-test',
+        sessionId: 'hamlet-session-test',
         keepAlive: vi.fn(),
         onUserMessage: vi.fn(),
         onCancelQueuedMessage: vi.fn(),
@@ -55,12 +55,12 @@ vi.mock('@/agent/runnerLifecycle', () => ({
 vi.mock('@/ui/logger', () => ({
     logger: {
         debug: vi.fn(),
-        getLogPath: vi.fn(() => '/tmp/hapi.log'),
+        getLogPath: vi.fn(() => '/tmp/hamlet.log'),
     },
 }));
 
 vi.mock('./titleExtension', () => ({
-    materializePiTitleExtension: vi.fn(async () => '/materialized/hapi-title-extension.ts'),
+    materializePiTitleExtension: vi.fn(async () => '/materialized/hamlet-title-extension.ts'),
 }));
 
 vi.mock('./piTransport', () => ({
@@ -98,7 +98,7 @@ import { buildPiCommandInventory, failPiHistoryOnRestoreError, formatPiUserMessa
 import { bootstrapExistingSession } from '@/agent/sessionFactory';
 import { PiSession } from './session';
 import { PiHistoryRestoreError } from './conversationHistory';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 async function replyToHistoryCommand(type: 'get_entries' | 'get_fork_messages', occurrence: number, data: unknown): Promise<void> {
     await vi.waitFor(() => {
@@ -144,7 +144,7 @@ describe('Pi command namespaces', () => {
         });
     });
 
-    it('rewrites HAPI $ skills to Pi native skill commands', () => {
+    it('rewrites HAMLET $ skills to Pi native skill commands', () => {
         expect(rewritePiSkillPrompt('$brave-search latest news', commands))
             .toBe('/skill:brave-search latest news');
         expect(rewritePiSkillPrompt('$new-skill now', [])).toBe('/skill:new-skill now');
@@ -189,7 +189,7 @@ describe('runPi startup', () => {
 
         expect(harness.transportOptions).toMatchObject({
             command: 'pi',
-            args: ['--mode', 'rpc', '--extension', '/materialized/hapi-title-extension.ts'],
+            args: ['--mode', 'rpc', '--extension', '/materialized/hamlet-title-extension.ts'],
             cwd: '/work',
         });
         expect(harness.sent).toEqual([
@@ -207,7 +207,7 @@ describe('runPi startup', () => {
 
         expect(harness.transportOptions).toMatchObject({
             command: 'pi',
-            args: ['--mode', 'rpc', '--extension', '/materialized/hapi-title-extension.ts', '--session', 'pi-session-123'],
+            args: ['--mode', 'rpc', '--extension', '/materialized/hamlet-title-extension.ts', '--session', 'pi-session-123'],
             cwd: '/work',
         });
         expect(harness.sent).toEqual([
@@ -217,16 +217,16 @@ describe('runPi startup', () => {
         ]);
     });
 
-    it('bootstraps the existing HAPI row for runner native resume', async () => {
+    it('bootstraps the existing HAMLET row for runner native resume', async () => {
         await runPi({
             workingDirectory: '/work',
-            existingSessionId: 'hapi-session-pi-1',
+            existingSessionId: 'hamlet-session-pi-1',
             resumeSessionId: 'pi-session-1',
             startedBy: 'runner',
         });
 
         expect(bootstrapExistingSession).toHaveBeenCalledWith({
-            sessionId: 'hapi-session-pi-1',
+            sessionId: 'hamlet-session-pi-1',
             flavor: 'pi',
             startedBy: 'runner',
             workingDirectory: '/work',
@@ -1327,7 +1327,7 @@ describe('Pi built-in slash commands', () => {
             type: 'compact', customInstructions: 'focus on the API design',
         })));
         // The /compact row is consumed at dispatch: slash commands are
-        // executed by HAPI and never delivered to Pi as prompts, so they must
+        // executed by HAMLET and never delivered to Pi as prompts, so they must
         // not linger in the web queued bar for the duration of the command.
         await vi.waitFor(() => expect(harness.session.emitMessagesConsumed).toHaveBeenCalledWith(['compact-id'], undefined));
         // Compaction keeps working for minutes without a Pi streaming event,
@@ -1866,7 +1866,7 @@ describe('Pi built-in slash commands', () => {
         await running;
     });
 
-    it('merges HAPI builtins with Pi extension commands in the slash-command list', async () => {
+    it('merges HAMLET builtins with Pi extension commands in the slash-command list', async () => {
         const { running } = await startReadySession();
         const slashHandler = harness.rpcHandlers.get(RPC_METHODS.ListSlashCommands)!;
 
@@ -1887,7 +1887,7 @@ describe('Pi built-in slash commands', () => {
         onUserMessage({ role: 'user', content: { type: 'text', text: '/compact' } }, 'ext-compact-id');
 
         // The menu lists the extension over the builtin, so the message must
-        // reach Pi as an ordinary prompt instead of the HAPI compact RPC.
+        // reach Pi as an ordinary prompt instead of the HAMLET compact RPC.
         await vi.waitFor(() => expect(harness.sent).toContainEqual(expect.objectContaining({
             type: 'prompt', message: '/compact',
         })));

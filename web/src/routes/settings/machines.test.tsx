@@ -7,9 +7,10 @@ import SettingsMachinesPage from '@/routes/settings/machines'
 
 const renameMachineMock = vi.fn()
 const machinesMock = vi.fn()
+const getRunnerInstallMock = vi.fn()
 
 vi.mock('@/lib/app-context', () => ({
-    useAppContext: () => ({ api: { renameMachine: renameMachineMock } }),
+    useAppContext: () => ({ api: { renameMachine: renameMachineMock, getRunnerInstall: getRunnerInstallMock } }),
 }))
 
 vi.mock('@/hooks/queries/useMachines', () => ({
@@ -54,10 +55,31 @@ describe('SettingsMachinesPage', () => {
         vi.clearAllMocks()
         renameMachineMock.mockResolvedValue(undefined)
         machinesMock.mockReturnValue([makeMachine()])
+        getRunnerInstallMock.mockResolvedValue({ hubUrl: 'https://hub.example' })
     })
 
     afterEach(() => {
         cleanup()
+    })
+
+    it('uses the configured Hub for the install command, script and four platform downloads', async () => {
+        renderPage()
+        await waitFor(() => expect(screen.getByText(/bash -c/).textContent).toContain('https://hub.example'))
+        const script = screen.getByRole('link', { name: 'Download install.py' })
+        expect(script.getAttribute('href')).toBe(window.location.origin + '/runner/install.py')
+        expect(screen.getByText(/bash -c/).textContent).toContain("'https://hub.example'")
+        for (const [os, label] of [['darwin', 'macOS'], ['linux', 'Linux']]) {
+            for (const [arch, name] of [['arm64', 'ARM64'], ['x64', 'x64']]) {
+                expect(screen.getByRole('link', { name: label + ' · ' + name }).getAttribute('href'))
+                    .toBe(window.location.origin + '/runner/hamlet-runner-' + os + '-' + arch + '.gz')
+            }
+        }
+    })
+
+    it('offers direct HTTP installation when the Hub advertises a LAN address', async () => {
+        getRunnerInstallMock.mockResolvedValue({ hubUrl: 'http://lan.example:13007' })
+        renderPage()
+        await waitFor(() => expect(screen.getByText(/bash -c/).textContent).toContain('--allow-http'))
     })
 
     it('falls back to the hostname and always shows host and platform', () => {

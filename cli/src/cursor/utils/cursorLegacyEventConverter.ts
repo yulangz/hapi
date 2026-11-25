@@ -1,5 +1,5 @@
 /**
- * Converts Cursor Agent stream-json events to HAPI AgentMessage format.
+ * Converts Cursor Agent stream-json events to HAMLET AgentMessage format.
  * Cursor emits NDJSON: system/init, thinking, assistant, tool_call, result.
  *
  * This legacy converter only runs for cursor sessions created before the
@@ -123,7 +123,7 @@ function extractToolResult(toolCall: Record<string, unknown>): unknown {
  * because there is no IDE surface to render the question. The agent's
  * model then treats this as legitimate user consent and acts on it.
  *
- * HAPI's legacy converter (this file) rewrites the result to a
+ * HAMLET's legacy converter (this file) rewrites the result to a
  * structured `no_input_surface` failure so downstream consumers (web
  * UI, Telegram, log readers) surface the fabrication as an error
  * instead of silently passing through fabricated consent.

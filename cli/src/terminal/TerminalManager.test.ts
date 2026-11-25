@@ -6,7 +6,7 @@ import {
 } from './TerminalManager'
 
 const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')
-const originalTerminalShell = process.env.HAPI_TERMINAL_SHELL
+const originalTerminalShell = process.env.HAMLET_TERMINAL_SHELL
 const originalComSpec = process.env.ComSpec
 const globalWithBun = globalThis as unknown as {
     Bun?: {
@@ -33,7 +33,7 @@ describe('TerminalManager Windows support', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         process.env.ComSpec = 'C:\\Windows\\System32\\cmd.exe'
-        process.env.HAPI_TERMINAL_SHELL = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
+        process.env.HAMLET_TERMINAL_SHELL = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
         setPlatform('win32')
     })
 
@@ -47,9 +47,9 @@ describe('TerminalManager Windows support', () => {
             globalWithBun.Bun = originalBun
         }
         if (originalTerminalShell === undefined) {
-            delete process.env.HAPI_TERMINAL_SHELL
+            delete process.env.HAMLET_TERMINAL_SHELL
         } else {
-            process.env.HAPI_TERMINAL_SHELL = originalTerminalShell
+            process.env.HAMLET_TERMINAL_SHELL = originalTerminalShell
         }
         if (originalComSpec === undefined) {
             delete process.env.ComSpec

@@ -46,7 +46,7 @@ type ThemePalette = {
     buttonText: string
 }
 
-const COLOR_THEME_KEY = 'hapi-color-theme'
+const COLOR_THEME_KEY = 'hamlet-color-theme'
 
 const COLOR_THEME_OPTIONS: ReadonlyArray<ColorThemeOption> = [
     { value: 'default', labelKey: 'settings.display.colorTheme.default', preview: { light: '#ffffff', dark: '#1c1c1e', accent: '#111827' } },
@@ -311,7 +311,7 @@ export function useColorTheme(): { colorTheme: ColorThemePreset; setColorTheme: 
             const nextTheme = parseColorTheme(event.newValue)
             setColorThemeState(nextTheme)
             applyColorTheme(nextTheme, getDocumentColorScheme())
-            window.dispatchEvent(new CustomEvent('hapi-color-theme-change', { detail: nextTheme }))
+            window.dispatchEvent(new CustomEvent('hamlet-color-theme-change', { detail: nextTheme }))
         }
         window.addEventListener('storage', onStorage)
         return () => window.removeEventListener('storage', onStorage)
@@ -325,7 +325,7 @@ export function useColorTheme(): { colorTheme: ColorThemePreset; setColorTheme: 
         } else {
             safeSetItem(COLOR_THEME_KEY, theme)
         }
-        window.dispatchEvent(new CustomEvent('hapi-color-theme-change', { detail: theme }))
+        window.dispatchEvent(new CustomEvent('hamlet-color-theme-change', { detail: theme }))
     }, [])
 
     return { colorTheme, setColorTheme }

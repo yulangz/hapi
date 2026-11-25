@@ -19,7 +19,7 @@ export type ReadAgyConversationTitle = (conversationId: string) => Promise<strin
 
 type QueryAgyConversationTitle = (conversationId: string) => Promise<unknown>
 
-/** Reads a native Anti-Gravity title and applies HAPI's placeholder filtering. */
+/** Reads a native Anti-Gravity title and applies HAMLET's placeholder filtering. */
 export async function readAgyConversationTitle(
     conversationId: string,
     query: QueryAgyConversationTitle = queryAgyConversationTitle,

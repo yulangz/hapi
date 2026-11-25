@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CREATABLE_AGENT_FLAVORS } from '@hapi/protocol'
+import { CREATABLE_AGENT_FLAVORS } from '@hamlet/protocol'
 import { resolveCommand } from './registry'
 
 describe('command registry', () => {

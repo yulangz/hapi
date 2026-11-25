@@ -4,10 +4,10 @@ import { resolveToolAutoApprovalDecision } from './BasePermissionHandler'
 describe('resolveToolAutoApprovalDecision skill_lookup', () => {
     it.each([
         'skill_lookup',
-        'hapi_skill_lookup',
+        'hamlet_skill_lookup',
         'happy__skill_lookup',
-        'mcp__hapi__skill_lookup'
-    ])('auto-approves the exact read-only HAPI tool name %s', (toolName) => {
+        'mcp__hamlet__skill_lookup'
+    ])('auto-approves the exact read-only HAMLET tool name %s', (toolName) => {
         expect(resolveToolAutoApprovalDecision(
             'default',
             toolName,
@@ -40,8 +40,8 @@ describe('resolveToolAutoApprovalDecision skill_lookup', () => {
 describe('resolveToolAutoApprovalDecision ping_peer', () => {
     it.each([
         'ping_peer',
-        'mcp__hapi__ping_peer',
-        'hapi_ping_peer',
+        'mcp__hamlet__ping_peer',
+        'hamlet_ping_peer',
         'Ping Peer Session'
     ])('does not auto-approve %s in default mode', (toolName) => {
         expect(resolveToolAutoApprovalDecision('default', toolName, 'call-1')).toBeNull()
@@ -49,8 +49,8 @@ describe('resolveToolAutoApprovalDecision ping_peer', () => {
 
     it.each([
         'ping_peer',
-        'mcp__hapi__ping_peer',
-        'hapi_ping_peer',
+        'mcp__hamlet__ping_peer',
+        'hamlet_ping_peer',
         'Ping Peer Session'
     ])('does not auto-approve %s in read-only mode', (toolName) => {
         expect(resolveToolAutoApprovalDecision('read-only', toolName, 'call-1')).toBeNull()
@@ -65,8 +65,8 @@ describe('resolveToolAutoApprovalDecision ping_peer', () => {
 describe('resolveToolAutoApprovalDecision inspect_peer', () => {
     it.each([
         'inspect_peer',
-        'mcp__hapi__inspect_peer',
-        'hapi_inspect_peer',
+        'mcp__hamlet__inspect_peer',
+        'hamlet_inspect_peer',
         'Inspect Peer Session'
     ])('does not auto-approve %s in default mode', (toolName) => {
         expect(resolveToolAutoApprovalDecision('default', toolName, 'call-1')).toBeNull()
@@ -74,8 +74,8 @@ describe('resolveToolAutoApprovalDecision inspect_peer', () => {
 
     it.each([
         'inspect_peer',
-        'mcp__hapi__inspect_peer',
-        'hapi_inspect_peer',
+        'mcp__hamlet__inspect_peer',
+        'hamlet_inspect_peer',
         'Inspect Peer Session'
     ])('does not auto-approve %s in read-only mode', (toolName) => {
         expect(resolveToolAutoApprovalDecision('read-only', toolName, 'call-1')).toBeNull()
@@ -85,9 +85,9 @@ describe('resolveToolAutoApprovalDecision inspect_peer', () => {
 describe('resolveToolAutoApprovalDecision list_peers', () => {
     it.each([
         'list_peers',
-        'hapi_list_peers',
+        'hamlet_list_peers',
         'happy__list_peers',
-        'mcp__hapi__list_peers',
+        'mcp__hamlet__list_peers',
         'List Peer Sessions'
     ])('auto-approves the exact discovery tool name %s', (toolName) => {
         expect(resolveToolAutoApprovalDecision('default', toolName, 'call-1')).toBe('approved')

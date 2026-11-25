@@ -12,7 +12,7 @@ export function getComposerEnterBehaviorOptions(): ReadonlyArray<{ value: Compos
 }
 
 function getComposerEnterBehaviorStorageKey(): string {
-    return 'hapi-composer-enter-behavior'
+    return 'hamlet-composer-enter-behavior'
 }
 
 function isBrowser(): boolean {

@@ -285,7 +285,7 @@ export const permissionCases: FixtureCase[] = [
                                         type: 'tool_use',
                                         id: 'toolu_01PermDeny0001',
                                         name: 'Bash',
-                                        input: { command: 'rm -rf /tmp/hapi-cache', description: 'Delete the cache directory' }
+                                        input: { command: 'rm -rf /tmp/hamlet-cache', description: 'Delete the cache directory' }
                                     }
                                 ]
                             }
@@ -299,7 +299,7 @@ export const permissionCases: FixtureCase[] = [
             completedRequests: {
                 toolu_01PermDeny0001: {
                     tool: 'Bash',
-                    arguments: { command: 'rm -rf /tmp/hapi-cache', description: 'Delete the cache directory' },
+                    arguments: { command: 'rm -rf /tmp/hamlet-cache', description: 'Delete the cache directory' },
                     createdAt: T0 + 2_600,
                     completedAt: T0 + 9_100,
                     status: 'denied',

@@ -1,8 +1,8 @@
 import { dirname } from 'node:path'
 import { isDeepStrictEqual } from 'node:util'
 import { Hono } from 'hono'
-import type { PiLocalSessionSummary, PiLocalSessionWithMessages } from '@hapi/protocol/apiTypes'
-import type { Metadata } from '@hapi/protocol/types'
+import type { PiLocalSessionSummary, PiLocalSessionWithMessages } from '@hamlet/protocol/apiTypes'
+import type { Metadata } from '@hamlet/protocol/types'
 import type { Store, StoredMessage, StoredSession } from '../../store'
 import { ImportedMessageConflictError } from '../../store/messages'
 import { truncateOversizedMessageContent } from '../../store/contentCodec'
@@ -12,13 +12,13 @@ import type { WebAppEnv } from '../middleware/auth'
 const importLocks = new Map<string, Promise<PiImportResult>>()
 
 export type PiSessionListItem = PiLocalSessionSummary & {
-    hapiSessionId?: string
+    hamletSessionId?: string
     importState?: 'importing' | 'complete' | 'failed' | 'diverged'
 }
 
 export type PiImportResult = {
     piSessionId: string
-    hapiSessionId?: string
+    hamletSessionId?: string
     action?: 'created' | 'updated' | 'unchanged'
     appended?: number
     error?: { code: string; message: string }
@@ -109,7 +109,7 @@ function updateMetadataWithRetry(
 ): Metadata {
     for (let attempt = 0; attempt < 5; attempt += 1) {
         const current = store.sessions.getSessionByNamespace(sessionId, namespace)
-        if (!current) throw new Error('Imported HAPI session disappeared')
+        if (!current) throw new Error('Imported HAMLET session disappeared')
         const next = transform(storedMetadata(current))
         const result = store.sessions.updateSessionMetadata(
             sessionId,
@@ -264,12 +264,12 @@ export function importPiSession(options: {
     const delta = classifyImportDelta(store.messages.getAllMessages(stored.id), transcript, observedLeafId)
     if (delta.error) {
         markImportState(store, engine, stored.id, namespace, transcript, machine.id, 'diverged', delta.error)
-        return { piSessionId: transcript.id, hapiSessionId: stored.id, error: { code: 'transcript_diverged', message: delta.error } }
+        return { piSessionId: transcript.id, hamletSessionId: stored.id, error: { code: 'transcript_diverged', message: delta.error } }
     }
     if (stored.active && delta.messages.length > 0) {
-        const message = 'The HAPI Pi session is active; stop it before importing native history changes'
+        const message = 'The HAMLET Pi session is active; stop it before importing native history changes'
         markImportState(store, engine, stored.id, namespace, transcript, machine.id, 'failed', message)
-        return { piSessionId: transcript.id, hapiSessionId: stored.id, error: { code: 'session_active', message } }
+        return { piSessionId: transcript.id, hamletSessionId: stored.id, error: { code: 'session_active', message } }
     }
 
     const appended: StoredMessage[] = []
@@ -284,7 +284,7 @@ export function importPiSession(options: {
         markImportState(store, engine, stored.id, namespace, transcript, machine.id, state, message)
         return {
             piSessionId: transcript.id,
-            hapiSessionId: stored.id,
+            hamletSessionId: stored.id,
             error: { code: state === 'diverged' ? 'transcript_diverged' : 'import_failed', message }
         }
     }
@@ -319,7 +319,7 @@ export function importPiSession(options: {
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to finalize imported Pi history'
         try { markImportState(store, engine, stored.id, namespace, transcript, machine.id, 'failed', message) } catch {}
-        return { piSessionId: transcript.id, hapiSessionId: stored.id, error: { code: 'import_failed', message } }
+        return { piSessionId: transcript.id, hamletSessionId: stored.id, error: { code: 'import_failed', message } }
     }
     if (transcript.model !== undefined) store.sessions.setSessionModel(stored.id, transcript.model ?? null, namespace, { touchUpdatedAt: false })
     if (transcript.thinkingLevel !== undefined) store.sessions.setSessionEffort(stored.id, transcript.thinkingLevel ?? null, namespace, { touchUpdatedAt: false })
@@ -329,7 +329,7 @@ export function importPiSession(options: {
     engine.handleRealtimeEvent({ type: 'session-updated', sessionId: stored.id })
     return {
         piSessionId: transcript.id,
-        hapiSessionId: stored.id,
+        hamletSessionId: stored.id,
         action: created ? 'created' : appended.length > 0 ? 'updated' : 'unchanged',
         appended: appended.length
     }
@@ -366,7 +366,7 @@ export function createPiSessionRoutes(options: {
             const importState = asRecord(metadata?.piImportState)?.state
             return {
                 ...summary,
-                ...(imported ? { hapiSessionId: imported.id } : {}),
+                ...(imported ? { hamletSessionId: imported.id } : {}),
                 ...(importState === 'importing' || importState === 'complete' || importState === 'failed' || importState === 'diverged'
                     ? { importState }
                     : {})

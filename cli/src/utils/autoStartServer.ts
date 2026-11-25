@@ -1,9 +1,9 @@
 /**
  * Auto-start hub module
  *
- * Automatically starts the HAPI hub when CLI is launched
+ * Automatically starts the HAMLET hub when CLI is launched
  * if specific conditions are met:
- * 1. HAPI_API_URL is not set (using default localhost:3006)
+ * 1. HAMLET_API_URL is not set (using default localhost:3006)
  * 2. cliApiToken exists in settings.json (hub was previously started)
  * 3. Port 3006 is not currently listening
  */
@@ -90,9 +90,9 @@ async function waitForServerReady(
  * Determine if hub should be auto-started
  */
 async function shouldAutoStartServer(): Promise<boolean> {
-    // Condition 1: HAPI_API_URL not set (using default localhost:3006)
-    if (process.env.HAPI_API_URL) {
-        logger.debug('[AUTO-START] HAPI_API_URL is set, skipping auto-start')
+    // Condition 1: HAMLET_API_URL not set (using default localhost:3006)
+    if (process.env.HAMLET_API_URL) {
+        logger.debug('[AUTO-START] HAMLET_API_URL is set, skipping auto-start')
         return false
     }
 
@@ -154,7 +154,7 @@ export async function maybeAutoStartServer(options?: {
 
         logger.debug('[AUTO-START] Starting hub automatically...')
         if (!options?.quiet) {
-            console.log(chalk.gray('Starting HAPI hub in background...'))
+            console.log(chalk.gray('Starting HAMLET hub in background...'))
         }
 
         startServerAsChild()
@@ -168,13 +168,13 @@ export async function maybeAutoStartServer(options?: {
         if (!isReady) {
             if (!options?.quiet) {
                 console.log(chalk.yellow('Warning: Hub did not start within expected time'))
-                console.log(chalk.gray('  Try running `hapi hub` manually to see errors'))
+                console.log(chalk.gray('  Try running `hamlet hub` manually to see errors'))
             }
             return
         }
 
         if (!options?.quiet) {
-            console.log(chalk.green('HAPI hub started'))
+            console.log(chalk.green('HAMLET hub started'))
         }
     } catch (error) {
         logger.debug('[AUTO-START] Error during hub auto-start', error)

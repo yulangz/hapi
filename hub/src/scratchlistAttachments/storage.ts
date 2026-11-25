@@ -3,11 +3,11 @@ import { homedir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 import { randomUUID } from 'node:crypto'
 
-import type { ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 import {
     toHubScratchlistAttachmentPath,
     parseHubScratchlistAttachmentPath,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 
 function sanitizeFilename(filename: string): string {
     // Strip path tricks and Content-Disposition hazards (CR/LF/quotes/controls).
@@ -25,12 +25,12 @@ function sanitizeSegment(segment: string): string {
     return segment.replace(/[/\\]/g, '_').replace(/\.\./g, '_').slice(0, 128)
 }
 
-export function getHapiHomeDir(): string {
-    return process.env.HAPI_HOME || join(homedir(), '.hapi')
+export function getHamletHomeDir(): string {
+    return process.env.HAMLET_HOME || join(homedir(), '.hamlet')
 }
 
-export function getScratchlistAttachmentsRoot(hapiHome: string = getHapiHomeDir()): string {
-    return join(hapiHome, 'scratchlist-attachments')
+export function getScratchlistAttachmentsRoot(hamletHome: string = getHamletHomeDir()): string {
+    return join(hamletHome, 'scratchlist-attachments')
 }
 
 export function buildScratchlistStorageKey(
@@ -42,8 +42,8 @@ export function buildScratchlistStorageKey(
     return `${sanitizeSegment(namespace)}/${sanitizeSegment(sessionId)}/${attachmentId}-${sanitizeFilename(filename)}`
 }
 
-export function resolveScratchlistStoragePath(hapiHome: string, storageKey: string): string {
-    const root = resolve(getScratchlistAttachmentsRoot(hapiHome))
+export function resolveScratchlistStoragePath(hamletHome: string, storageKey: string): string {
+    const root = resolve(getScratchlistAttachmentsRoot(hamletHome))
     const resolved = resolve(root, storageKey)
     const prefix = root.endsWith(sep) ? root : `${root}${sep}`
     if (!resolved.startsWith(prefix)) {
@@ -53,7 +53,7 @@ export function resolveScratchlistStoragePath(hapiHome: string, storageKey: stri
 }
 
 export async function writeScratchlistAttachmentFile(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string,
     filename: string,
@@ -62,7 +62,7 @@ export async function writeScratchlistAttachmentFile(
     attachmentId: string = randomUUID()
 ): Promise<ScratchlistAttachmentMetadata> {
     const storageKey = buildScratchlistStorageKey(namespace, sessionId, attachmentId, filename)
-    const filePath = resolveScratchlistStoragePath(hapiHome, storageKey)
+    const filePath = resolveScratchlistStoragePath(hamletHome, storageKey)
     await mkdir(join(filePath, '..'), { recursive: true })
     await writeFile(filePath, buffer)
     return {
@@ -75,12 +75,12 @@ export async function writeScratchlistAttachmentFile(
 }
 
 export async function readScratchlistAttachmentFile(
-    hapiHome: string,
+    hamletHome: string,
     hubPath: string
 ): Promise<{ buffer: Buffer; metadataPath: string } | null> {
     const storageKey = parseHubScratchlistAttachmentPath(hubPath)
     if (!storageKey) return null
-    const filePath = resolveScratchlistStoragePath(hapiHome, storageKey)
+    const filePath = resolveScratchlistStoragePath(hamletHome, storageKey)
     try {
         const buffer = await readFile(filePath)
         return { buffer, metadataPath: filePath }
@@ -90,12 +90,12 @@ export async function readScratchlistAttachmentFile(
 }
 
 export async function deleteScratchlistAttachmentFile(
-    hapiHome: string,
+    hamletHome: string,
     hubPath: string
 ): Promise<boolean> {
     const storageKey = parseHubScratchlistAttachmentPath(hubPath)
     if (!storageKey) return false
-    const filePath = resolveScratchlistStoragePath(hapiHome, storageKey)
+    const filePath = resolveScratchlistStoragePath(hamletHome, storageKey)
     try {
         await rm(filePath, { force: true })
         return true
@@ -105,10 +105,10 @@ export async function deleteScratchlistAttachmentFile(
 }
 
 export async function deleteScratchlistAttachmentFiles(
-    hapiHome: string,
+    hamletHome: string,
     attachments: ScratchlistAttachmentMetadata[]
 ): Promise<void> {
-    await Promise.all(attachments.map((att) => deleteScratchlistAttachmentFile(hapiHome, att.path)))
+    await Promise.all(attachments.map((att) => deleteScratchlistAttachmentFile(hamletHome, att.path)))
 }
 
 /**
@@ -119,7 +119,7 @@ export async function deleteScratchlistAttachmentFiles(
  * (same "target wins" rule as SQL transfer collisions).
  */
 export async function moveScratchlistAttachmentFilesForSession(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     oldSessionId: string,
     newSessionId: string,
@@ -142,8 +142,8 @@ export async function moveScratchlistAttachmentFilesForSession(
         let oldPath: string
         let newPath: string
         try {
-            oldPath = resolveScratchlistStoragePath(hapiHome, storageKey)
-            newPath = resolveScratchlistStoragePath(hapiHome, newKey)
+            oldPath = resolveScratchlistStoragePath(hamletHome, storageKey)
+            newPath = resolveScratchlistStoragePath(hamletHome, newKey)
         } catch {
             moved.push(att)
             continue
@@ -168,12 +168,12 @@ export async function moveScratchlistAttachmentFilesForSession(
 }
 
 export async function deleteScratchlistSessionAttachmentDir(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string
 ): Promise<void> {
     const dir = resolveScratchlistStoragePath(
-        hapiHome,
+        hamletHome,
         `${sanitizeSegment(namespace)}/${sanitizeSegment(sessionId)}`
     )
     try {
@@ -199,12 +199,12 @@ function sessionStoragePrefix(namespace: string, sessionId: string): string {
  * attachment directory (includes pending uploads not yet referenced by an entry).
  */
 export async function sumScratchlistAttachmentBytesOnDisk(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string
 ): Promise<number> {
     const dir = resolveScratchlistStoragePath(
-        hapiHome,
+        hamletHome,
         `${sanitizeSegment(namespace)}/${sanitizeSegment(sessionId)}`
     )
     let total = 0
@@ -234,7 +234,7 @@ export const SCRATCHLIST_ATTACHMENT_ID_RE =
  * then return server-authoritative metadata (size from disk).
  */
 export async function resolveScratchlistAttachmentForSession(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string,
     claimed: ScratchlistAttachmentMetadata
@@ -259,7 +259,7 @@ export async function resolveScratchlistAttachmentForSession(
     }
     let filePath: string
     try {
-        filePath = resolveScratchlistStoragePath(hapiHome, storageKey)
+        filePath = resolveScratchlistStoragePath(hamletHome, storageKey)
     } catch {
         return { ok: false, error: 'Invalid scratchlist attachment path' }
     }
@@ -286,7 +286,7 @@ export async function resolveScratchlistAttachmentForSession(
 }
 
 export async function resolveScratchlistAttachmentsForSession(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string,
     claimed: ScratchlistAttachmentMetadata[]
@@ -296,7 +296,7 @@ export async function resolveScratchlistAttachmentsForSession(
 > {
     const resolved: ScratchlistAttachmentMetadata[] = []
     for (const item of claimed) {
-        const result = await resolveScratchlistAttachmentForSession(hapiHome, namespace, sessionId, item)
+        const result = await resolveScratchlistAttachmentForSession(hamletHome, namespace, sessionId, item)
         if (!result.ok) {
             return result
         }
@@ -307,7 +307,7 @@ export async function resolveScratchlistAttachmentsForSession(
 
 /** Delete a pending/orphan upload by attachment id from the session directory. */
 export async function deleteScratchlistAttachmentById(
-    hapiHome: string,
+    hamletHome: string,
     namespace: string,
     sessionId: string,
     attachmentId: string
@@ -318,7 +318,7 @@ export async function deleteScratchlistAttachmentById(
         return false
     }
     const dir = resolveScratchlistStoragePath(
-        hapiHome,
+        hamletHome,
         `${sanitizeSegment(namespace)}/${sanitizeSegment(sessionId)}`
     )
     try {

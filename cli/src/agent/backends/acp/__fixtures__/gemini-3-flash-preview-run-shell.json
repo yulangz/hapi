@@ -8,7 +8,7 @@
       "sessionUpdate": "agent_thought_chunk",
       "content": {
         "type": "text",
-        "text": "[current working directory /home/lupin/workspace/hapi-fix-gemini-display/cli] (Listing files in /tmp to see the current directory contents.)"
+        "text": "[current working directory /home/lupin/workspace/hamlet-fix-gemini-display/cli] (Listing files in /tmp to see the current directory contents.)"
       }
     },
     {
@@ -40,14 +40,14 @@
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": " related to `hapi`, `gemini`, and various E2E testing artifacts (e.g., `hapi-cli"
+        "text": " related to `hamlet`, `gemini`, and various E2E testing artifacts (e.g., `hamlet-cli"
       }
     },
     {
       "sessionUpdate": "agent_message_chunk",
       "content": {
         "type": "text",
-        "text": ".log`, `gemini-client-error-...json`, `hapi-e2e-...` directories). "
+        "text": ".log`, `gemini-client-error-...json`, `hamlet-e2e-...` directories). "
       }
     },
     {

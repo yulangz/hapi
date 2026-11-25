@@ -1,4 +1,4 @@
-import { getCodexCollaborationModeOptions, type CodexCollaborationMode } from '@hapi/protocol'
+import { getCodexCollaborationModeOptions, type CodexCollaborationMode } from '@hamlet/protocol'
 import { useTranslation } from '@/lib/use-translation'
 import type { AgentType } from './types'
 import { SelectControl } from '@/components/ui/select-control'

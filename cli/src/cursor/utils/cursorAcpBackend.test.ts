@@ -64,8 +64,8 @@ describe('createCursorAcpBackend', () => {
 
 describe('resolveCursorNativeWorktreePath', () => {
     it('matches ~/.cursor/worktrees/<repo>/<name>', () => {
-        expect(resolveCursorNativeWorktreePath('/home/u/proj/hapi', 'feature-x')).toBe(
-            join(homedir(), '.cursor', 'worktrees', 'hapi', 'feature-x')
+        expect(resolveCursorNativeWorktreePath('/home/u/proj/hamlet', 'feature-x')).toBe(
+            join(homedir(), '.cursor', 'worktrees', 'hamlet', 'feature-x')
         );
     });
 });

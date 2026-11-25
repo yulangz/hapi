@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol';
+import { isObject } from '@hamlet/protocol';
 import type { PermissionRequest } from './types';
 
 export function deriveToolInput(request: PermissionRequest): unknown {

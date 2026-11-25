@@ -80,14 +80,14 @@ describe('ApnsJwtProvider', () => {
 })
 
 describe('buildApnsRequestBody', () => {
-    it('carries the generic no-decrypt alert plus the hapi envelope', () => {
+    it('carries the generic no-decrypt alert plus the hamlet envelope', () => {
         expect(buildApnsRequestBody('ZW52')).toEqual({
             aps: {
                 'mutable-content': 1,
-                alert: { title: 'HAPI', body: 'New activity' },
+                alert: { title: 'HAMLET', body: 'New activity' },
                 sound: 'default'
             },
-            hapi: { v: 1, e: 'ZW52' }
+            hamlet: { v: 1, e: 'ZW52' }
         })
     })
 })
@@ -137,7 +137,7 @@ describe('ApnsClient against a local node:http2 server', () => {
             keyP8: TEST_KEY_P8,
             keyId: 'KEYID12345',
             teamId: 'TEAMID9999',
-            bundleId: 'run.hapi.ios',
+            bundleId: 'run.hamlet.ios',
             host: baseUrl,
             requestTimeoutMs: 5000
         })
@@ -156,7 +156,7 @@ describe('ApnsClient against a local node:http2 server', () => {
         const request = seen[seen.length - 1]
         expect(request.headers[':method']).toBe('POST')
         expect(request.headers[':path']).toBe('/3/device/a1b2c3d4')
-        expect(request.headers['apns-topic']).toBe('run.hapi.ios')
+        expect(request.headers['apns-topic']).toBe('run.hamlet.ios')
         expect(request.headers['apns-push-type']).toBe('alert')
         expect(request.headers['apns-priority']).toBe('10')
         expect(request.headers['apns-expiration']).toBe('0')
@@ -172,10 +172,10 @@ describe('ApnsClient against a local node:http2 server', () => {
         expect(JSON.parse(request.body)).toEqual({
             aps: {
                 'mutable-content': 1,
-                alert: { title: 'HAPI', body: 'New activity' },
+                alert: { title: 'HAMLET', body: 'New activity' },
                 sound: 'default'
             },
-            hapi: { v: 1, e: 'RU5DUllQVEVE' }
+            hamlet: { v: 1, e: 'RU5DUllQVEVE' }
         })
     })
 
@@ -232,7 +232,7 @@ describe('ApnsClient connection failure', () => {
             keyP8: TEST_KEY_P8,
             keyId: 'KEYID12345',
             teamId: 'TEAMID9999',
-            bundleId: 'run.hapi.ios',
+            bundleId: 'run.hamlet.ios',
             // Reserved TEST-NET-1 address: connection refused / no route.
             host: 'http://127.0.0.1:1',
             requestTimeoutMs: 3000
@@ -245,7 +245,7 @@ describe('ApnsClient connection failure', () => {
             keyP8: 'not-a-pem',
             keyId: 'K',
             teamId: 'T',
-            bundleId: 'run.hapi.ios',
+            bundleId: 'run.hamlet.ios',
             host: 'http://127.0.0.1:1'
         })
         expect(await client.send({ token: 'x', envelope: 'RU5D' })).toBe('failed')

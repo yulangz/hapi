@@ -4,12 +4,12 @@
  * Every real CLI child the suite spawns must run with this environment so
  * that:
  *
- * 1. Identity variables of the outer HAPI/pi session (PI_SESSION_ID,
- *    HAPI_SESSION_ID, PM2 metadata, ...) never leak into test children.
+ * 1. Identity variables of the outer HAMLET/pi session (PI_SESSION_ID,
+ *    HAMLET_SESSION_ID, PM2 metadata, ...) never leak into test children.
  *    These are blanked rather than dropped because `spawnHappyCLI` merges
  *    `{ ...process.env, ...options.env }` — a blank value still wins over the
  *    inherited one, while a missing key would let the parent value through.
- * 2. Every child carries a unique per-run marker (`HAPI_TEST_MARKER=<tmpHome>`)
+ * 2. Every child carries a unique per-run marker (`HAMLET_TEST_MARKER=<tmpHome>`)
  *    that the final audit (see `auditTestProcesses.ts`) can use to recognize
  *    test-owned processes even after they have been orphaned/reparented to
  *    PID 1.
@@ -22,19 +22,19 @@
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-const TEST_CONFIG_FILE = join(tmpdir(), 'hapi-test-config.json')
+const TEST_CONFIG_FILE = join(tmpdir(), 'hamlet-test-config.json')
 
 /** Marker env key injected into every test child. Value is the run's tmpHome. */
-export const TEST_OWNED_MARKER_KEY = 'HAPI_TEST_MARKER'
+export const TEST_OWNED_MARKER_KEY = 'HAMLET_TEST_MARKER'
 
 /** Keys/prefixes that identify the outer session and must never reach children. */
 const IDENTITY_ENV_PATTERNS: RegExp[] = [
     /^PI_/i,
-    /^HAPI_SESSION_/i,
+    /^HAMLET_SESSION_/i,
     /^PM2_/i,
     /^pm_/,
     /^PM_/,
-    /^HAPI_CLI_EXECUTABLE$/,
+    /^HAMLET_CLI_EXECUTABLE$/,
 ]
 
 /** Well-known secrets that must not leak from the dev environment into children. */
@@ -66,22 +66,22 @@ export function buildTestChildEnv(baseEnv: NodeJS.ProcessEnv = process.env): Nod
         env[key] = isNeutralizedKey(key) ? '' : value
     }
 
-    const tmpHome = baseEnv.HAPI_HOME
+    const tmpHome = baseEnv.HAMLET_HOME
     if (!tmpHome) {
-        throw new Error('[test env] Missing HAPI_HOME — setup.ts must point the worker at the temp hub home first')
+        throw new Error('[test env] Missing HAMLET_HOME — setup.ts must point the worker at the temp hub home first')
     }
     env[TEST_OWNED_MARKER_KEY] = tmpHome
     return env
 }
 
 /**
- * The audit marker string for this run: `HAPI_TEST_MARKER=<tmpHome>`.
+ * The audit marker string for this run: `HAMLET_TEST_MARKER=<tmpHome>`.
  * Matches the env dump produced by `ps eww`, which the final audit greps.
  */
 export function testOwnedMarker(tmpHome?: string): string {
-    const home = tmpHome ?? process.env.HAPI_HOME
+    const home = tmpHome ?? process.env.HAMLET_HOME
     if (!home) {
-        throw new Error('[test env] Missing HAPI_HOME — cannot build test-owned marker')
+        throw new Error('[test env] Missing HAMLET_HOME — cannot build test-owned marker')
     }
     return `${TEST_OWNED_MARKER_KEY}=${home}`
 }

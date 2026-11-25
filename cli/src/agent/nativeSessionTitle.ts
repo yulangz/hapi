@@ -16,7 +16,7 @@ export function normalizeNativeSessionTitle(title: unknown): string | null {
     return normalizedTitle;
 }
 
-/** Syncs a native agent title into HAPI metadata without creating a chat row. */
+/** Syncs a native agent title into HAMLET metadata without creating a chat row. */
 export function createNativeSessionTitleMetadataSync(
     client: NativeSessionTitleMetadataClient
 ): (title: unknown) => void {

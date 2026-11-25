@@ -16,7 +16,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 describe('encodeKimiWorkDirKey', () => {
     it('matches the kimi-code workspace id scheme', () => {
         // wd_<slug>_<sha256(normalizedWorkDir).slice(0,12)>
-        expect(encodeKimiWorkDirKey('/Users/weishu/dev/github/hapi')).toBe('wd_hapi_dd2c162dd303');
+        expect(encodeKimiWorkDirKey('/Users/weishu/dev/github/hamlet')).toBe('wd_hamlet_dd9bf5f67f14');
         expect(encodeKimiWorkDirKey('/tmp')).toMatch(/^wd_tmp_[0-9a-f]{12}$/);
         expect(encodeKimiWorkDirKey('/home/user/My Project!')).toMatch(/^wd_my-project_[0-9a-f]{12}$/);
     });
@@ -67,7 +67,7 @@ describe('kimiWireLocator', () => {
         });
 
         try {
-            // Session dir appears slightly after hapi's launch timestamp.
+            // Session dir appears slightly after hamlet's launch timestamp.
             await wait(100);
             await seedSession('session_aaa-bbb');
 
@@ -103,7 +103,7 @@ describe('kimiWireLocator', () => {
     });
 
     it('excludes sessions that already existed when the locator started (retry race)', async () => {
-        // Simulate an immediate `hapi kimi` retry: the previous launch's
+        // Simulate an immediate `hamlet kimi` retry: the previous launch's
         // session dir already exists and is within the birth-time grace
         // window, but it must not be adopted — the new process has not
         // created its session yet.

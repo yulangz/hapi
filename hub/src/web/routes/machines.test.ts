@@ -4,7 +4,7 @@ import type { Machine, SyncEngine } from '../../sync/syncEngine'
 import type { WebAppEnv } from '../middleware/auth'
 import { createMachinesRoutes } from './machines'
 import { RpcTargetMissingError } from '../../sync/rpcGateway'
-import { MACHINE_CAPABILITIES } from '@hapi/protocol'
+import { MACHINE_CAPABILITIES } from '@hamlet/protocol'
 
 function createMachine(overrides?: Partial<Machine>): Machine {
     return {

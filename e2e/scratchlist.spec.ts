@@ -279,7 +279,7 @@ test.describe('scratchlist e2e', () => {
         const writes = await page.evaluate(
             () => (window as unknown as { __lsWrites: { key: string; value: string }[] }).__lsWrites.slice()
         )
-        const leakBKey = 'hapi.scratchlist.v1.leak-B'
+        const leakBKey = 'hamlet.scratchlist.v1.leak-B'
         const corruptingWrite = writes.find(
             (w) => w.key === leakBKey && w.value.includes('A-only entry')
         )
@@ -302,7 +302,7 @@ test.describe('scratchlist e2e', () => {
         await addEntry(page, 'Note for session A')
 
         // Navigate to a different session id; localStorage is keyed by
-        // `hapi.scratchlist.v1.<sessionId>`, so session B must start
+        // `hamlet.scratchlist.v1.<sessionId>`, so session B must start
         // empty even though A still has its entry persisted.
         await page.goto(`/e2e-fixtures/scratchlist-fixture.html?session=session-b`)
         await expect(page.getByTestId('scratchlist-panel')).toBeVisible()

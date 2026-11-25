@@ -1,6 +1,6 @@
 import type { Database } from 'bun:sqlite'
 
-import { hasConversationMessageContent } from '@hapi/protocol/messages'
+import { hasConversationMessageContent } from '@hamlet/protocol/messages'
 import { decodeMessageContent } from './contentCodec'
 
 import type { StoredMessage } from './types'

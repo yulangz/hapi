@@ -1,7 +1,7 @@
 import {
     resolveEffectiveVoiceBackend,
     type VoiceBackendType
-} from '@hapi/protocol/voice'
+} from '@hamlet/protocol/voice'
 import {
     GEMINI_LIVE_VOICE_OPTIONS,
     LEGACY_ELEVENLABS_VOICE_STORAGE_KEY,
@@ -9,7 +9,7 @@ import {
     VOICE_BACKEND_PREFERENCE_STORAGE_KEY,
     VOICE_PICKER_STORAGE_KEYS,
     type VoicePickerOption
-} from '@hapi/protocol/voicePickerCatalog'
+} from '@hamlet/protocol/voicePickerCatalog'
 
 export function migrateLegacyElevenLabsVoiceId(): void {
     const legacy = localStorage.getItem(LEGACY_ELEVENLABS_VOICE_STORAGE_KEY)

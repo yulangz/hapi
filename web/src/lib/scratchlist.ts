@@ -8,11 +8,11 @@
  * promotes them (to the composer or into the queue) or deletes them.
  *
  * Storage is per-session in `localStorage` under
- * `hapi.scratchlist.v1.<sessionId>` so entries survive reloads but stay
+ * `hamlet.scratchlist.v1.<sessionId>` so entries survive reloads but stay
  * scoped to a single conversation. Hub-sync is intentionally deferred
  * (v2) to keep this PR small.
  */
-const STORAGE_KEY_PREFIX = 'hapi.scratchlist.v1.'
+const STORAGE_KEY_PREFIX = 'hamlet.scratchlist.v1.'
 
 /** Hard upper bound to keep payloads sane and rule out runaway growth. */
 export const SCRATCHLIST_MAX_ENTRIES = 200
@@ -20,7 +20,7 @@ export const SCRATCHLIST_MAX_ENTRIES = 200
 /** Per-entry text cap: matches what a long composer paste can produce. */
 export const SCRATCHLIST_MAX_TEXT_LENGTH = 10_000
 
-import type { ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 
 export type ScratchlistEntry = {
     id: string

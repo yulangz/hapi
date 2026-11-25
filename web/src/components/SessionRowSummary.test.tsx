@@ -68,7 +68,7 @@ describe('SessionRowSummary background status', () => {
             backgroundTaskCount: 0,
             updatedAt: 2_000,
         })
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
         const view = render(
             <I18nProvider>
                 <SessionRowSummary
@@ -81,7 +81,7 @@ describe('SessionRowSummary background status', () => {
 
         expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument()
 
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ [session.id]: 1_999 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ [session.id]: 1_999 }))
         view.rerender(
             <I18nProvider>
                 <SessionRowSummary
@@ -102,8 +102,8 @@ describe('SessionRowSummary background status', () => {
             backgroundTaskCount: 0,
             updatedAt: 2_000,
         })
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
-        localStorage.setItem('hapi.sessionManualUnread.v1', JSON.stringify({ [session.id]: 2_000 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
+        localStorage.setItem('hamlet.sessionManualUnread.v1', JSON.stringify({ [session.id]: 2_000 }))
 
         const view = render(
             <I18nProvider>
@@ -138,8 +138,8 @@ describe('SessionRowSummary background status', () => {
             thinking: true,
             updatedAt: 2_000,
         })
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
-        localStorage.setItem('hapi.sessionManualUnread.v1', JSON.stringify({ [session.id]: 2_000 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ [session.id]: 2_000 }))
+        localStorage.setItem('hamlet.sessionManualUnread.v1', JSON.stringify({ [session.id]: 2_000 }))
 
         render(
             <I18nProvider>

@@ -61,7 +61,7 @@ describe('SyntaxHighlighter wrap toggle', () => {
     // a class would silently lose inside `.aui-md` markdown code blocks
     // (found live in Phase 4 isolated E2E).
     it('reads the persisted wrap preference: keeps line numbers and wraps the code cells via inline style', () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>

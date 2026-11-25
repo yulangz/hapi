@@ -1,4 +1,4 @@
-import { getFlavorLabel } from '@hapi/protocol'
+import { getFlavorLabel } from '@hamlet/protocol'
 import type { AgentType } from './types'
 import { AgentFlavorIcon } from '@/components/AgentFlavorIcon'
 import { useTranslation } from '@/lib/use-translation'

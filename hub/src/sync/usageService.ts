@@ -1,4 +1,4 @@
-import type { UsageSummaryBucket, UsageSummaryResponse } from '@hapi/protocol/apiTypes'
+import type { UsageSummaryBucket, UsageSummaryResponse } from '@hamlet/protocol/apiTypes'
 import type { StoredMessage, StoredSession } from '../store'
 import type { UsageEvent } from '../store/usage'
 import type { Store } from '../store'
@@ -35,7 +35,7 @@ function normalizeInputTokens(
     // v1 generic usage messages make their input contract self-describing.
     // Unknown/missing metadata intentionally falls back to the historical
     // provider shape so already persisted transcripts remain readable.
-    const declaredSemantics = data.usageSchema === 'hapi.usage.v1'
+    const declaredSemantics = data.usageSchema === 'hamlet.usage.v1'
         && (data.inputTokenSemantics === 'includes-cache' || data.inputTokenSemantics === 'excludes-cache')
         ? data.inputTokenSemantics
         : null
@@ -102,7 +102,7 @@ function parseUsageEvent(session: StoredSession, message: StoredMessage): UsageE
     // ACP-compatible backends wrap per-request usage in `total`, so only Codex
     // should be diffed as a cumulative stream.
     if (data.type === 'token_count' || data.type === 'usage') {
-        if (data.hapiUsageScope === 'imported-history') return null
+        if (data.hamletUsageScope === 'imported-history') return null
         const info = asRecord(data.info) ?? data
         const agent = sessionAgent(session)
         const explicitThreadId = typeof data.threadId === 'string'
@@ -336,7 +336,7 @@ export function getUsageSummary(
     timeZone: string = 'UTC'
 ): UsageSummaryResponse {
     const sessions = store.sessions.getSessionsByNamespace(namespace)
-    // This is intentionally lazy. Existing HAPI databases have no usage table;
+    // This is intentionally lazy. Existing HAMLET databases have no usage table;
     // the first dashboard request backfills history, while later requests only
     // update the idempotent event rows.
     collectUsageEvents(store, sessions)

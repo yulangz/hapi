@@ -19,7 +19,7 @@ function filterEnv(env: NodeJS.ProcessEnv): Record<string, string> {
  * ephemeral probe socket (`listen(0)`) and immediately closing it before
  * resolving. `opencode acp` does not announce the port it actually bound
  * when launched with `--port 0` (verified 2026-07-30 — no port appears in
- * stdout/stderr even at DEBUG log level), so HAPI must pick the port itself
+ * stdout/stderr even at DEBUG log level), so HAMLET must pick the port itself
  * and hand it to the subprocess explicitly via `--port`. There is a
  * theoretical reuse race between this function releasing the port and the
  * subprocess binding it, but both sides are loopback-only local processes,

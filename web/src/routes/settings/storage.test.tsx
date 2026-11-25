@@ -5,7 +5,7 @@ import { I18nProvider } from '@/lib/i18n-context'
 import SettingsStoragePage from './storage'
 
 const getSqliteStorageUsage = vi.fn().mockResolvedValue({
-    path: 'C:\\hapi\\hapi.db',
+    path: 'C:\\hamlet\\hamlet.db',
     databaseBytes: 1,
     walBytes: 2,
     shmBytes: 3,
@@ -39,6 +39,6 @@ describe('SettingsStoragePage', () => {
         expect(screen.queryByRole('heading', { name: /Exact sizes/i })).not.toBeInTheDocument()
         expect(screen.getByTestId('storage-pie-legend-database')).toBeInTheDocument()
         expect(screen.getByTestId('storage-pie-total')).toBeInTheDocument()
-        expect(screen.getByTestId('storage-pie-path')).toHaveTextContent('C:\\hapi\\hapi.db')
+        expect(screen.getByTestId('storage-pie-path')).toHaveTextContent('C:\\hamlet\\hamlet.db')
     })
 })

@@ -66,7 +66,7 @@ const MARKDOWN_PLUGIN_TAIL = [
 ] satisfies NonNullable<MarkdownTextPrimitiveProps['remarkPlugins']>
 
 // Standalone surfaces (file-preview) render without HappyChatContext, so the
-// FilePathAnchor cannot route hapi-file: hrefs — rewriting explicit markdown
+// FilePathAnchor cannot route hamlet-file: hrefs — rewriting explicit markdown
 // links there would collapse them to plain text. Keep bare-path / inlineCode
 // autolinks (already inert on that surface) but disable explicit-link rewrite.
 const MARKDOWN_PLUGIN_TAIL_STANDALONE = [
@@ -246,7 +246,7 @@ export function denyOnlyTransform(url: string): string {
 
 // ── Allowed-schemes state (inlined from useAllowedSchemes.ts) ───────────────
 
-const STORAGE_KEY = 'hapi-allowed-schemes'
+const STORAGE_KEY = 'hamlet-allowed-schemes'
 
 // Module-level subscriber set for intra-tab cross-provider sync (P7e.1).
 //
@@ -415,17 +415,17 @@ function CodeHeader(props: CodeHeaderProps) {
     const language = props.language && props.language !== 'unknown' ? props.language : 'text'
 
     return (
-        <div data-hapi-code-header="true" className="aui-code-shell-header flex items-center justify-between gap-3 rounded-t-xl bg-[var(--app-code-header-bg)] px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-[var(--app-code-header-fg)]">
+        <div data-hamlet-code-header="true" className="aui-code-shell-header flex items-center justify-between gap-3 rounded-t-xl bg-[var(--app-code-header-bg)] px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-[var(--app-code-header-fg)]">
             <div className="min-w-0 flex-1 truncate font-mono">
                 {language}
             </div>
             <div className="flex shrink-0 items-center gap-1">
                 <button
                     type="button"
-                    data-hapi-code-wrap-toggle="true"
-                    data-hapi-wrap-enable-label={t('code.wrap.enable')}
-                    data-hapi-wrap-disable-label={t('code.wrap.disable')}
-                    data-hapi-share-export-exclude="true"
+                    data-hamlet-code-wrap-toggle="true"
+                    data-hamlet-wrap-enable-label={t('code.wrap.enable')}
+                    data-hamlet-wrap-disable-label={t('code.wrap.disable')}
+                    data-hamlet-share-export-exclude="true"
                     onClick={() => setCodeWrap(!codeWrap)}
                     className={`rounded-md p-1 transition-colors hover:bg-[var(--app-code-copy-hover-bg)] hover:text-[var(--app-fg)] ${codeWrap ? 'text-[var(--app-fg)]' : 'text-[var(--app-code-header-fg)]'}`}
                     title={t(codeWrap ? 'code.wrap.disable' : 'code.wrap.enable')}
@@ -435,18 +435,18 @@ function CodeHeader(props: CodeHeaderProps) {
                 </button>
                 <button
                     type="button"
-                    data-hapi-code-copy="true"
-                    data-hapi-copy-label={t('code.copy')}
-                    data-hapi-copied-label={t('message.copied')}
-                    data-hapi-share-export-exclude="true"
+                    data-hamlet-code-copy="true"
+                    data-hamlet-copy-label={t('code.copy')}
+                    data-hamlet-copied-label={t('message.copied')}
+                    data-hamlet-share-export-exclude="true"
                     onClick={() => copy(props.code)}
                     className="rounded-md p-1 text-[var(--app-code-header-fg)] transition-colors hover:bg-[var(--app-code-copy-hover-bg)] hover:text-[var(--app-fg)]"
                     title={t('code.copy')}
                 >
-                    <span data-hapi-copy-default="true" className={copied ? 'hidden' : ''}>
+                    <span data-hamlet-copy-default="true" className={copied ? 'hidden' : ''}>
                         <CopyIcon className="h-3.5 w-3.5" />
                     </span>
-                    <span data-hapi-copy-success="true" className={copied ? '' : 'hidden'}>
+                    <span data-hamlet-copy-success="true" className={copied ? '' : 'hidden'}>
                         <CheckIcon className="h-3.5 w-3.5" />
                     </span>
                 </button>
@@ -463,9 +463,9 @@ function Pre(props: ComponentPropsWithoutRef<'pre'>) {
         <div className={cn(
             'aui-md-pre-wrapper min-w-0 w-full max-w-full overflow-y-hidden',
             codeWrap ? '' : 'overflow-x-auto'
-        )} data-hapi-code-body="true">
+        )} data-hamlet-code-body="true">
             <pre
-                data-hapi-code-grid="true"
+                data-hamlet-code-grid="true"
                 {...rest}
                 className={cn(
                     'aui-md-pre m-0 rounded-b-xl bg-[var(--app-code-bg)] px-4 py-3 text-sm',
@@ -681,7 +681,7 @@ function A(props: ComponentPropsWithoutRef<'a'>) {
     // before painting FilePathAnchor or treating `C:` as a custom URI scheme.
     // Candidates are Windows-only; reject empty / non-drive payloads fail-closed
     // (do not fall through to custom-scheme confirmation for this scheme).
-    const isCandidateHref = href ? normalizedScheme(href) === 'hapi-file-candidate' : false
+    const isCandidateHref = href ? normalizedScheme(href) === 'hamlet-file-candidate' : false
     if (isCandidateHref && (!candidatePath || !/^[A-Za-z]:[\\/]/.test(candidatePath))) {
         return (
             <InertMarkdownHref href={href ?? ''} className={props.className}>

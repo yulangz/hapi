@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 function getCodeWrapStorageKey(): string {
-    return 'hapi-code-wrap'
+    return 'hamlet-code-wrap'
 }
 
 // `storage` events only fire in *other* browsing contexts (tabs/windows),

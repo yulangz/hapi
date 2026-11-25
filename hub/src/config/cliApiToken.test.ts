@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { getOrCreateCliApiToken } from './cliApiToken'
 
 function makeTempDir(): string {
-    return mkdtempSync(join(tmpdir(), 'hapi-cli-token-test-'))
+    return mkdtempSync(join(tmpdir(), 'hamlet-cli-token-test-'))
 }
 
 describe('getOrCreateCliApiToken', () => {

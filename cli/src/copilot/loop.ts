@@ -5,7 +5,7 @@ import { CopilotSession } from './session';
 import { copilotLocalLauncher } from './copilotLocalLauncher';
 import { copilotRemoteLauncher } from './copilotRemoteLauncher';
 import { ApiClient, ApiSessionClient } from '@/lib';
-import type { CopilotAgentMode } from '@hapi/protocol';
+import type { CopilotAgentMode } from '@hamlet/protocol';
 import type { CopilotMode, PermissionMode } from './types';
 
 interface CopilotLoopOptions {

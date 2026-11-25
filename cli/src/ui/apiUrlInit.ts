@@ -1,9 +1,9 @@
 /**
  * API URL initialization module
  *
- * Handles HAPI_API_URL initialization with priority:
+ * Handles HAMLET_API_URL initialization with priority:
  * 1. Environment variable (highest - allows temporary override)
- * 2. Settings file (~/.hapi/settings.json)
+ * 2. Settings file (~/.hamlet/settings.json)
  * 3. Default value (http://localhost:3006)
  */
 
@@ -19,7 +19,7 @@ export type ApiUrlSource = 'env' | 'settings' | 'default'
  */
 export async function initializeApiUrl(): Promise<ApiUrlSource> {
     // 1. Environment variable has highest priority (allows temporary override)
-    if (process.env.HAPI_API_URL) {
+    if (process.env.HAMLET_API_URL) {
         return 'env'
     }
 

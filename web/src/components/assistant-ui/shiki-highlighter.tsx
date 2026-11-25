@@ -28,9 +28,9 @@ export function SyntaxHighlighter(props: SyntaxHighlighterProps) {
         : { whiteSpace: 'pre' as const }
 
     return (
-        <div data-hapi-code-body="true" className={`aui-md-codeblock min-w-0 w-full max-w-full overflow-y-hidden rounded-b-xl bg-[var(--app-code-bg)] ${codeWrap ? '' : 'overflow-x-auto'}`}>
+        <div data-hamlet-code-body="true" className={`aui-md-codeblock min-w-0 w-full max-w-full overflow-y-hidden rounded-b-xl bg-[var(--app-code-bg)] ${codeWrap ? '' : 'overflow-x-auto'}`}>
             <pre
-                data-hapi-code-grid="true"
+                data-hamlet-code-grid="true"
                 className={`shiki m-0 grid ${codeWrap ? 'w-full' : 'w-max min-w-full'} text-sm font-mono`}
                 style={codeGridStyle}
             >

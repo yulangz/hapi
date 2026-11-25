@@ -6,11 +6,11 @@ import {
     markUnsupported,
     toConversationHistoryCapabilities,
     type ConversationHistoryCapabilityStates
-} from '@hapi/protocol/conversationHistory'
+} from '@hamlet/protocol/conversationHistory'
 import type {
     ForkConversationRpcResult,
     RewindConversationRpcResult
-} from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/apiTypes'
 import { logger } from '@/ui/logger'
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -121,7 +121,7 @@ export class CodexConversationHistory {
             if (this.states.forkAtMessage === 'unsupported') {
                 throw new Error('Historical fork is not supported')
             }
-            // HAPI historical fork excludes the selected boundary turn. Prefer the
+            // HAMLET historical fork excludes the selected boundary turn. Prefer the
             // stable inclusive `lastTurnId` of the previous turn over experimental
             // `beforeTurnId`, so native context matches the hydrated transcript.
             const turns = await this.listTurns()
@@ -307,7 +307,7 @@ export class CodexConversationHistory {
             return false
         }
 
-        // The child transcript excludes the selected HAPI message. Native Fork
+        // The child transcript excludes the selected HAMLET message. Native Fork
         // excludes the whole selected native turn, so the selected message must
         // be the first user item in that turn. Also require the retained prefix
         // to be unambiguous; otherwise the child could inherit a different

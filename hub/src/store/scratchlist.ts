@@ -5,7 +5,7 @@ import {
     parseScratchlistAttachmentsJson,
     serializeScratchlistAttachments,
     type ScratchlistAttachmentMetadata,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 
 import type { StoredScratchlistEntry } from './types'
 
@@ -28,7 +28,7 @@ import type { StoredScratchlistEntry } from './types'
  *   - `updated_at` bumped on edits to drive the SSE patch token
  *   - cascade-delete from `sessions(id)` covers the delete-session path
  *
- * Per-session caps live in `@hapi/protocol/apiTypes`
+ * Per-session caps live in `@hamlet/protocol/apiTypes`
  * (`SCRATCHLIST_MAX_ENTRIES`, `SCRATCHLIST_MAX_TEXT_LENGTH`); the route
  * layer enforces them at write time. The SQL layer accepts whatever it's
  * given - the cap is policy, not schema.
@@ -226,7 +226,7 @@ export function deleteScratchlistEntry(
  * deletes the old session row at the end of every merge codepath, and
  * `session_scratchlist.session_id` is FK'd with `ON DELETE CASCADE`.
  * Without an explicit transfer step, scratchlist entries are silently
- * destroyed every time the hub dedups two sessions or rotates the HAPI
+ * destroyed every time the hub dedups two sessions or rotates the HAMLET
  * id during resume - both of which fire on the upstream
  * hub-restart-cascade path documented in tiann/hapi#915.
  *

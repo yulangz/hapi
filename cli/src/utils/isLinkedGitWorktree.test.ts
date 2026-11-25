@@ -39,7 +39,7 @@ describe('isLinkedGitWorktree', () => {
     }
 
     it('returns false for a primary working tree', () => {
-        const repo = tempDir('hapi-primary-');
+        const repo = tempDir('hamlet-primary-');
         git(repo, ['init']);
         writeFileSync(join(repo, 'README'), 'x\n');
         git(repo, ['add', 'README']);
@@ -49,13 +49,13 @@ describe('isLinkedGitWorktree', () => {
     });
 
     it('returns true for a linked git worktree', () => {
-        const repo = tempDir('hapi-linked-main-');
+        const repo = tempDir('hamlet-linked-main-');
         git(repo, ['init']);
         writeFileSync(join(repo, 'README'), 'x\n');
         git(repo, ['add', 'README']);
         git(repo, ['commit', '-m', 'init']);
 
-        const linked = join(tempDir('hapi-linked-wt-'), 'feature');
+        const linked = join(tempDir('hamlet-linked-wt-'), 'feature');
         git(repo, ['worktree', 'add', '-b', 'feature', linked]);
 
         expect(isLinkedGitWorktree(linked)).toBe(true);
@@ -63,7 +63,7 @@ describe('isLinkedGitWorktree', () => {
     });
 
     it('returns false for a non-git directory', () => {
-        const dir = tempDir('hapi-nongit-');
+        const dir = tempDir('hamlet-nongit-');
         expect(isLinkedGitWorktree(dir)).toBe(false);
     });
 });

@@ -10,7 +10,7 @@ describe('resolveDshAcpCommand', () => {
     })
 
     it('supports a config path for dsh-acp-demo', () => {
-        expect(resolveDshAcpCommand({ HAPI_DSH_ACP_CONFIG: '/tmp/cordis.yml' })).toEqual({
+        expect(resolveDshAcpCommand({ HAMLET_DSH_ACP_CONFIG: '/tmp/cordis.yml' })).toEqual({
             command: 'dsh-acp-demo',
             args: ['--config', '/tmp/cordis.yml']
         })
@@ -18,8 +18,8 @@ describe('resolveDshAcpCommand', () => {
 
     it('supports source checkouts and community servers through JSON args', () => {
         expect(resolveDshAcpCommand({
-            HAPI_DSH_ACP_COMMAND: 'pnpm',
-            HAPI_DSH_ACP_ARGS_JSON: '["--dir", "/opt/dsh", "run", "demo:acp"]'
+            HAMLET_DSH_ACP_COMMAND: 'pnpm',
+            HAMLET_DSH_ACP_ARGS_JSON: '["--dir", "/opt/dsh", "run", "demo:acp"]'
         })).toEqual({
             command: 'pnpm',
             args: ['--dir', '/opt/dsh', 'run', 'demo:acp']
@@ -27,9 +27,9 @@ describe('resolveDshAcpCommand', () => {
     })
 
     it('rejects shell-like or malformed argument values', () => {
-        expect(() => resolveDshAcpCommand({ HAPI_DSH_ACP_ARGS_JSON: 'pnpm --dir /opt/dsh' }))
-            .toThrow('HAPI_DSH_ACP_ARGS_JSON must be a JSON array of strings')
-        expect(() => resolveDshAcpCommand({ HAPI_DSH_ACP_ARGS_JSON: '["pnpm", 1]' }))
-            .toThrow('HAPI_DSH_ACP_ARGS_JSON must be a JSON array of strings')
+        expect(() => resolveDshAcpCommand({ HAMLET_DSH_ACP_ARGS_JSON: 'pnpm --dir /opt/dsh' }))
+            .toThrow('HAMLET_DSH_ACP_ARGS_JSON must be a JSON array of strings')
+        expect(() => resolveDshAcpCommand({ HAMLET_DSH_ACP_ARGS_JSON: '["pnpm", 1]' }))
+            .toThrow('HAMLET_DSH_ACP_ARGS_JSON must be a JSON array of strings')
     })
 })

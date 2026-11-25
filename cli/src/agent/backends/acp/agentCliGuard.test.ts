@@ -17,9 +17,9 @@ import {
     releaseAgentCliSpawnLeaseFromAcpRegisterSync,
     releaseAgentCliSpawnLeaseSync,
     tryAcquireAgentCliSpawnLeaseSync
-} from '@hapi/protocol/agentCliSpawnLease';
+} from '@hamlet/protocol/agentCliSpawnLease';
 
-const testHome = join(tmpdir(), `hapi-agent-cli-guard-${process.pid}`);
+const testHome = join(tmpdir(), `hamlet-agent-cli-guard-${process.pid}`);
 
 function lockDir(): string {
     return join(testHome, 'locks', 'agent-acp-active');
@@ -41,22 +41,22 @@ function writeLegacyAcpLock(pid: number): void {
 }
 
 describe('agentCliGuard', () => {
-    const previousHome = process.env.HAPI_HOME;
+    const previousHome = process.env.HAMLET_HOME;
 
     afterEach(() => {
-        // Always tear down under the isolated test home — never while HAPI_HOME
-        // is unset (that would resolve ~/.hapi and could wipe a live ACP guard).
-        process.env.HAPI_HOME = testHome;
+        // Always tear down under the isolated test home — never while HAMLET_HOME
+        // is unset (that would resolve ~/.hamlet and could wipe a live ACP guard).
+        process.env.HAMLET_HOME = testHome;
         _resetAgentCliGuardForTests();
         if (previousHome === undefined) {
-            delete process.env.HAPI_HOME;
+            delete process.env.HAMLET_HOME;
         } else {
-            process.env.HAPI_HOME = previousHome;
+            process.env.HAMLET_HOME = previousHome;
         }
     });
 
     test('treats in-process ACP transport as active', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         expect(isAgentAcpTransportActive()).toBe(true);
         unregisterActiveAcpTransport();
@@ -64,7 +64,7 @@ describe('agentCliGuard', () => {
     });
 
     test('does not hold spawn lease for the full register lifetime', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         expect(tryAcquireAgentCliSpawnLeaseSync(testHome)).toBe(true);
         releaseAgentCliSpawnLeaseSync();
@@ -72,7 +72,7 @@ describe('agentCliGuard', () => {
     });
 
     test('keeps cross-process lock until the last transport unregisters', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         registerActiveAcpTransport();
 
@@ -86,7 +86,7 @@ describe('agentCliGuard', () => {
     });
 
     test('leaves refcount at one after the first of two in-process unregisters', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         registerActiveAcpTransport();
 
@@ -99,7 +99,7 @@ describe('agentCliGuard', () => {
     });
 
     test('clears stale cross-process lock when pid is not running', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         writeLegacyAcpLock(99999999);
 
         expect(isAgentAcpTransportActive()).toBe(false);
@@ -107,7 +107,7 @@ describe('agentCliGuard', () => {
     });
 
     test('keeps legacy lock when pid file points at a live process', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         writeLegacyAcpLock(process.pid);
 
         expect(isAgentAcpTransportActive()).toBe(true);
@@ -115,7 +115,7 @@ describe('agentCliGuard', () => {
     });
 
     test('clears refcount lock when pid entries are missing or invalid', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const dir = lockDir();
         mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, 'count'), '1', 'utf8');
@@ -128,7 +128,7 @@ describe('agentCliGuard', () => {
     });
 
     test('keeps a fresh count-without-pids lock fail-closed during pre-spawn grace', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const dir = lockDir();
         mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, 'count'), '1', 'utf8');
@@ -139,7 +139,7 @@ describe('agentCliGuard', () => {
     });
 
     test('clears refcount lock when all pid entries are stale', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         writeTestAcpLock({ count: 2, pids: [99999998, 99999999] });
 
         expect(isAgentAcpTransportActive()).toBe(false);
@@ -147,15 +147,15 @@ describe('agentCliGuard', () => {
     });
 
     test('reconciles refcount lock down to live pid entries', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         writeTestAcpLock({ count: 3, pids: [process.pid, 99999999] });
 
         expect(isAgentAcpTransportActive()).toBe(true);
         expect(existsSync(lockDir())).toBe(true);
     });
 
-    test('records the ACP child PID when provided, not only the HAPI host PID', () => {
-        process.env.HAPI_HOME = testHome;
+    test('records the ACP child PID when provided, not only the HAMLET host PID', () => {
+        process.env.HAMLET_HOME = testHome;
         // Distinct from process.pid so host + child markers are both asserted.
         const childPid = process.pid + 1_000_000;
         registerActiveAcpTransport({ childPid });
@@ -170,7 +170,7 @@ describe('agentCliGuard', () => {
     });
 
     test('recordActiveAcpChildPid upgrades a pre-spawn reservation to the real child PID', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         const childPid = process.pid + 1_000_001;
         recordActiveAcpChildPid(childPid);
@@ -185,20 +185,20 @@ describe('agentCliGuard', () => {
         expect(isAgentAcpTransportActive()).toBe(false);
     });
 
-    test('uses ~/.hapi lock home when HAPI_HOME is unset (not /tmp/hapi)', () => {
-        delete process.env.HAPI_HOME;
+    test('uses ~/.hamlet lock home when HAMLET_HOME is unset (not /tmp/hamlet)', () => {
+        delete process.env.HAMLET_HOME;
         try {
-            const expected = join(homedir(), '.hapi', 'locks', 'agent-acp-active');
+            const expected = join(homedir(), '.hamlet', 'locks', 'agent-acp-active');
             expect(getAgentAcpLockDir()).toBe(expected);
-            expect(getAgentAcpLockDir()).not.toContain(join(tmpdir(), 'hapi'));
+            expect(getAgentAcpLockDir()).not.toContain(join(tmpdir(), 'hamlet'));
         } finally {
             // Restore isolated home before afterEach reset (belt + suspenders).
-            process.env.HAPI_HOME = testHome;
+            process.env.HAMLET_HOME = testHome;
         }
     });
 
     test('publishes host pid marker before count so mid-register readers stay active', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const steps: string[] = [];
         _setRegisterPublishHookForTests((step) => {
             steps.push(step);
@@ -226,7 +226,7 @@ describe('agentCliGuard', () => {
     });
 
     test('host-pid-without-count reservation is not cleared as stale by reconcile', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const dir = lockDir();
         mkdirSync(join(dir, 'pids'), { recursive: true });
         writeFileSync(join(dir, 'pids', String(process.pid)), String(process.pid), 'utf8');
@@ -239,7 +239,7 @@ describe('agentCliGuard', () => {
     });
 
     test('empty pids/ mid-addLockPid stays active for concurrent readers', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         let sawEmptyPids = false;
         _setAddLockPidHookForTests((phase) => {
             if (phase !== 'after-pids-mkdir') {
@@ -264,7 +264,7 @@ describe('agentCliGuard', () => {
     });
 
     test('last unregister does not erase concurrent mid-addLockPid registration', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         registerActiveAcpTransport();
         expect(readFileSync(join(lockDir(), 'count'), 'utf8')).toBe('1');
 
@@ -297,7 +297,7 @@ describe('agentCliGuard', () => {
     });
 
     test('prunes crash-stale registering/<deadPid> so list-models is not pinned', () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const dir = lockDir();
         mkdirSync(join(dir, 'registering'), { recursive: true });
         mkdirSync(join(dir, 'pids'), { recursive: true });

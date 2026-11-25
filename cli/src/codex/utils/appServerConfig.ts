@@ -44,7 +44,7 @@ function resolveApprovalPolicy(mode: EnhancedMode): ApprovalPolicy {
     if (mode.permissionMode === 'yolo' || mode.permissionMode === 'read-only') {
         // Codex's `never` policy auto-declines MCP elicitations before app-server
         // can forward them. Keep command/sandbox prompts disabled for Yolo and
-        // read-only while allowing auth and structured input to reach HAPI's UI.
+        // read-only while allowing auth and structured input to reach HAMLET's UI.
         return MCP_ELICITATION_ONLY_APPROVAL_POLICY;
     }
     return resolveCodexPermissionModeConfig(mode.permissionMode).approvalPolicy;
@@ -79,7 +79,7 @@ function resolveSandboxPolicyOverride(value: CodexCliOverrides['sandbox'] | unde
 const APP_SERVER_FAST_TIER = 'priority';
 
 /**
- * Translate HAPI's stored service-tier representation into the Codex
+ * Translate HAMLET's stored service-tier representation into the Codex
  * app-server `serviceTier` field for thread/turn params:
  * - `'fast'`     → `'priority'`  (the advertised Fast tier request value)
  * - `'standard'` → `null`        (explicit Standard tier)
@@ -117,10 +117,10 @@ function resolveInstructions(args: {
     developerInstructions?: string;
 }): { baseInstructions: string | undefined; developerInstructions: string } {
     const baseInstructions = args.baseInstructions;
-    const hapiDeveloperInstructions = getCodexSystemPrompt();
-    const developerInstructions = args.developerInstructions
-        ? `${hapiDeveloperInstructions}\n\n${args.developerInstructions}`
-        : hapiDeveloperInstructions;
+    const hamletDeveloperInstructions = getCodexSystemPrompt();
+    const developerInstructions = [hamletDeveloperInstructions, args.developerInstructions]
+        .filter(Boolean)
+        .join('\n\n');
     return {
         baseInstructions,
         developerInstructions
@@ -129,12 +129,14 @@ function resolveInstructions(args: {
 
 function appendCollaborationInstructions(developerInstructions: string, proactiveMultiAgent?: boolean): string {
     if (proactiveMultiAgent === undefined) {
-        return `${developerInstructions}\n\n${codexCollaborationSpawnAgentInstructions}`;
+        return [developerInstructions, codexCollaborationSpawnAgentInstructions].filter(Boolean).join('\n\n');
     }
     const multiAgentMode = proactiveMultiAgent
         ? 'Proactive multi-agent delegation is active. Any earlier instruction requiring an explicit user request before spawning sub-agents no longer applies. Use sub-agents when parallel work would materially improve speed or quality. This mode remains active until a later multi-agent mode developer message changes it.'
         : 'Any earlier instruction enabling proactive multi-agent delegation no longer applies. Do not spawn sub-agents unless the user or applicable AGENTS.md/skill instructions explicitly ask for sub-agents, delegation, or parallel agent work.';
-    return `${developerInstructions}\n\n${codexCollaborationSpawnAgentInstructions}\n\n<multi_agent_mode>${multiAgentMode}</multi_agent_mode>`;
+    return [developerInstructions, codexCollaborationSpawnAgentInstructions, `<multi_agent_mode>${multiAgentMode}</multi_agent_mode>`]
+        .filter(Boolean)
+        .join('\n\n');
 }
 
 function mentionNameFromPath(path: string): string {

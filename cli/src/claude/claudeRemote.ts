@@ -9,7 +9,7 @@ import { getProjectPath } from "./utils/path";
 import { awaitFileExist } from "@/modules/watcher/awaitFileExist";
 import { getSystemPrompt } from "./utils/systemPrompt";
 import { PermissionResult } from "./sdk/types";
-import { getHapiBlobsDir } from "@/constants/uploadPaths";
+import { getHamletBlobsDir } from "@/constants/uploadPaths";
 import { getDefaultClaudeCodePath } from "./sdk/utils";
 import { filterCatalogAffectingClaudeArgs } from "./sdk/metadataExtractor";
 
@@ -157,7 +157,7 @@ export async function claudeRemote(opts: {
 
     // Prepare SDK options. For --fork-session, start query() before waiting for the
     // first child prompt so the native fork materializes at the clicked source state.
-    const hapiSystemPrompt = getSystemPrompt();
+    const hamletSystemPrompt = getSystemPrompt();
     const sdkOptions: Options = {
         additionalArgs: filterCatalogAffectingClaudeArgs(opts.claudeArgs),
         cwd: opts.path,
@@ -169,11 +169,11 @@ export async function claudeRemote(opts: {
         effort: bootstrapMode.effort,
         fallbackModel: bootstrapMode.fallbackModel,
         customSystemPrompt: bootstrapMode.customSystemPrompt
-            ? bootstrapMode.customSystemPrompt + '\n\n' + hapiSystemPrompt
+            ? bootstrapMode.customSystemPrompt + '\n\n' + hamletSystemPrompt
             : undefined,
         appendSystemPrompt: bootstrapMode.appendSystemPrompt
-            ? bootstrapMode.appendSystemPrompt + '\n\n' + hapiSystemPrompt
-            : hapiSystemPrompt,
+            ? bootstrapMode.appendSystemPrompt + '\n\n' + hamletSystemPrompt
+            : hamletSystemPrompt,
         allowedTools: bootstrapMode.allowedTools
             ? bootstrapMode.allowedTools.concat(opts.allowedTools)
             : opts.allowedTools,
@@ -182,7 +182,7 @@ export async function claudeRemote(opts: {
         abort: opts.signal,
         pathToClaudeCodeExecutable: getDefaultClaudeCodePath(),
         settingsPath: opts.hookSettingsPath,
-        additionalDirectories: [getHapiBlobsDir()],
+        additionalDirectories: [getHamletBlobsDir()],
     }
 
     if (!awaitingForkInit) {
@@ -196,11 +196,11 @@ export async function claudeRemote(opts: {
         sdkOptions.effort = first.mode.effort;
         sdkOptions.fallbackModel = first.mode.fallbackModel;
         sdkOptions.customSystemPrompt = first.mode.customSystemPrompt
-            ? first.mode.customSystemPrompt + '\n\n' + hapiSystemPrompt
+            ? first.mode.customSystemPrompt + '\n\n' + hamletSystemPrompt
             : undefined;
         sdkOptions.appendSystemPrompt = first.mode.appendSystemPrompt
-            ? first.mode.appendSystemPrompt + '\n\n' + hapiSystemPrompt
-            : hapiSystemPrompt;
+            ? first.mode.appendSystemPrompt + '\n\n' + hamletSystemPrompt
+            : hamletSystemPrompt;
         sdkOptions.allowedTools = first.mode.allowedTools
             ? first.mode.allowedTools.concat(opts.allowedTools)
             : opts.allowedTools;

@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 
 // Codex's wire value, never a localized display label.
 export const REQUEST_USER_INPUT_OTHER = 'None of the above'

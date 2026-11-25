@@ -1,0 +1,596 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A100000000000000000000C4 /* HamletProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* HamletProtocol */; };
+		A100000000000000000000C5 /* HamletClient in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C3 /* HamletClient */; };
+		A100000000000000000000C8 /* HamletUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C7 /* HamletUI */; };
+		A200000000000000000000D4 /* HamletNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A200000000000000000000A4 /* HamletNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A300000000000000000000C4 /* HamletProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* HamletProtocol */; };
+		A300000000000000000000C5 /* HamletClient in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C3 /* HamletClient */; };
+		A300000000000000000000C8 /* HamletUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C7 /* HamletUI */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A200000000000000000000D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A100000000000000000000A6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A200000000000000000000A5;
+			remoteInfo = HamletNotificationService;
+		};
+		A300000000000000000000D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A100000000000000000000A6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A100000000000000000000A5;
+			remoteInfo = Hamlet;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A200000000000000000000D3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A200000000000000000000D4 /* HamletNotificationService.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A100000000000000000000A4 /* Hamlet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hamlet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A200000000000000000000A4 /* HamletNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HamletNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A300000000000000000000A4 /* HamletTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = HamletTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A100000000000000000000C6 /* Exceptions for "Hamlet" folder in "Hamlet" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A100000000000000000000A5 /* Hamlet */;
+		};
+		A200000000000000000000C6 /* Exceptions for "HamletNotificationService" folder in "HamletNotificationService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A200000000000000000000A5 /* HamletNotificationService */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A100000000000000000000A2 /* Hamlet */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A100000000000000000000C6 /* Exceptions for "Hamlet" folder in "Hamlet" target */,
+			);
+			path = Hamlet;
+			sourceTree = "<group>";
+		};
+		A200000000000000000000A2 /* HamletNotificationService */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A200000000000000000000C6 /* Exceptions for "HamletNotificationService" folder in "HamletNotificationService" target */,
+			);
+			path = HamletNotificationService;
+			sourceTree = "<group>";
+		};
+		A300000000000000000000A2 /* HamletTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HamletTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A100000000000000000000A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000C4 /* HamletProtocol in Frameworks */,
+				A100000000000000000000C5 /* HamletClient in Frameworks */,
+				A100000000000000000000C8 /* HamletUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A200000000000000000000A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A300000000000000000000A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A300000000000000000000C4 /* HamletProtocol in Frameworks */,
+				A300000000000000000000C5 /* HamletClient in Frameworks */,
+				A300000000000000000000C8 /* HamletUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A100000000000000000000A1 = {
+			isa = PBXGroup;
+			children = (
+				A100000000000000000000A2 /* Hamlet */,
+				A200000000000000000000A2 /* HamletNotificationService */,
+				A300000000000000000000A2 /* HamletTests */,
+				A100000000000000000000A3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A100000000000000000000A3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A100000000000000000000A4 /* Hamlet.app */,
+				A200000000000000000000A4 /* HamletNotificationService.appex */,
+				A300000000000000000000A4 /* HamletTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A100000000000000000000A5 /* Hamlet */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A100000000000000000000B4 /* Build configuration list for PBXNativeTarget "Hamlet" */;
+			buildPhases = (
+				A100000000000000000000A7 /* Sources */,
+				A100000000000000000000A8 /* Frameworks */,
+				A100000000000000000000A9 /* Resources */,
+				A200000000000000000000D3 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A200000000000000000000D1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A100000000000000000000A2 /* Hamlet */,
+			);
+			name = Hamlet;
+			packageProductDependencies = (
+				A100000000000000000000C2 /* HamletProtocol */,
+				A100000000000000000000C3 /* HamletClient */,
+				A100000000000000000000C7 /* HamletUI */,
+			);
+			productName = Hamlet;
+			productReference = A100000000000000000000A4 /* Hamlet.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A200000000000000000000A5 /* HamletNotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A200000000000000000000B4 /* Build configuration list for PBXNativeTarget "HamletNotificationService" */;
+			buildPhases = (
+				A200000000000000000000A7 /* Sources */,
+				A200000000000000000000A8 /* Frameworks */,
+				A200000000000000000000A9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A200000000000000000000A2 /* HamletNotificationService */,
+			);
+			name = HamletNotificationService;
+			packageProductDependencies = (
+			);
+			productName = HamletNotificationService;
+			productReference = A200000000000000000000A4 /* HamletNotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A300000000000000000000A5 /* HamletTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A300000000000000000000B4 /* Build configuration list for PBXNativeTarget "HamletTests" */;
+			buildPhases = (
+				A300000000000000000000A7 /* Sources */,
+				A300000000000000000000A8 /* Frameworks */,
+				A300000000000000000000A9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A300000000000000000000D1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A300000000000000000000A2 /* HamletTests */,
+			);
+			name = HamletTests;
+			packageProductDependencies = (
+				A100000000000000000000C2 /* HamletProtocol */,
+				A100000000000000000000C3 /* HamletClient */,
+				A100000000000000000000C7 /* HamletUI */,
+			);
+			productName = HamletTests;
+			productReference = A300000000000000000000A4 /* HamletTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A100000000000000000000A6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A100000000000000000000A5 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A200000000000000000000A5 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A100000000000000000000B1 /* Build configuration list for PBXProject "Hamlet" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = A100000000000000000000A1;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A100000000000000000000C1 /* XCLocalSwiftPackageReference "Packages/HamletKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A100000000000000000000A3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A100000000000000000000A5 /* Hamlet */,
+				A200000000000000000000A5 /* HamletNotificationService */,
+				A300000000000000000000A5 /* HamletTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A100000000000000000000A9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A200000000000000000000A9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A300000000000000000000A9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A100000000000000000000A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A200000000000000000000A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A300000000000000000000A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A200000000000000000000D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A200000000000000000000A5 /* HamletNotificationService */;
+			targetProxy = A200000000000000000000D2 /* PBXContainerItemProxy */;
+		};
+		A300000000000000000000D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A100000000000000000000A5 /* Hamlet */;
+			targetProxy = A300000000000000000000D2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A100000000000000000000B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A100000000000000000000B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A100000000000000000000B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Hamlet/Hamlet.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hamlet/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HAMLET;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.30.7;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A100000000000000000000B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Hamlet/Hamlet.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Hamlet/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HAMLET;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.30.7;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A200000000000000000000B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HamletNotificationService/HamletNotificationService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HamletNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HamletNotificationService;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.30.7;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.app.HamletNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A200000000000000000000B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HamletNotificationService/HamletNotificationService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HamletNotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HamletNotificationService;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.30.7;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.app.HamletNotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A300000000000000000000B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.companion.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hamlet.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hamlet";
+			};
+			name = Debug;
+		};
+		A300000000000000000000B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = run.hamlet.companion.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hamlet.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hamlet";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A100000000000000000000B1 /* Build configuration list for PBXProject "Hamlet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A100000000000000000000B2 /* Debug */,
+				A100000000000000000000B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A100000000000000000000B4 /* Build configuration list for PBXNativeTarget "Hamlet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A100000000000000000000B5 /* Debug */,
+				A100000000000000000000B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A200000000000000000000B4 /* Build configuration list for PBXNativeTarget "HamletNotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A200000000000000000000B5 /* Debug */,
+				A200000000000000000000B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A300000000000000000000B4 /* Build configuration list for PBXNativeTarget "HamletTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A300000000000000000000B5 /* Debug */,
+				A300000000000000000000B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A100000000000000000000C1 /* XCLocalSwiftPackageReference "Packages/HamletKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/HamletKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A100000000000000000000C2 /* HamletProtocol */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HamletProtocol;
+		};
+		A100000000000000000000C3 /* HamletClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HamletClient;
+		};
+		A100000000000000000000C7 /* HamletUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HamletUI;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A100000000000000000000A6 /* Project object */;
+}

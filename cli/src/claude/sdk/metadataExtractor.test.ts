@@ -6,20 +6,20 @@ import {
 
 describe('Claude skill catalog', () => {
     const discoveredSkills = [
-        { name: 'hapi', description: 'Manage HAPI' },
+        { name: 'hamlet', description: 'Manage HAMLET' },
         { name: 'ponytail', description: 'Keep code simple' },
         { name: 'scanner-only', description: 'Not loaded by Claude' }
     ]
 
     it('separates native skills from slash commands and keeps plugin namespaces', () => {
         expect(classifyClaudeSlashCatalog(
-            ['help', 'hapi', 'url-plugin:url-skill', 'ponytail:ponytail', 'review'],
+            ['help', 'hamlet', 'url-plugin:url-skill', 'ponytail:ponytail', 'review'],
             discoveredSkills,
-            ['hapi', 'url-plugin:url-skill', 'ponytail:ponytail']
+            ['hamlet', 'url-plugin:url-skill', 'ponytail:ponytail']
         )).toEqual({
             commands: ['help', 'review'],
             skills: [
-                { name: 'hapi', description: 'Manage HAPI' },
+                { name: 'hamlet', description: 'Manage HAMLET' },
                 { name: 'url-plugin:url-skill', description: undefined },
                 { name: 'ponytail:ponytail', description: 'Keep code simple' }
             ]

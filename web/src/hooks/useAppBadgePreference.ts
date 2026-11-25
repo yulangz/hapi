@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-const APP_BADGE_ENABLED_STORAGE_KEY = 'hapi-app-badge-enabled'
+const APP_BADGE_ENABLED_STORAGE_KEY = 'hamlet-app-badge-enabled'
 export const DEFAULT_APP_BADGE_ENABLED = false
 
 const sameTabListeners = new Set<(enabled: boolean) => void>()

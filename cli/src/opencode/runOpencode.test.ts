@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildCliArgs } from '@/runner/run';
 import { parseRemoteAgentCommandOptions } from '@/commands/agentCommandOptions';
-import { OPENCODE_PERMISSION_MODES } from '@hapi/protocol/modes';
+import { OPENCODE_PERMISSION_MODES } from '@hamlet/protocol/modes';
 
 const mockOpencodeSession = vi.hoisted(() => ({
     setModel: vi.fn(),
@@ -189,7 +189,7 @@ describe('runOpencode set-session-config handler', () => {
     it('carries the runner preallocated id from CLI args through parse into bootstrapExistingSession', async () => {
         const runnerArgs = buildCliArgs('opencode', {
             directory: '/tmp/project',
-            existingSessionId: 'preallocated-hapi-id'
+            existingSessionId: 'preallocated-hamlet-id'
         });
         const parsed = parseRemoteAgentCommandOptions(runnerArgs.slice(1), OPENCODE_PERMISSION_MODES);
 
@@ -197,7 +197,7 @@ describe('runOpencode set-session-config handler', () => {
 
         expect(harness.bootstrapArgs).toEqual([]);
         expect(harness.bootstrapExistingArgs).toEqual([{
-            sessionId: 'preallocated-hapi-id',
+            sessionId: 'preallocated-hamlet-id',
             flavor: 'opencode',
             startedBy: 'runner',
             workingDirectory: '/tmp/project'
@@ -695,7 +695,7 @@ describe('runOpencode set-session-config handler', () => {
         }
 
         const messages = harness.session.sendAgentMessage.mock.calls.map((call) => (call[0] as { message: string }).message);
-        expect(messages).toEqual(['/compact is not yet supported in HAPI OpenCode sessions.']);
+        expect(messages).toEqual(['/compact is not yet supported in HAMLET OpenCode sessions.']);
 
         const messageQueue = harness.opencodeLoopArgs[0]?.messageQueue as { queue: unknown[] };
         expect(messageQueue.queue).toEqual([]);
@@ -731,7 +731,7 @@ describe('runOpencode set-session-config handler', () => {
         }
 
         const messages = harness.session.sendAgentMessage.mock.calls.map((call) => (call[0] as { message: string }).message);
-        expect(messages).toEqual(['/compact is not yet supported in HAPI OpenCode sessions.']);
+        expect(messages).toEqual(['/compact is not yet supported in HAMLET OpenCode sessions.']);
 
         const messageQueue = harness.opencodeLoopArgs[0]?.messageQueue as { queue: unknown[] };
         expect(messageQueue.queue).toEqual([]);

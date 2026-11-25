@@ -51,12 +51,12 @@ export function ShareTurnButton(props: {
 
     return (
         <MessageActionButton
-            data-hapi-share-action="true"
+            data-hamlet-share-action="true"
             label={t('message.shareTurn')}
             className={props.className}
             onClick={(event) => {
                 event.stopPropagation()
-                const messageElement = event.currentTarget.closest('[data-hapi-message-role]')
+                const messageElement = event.currentTarget.closest('[data-hamlet-message-role]')
                 onShareTurn(
                     messageElement instanceof HTMLElement ? messageElement : props.messageElementId,
                     event.clientY,

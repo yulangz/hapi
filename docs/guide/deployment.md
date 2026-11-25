@@ -9,16 +9,16 @@ separate service from the network tunnels described here.
 
 ## Relay tunnel details
 
-The default public relay (`hapi hub --relay`) works out of the box. This section covers how relay authentication works and how to tune it.
+The default public relay (`hamlet hub --relay`) works out of the box. This section covers how relay authentication works and how to tune it.
 
-The hub automatically stores an individually revocable relay key in `settings.json` (`relayAuthKey`). If that persisted key is revoked or the relay rotates its signing secret, HAPI discards it after HTTP 403, requests one replacement, and restarts the tunnel. Relay issuance is limited per public IP; HTTP 429 is reported explicitly, which can affect users sharing a CGNAT or corporate egress address. Set `HAPI_RELAY_AUTH` only when an operator has provided a key manually; rejected environment keys are never overwritten automatically.
+The hub automatically stores an individually revocable relay key in `settings.json` (`relayAuthKey`). If that persisted key is revoked or the relay rotates its signing secret, HAMLET discards it after HTTP 403, requests one replacement, and restarts the tunnel. Relay issuance is limited per public IP; HTTP 429 is reported explicitly, which can affect users sharing a CGNAT or corporate egress address. Set `HAMLET_RELAY_AUTH` only when an operator has provided a key manually; rejected environment keys are never overwritten automatically.
 
-> **Tip:** The relay uses UDP by default. If you experience connectivity issues, set `HAPI_RELAY_FORCE_TCP=true` to force TCP mode.
+> **Tip:** The relay uses UDP by default. If you experience connectivity issues, set `HAMLET_RELAY_FORCE_TCP=true` to force TCP mode.
 
 Other relay-related environment variables:
 
-- `HAPI_RELAY_API` - Relay API domain (default: `relay.hapi.run`)
-- `HAPI_OFFICIAL_WEB_URL` - Official web app origin allowed via CORS when the relay is enabled (default: `https://app.hapi.run`)
+- `HAMLET_RELAY_API` - Relay API domain (default: `relay.hapi.run`)
+- `HAMLET_OFFICIAL_WEB_URL` - Official web app origin allowed via CORS when the relay is enabled (default: `https://app.hapi.run`)
 
 ## Self-hosted tunnels
 
@@ -29,7 +29,7 @@ If you prefer not to use the public relay (e.g., for lower latency or self-manag
 
 https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
 
-> **Note:** Cloudflare Quick Tunnels (TryCloudflare) are not supported because they [do not support SSE](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/), which HAPI uses for real-time updates. Use a Named Tunnel instead.
+> **Note:** Cloudflare Quick Tunnels (TryCloudflare) are not supported because they [do not support SSE](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/), which HAMLET uses for real-time updates. Use a Named Tunnel instead.
 
 **Named tunnel setup:**
 
@@ -37,11 +37,11 @@ https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
 # Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
 
 # Create and configure a named tunnel
-cloudflared tunnel create hapi
-cloudflared tunnel route dns hapi hapi.yourdomain.com
+cloudflared tunnel create hamlet
+cloudflared tunnel route dns hamlet hamlet.yourdomain.com
 
 # Run the tunnel
-cloudflared tunnel --protocol http2 run hapi
+cloudflared tunnel --protocol http2 run hamlet
 ```
 
 > **Tip:** Use `--protocol http2` instead of QUIC (the default) to avoid potential timeout issues with long-lived connections.
@@ -61,7 +61,7 @@ The default hub listens only on loopback. For browser access directly via
 your Tailscale IP, start it with:
 
 ```bash
-HAPI_LISTEN_HOST=0.0.0.0 hapi hub
+HAMLET_LISTEN_HOST=0.0.0.0 hamlet hub
 ```
 
 Restrict inbound access to the trusted network with your firewall, then open:
@@ -79,12 +79,12 @@ For native apps and HTTPS-only browser features, use an HTTPS endpoint
 
 Keep the hub on its default `127.0.0.1:3006` and put an HTTPS reverse proxy
 (Nginx, Caddy, etc.) in front of it. A public IP alone does not make the
-loopback listener remotely accessible. Set `HAPI_LISTEN_HOST` only when you
+loopback listener remotely accessible. Set `HAMLET_LISTEN_HOST` only when you
 need another bind address, and restrict direct access with your firewall.
 
 **Self-signed certificates (HTTPS)**
 
-If `HAPI_API_URL` is set to an `https://...` URL with a self-signed (or otherwise untrusted) certificate, the CLI may fail with:
+If `HAMLET_API_URL` is set to an `https://...` URL with a self-signed (or otherwise untrusted) certificate, the CLI may fail with:
 
 ```
 Error: self signed certificate
@@ -110,7 +110,7 @@ If you use the dev-only workaround, assume MITM risk; do not use on public netwo
 
 ## Background service deployment
 
-Keep HAPI running persistently so it survives terminal closes, system restarts, and continues running in the background.
+Keep HAMLET running persistently so it survives terminal closes, system restarts, and continues running in the background.
 
 <details>
 <summary>Quick: nohup</summary>
@@ -119,25 +119,25 @@ Simple one-liner for quick background runs:
 
 ```bash
 # Hub
-mkdir -p ~/.hapi/logs
-nohup hapi hub --relay > ~/.hapi/logs/hub.log 2>&1 &
+mkdir -p ~/.hamlet/logs
+nohup hamlet hub --relay > ~/.hamlet/logs/hub.log 2>&1 &
 
 # Runner
-nohup hapi runner start-sync > ~/.hapi/logs/runner.log 2>&1 &
+nohup hamlet runner start-sync > ~/.hamlet/logs/runner.log 2>&1 &
 ```
 
 View logs:
 
 ```bash
-tail -f ~/.hapi/logs/hub.log
-tail -f ~/.hapi/logs/runner.log
+tail -f ~/.hamlet/logs/hub.log
+tail -f ~/.hamlet/logs/runner.log
 ```
 
 Stop processes:
 
 ```bash
-pkill -f "hapi hub"
-pkill -f "hapi runner"
+pkill -f "hamlet hub"
+pkill -f "hamlet runner"
 ```
 </details>
 
@@ -151,15 +151,15 @@ pm2 provides process management with auto-restart on crashes and system reboot.
 npm install -g pm2
 
 # Start hub and runner
-pm2 start "hapi hub --relay" --name hapi-hub
-# HAPI_RUNNER_SUPERVISED=1 lets the web Restart button stop the runner knowing
+pm2 start "hamlet hub --relay" --name hamlet-hub
+# HAMLET_RUNNER_SUPERVISED=1 lets the web Restart button stop the runner knowing
 # pm2 will cold-start it again (unsupervised stop would leave the host offline).
-HAPI_RUNNER_SUPERVISED=1 pm2 start "hapi runner start-sync" --name hapi-runner
+HAMLET_RUNNER_SUPERVISED=1 pm2 start "hamlet runner start-sync" --name hamlet-runner
 
 # View status and logs
 pm2 status
-pm2 logs hapi-hub
-pm2 logs hapi-runner
+pm2 logs hamlet-hub
+pm2 logs hamlet-runner
 
 # Auto-restart on system reboot
 pm2 startup    # Follow the printed instructions
@@ -172,7 +172,7 @@ pm2 save       # Save current process list
 
 Create plist files for automatic startup on macOS.
 
-**Hub** (`~/Library/LaunchAgents/com.hapi.hub.plist`):
+**Hub** (`~/Library/LaunchAgents/com.hamlet.hub.plist`):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -180,10 +180,10 @@ Create plist files for automatic startup on macOS.
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.hapi.hub</string>
+    <string>com.hamlet.hub</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/hapi</string>
+        <string>/usr/local/bin/hamlet</string>
         <string>hub</string>
         <string>--relay</string>
     </array>
@@ -192,14 +192,14 @@ Create plist files for automatic startup on macOS.
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/YOUR_USERNAME/.hapi/logs/hub.log</string>
+    <string>/Users/YOUR_USERNAME/.hamlet/logs/hub.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/YOUR_USERNAME/.hapi/logs/hub.log</string>
+    <string>/Users/YOUR_USERNAME/.hamlet/logs/hub.log</string>
 </dict>
 </plist>
 ```
 
-**Runner** (`~/Library/LaunchAgents/com.hapi.runner.plist`):
+**Runner** (`~/Library/LaunchAgents/com.hamlet.runner.plist`):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -207,16 +207,16 @@ Create plist files for automatic startup on macOS.
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.hapi.runner</string>
+    <string>com.hamlet.runner</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/hapi</string>
+        <string>/usr/local/bin/hamlet</string>
         <string>runner</string>
         <string>start-sync</string>
     </array>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>HAPI_RUNNER_SUPERVISED</key>
+        <key>HAMLET_RUNNER_SUPERVISED</key>
         <string>1</string>
     </dict>
     <key>SoftResourceLimits</key>
@@ -229,9 +229,9 @@ Create plist files for automatic startup on macOS.
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/YOUR_USERNAME/.hapi/logs/runner.log</string>
+    <string>/Users/YOUR_USERNAME/.hamlet/logs/runner.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/YOUR_USERNAME/.hapi/logs/runner.log</string>
+    <string>/Users/YOUR_USERNAME/.hamlet/logs/runner.log</string>
 </dict>
 </plist>
 ```
@@ -240,19 +240,19 @@ Load/unload services:
 
 ```bash
 # Load (start)
-launchctl load ~/Library/LaunchAgents/com.hapi.hub.plist
-launchctl load ~/Library/LaunchAgents/com.hapi.runner.plist
+launchctl load ~/Library/LaunchAgents/com.hamlet.hub.plist
+launchctl load ~/Library/LaunchAgents/com.hamlet.runner.plist
 
 # Unload (stop)
-launchctl unload ~/Library/LaunchAgents/com.hapi.hub.plist
-launchctl unload ~/Library/LaunchAgents/com.hapi.runner.plist
+launchctl unload ~/Library/LaunchAgents/com.hamlet.hub.plist
+launchctl unload ~/Library/LaunchAgents/com.hamlet.runner.plist
 ```
 
 > **macOS sleep note:** macOS may suspend background processes when the display sleeps. Use `caffeinate` to prevent this:
 > ```bash
-> caffeinate -dimsu hapi hub --relay
+> caffeinate -dimsu hamlet hub --relay
 > ```
-> Or run `caffeinate -dimsu` in a separate terminal while HAPI is running.
+> Or run `caffeinate -dimsu` in a separate terminal while HAMLET is running.
 </details>
 
 <details>
@@ -260,16 +260,16 @@ launchctl unload ~/Library/LaunchAgents/com.hapi.runner.plist
 
 Create user-level systemd services for automatic startup.
 
-**Hub** (`~/.config/systemd/user/hapi-hub.service`):
+**Hub** (`~/.config/systemd/user/hamlet-hub.service`):
 
 ```ini
 [Unit]
-Description=HAPI Hub
+Description=HAMLET Hub
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/hapi hub --relay
+ExecStart=/usr/local/bin/hamlet hub --relay
 Restart=always
 RestartSec=5
 
@@ -277,20 +277,20 @@ RestartSec=5
 WantedBy=default.target
 ```
 
-**Runner** (`~/.config/systemd/user/hapi-runner.service`):
+**Runner** (`~/.config/systemd/user/hamlet-runner.service`):
 
 ```ini
 [Unit]
-Description=HAPI Runner
-After=network.target hapi-hub.service
+Description=HAMLET Runner
+After=network.target hamlet-hub.service
 
 [Service]
 Type=simple
 KillMode=process
 # Advertise supervisedRestart so the web UI Restart button may stop-runner
 # knowing systemd will cold-start the unit again.
-Environment=HAPI_RUNNER_SUPERVISED=1
-ExecStart=/usr/local/bin/hapi runner start-sync
+Environment=HAMLET_RUNNER_SUPERVISED=1
+ExecStart=/usr/local/bin/hamlet runner start-sync
 Restart=always
 RestartSec=5
 
@@ -307,16 +307,16 @@ Enable and start:
 systemctl --user daemon-reload
 
 # Enable (auto-start on login)
-systemctl --user enable hapi-hub
-systemctl --user enable hapi-runner
+systemctl --user enable hamlet-hub
+systemctl --user enable hamlet-runner
 
 # Start now
-systemctl --user start hapi-hub
-systemctl --user start hapi-runner
+systemctl --user start hamlet-hub
+systemctl --user start hamlet-runner
 
 # View status/logs
-systemctl --user status hapi-hub
-journalctl --user -u hapi-hub -f
+systemctl --user status hamlet-hub
+journalctl --user -u hamlet-hub -f
 ```
 
 > **Persist after logout:** To keep services running even when not logged in:

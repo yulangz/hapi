@@ -18,7 +18,7 @@ describe('listSlashCommands', () => {
     let projectDir: string
 
     beforeEach(async () => {
-        sandboxDir = await mkdtemp(join(tmpdir(), 'hapi-slash-commands-'))
+        sandboxDir = await mkdtemp(join(tmpdir(), 'hamlet-slash-commands-'))
         homeDir = join(sandboxDir, 'home')
         claudeConfigDir = join(sandboxDir, 'global-claude')
         codexHome = join(sandboxDir, 'global-codex')
@@ -133,7 +133,7 @@ describe('listSlashCommands', () => {
         await expect(listSlashCommands('claude', nonExistentProjectDir)).resolves.toBeDefined()
     })
 
-    it('exposes HAPI-supported Codex built-ins', async () => {
+    it('exposes HAMLET-supported Codex built-ins', async () => {
         const commands = await listSlashCommands('codex', projectDir)
 
         expect(commands.map((command) => command.name)).toEqual(expect.arrayContaining([
@@ -187,7 +187,7 @@ describe('listSlashCommands', () => {
         })
     })
 
-    it('exposes HAPI-supported OpenCode built-ins', async () => {
+    it('exposes HAMLET-supported OpenCode built-ins', async () => {
         const commands = await listSlashCommands('opencode', projectDir)
 
         const names = commands.map((command) => command.name)

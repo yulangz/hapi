@@ -7,7 +7,7 @@ import { hashObject } from '@/utils/deterministicJson';
 import { classifyClaudeSlashCatalog, extractSDKMetadata } from '@/claude/sdk/metadataExtractor';
 import { parseSpecialCommand } from '@/parsers/specialCommands';
 import { getEnvironmentInfo } from '@/ui/doctor';
-import { startHappyServer, toClaudeAllowedHapiMcpTools } from '@/claude/utils/startHappyServer';
+import { startHappyServer, toClaudeAllowedHamletMcpTools } from '@/claude/utils/startHappyServer';
 import { startHookServer } from '@/claude/utils/startHookServer';
 import { generateHookSettingsFile, cleanupHookSettingsFile } from '@/modules/common/hooks/generateHookSettings';
 import { registerKillSessionHandler } from './registerKillSessionHandler';
@@ -15,9 +15,9 @@ import type { Session } from './session';
 import { bootstrapExistingSession, bootstrapSession } from '@/agent/sessionFactory';
 import { registerLocalHandoffHandler } from '@/agent/localHandoff';
 import { createModeChangeHandler, createRunnerLifecycle, setControlledByUser } from '@/agent/runnerLifecycle';
-import { isPermissionModeAllowedForFlavor } from '@hapi/protocol';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
-import { PermissionModeSchema } from '@hapi/protocol/schemas';
+import { isPermissionModeAllowedForFlavor } from '@hamlet/protocol';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
+import { PermissionModeSchema } from '@hamlet/protocol/schemas';
 import { formatAttachmentsForClaude, formatMessageWithAttachments } from '@/utils/attachmentFormatter';
 import { normalizeClaudeSessionModel } from './model';
 import { normalizeClaudeSessionEffort } from './effort';
@@ -26,7 +26,7 @@ import { getInvokedCwd } from '@/utils/invokedCwd';
 import {
     CLAUDE_CONVERSATION_HISTORY,
     toConversationHistoryCapabilities
-} from '@hapi/protocol/conversationHistory';
+} from '@hamlet/protocol/conversationHistory';
 import { listSkills, type SkillSummary } from '@/modules/common/skills';
 
 export interface StartOptions {
@@ -48,7 +48,7 @@ export async function runClaude(options: StartOptions = {}): Promise<void> {
     const startedBy = options.startedBy ?? 'terminal';
 
     // Log environment info at startup
-    logger.debugLargeJson('[START] HAPI process started', getEnvironmentInfo());
+    logger.debugLargeJson('[START] HAMLET process started', getEnvironmentInfo());
     logger.debug(`[START] Options: startedBy=${startedBy}, startingMode=${options.startingMode}`);
 
     // Validate runner spawn requirements
@@ -145,9 +145,9 @@ export async function runClaude(options: StartOptions = {}): Promise<void> {
         logger.debug('[start] Failed to update session metadata:', error);
     });
 
-    // Start HAPI MCP server
+    // Start HAMLET MCP server
     const happyServer = await startHappyServer(session);
-    logger.debug(`[START] HAPI MCP server started at ${happyServer.url}`);
+    logger.debug(`[START] HAMLET MCP server started at ${happyServer.url}`);
 
     const formatFailureReason = (message: string): string => {
         const maxLength = 200;
@@ -571,7 +571,7 @@ export async function runClaude(options: StartOptions = {}): Promise<void> {
             startingMode,
             messageQueue,
             api,
-            allowedTools: toClaudeAllowedHapiMcpTools(happyServer.toolNames),
+            allowedTools: toClaudeAllowedHamletMcpTools(happyServer.toolNames),
             onModeChange: createModeChangeHandler(session),
             onSessionReady: (sessionInstance) => {
                 currentSessionRef.current = sessionInstance;
@@ -582,7 +582,7 @@ export async function runClaude(options: StartOptions = {}): Promise<void> {
                 syncSessionModes();
             },
             mcpServers: {
-                'hapi': {
+                'hamlet': {
                     type: 'http' as const,
                     url: happyServer.url,
                 }

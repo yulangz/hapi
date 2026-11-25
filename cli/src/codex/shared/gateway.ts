@@ -79,7 +79,7 @@ export async function startCodexGateway(options: {
             incoming = incoming.then(async () => {
                 await ready;
                 try {
-                    if (message.method?.startsWith('hapi/')) {
+                    if (message.method?.startsWith('hamlet/')) {
                         send(downstream, { id: message.id, result: await options.hooks.control(message.method, message.params) });
                         return;
                     }

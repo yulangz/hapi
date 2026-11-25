@@ -3,7 +3,7 @@ import { logger } from '@/ui/logger';
 import type { AgentMessage, PlanItem } from '@/agent/types';
 import { registerGeneratedImageFromAcpBlock } from '@/modules/common/generatedImages';
 import type { InlineMediaSource } from '@/modules/common/inlineMediaSource';
-import { asString, isObject } from '@hapi/protocol';
+import { asString, isObject } from '@hamlet/protocol';
 import { deriveToolNameWithSource, isPlaceholderToolName } from '@/agent/utils';
 import { parseRateLimitText } from '@/agent/rateLimitParser';
 import { isInternalEventJson } from '@/agent/internalEventFilter';

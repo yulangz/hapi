@@ -156,8 +156,8 @@ vi.mock('./utils/opencodeBackend', () => ({
     }))
 }));
 
-vi.mock('@/codex/utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async (_client: unknown, options?: { enableChangeTitle?: boolean; skillLookup?: { workingDirectory: string; flavor: string } }) => {
+vi.mock('@/codex/utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async (_client: unknown, options?: { enableChangeTitle?: boolean; skillLookup?: { workingDirectory: string; flavor: string } }) => {
         harness.bridgeOptions = options ?? null;
         return {
             server: { stop: () => { harness.cleanupEvents.push('cleanup:server-stop'); if (harness.serverStopError) throw harness.serverStopError; } },
@@ -344,8 +344,8 @@ function createSessionStub(
     };
 
     const session = {
-        path: '/tmp/hapi-opencode-test',
-        logPath: '/tmp/hapi-opencode-test/test.log',
+        path: '/tmp/hamlet-opencode-test',
+        logPath: '/tmp/hamlet-opencode-test/test.log',
         client,
         queue,
         sessionId: null as string | null,
@@ -612,7 +612,7 @@ describe('opencodeRemoteLauncher inline model switch', () => {
         expect(harness.events).toEqual(['prompt:start', 'prompt:end']);
     });
 
-    it('runs the exact 3-stage scenario reported by HAPI Bot: prompt A generating, prompt B already queued, /compact arrives after — final order is A, B, compact', async () => {
+    it('runs the exact 3-stage scenario reported by HAMLET Bot: prompt A generating, prompt B already queued, /compact arrives after — final order is A, B, compact', async () => {
         harness.sessionModelsMetadata = { currentModelId: 'ollama/x', availableModels: [] };
         const resolvers: Array<() => void> = [];
         harness.promptImpl = () => new Promise<void>((resolve) => {
@@ -1642,8 +1642,8 @@ describe('opencodeRemoteLauncher inline model switch', () => {
 
         expect(JSON.stringify(harness.promptContents[0])).toContain('$name');
         expect(JSON.stringify(harness.promptContents[0])).toContain('skill_lookup');
-        expect(JSON.stringify(harness.promptContents[0])).toContain('hapi_display_image');
-        expect(JSON.stringify(harness.promptContents[0])).not.toContain('hapi_change_title');
+        expect(JSON.stringify(harness.promptContents[0])).toContain('hamlet_display_image');
+        expect(JSON.stringify(harness.promptContents[0])).not.toContain('hamlet_change_title');
         expect(JSON.stringify(harness.promptContents[1])).not.toContain('skill_lookup');
     });
 
@@ -1754,11 +1754,11 @@ describe('opencodeRemoteLauncher inline model switch', () => {
 
         expect(harness.bridgeOptions).toEqual({
             enableChangeTitle: false,
-            skillLookup: { workingDirectory: '/tmp/hapi-opencode-test', flavor: 'opencode' }
+            skillLookup: { workingDirectory: '/tmp/hamlet-opencode-test', flavor: 'opencode' }
         });
         expect(harness.refreshSessionInfoCalls).toEqual([
-            { sessionId: 'acp-session-1', cwd: '/tmp/hapi-opencode-test' },
-            { sessionId: 'acp-session-1', cwd: '/tmp/hapi-opencode-test' }
+            { sessionId: 'acp-session-1', cwd: '/tmp/hamlet-opencode-test' },
+            { sessionId: 'acp-session-1', cwd: '/tmp/hamlet-opencode-test' }
         ]);
 
         expect(harness.setModelArgs).toEqual([
@@ -1979,7 +1979,7 @@ describe('opencodeRemoteLauncher inline model switch', () => {
         expect(content[0]?.text).toContain('You are in plan mode');
         expect(content[0]?.text).toContain('Do not execute tools');
         expect(content[0]?.text).toContain('design the fix');
-        expect(content[0]?.text).not.toContain('hapi_change_title');
+        expect(content[0]?.text).not.toContain('hamlet_change_title');
     });
 
     it('registers a listOpencodeModels RPC handler that returns the backend cache', async () => {
@@ -2204,7 +2204,7 @@ describe('opencodeRemoteLauncher inline model switch', () => {
             baseUrl: 'http://127.0.0.1:48273',
             // Without the directory the endpoint reports nothing at all, and
             // says so with neither an error nor a 404.
-            directory: '/tmp/hapi-opencode-test',
+            directory: '/tmp/hamlet-opencode-test',
             sessionId: 'acp-session-1'
         });
         // A stream left open would keep reconnecting to a process that is gone.

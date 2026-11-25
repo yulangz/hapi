@@ -3,8 +3,8 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { CURSOR_PERMISSION_MODES } from '@hapi/protocol/modes'
-import type { CursorPermissionMode } from '@hapi/protocol/types'
+import { CURSOR_PERMISSION_MODES } from '@hamlet/protocol/modes'
+import type { CursorPermissionMode } from '@hamlet/protocol/types'
 
 export type ParsedCursorCommandOptions = {
     startedBy?: 'runner' | 'terminal'
@@ -17,7 +17,7 @@ export type ParsedCursorCommandOptions = {
     model?: string
 }
 
-/** Pure argv parser for `hapi cursor` — exported for unit tests. */
+/** Pure argv parser for `hamlet cursor` — exported for unit tests. */
 export function parseCursorCommandArgs(commandArgs: string[]): ParsedCursorCommandOptions {
     const options: ParsedCursorCommandOptions = {}
     const unknownArgs: string[] = []
@@ -86,17 +86,17 @@ export function parseCursorCommandArgs(commandArgs: string[]): ParsedCursorComma
                 unknownArgs.push(arg)
             }
         } else if (arg === '--existing-session-id') {
-            const hapiSessionId = commandArgs[++i]
-            if (!hapiSessionId || hapiSessionId.startsWith('-')) {
+            const hamletSessionId = commandArgs[++i]
+            if (!hamletSessionId || hamletSessionId.startsWith('-')) {
                 throw new Error('Missing --existing-session-id value')
             }
-            options.existingSessionId = hapiSessionId
+            options.existingSessionId = hamletSessionId
         } else if (arg === '--continue') {
             unknownArgs.push(arg)
-        } else if (arg === '--hapi-starting-mode') {
+        } else if (arg === '--hamlet-starting-mode') {
             const value = commandArgs[++i]
             if (value !== 'local' && value !== 'remote') {
-                throw new Error('Invalid --hapi-starting-mode (expected local or remote)')
+                throw new Error('Invalid --hamlet-starting-mode (expected local or remote)')
             }
             continue
         } else {

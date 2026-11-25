@@ -42,7 +42,7 @@ vi.mock('@tanstack/react-router', () => ({
     useNavigate: () => navigate,
 }))
 
-vi.mock('@hapi/protocol', () => ({ PROTOCOL_VERSION: 1 }))
+vi.mock('@hamlet/protocol', () => ({ PROTOCOL_VERSION: 1 }))
 
 vi.mock('@/hooks/useTheme', () => ({
     useAppearance: () => ({ appearance: 'system', setAppearance }),
@@ -253,7 +253,7 @@ describe('responsive settings pages', () => {
         expect(await screen.findByRole('checkbox', { name: 'Emit status summaries' })).toBeInTheDocument()
         expect(screen.getByRole('checkbox', { name: 'Show status summaries in chat' })).toBeInTheDocument()
         fireEvent.click(screen.getByRole('radio', { name: '简体中文' }))
-        expect(localStorage.getItem('hapi-lang')).toBe('zh-CN')
+        expect(localStorage.getItem('hamlet-lang')).toBe('zh-CN')
         expect(screen.getByText('选择是否让受支持的智能体输出状态摘要，以及是否在聊天中显示。')).toBeInTheDocument()
     })
 

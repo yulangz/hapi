@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import { MessageQueue2 } from '@/utils/MessageQueue2'
 import type { EnhancedMode } from './loop'
 

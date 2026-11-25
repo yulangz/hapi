@@ -2,7 +2,7 @@ import React from 'react';
 import { randomUUID } from 'node:crypto';
 import { registerAcpSessionTitleSync } from '@/agent/acpSessionTitle';
 import { logger } from '@/ui/logger';
-import { buildHapiMcpBridge } from '@/codex/utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from '@/codex/utils/buildHamletMcpBridge';
 import type { AcpStderrError } from '@/agent/backends/acp/AcpStdioTransport';
 import { isAcpStallStderrError } from '@/agent/backends/acp/acpStderrErrors';
 import { convertAgentMessage } from '@/agent/messageConverter';
@@ -11,7 +11,7 @@ import { RemoteLauncherBase, type RemoteLauncherDisplayContext, type RemoteLaunc
 import { OpencodeDisplay } from '@/ui/ink/OpencodeDisplay';
 import type { OpencodeSession } from './session';
 import type { OpencodeMode, PermissionMode } from './types';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { allocateFreePort, createOpencodeBackend } from './utils/opencodeBackend';
 import { captureCompactionMarkerSnapshot, fetchCompactionResult, splitProviderModel, triggerOpencodeCompact } from './utils/opencodeCompactBridge';
 import { formatOpencodePromptError } from './utils/opencodeErrorText';
@@ -159,7 +159,7 @@ class OpencodeRemoteLauncher extends RemoteLauncherBase {
         const session = this.session;
         const messageBuffer = this.messageBuffer;
 
-        const { server: happyServer, mcpServers } = await buildHapiMcpBridge(session.client, {
+        const { server: happyServer, mcpServers } = await buildHamletMcpBridge(session.client, {
             enableChangeTitle: false,
             skillLookup: { workingDirectory: session.path, flavor: 'opencode' }
         });
@@ -168,7 +168,7 @@ class OpencodeRemoteLauncher extends RemoteLauncherBase {
         // Pre-select a loopback port for the ACP subprocess's internal HTTP
         // API and pass it explicitly via --port/--hostname. opencode does not
         // announce the bound port anywhere (stdout/stderr/ACP responses) when
-        // launched with --port 0, so HAPI must choose it up front to be able
+        // launched with --port 0, so HAMLET must choose it up front to be able
         // to reach that HTTP API later (e.g. for /compact — see
         // opencodeCompactBridge.ts).
         const hostname = '127.0.0.1';

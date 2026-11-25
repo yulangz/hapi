@@ -9,7 +9,7 @@ import type { GrokMode, PermissionMode } from './types'
 
 interface GrokLoopOptions {
     path: string
-    hapiSessionId: string
+    hamletSessionId: string
     startingMode: 'local' | 'remote'
     startedBy: 'runner' | 'terminal'
     onModeChange: (mode: 'local' | 'remote') => void
@@ -48,9 +48,9 @@ export async function grokLoop(opts: GrokLoopOptions): Promise<void> {
         session.registerExistingNativeSession(opts.resumeSessionId)
     } else if (opts.startingMode === 'local') {
         // Grok accepts a caller-supplied UUID for a new native session. Reusing
-        // the HAPI session UUID gives local mode a deterministic resume token
+        // the HAMLET session UUID gives local mode a deterministic resume token
         // without scraping the fullscreen TUI.
-        session.registerPendingNativeSession(opts.hapiSessionId)
+        session.registerPendingNativeSession(opts.hamletSessionId)
     }
 
     await runLocalRemoteSession({

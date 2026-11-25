@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { SDKToLogConverter, convertSDKToLog } from './sdkToLogConverter'
 import type { SDKMessage, SDKUserMessage, SDKAssistantMessage, SDKSystemMessage, SDKResultMessage } from '@/claude/sdk'
-import type { ClaudePermissionMode } from '@hapi/protocol/types'
+import type { ClaudePermissionMode } from '@hamlet/protocol/types'
 
 describe('SDKToLogConverter', () => {
     let converter: SDKToLogConverter
@@ -591,7 +591,7 @@ describe('SDKToLogConverter', () => {
         })
 
         it('seeds correctly after a live mid-session switch TO an [1m] preset (updateSelectedModel), not the stale construction-time value', () => {
-            // Session started on Default (no selectedModel) -- as HAPI's remote launcher
+            // Session started on Default (no selectedModel) -- as HAMLET's remote launcher
             // does for every turn via updateSelectedModel(), not just turn 1.
             const liveConverter = new SDKToLogConverter({ ...context } as any)
 

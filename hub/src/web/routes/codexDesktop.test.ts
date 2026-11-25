@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Hono } from 'hono'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
 import { Store } from '../../store'
 import { SyncEngine, type Machine } from '../../sync/syncEngine'
 import { RpcRegistry } from '../../socket/rpcRegistry'
@@ -384,7 +384,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('imports normal response_item chat messages', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-test-'))
         const store = new Store(':memory:')
         const engine = new SyncEngine(store, {} as never, new RpcRegistry(), { broadcast() {} } as never)
         const codexSessionId = '11111111-1111-4111-8111-111111111111'
@@ -438,7 +438,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('updates an existing forked import when syncing the original Codex session id', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-source-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-source-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '12121212-1212-4121-8121-121212121212'
         process.env.CODEX_HOME = codexHome
@@ -483,7 +483,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('deduplicates mirrored event_msg and response_item user messages', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-mirror-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-mirror-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '66666666-6666-4666-8666-666666666666'
         process.env.CODEX_HOME = codexHome
@@ -520,7 +520,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('deduplicates adjacent mirrored agent messages with different ids', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-agent-mirror-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-agent-mirror-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
         process.env.CODEX_HOME = codexHome
@@ -561,7 +561,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('skips injected response_item user context messages', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-injected-user-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-injected-user-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '88888888-8888-4888-8888-888888888888'
         process.env.CODEX_HOME = codexHome
@@ -598,7 +598,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('preserves a real response_item user prompt containing embedded environment_context text', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-embedded-env-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-embedded-env-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'abababab-abab-4bab-8bab-abababababab'
         process.env.CODEX_HOME = codexHome
@@ -632,7 +632,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('preserves adjacent duplicate messages from the same transcript source', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-same-source-duplicate-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-same-source-duplicate-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'babababa-baba-4aba-8aba-babababababa'
         process.env.CODEX_HOME = codexHome
@@ -665,7 +665,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('keeps a later response_item-only user turn with the same text', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-repeat-user-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-repeat-user-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '99999999-9999-4999-8999-999999999999'
         process.env.CODEX_HOME = codexHome
@@ -707,7 +707,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('keeps distinct user turns while deduplicating mirrored user events', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-distinct-user-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-distinct-user-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '77777777-7777-4777-8777-777777777777'
         process.env.CODEX_HOME = codexHome
@@ -756,7 +756,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('uses the latest session_index thread_name for list and imported session title', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-index-title-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-index-title-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
         process.env.CODEX_HOME = codexHome
@@ -797,7 +797,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('falls back to transcript title when session_index is missing', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-no-index-title-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-no-index-title-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
         process.env.CODEX_HOME = codexHome
@@ -826,7 +826,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('falls back to transcript title when session_index has no matching id', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-index-miss-title-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-index-miss-title-test-'))
         const store = new Store(':memory:')
         const codexSessionId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
         process.env.CODEX_HOME = codexHome
@@ -862,7 +862,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('applies selected Standard and Plan config before an imported session is resumed', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-config-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-config-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '23232323-2323-4232-8232-232323232323'
         process.env.CODEX_HOME = codexHome
@@ -887,7 +887,7 @@ describe('Codex Desktop import routes', () => {
             })
 
             expect(result.success).toBe(true)
-            const importedSessionId = result.success ? result.hapiSessionIds?.[0] : undefined
+            const importedSessionId = result.success ? result.hamletSessionIds?.[0] : undefined
             expect(importedSessionId).toBeDefined()
             if (!importedSessionId) {
                 throw new Error('Imported session id missing')
@@ -903,7 +903,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('binds imported transcripts to the unique online machine that owns the cwd', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-machine-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-machine-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '22222222-2222-4222-8222-222222222222'
         process.env.CODEX_HOME = codexHome
@@ -935,7 +935,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('does not bind imported transcripts when multiple online machines own the cwd', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-machine-ambiguous-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-machine-ambiguous-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '33333333-3333-4333-8333-333333333333'
         process.env.CODEX_HOME = codexHome
@@ -967,7 +967,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('does not bind imported transcripts when no online machine owns the cwd', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-machine-miss-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-machine-miss-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '44444444-4444-4444-8444-444444444444'
         process.env.CODEX_HOME = codexHome
@@ -998,7 +998,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('does not append a Runner transcript to a session bound to another machine', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-machine-existing-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-machine-existing-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '55555555-5555-4555-8555-555555555555'
         process.env.CODEX_HOME = codexHome
@@ -1052,7 +1052,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('allows Codex transcript endpoints in the default namespace', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-route-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-route-test-'))
         process.env.CODEX_HOME = codexHome
 
         try {
@@ -1097,7 +1097,7 @@ describe('Codex Desktop import routes', () => {
     })
 
     it('does not append imports to an archived Codex session', async () => {
-        const codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-archived-target-test-'))
+        const codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-archived-target-test-'))
         const store = new Store(':memory:')
         const codexSessionId = '15151515-1515-4515-8515-151515151515'
         process.env.CODEX_HOME = codexHome
@@ -1122,9 +1122,9 @@ describe('Codex Desktop import routes', () => {
             expect(result.success).toBe(true)
             const sessions = store.sessions.getSessionsByNamespace('default')
             expect(sessions).toHaveLength(2)
-            expect(result.hapiSessionIds?.[0]).not.toBe(archived.id)
+            expect(result.hamletSessionIds?.[0]).not.toBe(archived.id)
             expect(store.messages.getAllMessages(archived.id)).toHaveLength(1)
-            expect(store.messages.getAllMessages(result.hapiSessionIds![0]!)).toHaveLength(2)
+            expect(store.messages.getAllMessages(result.hamletSessionIds![0]!)).toHaveLength(2)
         } finally {
             store.close()
             rmSync(codexHome, { recursive: true, force: true })
@@ -1301,10 +1301,10 @@ describe('Codex Desktop import routes', () => {
             })
 
             expect(response.status).toBe(200)
-            const body = await response.json() as { success: true; duplicates: Array<{ codexSessionId: string; hapiSessionIds: string[] }> }
+            const body = await response.json() as { success: true; duplicates: Array<{ codexSessionId: string; hamletSessionIds: string[] }> }
             expect(body.success).toBe(true)
             expect(body.duplicates).toHaveLength(1)
-            expect(body.duplicates[0]?.hapiSessionIds.sort()).toEqual([storedSession.id, engineSession.id].sort())
+            expect(body.duplicates[0]?.hamletSessionIds.sort()).toEqual([storedSession.id, engineSession.id].sort())
         } finally {
             store.close()
         }
@@ -1378,11 +1378,11 @@ describe('Codex Desktop import routes', () => {
         })
 
         expect(response.status).toBe(200)
-        const body = await response.json() as { success: true; duplicates: Array<{ codexSessionId: string; hapiSessionIds: string[] }> }
+        const body = await response.json() as { success: true; duplicates: Array<{ codexSessionId: string; hamletSessionIds: string[] }> }
         expect(body.success).toBe(true)
         expect(body.duplicates).toHaveLength(1)
         expect(body.duplicates[0]?.codexSessionId).toBe('original-session-id')
-        expect(body.duplicates[0]?.hapiSessionIds.sort()).toEqual([dupSession.id, forkSession.id].sort())
+        expect(body.duplicates[0]?.hamletSessionIds.sort()).toEqual([dupSession.id, forkSession.id].sort())
     })
 })
 

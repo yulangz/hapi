@@ -1,5 +1,5 @@
 import type { Session } from '../sync/syncEngine'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { NotificationSendContext } from './notificationSendContext'
 
 export type TaskNotification = {

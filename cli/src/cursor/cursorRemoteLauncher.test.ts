@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import type { Metadata } from '@hapi/protocol/schemas';
+import type { Metadata } from '@hamlet/protocol/schemas';
 import type { CursorSession } from './session';
 
 const legacyLauncher = vi.hoisted(() => vi.fn(async () => 'exit' as const));

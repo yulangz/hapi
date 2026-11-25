@@ -42,7 +42,7 @@ export type SessionSummaryMetadata = {
     agentSessionId?: string
     lifecycleState?: string
     /** Loopback MCP URL when session CLI happy server is running (#956). */
-    hapiMcpUrl?: string
+    hamletMcpUrl?: string
 }
 
 export type SessionSummary = {
@@ -199,7 +199,7 @@ export function toSessionSummaryMetadata(metadata: Metadata | null | undefined):
         worktree: metadata.worktree,
         agentSessionId: getSummaryAgentSessionId(metadata),
         lifecycleState: metadata.lifecycleState,
-        hapiMcpUrl: metadata.hapiMcpUrl ?? undefined
+        hamletMcpUrl: metadata.hamletMcpUrl ?? undefined
     }
 }
 

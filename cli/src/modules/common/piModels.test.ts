@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parsePiModelsProbeLine } from './piModels'
 
-const PROBE_RPC_ID = 'hapi-machine-models-probe'
+const PROBE_RPC_ID = 'hamlet-machine-models-probe'
 
 function probeResponseLine(data: unknown): string {
     return JSON.stringify({

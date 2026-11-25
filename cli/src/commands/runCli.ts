@@ -12,13 +12,13 @@ export async function runCli(): Promise<void> {
     }
 
     if (args[0] === '-v' || args[0] === '--version') {
-        console.log(`hapi version: ${packageJson.version}`)
+        console.log(`hamlet version: ${packageJson.version}`)
         return
     }
 
     if (args.length === 0) {
         if (!process.stdin.isTTY || !process.stdout.isTTY) {
-            console.error('Agent selection requires an interactive terminal. Run: hapi <agent> [options]')
+            console.error('Agent selection requires an interactive terminal. Run: hamlet <agent> [options]')
             printCliHelp()
             process.exitCode = 1
             return
@@ -37,7 +37,7 @@ export async function runCli(): Promise<void> {
     const resolved = resolveCommand(args)
     if (!resolved) {
         console.error(`Unknown ${args[0].startsWith('-') ? 'option' : 'command'}: ${args[0]}`)
-        console.error('Run hapi to choose an agent, or use hapi <agent> [options]. See hapi --help.')
+        console.error('Run hamlet to choose an agent, or use hamlet <agent> [options]. See hamlet --help.')
         process.exitCode = 1
         return
     }
@@ -54,7 +54,7 @@ export async function runCli(): Promise<void> {
         const { ensureRuntimeAssets } = await import('@/runtime/assets')
         await ensureRuntimeAssets()
         const { logger } = await import('@/ui/logger')
-        logger.debug('Starting hapi CLI with args: ', args)
+        logger.debug('Starting hamlet CLI with args: ', args)
     }
 
     await command.run(context)

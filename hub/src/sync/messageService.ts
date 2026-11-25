@@ -1,18 +1,18 @@
 import {
-    HAPI_SESSION_EXPORT_SCHEMA_VERSION,
+    HAMLET_SESSION_EXPORT_SCHEMA_VERSION,
     SESSION_EXPORT_MAX_BYTES,
     SESSION_EXPORT_MESSAGE_LIMIT,
-    type HapiSessionExport,
-    type HapiSessionExportResult
-} from '@hapi/protocol/sessionExport'
-import type { AttachmentMetadata, DecryptedMessage, Metadata, Session } from '@hapi/protocol/types'
+    type HamletSessionExport,
+    type HamletSessionExportResult
+} from '@hamlet/protocol/sessionExport'
+import type { AttachmentMetadata, DecryptedMessage, Metadata, Session } from '@hamlet/protocol/types'
 import {
     isClaudeChatVisibleMessage,
     isRedundantGoalStatusEventContent,
     unwrapRoleWrappedRecordEnvelope
-} from '@hapi/protocol/messages'
-import { isObject } from '@hapi/protocol'
-import type { MessageDeliveryMode, MessagesResponse, QueuedStateResponse } from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/messages'
+import { isObject } from '@hamlet/protocol'
+import type { MessageDeliveryMode, MessagesResponse, QueuedStateResponse } from '@hamlet/protocol/apiTypes'
 import type { Server } from 'socket.io'
 import { randomUUID } from 'node:crypto'
 import type { Store, CancelQueuedMessageResult } from '../store'
@@ -62,10 +62,10 @@ function estimateSessionExportBytes(
     session: Session,
     exportedAt: number,
     messages: StoredMessageForDelivery[],
-    scratchlist: HapiSessionExport['scratchlist']
+    scratchlist: HamletSessionExport['scratchlist']
 ): number {
     const prefix = JSON.stringify({
-        schemaVersion: HAPI_SESSION_EXPORT_SCHEMA_VERSION,
+        schemaVersion: HAMLET_SESSION_EXPORT_SCHEMA_VERSION,
         exportedAt,
         session
     })
@@ -211,7 +211,7 @@ export class MessageService {
         sessionId: string,
         session: Session,
         options: { force?: boolean } = {}
-    ): HapiSessionExportResult {
+    ): HamletSessionExportResult {
         const storedMessages = this.store.messages.getAllMessages(sessionId)
             .filter(isExportVisibleStoredMessage)
             .sort((a, b) => {
@@ -258,7 +258,7 @@ export class MessageService {
         return {
             type: 'success',
             payload: {
-                schemaVersion: HAPI_SESSION_EXPORT_SCHEMA_VERSION,
+                schemaVersion: HAMLET_SESSION_EXPORT_SCHEMA_VERSION,
                 exportedAt,
                 session,
                 messages: storedMessages.map(toDecryptedMessage),
@@ -955,7 +955,7 @@ export class MessageService {
      * for scheduled rows and relies on the CLI ack to write invoked_at; if this
      * sweep stamped a mature scheduled row, a subsequent re-attach would never
      * see the row in the next mature-scan tick and the user's prompt would be
-     * silently dropped.  See HAPI Bot R4 finding.
+     * silently dropped.  See HAMLET Bot R4 finding.
      *
      * Returns the list of localIds that were stamped and the invokedAt timestamp,
      * or null if no messages needed sweeping.

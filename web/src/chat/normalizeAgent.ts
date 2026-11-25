@@ -1,7 +1,7 @@
 import type { AgentEvent, CodexReview, CodexReviewFinding, NormalizedAgentContent, NormalizedMessage, RoundModelUsage, RoundSummary, ToolResultPermission, UsageData } from '@/chat/types'
 import { inlineMediaSourceFromWire } from '@/chat/inlineMediaSource'
-import { AGENT_MESSAGE_PAYLOAD_TYPE, asNumber, asString, isObject } from '@hapi/protocol'
-import { isClaudeChatVisibleMessage } from '@hapi/protocol/messages'
+import { AGENT_MESSAGE_PAYLOAD_TYPE, asNumber, asString, isObject } from '@hamlet/protocol'
+import { isClaudeChatVisibleMessage } from '@hamlet/protocol/messages'
 import { parseAgentTimestampMs } from '@/chat/agentTimestamp'
 
 function normalizeToolResultPermissions(value: unknown): ToolResultPermission | undefined {
@@ -728,7 +728,7 @@ export function normalizeAgentRecord(
         const data = isObject(content.data) ? content.data : null
         if (!data || typeof data.type !== 'string') return null
 
-        // Skip meta/compact-summary messages (parity with hapi-app)
+        // Skip meta/compact-summary messages (parity with hamlet-app)
         if (data.isMeta) return null
         if (data.isCompactSummary) return null
         if (!isClaudeChatVisibleMessage({ type: data.type, subtype: data.subtype })) return null

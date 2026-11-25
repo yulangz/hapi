@@ -72,7 +72,7 @@ describe('parseOpencodeProviderVariants', () => {
 describe('extractOpencodeAcpPorts', () => {
     it('extracts ports from live opencode acp process args', () => {
         const ps = [
-            '/home/user/.local/bin/hapi-runner opencode --hapi-starting-mode remote --model opencode-go/ox-alpha-free',
+            '/home/user/.local/bin/hamlet-runner opencode --hamlet-starting-mode remote --model opencode-go/ox-alpha-free',
             'opencode acp --cwd /home/user --port 42495 --hostname 127.0.0.1',
             'opencode acp --cwd /tmp --port 38971 --hostname 127.0.0.1',
             'opencode serve --port 46123',

@@ -4,7 +4,7 @@ import {
     TerminalExitPayloadSchema,
     TerminalOutputPayloadSchema,
     TerminalReadyPayloadSchema
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { StoredSession } from '../../../store'
 import type { TerminalRegistry } from '../../terminalRegistry'
 import type { CliSocketWithData, SocketServer } from '../../socketTypes'

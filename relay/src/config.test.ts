@@ -11,14 +11,14 @@ function baseEnv(): Record<string, string | undefined> {
         RELAY_APNS_KEY_P8_PATH: '/keys/AuthKey_ABC123DEF4.p8',
         RELAY_APNS_KEY_ID: 'ABC123DEF4',
         RELAY_APNS_TEAM_ID: 'TEAM123456',
-        RELAY_APNS_BUNDLE_ID: 'app.hapi.ios'
+        RELAY_APNS_BUNDLE_ID: 'app.hamlet.ios'
     }
 }
 
 describe('loadConfigFromEnv', () => {
     test('supports Android-only and dual-provider deployments; requires at least one provider', () => {
         expect(loadConfigFromEnv({ RELAY_FCM_SERVICE_ACCOUNT_PATH: '/fcm.json' })).toMatchObject({
-            apns: null, fcm: { serviceAccountPath: '/fcm.json', packageName: 'run.hapi.companion' }
+            apns: null, fcm: { serviceAccountPath: '/fcm.json', packageName: 'run.hamlet.companion' }
         })
         const both = loadConfigFromEnv({ ...baseEnv(), RELAY_FCM_SERVICE_ACCOUNT_PATH: '/fcm.json', RELAY_FCM_PACKAGE_NAME: 'my.app' })
         expect(both.apns).not.toBeNull()
@@ -34,7 +34,7 @@ describe('loadConfigFromEnv', () => {
                 apnsKeyP8Path: '/keys/AuthKey_ABC123DEF4.p8',
                 apnsKeyId: 'ABC123DEF4',
                 apnsTeamId: 'TEAM123456',
-                apnsBundleId: 'app.hapi.ios',
+                apnsBundleId: 'app.hamlet.ios',
                 apnsEnv: 'production'
             },
             fcm: null,

@@ -7,8 +7,8 @@ import {
     CLAUDE_MODEL_PRESETS,
     GEMINI_MODEL_LABELS,
     GEMINI_MODEL_PRESETS
-} from '@hapi/protocol'
-import type { AgentFlavor } from '@hapi/protocol'
+} from '@hamlet/protocol'
+import type { AgentFlavor } from '@hamlet/protocol'
 
 export type AgentType = AgentFlavor
 export type SessionType = 'simple' | 'worktree'

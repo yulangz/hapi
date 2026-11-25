@@ -40,7 +40,7 @@
 - Time Profiler attach 在本环境无响应，已终止；CPU 证据来自另一次独立的
   macOS `sample` 1 ms 调用栈采样。带采样开销的运行不用于帧率基线。
 - Android 同时记录 Choreographer 回调、Window.FrameMetrics、gfxinfo 和
-  Perfetto FrameTimeline。呈现频率仅计算 **HapiGesture 拖动区间内** 连续呈现的
+  Perfetto FrameTimeline。呈现频率仅计算 **HamletGesture 拖动区间内** 连续呈现的
   间隔；不能拿整个测试时长（含停顿）除帧数。
 - FrameTimeline 在此模拟器有大量 `Prediction Error` / `Early Present`，
   不能把所有 `jank_type != None` 统计成应用掉帧。应用 deadline miss 单独报告。
@@ -121,7 +121,7 @@ UIKit 自身可能在方向 trait 改变时重新请求 cell；这不属于无�
 13:16–13:27 的系统休眠，非应用长帧数据；Release 对应回归约 0.33 秒。
 全部计时场景每轮约 6 秒，不把普通测试耗时作为帧性能证据。
 
-原始记录：`/tmp/hapi-scroll-live-environment*`、`/tmp/hapi-scroll-baseline-control*`；
+原始记录：`/tmp/hamlet-scroll-live-environment*`、`/tmp/hamlet-scroll-baseline-control*`；
 渲染预览和逐轮 JSON 留在各自 xcresult attachments，仅本地校验，未上传。
 
 ## Android：完整结果而非挑选最好轮次
@@ -176,25 +176,25 @@ FrameMetrics dropped reports 均为 0。结果支持**环境控制对 Android �
 
 ```sh
 # iOS：opt-in；默认 CI 跳过帧率诊断。脚本创建并删除自己的模拟器。
-TEST_RUNNER_HAPI_SCROLL_PROFILE=1 ios/scripts/test-transcript.sh \
+TEST_RUNNER_HAMLET_SCROLL_PROFILE=1 ios/scripts/test-transcript.sh \
     -configuration Release ENABLE_TESTABILITY=YES SWIFT_EMIT_LOC_STRINGS=NO \
-    -only-testing:HapiTests/TranscriptFrameProfileTests
-# 可选：TEST_RUNNER_HAPI_SCROLL_SCENARIOS=rich,rich-updates
+    -only-testing:HamletTests/TranscriptFrameProfileTests
+# 可选：TEST_RUNNER_HAMLET_SCROLL_SCENARIOS=rich,rich-updates
 
 # Android：要求已安装对应 system image；所有 adb 操作绑定专用 emulator-5584。
-ANDROID_HOME=/path/to/sdk HAPI_PROFILE_TRACE=1 \
-    HAPI_PROFILE_OUTPUT=/tmp/hapi-frame-run android/scripts/profile-transcript.sh
+ANDROID_HOME=/path/to/sdk HAMLET_PROFILE_TRACE=1 \
+    HAMLET_PROFILE_OUTPUT=/tmp/hamlet-frame-run android/scripts/profile-transcript.sh
 # Intel/Linux 主机替换为本机已安装的 x86_64 system image：
-# HAPI_PROFILE_SYSTEM_IMAGE='system-images;android-35;google_apis;x86_64'
+# HAMLET_PROFILE_SYSTEM_IMAGE='system-images;android-35;google_apis;x86_64'
 
 # 使用 Perfetto 官方 trace_processor 离线分析，不上传 trace：
-trace_processor /tmp/hapi-frame-run/hapi-scroll.pftrace \
+trace_processor /tmp/hamlet-frame-run/hamlet-scroll.pftrace \
     -q android/scripts/scroll-frame-summary.sql
 ```
 
-Android trace 必须包含全部 9 个 `HapiScroll` 段与每段 8 个 `HapiGesture`。
+Android trace 必须包含全部 9 个 `HamletScroll` 段与每段 8 个 `HamletGesture`。
 本机 `ftrace_setup_errors=36` 为部分系统类别/事件不可用；已采到的应用段、
 FrameTimeline 仍可使用，不能把缺失事件推断成零工作。
 
 配套摘要：`performance/native-scroll-2026-09-10.json`。原始 JSON 数组 / gfxinfo /
-Perfetto / xcresult / sample 位于本机 `/tmp/hapi-scroll-frame-*`，未提交大型 trace。
+Perfetto / xcresult / sample 位于本机 `/tmp/hamlet-scroll-frame-*`，未提交大型 trace。

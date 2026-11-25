@@ -5,13 +5,13 @@ import { ensureOpencodeHookPlugin } from './utils/hookPlugin';
 import { buildOpencodeEnv } from './utils/config';
 import { ensureOpencodeConfig } from './utils/opencodeConfig';
 import { getTitleInstruction } from './utils/systemPrompt';
-import { buildHapiMcpBridge } from '@/codex/utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from '@/codex/utils/buildHamletMcpBridge';
 import type { OpencodeHookEvent } from './types';
 import type { OpencodeHookServer } from './utils/startOpencodeHookServer';
 import { createOpencodeStorageScanner, type OpencodeStorageScannerHandle } from './utils/opencodeStorageScanner';
 import { isUsableToolInput, parseToolCall, parseToolResult } from './utils/opencodeLocalToolParse';
 import { randomUUID } from 'node:crypto';
-import { isObject } from '@hapi/protocol';
+import { isObject } from '@hamlet/protocol';
 import { join } from 'node:path';
 import { configuration } from '@/configuration';
 import type { PermissionCompletion } from '@/modules/common/permission/BasePermissionHandler';
@@ -183,21 +183,21 @@ export async function opencodeLocalLauncher(
     const opencodeConfigDir = resolveOpencodeConfigDir(session);
     ensureOpencodeHookPlugin(opencodeConfigDir, hookUrl, opts.hookServer.token);
 
-    // Start the hapi MCP server for change_title support (optional feature)
+    // Start the hamlet MCP server for change_title support (optional feature)
     let happyServer: { url: string; stop: () => void } | null = null;
     let opencodeConfigPath: string | null = null;
     try {
-        const bridge = await buildHapiMcpBridge(session.client, {
+        const bridge = await buildHamletMcpBridge(session.client, {
             skillLookup: { workingDirectory: session.path, flavor: 'opencode' }
         });
         happyServer = bridge.server;
-        logger.debug(`[opencode-local]: Started hapi MCP server at ${happyServer.url}`);
+        logger.debug(`[opencode-local]: Started hamlet MCP server at ${happyServer.url}`);
 
         // Generate opencode.json config with MCP server and instructions
-        const { configPath } = ensureOpencodeConfig(opencodeConfigDir, bridge.mcpServers.hapi, getTitleInstruction());
+        const { configPath } = ensureOpencodeConfig(opencodeConfigDir, bridge.mcpServers.hamlet, getTitleInstruction());
         opencodeConfigPath = configPath;
     } catch (error) {
-        logger.debug('[opencode-local]: Failed to start hapi MCP server (change_title will be unavailable)', error);
+        logger.debug('[opencode-local]: Failed to start hamlet MCP server (change_title will be unavailable)', error);
     }
 
     const launcher = new BaseLocalLauncher({
@@ -209,8 +209,8 @@ export async function opencodeLocalLauncher(
         startingMode: session.startingMode,
         launch: async (abortSignal) => {
             const env = buildOpencodeEnv();
-            env.HAPI_OPENCODE_HOOK_URL = hookUrl;
-            env.HAPI_OPENCODE_HOOK_TOKEN = opts.hookServer.token;
+            env.HAMLET_OPENCODE_HOOK_URL = hookUrl;
+            env.HAMLET_OPENCODE_HOOK_TOKEN = opts.hookServer.token;
             if (!env.OPENCODE_CONFIG_DIR) {
                 env.OPENCODE_CONFIG_DIR = opencodeConfigDir;
             }
@@ -586,7 +586,7 @@ export async function opencodeLocalLauncher(
         }
         if (happyServer) {
             happyServer.stop();
-            logger.debug('[opencode-local]: Stopped hapi MCP server');
+            logger.debug('[opencode-local]: Stopped hamlet MCP server');
         }
     }
 }

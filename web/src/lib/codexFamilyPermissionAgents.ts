@@ -1,4 +1,4 @@
-import type { AgentFlavor } from '@hapi/protocol'
+import type { AgentFlavor } from '@hamlet/protocol'
 
 /** Agents that share codex-family permission modes (default / read-only / safe-yolo / yolo). */
 export const CODEX_FAMILY_PERMISSION_AGENTS = [
@@ -21,8 +21,8 @@ export function usesCodexFamilyPermissionModes(
 /**
  * Flavors whose create-form permission control is the native-mode select.
  * Ports: `NewSessionLogic.usesNativePermissionSelect`
- * (`ios/Packages/HapiKit/Sources/HapiClient/NewSession/NewSessionForm.swift`,
- * `android/app/src/main/kotlin/app/hapi/companion/feature/newsession/NewSessionForm.kt`).
+ * (`ios/Packages/HamletKit/Sources/HamletClient/NewSession/NewSessionForm.swift`,
+ * `android/app/src/main/kotlin/app/hamlet/companion/feature/newsession/NewSessionForm.kt`).
  * claude and grok do not share the codex-family mode set, but they render
  * through the same native select.
  */
@@ -42,7 +42,7 @@ export function usesSharedPermissionModeState(flavor: string | null | undefined)
 }
 
 /**
- * Flavors whose create surface carried the HAPI YOLO toggle before it moved
+ * Flavors whose create surface carried the HAMLET YOLO toggle before it moved
  * to the native permission select. Their stored toggle preference migrates
  * once into the native mode it mapped to; flavors that moved earlier already
  * settled on 'default' and are intentionally left alone.

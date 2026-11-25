@@ -1,4 +1,4 @@
-import { findBestCliSkuForAcpWire, matchCliSkuToAcpWireId } from '@hapi/protocol'
+import { findBestCliSkuForAcpWire, matchCliSkuToAcpWireId } from '@hamlet/protocol'
 import type { CursorModelCatalog } from '@/lib/cursorModelOptions'
 import { resolveCursorVariantOptions, resolveDefaultCursorVariantWire } from '@/lib/cursorModelOptions'
 import type { CursorModelSummary } from '@/types/api'

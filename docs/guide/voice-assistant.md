@@ -36,7 +36,7 @@ export TRANSCRIPTION_API_KEY="..."    # optional
 ```
 
 Settings-managed keys apply immediately (no hub restart). Restart is only required when you change process environment variables outside the UI. API keys are never returned in full to the browser.
-Realtime OpenAI, ElevenLabs, and Deepgram dictation sessions receive only short-lived credentials minted by the hub. Gemini Live and Qwen Realtime assistant sessions connect through hub-side WebSocket proxies, so those API keys never reach the browser either. Eligible desktop browsers with the on-device `SpeechRecognition` API expose **Browser on-device** as a realtime-only dictation provider. HAPI checks the selected language pack when dictation starts and never falls back from that option to browser-hosted recognition. Mobile and unknown browser environments fail closed because this API is experimental and some Android WebViews expose unsafe partial implementations.
+Realtime OpenAI, ElevenLabs, and Deepgram dictation sessions receive only short-lived credentials minted by the hub. Gemini Live and Qwen Realtime assistant sessions connect through hub-side WebSocket proxies, so those API keys never reach the browser either. Eligible desktop browsers with the on-device `SpeechRecognition` API expose **Browser on-device** as a realtime-only dictation provider. HAMLET checks the selected language pack when dictation starts and never falls back from that option to browser-hosted recognition. Mobile and unknown browser environments fail closed because this API is experimental and some Android WebViews expose unsafe partial implementations.
 
 ## Overview
 
@@ -69,10 +69,10 @@ Dictation needs at least one configured transcription provider from the list abo
 
 ```bash
 export ELEVENLABS_API_KEY="your-api-key"
-hapi hub --relay
+hamlet hub --relay
 ```
 
-The hub automatically creates a "Hapi Voice Assistant" agent in your ElevenLabs account on first use. When you pick a non-default voice, the hub creates a dedicated per-voice agent named `Hapi Voice Assistant [voice:<id>]` so the selection always takes effect.
+The hub automatically creates a "Hamlet Voice Assistant" agent in your ElevenLabs account on first use. When you pick a non-default voice, the hub creates a dedicated per-voice agent named `Hamlet Voice Assistant [voice:<id>]` so the selection always takes effect.
 
 To use your own ElevenLabs agent instead of the auto-created one:
 
@@ -90,14 +90,14 @@ export ELEVENLABS_VOICE_AGENT_MAP='{"<voice-id>": "<agent-id>"}'
 
 ```bash
 export GEMINI_API_KEY="your-api-key"   # or GOOGLE_API_KEY
-hapi hub --relay
+hamlet hub --relay
 ```
 
 ### Qwen Realtime
 
 ```bash
 export DASHSCOPE_API_KEY="your-api-key"   # or QWEN_API_KEY
-hapi hub --relay
+hamlet hub --relay
 ```
 
 When more than one backend is configured, the hub default is ElevenLabs unless you set `VOICE_BACKEND`. Users can override the backend per browser in **Settings → Voice**.
@@ -165,16 +165,16 @@ The voice assistant has two tools to interact with your coding agent, on every b
 ElevenLabs sessions stream audio over WebRTC directly to ElevenLabs; the hub only mints short-lived conversation tokens:
 
 ```
-Browser → WebRTC → ElevenLabs ConvAI → Voice Assistant → HAPI Hub → Coding Agent
+Browser → WebRTC → ElevenLabs ConvAI → Voice Assistant → HAMLET Hub → Coding Agent
 ```
 
 Gemini Live and Qwen Realtime sessions connect over WebSocket to a hub-side proxy, which injects the API key and session configuration server-side:
 
 ```
-Browser → WebSocket → HAPI Hub proxy → Gemini Live / Qwen Realtime → Coding Agent
+Browser → WebSocket → HAMLET Hub proxy → Gemini Live / Qwen Realtime → Coding Agent
 ```
 
-The voice connection uses WebRTC (ElevenLabs) or WebSocket (Gemini Live, Qwen Realtime) for low-latency audio streaming. The HAPI hub provides tokens and proxies and handles authentication; provider API keys never reach the browser.
+The voice connection uses WebRTC (ElevenLabs) or WebSocket (Gemini Live, Qwen Realtime) for low-latency audio streaming. The HAMLET hub provides tokens and proxies and handles authentication; provider API keys never reach the browser.
 
 ## Tips
 
@@ -205,7 +205,7 @@ Set `DASHSCOPE_API_KEY` (or `QWEN_API_KEY`) in your environment and restart the 
 
 ### Microphone permission fails on Xiaomi/MIUI devices
 
-If voice cannot start on a Xiaomi/MIUI device, or the browser cannot request microphone permission, check the "Display over other apps" permission for Xiaomi Wallet and similar apps. Floating windows, payment or wallet overlays, chat bubbles, screen recorders, translation tools, eye-comfort tools, and game assistants may interfere with the browser's microphone permission prompt. Disable active overlays, reopen HAPI, and grant microphone access again.
+If voice cannot start on a Xiaomi/MIUI device, or the browser cannot request microphone permission, check the "Display over other apps" permission for Xiaomi Wallet and similar apps. Floating windows, payment or wallet overlays, chat bubbles, screen recorders, translation tools, eye-comfort tools, and game assistants may interfere with the browser's microphone permission prompt. Disable active overlays, reopen HAMLET, and grant microphone access again.
 
 ### Voice not responding
 

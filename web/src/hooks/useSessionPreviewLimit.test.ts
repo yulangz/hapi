@@ -15,15 +15,15 @@ describe('useSessionPreviewLimit helpers', () => {
     it('falls back to the default for missing or invalid values', () => {
         expect(getInitialSessionPreviewLimit()).toBe(DEFAULT_SESSION_PREVIEW_LIMIT)
 
-        window.localStorage.setItem('hapi-session-preview-limit', 'invalid')
+        window.localStorage.setItem('hamlet-session-preview-limit', 'invalid')
         expect(getInitialSessionPreviewLimit()).toBe(DEFAULT_SESSION_PREVIEW_LIMIT)
 
-        window.localStorage.setItem('hapi-session-preview-limit', '12.5')
+        window.localStorage.setItem('hamlet-session-preview-limit', '12.5')
         expect(getInitialSessionPreviewLimit()).toBe(DEFAULT_SESSION_PREVIEW_LIMIT)
     })
 
     it('reads valid stored values', () => {
-        window.localStorage.setItem('hapi-session-preview-limit', '12')
+        window.localStorage.setItem('hamlet-session-preview-limit', '12')
 
         expect(getInitialSessionPreviewLimit()).toBe(12)
     })
@@ -32,10 +32,10 @@ describe('useSessionPreviewLimit helpers', () => {
         expect(normalizeSessionPreviewLimit(0)).toBe(MIN_SESSION_PREVIEW_LIMIT)
         expect(normalizeSessionPreviewLimit(120)).toBe(MAX_SESSION_PREVIEW_LIMIT)
 
-        window.localStorage.setItem('hapi-session-preview-limit', '0')
+        window.localStorage.setItem('hamlet-session-preview-limit', '0')
         expect(getInitialSessionPreviewLimit()).toBe(MIN_SESSION_PREVIEW_LIMIT)
 
-        window.localStorage.setItem('hapi-session-preview-limit', '120')
+        window.localStorage.setItem('hamlet-session-preview-limit', '120')
         expect(getInitialSessionPreviewLimit()).toBe(MAX_SESSION_PREVIEW_LIMIT)
     })
 })

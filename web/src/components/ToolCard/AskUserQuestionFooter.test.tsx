@@ -54,7 +54,7 @@ function SessionKeyedWrapper(props: { sessionId: string; tool: ChatToolCall }) {
     )
 }
 
-describe('AskUserQuestionFooter draft persistence (hapi#1734)', () => {
+describe('AskUserQuestionFooter draft persistence (hamlet#1734)', () => {
     it('restores an in-progress answer after a session-switch remount', () => {
         const tool = makeTool('tool-1')
         const { rerender } = render(<SessionKeyedWrapper sessionId="session-A" tool={tool} />)

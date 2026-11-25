@@ -16,7 +16,7 @@ import { getToolName } from "./getToolName";
 import { EnhancedMode, PermissionMode } from "../loop";
 import { getToolDescriptor } from "./getToolDescriptor";
 import { delay } from "@/utils/time";
-import { isObject } from "@hapi/protocol";
+import { isObject } from "@hamlet/protocol";
 import {
     BasePermissionHandler,
     type PendingPermissionRequest,

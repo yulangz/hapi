@@ -2,8 +2,8 @@ import type { SyncEvent } from '@/types/api'
 
 type NotificationEvent = Extract<SyncEvent, { type: 'toast' }>['data']
 
-const STORAGE_KEY = 'hapi.localNotifications.v1'
-const LOCK_NAME = 'hapi.localNotifications'
+const STORAGE_KEY = 'hamlet.localNotifications.v1'
+const LOCK_NAME = 'hamlet.localNotifications'
 const MAX_AGE_MS = 60_000
 const MAX_ENTRIES = 128
 
@@ -59,7 +59,7 @@ export async function showLocalNotification(
                     body: localized.body,
                     icon: '/pwa-192x192.png',
                     badge: '/pwa-64x64.png',
-                    tag: `hapi-local-${id}`,
+                    tag: `hamlet-local-${id}`,
                     data: { type: 'local-fallback', sessionId: event.sessionId, url: url.toString() }
                 })
             } catch (error) {

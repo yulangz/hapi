@@ -202,18 +202,18 @@ describe('isRichComposerMentionsEnabled', () => {
     const originalSearch = window.location.search
 
     afterEach(() => {
-        window.localStorage.removeItem('hapi.composer.richMentions')
+        window.localStorage.removeItem('hamlet.composer.richMentions')
         window.history.replaceState({}, '', `${window.location.pathname}${originalSearch}`)
     })
 
     it('defaults to ON', () => {
-        window.localStorage.removeItem('hapi.composer.richMentions')
+        window.localStorage.removeItem('hamlet.composer.richMentions')
         window.history.replaceState({}, '', window.location.pathname)
         expect(isRichComposerMentionsEnabled()).toBe(true)
     })
 
     it('kills via localStorage=0', () => {
-        window.localStorage.setItem('hapi.composer.richMentions', '0')
+        window.localStorage.setItem('hamlet.composer.richMentions', '0')
         expect(isRichComposerMentionsEnabled()).toBe(false)
     })
 

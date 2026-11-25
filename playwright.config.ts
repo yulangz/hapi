@@ -5,7 +5,7 @@ const BASE_URL = `http://localhost:${PORT}`
 
 export default defineConfig({
     testDir: './e2e',
-    // Peer-stack specs need HAPI_PEER_* + mirror tooling; run via playwright.peer.config.ts only.
+    // Peer-stack specs need HAMLET_PEER_* + mirror tooling; run via playwright.peer.config.ts only.
     testIgnore: ['**/peer/**'],
     timeout: 30_000,
     expect: { timeout: 5_000 },

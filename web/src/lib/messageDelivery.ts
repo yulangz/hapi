@@ -1,4 +1,4 @@
-import type { MessageDeliveryMode } from '@hapi/protocol'
+import type { MessageDeliveryMode } from '@hamlet/protocol'
 
 /**
  * The one-shot UI intent associated with a composer submission.  It is not
@@ -25,7 +25,7 @@ export function consumeComposerSendIntent(ref?: ComposerSendIntentRef): Composer
 /**
  * A retry cannot prove that the original Pi turn is still active. Preserve an
  * explicit queue, but downgrade turn-scoped steer (and legacy missing mode) to
- * the durable HAPI queue instead of binding the retry to a later generation.
+ * the durable HAMLET queue instead of binding the retry to a later generation.
  */
 export function getRetryDeliveryMode(
     deliveryMode: MessageDeliveryMode | undefined,

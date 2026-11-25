@@ -1,6 +1,6 @@
-# hapi-push-relay
+# hamlet-push-relay
 
-The official HAPI push relay forwards end-to-end encrypted notifications
+The official HAMLET push relay forwards end-to-end encrypted notifications
 from self-hosted hubs to APNs (iOS) and Firebase Cloud Messaging (Android).
 
 ## Why it exists
@@ -10,9 +10,9 @@ The relay holds their **sending credentials** centrally. Users install the
 app, pair a current hub, and allow notifications; they do not need an Apple
 developer account, a Firebase project, or a service-account key.
 
-Android hubs default to `HAPI_ANDROID_PUSH=auto`: an existing
+Android hubs default to `HAMLET_ANDROID_PUSH=auto`: an existing
 `FCM_SERVICE_ACCOUNT_PATH` keeps direct FCM; otherwise they use the relay.
-iOS defaults to `HAPI_IOS_PUSH=relay`; developers can choose direct `apns`.
+iOS defaults to `HAMLET_IOS_PUSH=relay`; developers can choose direct `apns`.
 Push relay delivery is independent of the hub's `--relay` network tunnel.
 
 ## Threat model and privacy
@@ -21,7 +21,7 @@ Push relay delivery is independent of the hub's `--relay` network tunnel.
 the hub with AES-256-GCM under a per-device key that only the hub and the
 device know. The relay, Apple and Google forward opaque bytes; the iOS
 Notification Service Extension decrypts locally on the device
-(`mutable-content: 1` with a fixed placeholder alert of "HAPI / New
+(`mutable-content: 1` with a fixed placeholder alert of "HAMLET / New
 activity" that the extension rewrites). Android decrypts in its FCM service
 before posting a local notification. What the relay *can* observe is
 metadata: the platform and device token, the connecting hub/proxy IP, request timing,
@@ -38,7 +38,7 @@ are unguessable. Someone who obtains one can consume its rate-limit budget
 and trigger iOS generic alerts, but cannot encrypt valid content without
 the AES key. Android drops undecryptable messages; iOS keeps its generic
 placeholder. Requiring accounts would force self-hosters to register with
-the relay, which is exactly what HAPI avoids. Mitigations instead:
+the relay, which is exactly what HAMLET avoids. Mitigations instead:
 
 - per-device-token rate limit: 30 pushes/minute (token bucket, burst 30)
 - per-client-IP rate limit: 300 pushes/minute (token bucket, burst 300)
@@ -69,7 +69,7 @@ provider-token JWT (cached, re-signed after 45 minutes), `apns-push-type:
 alert`, `apns-expiration: 0`, and the body:
 
 ```json
-{"aps":{"mutable-content":1,"alert":{"title":"HAPI","body":"New activity"},"sound":"default"},"hapi":{"v":1,"e":"<envelope>"}}
+{"aps":{"mutable-content":1,"alert":{"title":"HAMLET","body":"New activity"},"sound":"default"},"hamlet":{"v":1,"e":"<envelope>"}}
 ```
 
 For Android use `platform: "android"` and an opaque, case-sensitive FCM token
@@ -78,7 +78,7 @@ fields have the same format. The relay calls FCM HTTP v1 for its configured
 project, using cached OAuth credentials and the following data-only message:
 
 ```json
-{"message":{"token":"<FCM token>","data":{"hapi_v":"1","hapi_e":"<envelope>"},"android":{"priority":"HIGH","restricted_package_name":"run.hapi.companion"}}}
+{"message":{"token":"<FCM token>","data":{"hamlet_v":"1","hamlet_e":"<envelope>"},"android":{"priority":"HIGH","restricted_package_name":"run.hamlet.companion"}}}
 ```
 
 Priority `5` maps to `NORMAL`, `10` to `HIGH`. No `notification` or
@@ -101,7 +101,7 @@ Responses:
 
 ### `GET /health`
 
-`{"status":"ok","service":"hapi-push-relay","version":"<version>"}`
+`{"status":"ok","service":"hamlet-push-relay","version":"<version>"}`
 
 ## Running
 
@@ -112,7 +112,7 @@ bun install
 RELAY_APNS_KEY_P8_PATH=/path/AuthKey_XXXXXXXXXX.p8 \
 RELAY_APNS_KEY_ID=XXXXXXXXXX \
 RELAY_APNS_TEAM_ID=YYYYYYYYYY \
-RELAY_APNS_BUNDLE_ID=run.hapi.app \
+RELAY_APNS_BUNDLE_ID=run.hamlet.app \
 bun run relay/src/index.ts
 ```
 
@@ -140,7 +140,7 @@ service-account JSON in the APK, repository, or user hub configuration.
 | `RELAY_APNS_BUNDLE_ID`   | for iOS      | —            | iOS app bundle id (`apns-topic`)                            |
 | `RELAY_APNS_ENV`         | no       | `production` | `production` or `sandbox`                                   |
 | `RELAY_FCM_SERVICE_ACCOUNT_PATH` | for Android | — | service-account JSON with `project_id`, `client_email`, `private_key` |
-| `RELAY_FCM_PACKAGE_NAME` | no | `run.hapi.companion` | restrict FCM sends to this Android application ID |
+| `RELAY_FCM_PACKAGE_NAME` | no | `run.hamlet.companion` | restrict FCM sends to this Android application ID |
 | `RELAY_PORT`             | no       | `8790`       | listen port                                                 |
 | `RELAY_TRUST_PROXY`      | no       | off          | `1`/`true`: rate-limit by first `x-forwarded-for` hop. Only behind a proxy that overwrites the header. |
 
@@ -152,11 +152,11 @@ limits are in-memory, so run one instance, which is plenty: it only moves
 
 Use the prebuilt image `ghcr.io/tiann/hapi-push-relay`, available for Linux
 AMD64 and ARM64. The server needs only Docker and the provider keys/configuration;
-no HAPI source checkout or Bun installation is required.
+no HAMLET source checkout or Bun installation is required.
 
 ```sh
 docker pull ghcr.io/tiann/hapi-push-relay:latest
-docker run -d --name hapi-push-relay --restart unless-stopped \
+docker run -d --name hamlet-push-relay --restart unless-stopped \
     -p 127.0.0.1:8790:8790 \
     -v /secrets/AuthKey_XXXXXXXXXX.p8:/keys/apns.p8:ro \
     -v /secrets/firebase-service-account.json:/keys/fcm.json:ro \
@@ -164,7 +164,7 @@ docker run -d --name hapi-push-relay --restart unless-stopped \
     -e RELAY_APNS_KEY_P8_PATH=/keys/apns.p8 \
     -e RELAY_APNS_KEY_ID=XXXXXXXXXX \
     -e RELAY_APNS_TEAM_ID=YYYYYYYYYY \
-    -e RELAY_APNS_BUNDLE_ID=run.hapi.app \
+    -e RELAY_APNS_BUNDLE_ID=run.hamlet.app \
     -e RELAY_APNS_ENV=production \
     ghcr.io/tiann/hapi-push-relay:latest
 ```
@@ -203,24 +203,24 @@ workflow** on `main`; dispatches on other branches only validate and build.
 
 Publishing uses the repository's `GITHUB_TOKEN` with `packages: write`; no
 registry credential needs to be added. After the first successful run, set
-the `hapi-push-relay` package visibility to **Public** in GitHub Packages so
+the `hamlet-push-relay` package visibility to **Public** in GitHub Packages so
 servers can pull without logging in. Forks publish under their own owner.
 
 For local development, building from source remains available from the repo
 root:
 
 ```sh
-docker build -t hapi-push-relay:local relay/
+docker build -t hamlet-push-relay:local relay/
 ```
 
 ## Pointing a hub at the relay
 
 Both platforms default to `https://push.hapi.run`; override with
-`HAPI_PUSH_RELAY_URL=https://push.example.com`. The existing persisted key
-`iosPushRelayUrl` supplies this shared URL. Select `HAPI_ANDROID_PUSH=relay`
+`HAMLET_PUSH_RELAY_URL=https://push.example.com`. The existing persisted key
+`iosPushRelayUrl` supplies this shared URL. Select `HAMLET_ANDROID_PUSH=relay`
 to override local Firebase credentials, `fcm` for direct Android/Wear, or
 `off` to disable it. A configured but broken private Firebase account never
-falls back to the official project. Select `HAPI_IOS_PUSH=apns` for direct
+falls back to the official project. Select `HAMLET_IOS_PUSH=apns` for direct
 iOS delivery or `off` to disable iOS push.
 
 The common hub client lives in `hub/src/push-native/`. Android relay delivery

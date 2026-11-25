@@ -115,7 +115,7 @@ describe('extractAssistantPlainText', () => {
 })
 
 describe('extractNotifySummary', () => {
-    const FULL_LINE = 'AGENT_NOTIFY_SUMMARY {"version":1,"agent":"hapi-monitor agent","project":"hapi-monitor","status":"done","action":"Revoke tokens","summary":"Published v0.1.0"}'
+    const FULL_LINE = 'AGENT_NOTIFY_SUMMARY {"version":1,"agent":"hamlet-monitor agent","project":"hamlet-monitor","status":"done","action":"Revoke tokens","summary":"Published v0.1.0"}'
 
     test('returns null on non-string input', () => {
         expect(extractNotifySummary(null)).toBeNull()
@@ -130,8 +130,8 @@ describe('extractNotifySummary', () => {
         expect(result).not.toBeNull()
         const r = result as NotifySummary
         expect(r.version).toBe(1)
-        expect(r.agent).toBe('hapi-monitor agent')
-        expect(r.project).toBe('hapi-monitor')
+        expect(r.agent).toBe('hamlet-monitor agent')
+        expect(r.project).toBe('hamlet-monitor')
         expect(r.status).toBe('done')
         expect(r.action).toBe('Revoke tokens')
         expect(r.summary).toBe('Published v0.1.0')

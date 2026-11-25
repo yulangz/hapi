@@ -2,7 +2,7 @@
  * Standalone Vite-served fixture for the scratchlist Playwright e2e
  * spec. Mounts only the ScratchlistPanel inside an I18nProvider so the
  * spec can drive a real browser against the real component without
- * having to mock the entire HAPI auth + socket stack.
+ * having to mock the entire HAMLET auth + socket stack.
  *
  * The session id is read from the `?session=...` query param (default
  * `e2e`) so individual specs can isolate localStorage state simply by

@@ -4,5 +4,5 @@
          Material3 in ui/theme/Theme.kt. AppCompat descent is required since
          B-M5a: MainActivity extends AppCompatActivity so per-app locales
          (AppCompatDelegate.setApplicationLocales) apply on API < 33. -->
-    <style name="Theme.HapiCompanion" parent="Theme.AppCompat.DayNight.NoActionBar" />
+    <style name="Theme.HamletCompanion" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

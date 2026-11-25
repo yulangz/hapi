@@ -1,5 +1,6 @@
 import { feature } from 'bun:bundle';
 
+import hamletAgentSkill from '../../skills/hamlet-agent/SKILL.md' assert { type: 'file' };
 import difftasticArchiveLicense from '../../tools/archives/difftastic-LICENSE' assert { type: 'file' };
 import ripgrepArchiveLicense from '../../tools/archives/ripgrep-LICENSE' assert { type: 'file' };
 import difftasticLicense from '../../tools/licenses/difftastic-LICENSE' assert { type: 'file' };
@@ -19,6 +20,7 @@ function asset(relativePath: string, sourcePath: string): EmbeddedAsset {
 }
 
 const COMMON_ASSETS: EmbeddedAsset[] = [
+    asset('skills/hamlet-agent/SKILL.md', hamletAgentSkill),
     asset('tools/archives/difftastic-LICENSE', difftasticArchiveLicense),
     asset('tools/archives/ripgrep-LICENSE', ripgrepArchiveLicense),
     asset('tools/licenses/difftastic-LICENSE', difftasticLicense),
@@ -27,7 +29,7 @@ const COMMON_ASSETS: EmbeddedAsset[] = [
 ];
 
 async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
-    if (feature('HAPI_TARGET_DARWIN_ARM64')) {
+    if (feature('HAMLET_TARGET_DARWIN_ARM64')) {
         const [
             { default: difftasticArm64Darwin },
             { default: ripgrepArm64Darwin },
@@ -45,7 +47,7 @@ async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
         ];
     }
 
-    if (feature('HAPI_TARGET_DARWIN_X64')) {
+    if (feature('HAMLET_TARGET_DARWIN_X64')) {
         const [
             { default: difftasticX64Darwin },
             { default: ripgrepX64Darwin },
@@ -63,7 +65,7 @@ async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
         ];
     }
 
-    if (feature('HAPI_TARGET_LINUX_ARM64')) {
+    if (feature('HAMLET_TARGET_LINUX_ARM64')) {
         const [
             { default: difftasticArm64Linux },
             { default: ripgrepArm64Linux },
@@ -81,7 +83,7 @@ async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
         ];
     }
 
-    if (feature('HAPI_TARGET_LINUX_X64')) {
+    if (feature('HAMLET_TARGET_LINUX_X64')) {
         const [
             { default: difftasticX64Linux },
             { default: ripgrepX64Linux },
@@ -99,7 +101,7 @@ async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
         ];
     }
 
-    if (feature('HAPI_TARGET_WIN32_X64')) {
+    if (feature('HAMLET_TARGET_WIN32_X64')) {
         const [
             { default: difftasticX64Win32 },
             { default: ripgrepX64Win32 },
@@ -117,7 +119,7 @@ async function selectEmbeddedAssets(): Promise<EmbeddedAsset[]> {
         ];
     }
 
-    throw new Error('No build target feature flag set. Build with --feature=HAPI_TARGET_*.');
+    throw new Error('No build target feature flag set. Build with --feature=HAMLET_TARGET_*.');
 }
 
 export async function loadEmbeddedAssets(): Promise<EmbeddedAsset[]> {

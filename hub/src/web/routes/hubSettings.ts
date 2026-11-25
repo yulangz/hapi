@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { UpdateHubSettingsRequestSchema, type HubSettingsResponse } from '@hapi/protocol'
+import { UpdateHubSettingsRequestSchema, type HubSettingsResponse } from '@hamlet/protocol'
 import {
     getSettingsFile,
     readSettingsOrThrow,

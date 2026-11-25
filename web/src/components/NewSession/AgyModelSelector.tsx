@@ -1,4 +1,4 @@
-import { getAgyModelLabel } from '@hapi/protocol'
+import { getAgyModelLabel } from '@hamlet/protocol'
 import { useTranslation } from '@/lib/use-translation'
 import type { AgyModelSummary } from '@/types/api'
 

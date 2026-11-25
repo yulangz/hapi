@@ -3,8 +3,8 @@ import {
     isClaudeChatVisibleMessage,
     stripNotifySummaryFooter,
     unwrapRoleWrappedRecordEnvelope
-} from '@hapi/protocol/messages'
-import { isObject } from '@hapi/protocol'
+} from '@hamlet/protocol/messages'
+import { isObject } from '@hamlet/protocol'
 import type { Store, StoredMessage } from '../store'
 
 export const TITLE_SUGGESTION_MESSAGE_LIMIT = 200
@@ -14,10 +14,10 @@ export const TITLE_SUGGESTION_RATE_LIMIT = 5
 export const TITLE_SUGGESTION_RATE_WINDOW_MS = 10 * 60 * 1000
 export const TITLE_SUGGESTION_TIMEOUT_MS = 10_000
 export const TITLE_SUGGESTION_MAX_TOKENS = 64
-const TITLE_SUGGESTION_RATE_LIMIT_ENV = 'HAPI_TITLE_SUGGESTION_RATE_LIMIT'
-const TITLE_SUGGESTION_RATE_WINDOW_ENV = 'HAPI_TITLE_SUGGESTION_RATE_WINDOW_MS'
-const TITLE_PROVIDER_MAX_TOKENS_ENV = 'HAPI_TITLE_PROVIDER_MAX_TOKENS'
-const TITLE_PROVIDER_TIMEOUT_MS_ENV = 'HAPI_TITLE_PROVIDER_TIMEOUT_MS'
+const TITLE_SUGGESTION_RATE_LIMIT_ENV = 'HAMLET_TITLE_SUGGESTION_RATE_LIMIT'
+const TITLE_SUGGESTION_RATE_WINDOW_ENV = 'HAMLET_TITLE_SUGGESTION_RATE_WINDOW_MS'
+const TITLE_PROVIDER_MAX_TOKENS_ENV = 'HAMLET_TITLE_PROVIDER_MAX_TOKENS'
+const TITLE_PROVIDER_TIMEOUT_MS_ENV = 'HAMLET_TITLE_PROVIDER_TIMEOUT_MS'
 
 type TitleSuggestionErrorCode = 'unavailable' | 'empty' | 'rate-limited' | 'provider'
 
@@ -50,9 +50,9 @@ type TitleProviderFetch = (
 export function readTitleProviderConfig(
     env: TitleProviderEnvironment = process.env
 ): OpenAICompatibleTitleProviderConfig | null {
-    const baseUrl = env.HAPI_TITLE_PROVIDER_BASE_URL?.trim()
-    const apiKey = env.HAPI_TITLE_PROVIDER_API_KEY?.trim()
-    const model = env.HAPI_TITLE_PROVIDER_MODEL?.trim()
+    const baseUrl = env.HAMLET_TITLE_PROVIDER_BASE_URL?.trim()
+    const apiKey = env.HAMLET_TITLE_PROVIDER_API_KEY?.trim()
+    const model = env.HAMLET_TITLE_PROVIDER_MODEL?.trim()
     if (!baseUrl || !apiKey || !model) return null
 
     try {

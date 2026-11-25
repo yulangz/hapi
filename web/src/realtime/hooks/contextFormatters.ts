@@ -1,5 +1,5 @@
-import { unwrapRoleWrappedRecordEnvelope } from '@hapi/protocol/messages'
-import { isObject } from '@hapi/protocol'
+import { unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
+import { isObject } from '@hamlet/protocol'
 import type { DecryptedMessage, Session } from '@/types/api'
 import { VOICE_CONFIG } from '../voiceConfig'
 

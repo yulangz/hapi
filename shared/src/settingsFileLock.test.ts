@@ -15,7 +15,7 @@ describe('withSettingsFileLock', () => {
     })
 
     test('serializes concurrent writers without .tmp collisions', async () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-settings-lock-race-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-settings-lock-race-'))
         const settingsFile = join(dir, 'settings.json')
         writeFileSync(settingsFile, JSON.stringify({ n: 0 }))
         const { writeFile, rename, readFile } = await import('node:fs/promises')
@@ -34,14 +34,14 @@ describe('withSettingsFileLock', () => {
 
         const saved = JSON.parse(readFileSync(settingsFile, 'utf8')) as { n: number }
         expect(saved.n).toBe(8)
-        expect(existsSync(`${settingsFile}.hapi.lock`)).toBe(false)
+        expect(existsSync(`${settingsFile}.hamlet.lock`)).toBe(false)
     })
 
     test('reclaims a stale lock left by a crashed holder', async () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-settings-lock-stale-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-settings-lock-stale-'))
         const settingsFile = join(dir, 'settings.json')
         writeFileSync(settingsFile, JSON.stringify({ ok: true }))
-        const lockDir = `${settingsFile}.hapi.lock`
+        const lockDir = `${settingsFile}.hamlet.lock`
         mkdirSync(lockDir)
         // proper-lockfile treats mtime older than `stale` as reclaimable.
         setSettingsLockStaleMsForTests(5_000)
@@ -55,7 +55,7 @@ describe('withSettingsFileLock', () => {
     })
 
     test('does not allow overlapping critical sections', async () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-settings-lock-excl-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-settings-lock-excl-'))
         const settingsFile = join(dir, 'settings.json')
         writeFileSync(settingsFile, '{}')
 

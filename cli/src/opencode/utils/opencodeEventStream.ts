@@ -1,4 +1,4 @@
-import { asNumber, asString, isObject } from '@hapi/protocol';
+import { asNumber, asString, isObject } from '@hamlet/protocol';
 import { logger } from '@/ui/logger';
 import type { FetchLike } from './opencodeCompactBridge';
 import { collapseWhitespace, truncateOpencodeProviderText } from './opencodeErrorText';
@@ -349,7 +349,7 @@ export function subscribeToOpencodeEvents(options: OpencodeEventStreamOptions): 
             return;
         }
         // Dispatched outside the parse guard on purpose: everything
-        // downstream of handleEvent is HAPI's own code (the launcher's
+        // downstream of handleEvent is HAMLET's own code (the launcher's
         // report, the hub client), and a throw from there is a bug in this
         // process — not provider noise. Sharing one catch labelled
         // "unparsable payload" would file it as the latter and lose it.

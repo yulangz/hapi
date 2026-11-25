@@ -7,7 +7,7 @@ import {
 
 /**
  * Hub-persisted opt-in for AGENT_NOTIFY_SUMMARY prompt injection.
- * Default is off (undefined / false). Env `HAPI_SESSION_SUMMARY_CONTRACT` on
+ * Default is off (undefined / false). Env `HAMLET_SESSION_SUMMARY_CONTRACT` on
  * the CLI process remains an escape hatch and is resolved client-side.
  */
 export function isSessionSummaryContractSettingEnabled(settings: Settings): boolean {

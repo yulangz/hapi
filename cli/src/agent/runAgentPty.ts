@@ -544,7 +544,7 @@ export async function runAgentPty(opts: RunAgentPtyOpts): Promise<void> {
 
             // In strict mode, do not remove a message from the queue until a
             // fresh interactive prompt exists. Between turns there is no fixed
-            // deadline: a legitimate long agent run must not terminate HAPI.
+            // deadline: a legitimate long agent run must not terminate HAMLET.
             if (requirePromptMarker) {
                 await waitForInputReady()
                 await agentRunBoundaryTask

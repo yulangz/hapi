@@ -4,10 +4,10 @@ const guard = vi.hoisted(() => ({
     register: vi.fn(),
     unregister: vi.fn(),
     recordChildPid: vi.fn(),
-    getLockDir: vi.fn(() => '/tmp/test-hapi/locks/agent-acp-active'),
+    getLockDir: vi.fn(() => '/tmp/test-hamlet/locks/agent-acp-active'),
     isActive: vi.fn(() => true),
     describeState: vi.fn((childPid?: number | null) => ({
-        lockDir: '/tmp/test-hapi/locks/agent-acp-active',
+        lockDir: '/tmp/test-hamlet/locks/agent-acp-active',
         inProcessCount: 1,
         childPid: childPid ?? null,
         childAlive: false,
@@ -109,7 +109,7 @@ describe('AcpStdioTransport agent CLI guard', () => {
         guard.isActive.mockClear();
         guard.describeState.mockClear();
         guard.describeState.mockImplementation((childPid?: number | null) => ({
-            lockDir: '/tmp/test-hapi/locks/agent-acp-active',
+            lockDir: '/tmp/test-hamlet/locks/agent-acp-active',
             inProcessCount: 1,
             childPid: childPid ?? null,
             childAlive: false,

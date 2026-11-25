@@ -1,14 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { CursorModelsResponse } from '@hapi/protocol/apiTypes';
-import { resolveHapiHomeDir } from '@/configuration';
+import type { CursorModelsResponse } from '@hamlet/protocol/apiTypes';
+import { resolveHamletHomeDir } from '@/configuration';
 
-function getHapiHomeDir(): string {
-    return resolveHapiHomeDir();
+function getHamletHomeDir(): string {
+    return resolveHamletHomeDir();
 }
 
 function getSharedCachePath(): string {
-    return join(getHapiHomeDir(), 'cache', 'cursor-models.json');
+    return join(getHamletHomeDir(), 'cache', 'cursor-models.json');
 }
 
 function isUsableModelsResponse(response: CursorModelsResponse | null): response is CursorModelsResponse {

@@ -88,7 +88,7 @@ export default defineConfig({
     },
     server: {
         host: true,
-        allowedHosts: ['hapidev.weishu.me'],
+        allowedHosts: ['hamletdev.weishu.me'],
         proxy: {
             '/api': {
                 target: hubTarget,
@@ -112,8 +112,8 @@ export default defineConfig({
             srcDir: 'src',
             filename: 'sw.ts',
             manifest: {
-                name: 'HAPI',
-                short_name: 'HAPI',
+                name: 'Hamlet',
+                short_name: 'Hamlet',
                 description: 'AI-powered development assistant',
                 // An installed Android WebAPK stores theme_color once at install time and uses it
                 // as a fixed toolbar color, so any value here pins the status bar to one appearance.
@@ -163,7 +163,7 @@ export default defineConfig({
                     }
                 ],
                 // Web Share Target — Android Chrome routes POSTs to /share
-                // when the user picks HAPI in the system share sheet. The
+                // when the user picks Hamlet in the system share sheet. The
                 // service worker (`web/src/sw.ts`) intercepts POST /share,
                 // stashes the multipart payload in IndexedDB, and 303-
                 // redirects to /share?id=<transferId> for the SPA picker.

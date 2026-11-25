@@ -1,4 +1,4 @@
-import { CLAUDE_MODEL_PRESETS, getClaudeModelLabel } from '@hapi/protocol'
+import { CLAUDE_MODEL_PRESETS, getClaudeModelLabel } from '@hamlet/protocol'
 import { describe, expect, it } from 'vitest'
 import { CLAUDE_EFFORT_OPTIONS, GROK_EFFORT_OPTIONS, MODEL_OPTIONS, isOpencodeReasoningEffortValid } from './types'
 

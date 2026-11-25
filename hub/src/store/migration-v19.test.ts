@@ -8,7 +8,7 @@ import { getUsageSummary } from '../sync/usageService'
 
 describe('Store V19->current migration: usage re-index', () => {
     it('clears stale derived usage rows and scan state', () => {
-        const directory = mkdtempSync(join(tmpdir(), 'hapi-migration-v19-to-v20-'))
+        const directory = mkdtempSync(join(tmpdir(), 'hamlet-migration-v19-to-v20-'))
         const dbPath = join(directory, 'test.db')
         let store: Store | undefined
         try {
@@ -37,7 +37,7 @@ describe('Store V19->current migration: usage re-index', () => {
             const scanRows = internalDb.prepare('SELECT COUNT(*) AS count FROM usage_scan_state').get() as { count: number }
             const usageRows = internalDb.prepare('SELECT COUNT(*) AS count FROM usage_events').get() as { count: number }
 
-            expect(version.user_version).toBe(26)
+            expect(version.user_version).toBe(29)
             expect(scanRows.count).toBe(0)
             expect(usageRows.count).toBe(0)
         } finally {
@@ -47,7 +47,7 @@ describe('Store V19->current migration: usage re-index', () => {
     })
 
     it('re-indexes legacy unknown-model events with the session model fallback', () => {
-        const directory = mkdtempSync(join(tmpdir(), 'hapi-migration-v19-to-v20-reindex-'))
+        const directory = mkdtempSync(join(tmpdir(), 'hamlet-migration-v19-to-v20-reindex-'))
         const dbPath = join(directory, 'test.db')
         let store: Store | undefined
         try {

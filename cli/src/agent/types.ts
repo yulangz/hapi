@@ -1,4 +1,4 @@
-import type { AgentFlavor } from '@hapi/protocol';
+import type { AgentFlavor } from '@hamlet/protocol';
 import type { InlineMediaSource } from '@/modules/common/inlineMediaSource';
 
 export type McpEnvVar = {

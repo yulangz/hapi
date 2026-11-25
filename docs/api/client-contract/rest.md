@@ -1,6 +1,6 @@
 # REST endpoints
 
-Endpoint tables for native clients, grouped by feature. Request/response shapes reference the Zod schemas in `shared/src/schemas.ts` and `shared/src/apiTypes.ts` (package `@hapi/protocol`) — those schemas, not the prose here, are the field-level source of truth. Route behavior is grounded in `hub/src/web/routes/*.ts`; `web/src/api/client.ts` is the reference consumer.
+Endpoint tables for native clients, grouped by feature. Request/response shapes reference the Zod schemas in `shared/src/schemas.ts` and `shared/src/apiTypes.ts` (package `@hamlet/protocol`) — those schemas, not the prose here, are the field-level source of truth. Route behavior is grounded in `hub/src/web/routes/*.ts`; `web/src/api/client.ts` is the reference consumer.
 
 These tables describe the hub interface. The [native app guide](../../guide/native-apps.md#sessions-and-everyday-use)
 records current iOS/Android UI support; an API wrapper or wire field alone

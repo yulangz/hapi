@@ -9,7 +9,7 @@ const sendHookRequest = async (port: number, body: string, token?: string, path 
             'Content-Length': Buffer.byteLength(body)
         }
         if (token) {
-            headers['x-hapi-hook-token'] = token
+            headers['x-hamlet-hook-token'] = token
         }
 
         const req = request({
@@ -180,7 +180,7 @@ describe('startHookServer', () => {
                 }
             })
             const req = request({ host: '127.0.0.1', port: server.port, path: '/hook/permission-request', method: 'POST', headers: {
-                'x-hapi-hook-token': server.token, 'Content-Type': 'application/json'
+                'x-hamlet-hook-token': server.token, 'Content-Type': 'application/json'
             } })
             req.on('error', () => {})
             try {

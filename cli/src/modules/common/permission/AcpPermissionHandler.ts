@@ -1,6 +1,6 @@
 import type { ApiSessionClient } from '@/api/apiSession'
 import type { AgentBackend, PermissionRequest, PermissionResponse } from '@/agent/types'
-import type { PermissionMode } from '@hapi/protocol/types'
+import type { PermissionMode } from '@hamlet/protocol/types'
 import { deriveToolInput, deriveToolName } from '@/agent/utils'
 import { logger } from '@/ui/logger'
 import {
@@ -42,7 +42,7 @@ function mapDecisionToOutcome(
     return optionId ? { outcome: 'selected', optionId } : { outcome: 'cancelled' }
 }
 
-/** Shared HAPI permission bridge for ACP agents with one-shot choices. */
+/** Shared HAMLET permission bridge for ACP agents with one-shot choices. */
 export class AcpPermissionHandler extends BasePermissionHandler<PermissionResponseMessage, void> {
     private readonly pendingBackendRequests = new Map<string, PermissionRequest>()
 

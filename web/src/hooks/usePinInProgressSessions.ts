@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 export const DEFAULT_PIN_IN_PROGRESS_SESSIONS = false
 
 function getPinInProgressSessionsStorageKey(): string {
-    return 'hapi-pin-in-progress-sessions'
+    return 'hamlet-pin-in-progress-sessions'
 }
 
 function isBrowser(): boolean {

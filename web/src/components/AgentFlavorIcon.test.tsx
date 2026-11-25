@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render } from '@testing-library/react'
-import { AGENT_FLAVORS } from '@hapi/protocol'
+import { AGENT_FLAVORS } from '@hamlet/protocol'
 import { AgentFlavorIcon } from './AgentFlavorIcon'
 
 // Flavors backed by a @lobehub/icons brand logo.

@@ -71,7 +71,7 @@ function postHook(
                 headers: {
                     'Content-Type': 'application/json',
                     'Content-Length': body.length,
-                    'x-hapi-hook-token': token
+                    'x-hamlet-hook-token': token
                 }
             },
             (res) => {
@@ -212,8 +212,8 @@ function parseArgs(args: string[]): {
     }
 
     if (fromEnv) {
-        port = parsePort(process.env.HAPI_AGY_HOOK_PORT);
-        token = process.env.HAPI_AGY_HOOK_TOKEN?.trim() || null;
+        port = parsePort(process.env.HAMLET_AGY_HOOK_PORT);
+        token = process.env.HAMLET_AGY_HOOK_TOKEN?.trim() || null;
     }
 
     const event: 'pre-tool-use' | 'pre-invocation' = eventRaw === 'pre-invocation' ? 'pre-invocation' : 'pre-tool-use';

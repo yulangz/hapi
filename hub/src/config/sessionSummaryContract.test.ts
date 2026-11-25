@@ -16,7 +16,7 @@ afterEach(async () => {
 
 describe('sessionSummaryContract setting', () => {
     it('defaults to off when settings.json is missing or unset', async () => {
-        const dataDir = await mkdtemp(join(tmpdir(), 'hapi-ssc-'))
+        const dataDir = await mkdtemp(join(tmpdir(), 'hamlet-ssc-'))
         directories.push(dataDir)
         expect(await readSessionSummaryContractEnabled(dataDir)).toBe(false)
 
@@ -25,7 +25,7 @@ describe('sessionSummaryContract setting', () => {
     })
 
     it('persists true across reads', async () => {
-        const dataDir = await mkdtemp(join(tmpdir(), 'hapi-ssc-'))
+        const dataDir = await mkdtemp(join(tmpdir(), 'hamlet-ssc-'))
         directories.push(dataDir)
         expect(await writeSessionSummaryContractEnabled(dataDir, true)).toBe(true)
         expect(await readSessionSummaryContractEnabled(dataDir)).toBe(true)
@@ -40,7 +40,7 @@ describe('sessionSummaryContract setting', () => {
     })
 
     it('serializes concurrent writers without clobbering unrelated fields', async () => {
-        const dataDir = await mkdtemp(join(tmpdir(), 'hapi-ssc-race-'))
+        const dataDir = await mkdtemp(join(tmpdir(), 'hamlet-ssc-race-'))
         directories.push(dataDir)
         const settingsFile = getSettingsFile(dataDir)
         await writeSettings(settingsFile, {

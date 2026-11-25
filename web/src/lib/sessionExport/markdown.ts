@@ -1,10 +1,10 @@
-import { safeStringify } from '@hapi/protocol'
+import { safeStringify } from '@hamlet/protocol'
 import { normalizeDecryptedMessage } from '@/chat/normalize'
 import { renderEventLabel } from '@/chat/presentation'
 import type { NormalizedAgentContent, NormalizedMessage } from '@/chat/types'
-import type { HapiSessionExport } from '@/types/api'
+import type { HamletSessionExport } from '@/types/api'
 
-function getSessionTitle(payload: HapiSessionExport): string {
+function getSessionTitle(payload: HamletSessionExport): string {
     const metadata = payload.session.metadata
     if (metadata?.name) return metadata.name
     if (metadata?.summary?.text) return metadata.summary.text
@@ -28,7 +28,7 @@ function formatTimestamp(value: number): string {
     return Number.isNaN(date.getTime()) ? String(value) : date.toISOString()
 }
 
-function formatFrontMatter(payload: HapiSessionExport, title: string): string {
+function formatFrontMatter(payload: HamletSessionExport, title: string): string {
     const metadata = payload.session.metadata
     const scratchlist = payload.scratchlist ?? []
     const lines = [
@@ -52,7 +52,7 @@ function formatFrontMatter(payload: HapiSessionExport, title: string): string {
     return lines.join('\n')
 }
 
-function formatScratchlistSection(payload: HapiSessionExport): string | null {
+function formatScratchlistSection(payload: HamletSessionExport): string | null {
     const entries = payload.scratchlist ?? []
     if (entries.length === 0) return null
 
@@ -130,7 +130,7 @@ function formatNormalizedMessage(message: NormalizedMessage): string | null {
     return `## Assistant\n\n_Time: ${timestamp}_\n\n${parts.join('\n\n')}`
 }
 
-export function serializeSessionMarkdown(payload: HapiSessionExport): string {
+export function serializeSessionMarkdown(payload: HamletSessionExport): string {
     const title = getSessionTitle(payload)
     const sections: string[] = [
         formatFrontMatter(payload, title),

@@ -20,7 +20,7 @@ describe('ApiClient.getSession activeAt coerce', () => {
     const now = 1_710_000_000_000
 
     beforeEach(() => {
-        configuration._setApiUrl('https://hapi.example.com')
+        configuration._setApiUrl('https://hamlet.example.com')
         configuration._setExtraHeaders({})
         axiosGetMock.mockReset()
     })

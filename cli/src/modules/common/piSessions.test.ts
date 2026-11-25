@@ -61,7 +61,7 @@ describe('local Pi sessions', () => {
                 content: {
                     data: {
                         type: 'token_count',
-                        usageSchema: 'hapi.usage.v1',
+                        usageSchema: 'hamlet.usage.v1',
                         inputTokenSemantics: 'includes-cache'
                     }
                 }

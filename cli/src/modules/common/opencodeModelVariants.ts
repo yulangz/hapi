@@ -1,5 +1,5 @@
-import { isObject } from '@hapi/protocol';
-import type { OpencodeModelVariantsResponse } from '@hapi/protocol/apiTypes';
+import { isObject } from '@hamlet/protocol';
+import type { OpencodeModelVariantsResponse } from '@hamlet/protocol/apiTypes';
 
 export type ListOpencodeModelVariantsResponse = OpencodeModelVariantsResponse;
 

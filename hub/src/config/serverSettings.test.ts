@@ -5,22 +5,22 @@ import { join } from 'node:path'
 import { loadServerSettings } from './serverSettings'
 
 function makeTempDir(): string {
-    return mkdtempSync(join(tmpdir(), 'hapi-server-settings-test-'))
+    return mkdtempSync(join(tmpdir(), 'hamlet-server-settings-test-'))
 }
 
 describe('loadServerSettings', () => {
     let dir: string | null = null
-    const originalForegroundPush = process.env.HAPI_WEB_PUSH_FOREGROUND
+    const originalForegroundPush = process.env.HAMLET_WEB_PUSH_FOREGROUND
     const originalBackgroundOnly = process.env.SERVERCHAN_BACKGROUND_ONLY
 
     beforeEach(() => {
-        delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        delete process.env.HAMLET_WEB_PUSH_FOREGROUND
         delete process.env.SERVERCHAN_BACKGROUND_ONLY
     })
 
     afterEach(() => {
-        if (originalForegroundPush === undefined) delete process.env.HAPI_WEB_PUSH_FOREGROUND
-        else process.env.HAPI_WEB_PUSH_FOREGROUND = originalForegroundPush
+        if (originalForegroundPush === undefined) delete process.env.HAMLET_WEB_PUSH_FOREGROUND
+        else process.env.HAMLET_WEB_PUSH_FOREGROUND = originalForegroundPush
         if (dir) {
             rmSync(dir, { recursive: true, force: true })
             dir = null
@@ -45,22 +45,22 @@ describe('loadServerSettings', () => {
 
     it('persists Android push mode and honors env over file without replacing the file value', async () => {
         dir = makeTempDir()
-        const original = process.env.HAPI_ANDROID_PUSH
+        const original = process.env.HAMLET_ANDROID_PUSH
         try {
-            process.env.HAPI_ANDROID_PUSH = 'relay'
+            process.env.HAMLET_ANDROID_PUSH = 'relay'
             expect((await loadServerSettings(dir)).settings.androidPushMode).toBe('relay')
             expect(JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8')).androidPushMode).toBe('relay')
-            process.env.HAPI_ANDROID_PUSH = 'off'
+            process.env.HAMLET_ANDROID_PUSH = 'off'
             const overridden = await loadServerSettings(dir)
             expect(overridden.settings.androidPushMode).toBe('off')
             expect(overridden.sources.androidPushMode).toBe('env')
-            delete process.env.HAPI_ANDROID_PUSH
+            delete process.env.HAMLET_ANDROID_PUSH
             const restored = await loadServerSettings(dir)
             expect(restored.settings.androidPushMode).toBe('relay')
             expect(restored.sources.androidPushMode).toBe('file')
         } finally {
-            if (original === undefined) delete process.env.HAPI_ANDROID_PUSH
-            else process.env.HAPI_ANDROID_PUSH = original
+            if (original === undefined) delete process.env.HAMLET_ANDROID_PUSH
+            else process.env.HAMLET_ANDROID_PUSH = original
         }
     })
 
@@ -116,14 +116,14 @@ describe('loadServerSettings', () => {
 
     it('persists foreground Web Push and honors an environment override without replacing the saved value', async () => {
         dir = makeTempDir()
-        process.env.HAPI_WEB_PUSH_FOREGROUND = 'true'
+        process.env.HAMLET_WEB_PUSH_FOREGROUND = 'true'
         expect((await loadServerSettings(dir)).settings.webPushForeground).toBe(true)
         expect(JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8')).webPushForeground).toBe(true)
-        process.env.HAPI_WEB_PUSH_FOREGROUND = 'false'
+        process.env.HAMLET_WEB_PUSH_FOREGROUND = 'false'
         const overridden = await loadServerSettings(dir)
         expect(overridden.settings.webPushForeground).toBe(false)
         expect(overridden.sources.webPushForeground).toBe('env')
-        delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        delete process.env.HAMLET_WEB_PUSH_FOREGROUND
         const restored = await loadServerSettings(dir)
         expect(restored.settings.webPushForeground).toBe(true)
         expect(restored.sources.webPushForeground).toBe('file')
@@ -131,9 +131,9 @@ describe('loadServerSettings', () => {
 
     it('rejects invalid foreground Web Push configuration instead of treating it as enabled', async () => {
         dir = makeTempDir()
-        process.env.HAPI_WEB_PUSH_FOREGROUND = 'yes'
-        await expect(loadServerSettings(dir)).rejects.toThrow('HAPI_WEB_PUSH_FOREGROUND must be true or false')
-        delete process.env.HAPI_WEB_PUSH_FOREGROUND
+        process.env.HAMLET_WEB_PUSH_FOREGROUND = 'yes'
+        await expect(loadServerSettings(dir)).rejects.toThrow('HAMLET_WEB_PUSH_FOREGROUND must be true or false')
+        delete process.env.HAMLET_WEB_PUSH_FOREGROUND
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({ webPushForeground: 'false' }))
         await expect(loadServerSettings(dir)).rejects.toThrow('webPushForeground must be a boolean')
     })
@@ -168,13 +168,13 @@ describe('loadServerSettings', () => {
     it('loads push settings from settings.json when the env is unset', async () => {
         dir = makeTempDir()
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({
-            fcmServiceAccountPath: '~/.hapi/sa.json',
+            fcmServiceAccountPath: '~/.hamlet/sa.json',
             iosPushMode: 'off'
         }))
 
         const result = await loadServerSettings(dir)
 
-        expect(result.settings.fcmServiceAccountPath).toBe('~/.hapi/sa.json')
+        expect(result.settings.fcmServiceAccountPath).toBe('~/.hamlet/sa.json')
         expect(result.sources.fcmServiceAccountPath).toBe('file')
         expect(result.settings.iosPushMode).toBe('off')
         expect(result.sources.iosPushMode).toBe('file')

@@ -1,6 +1,6 @@
 export type MarkdownPreviewMode = 'source' | 'preview'
 
-export const MARKDOWN_PREVIEW_MODE_STORAGE_KEY = 'hapi.filePreview.markdownMode.v1'
+export const MARKDOWN_PREVIEW_MODE_STORAGE_KEY = 'hamlet.filePreview.markdownMode.v1'
 export const DEFAULT_MARKDOWN_PREVIEW_MODE: MarkdownPreviewMode = 'preview'
 
 function isBrowser(): boolean {

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /** Hub-resident scratchlist files use this path prefix in AttachmentMetadata.path */
-export const HUB_SCRATCHLIST_ATTACHMENT_PATH_PREFIX = 'hapi-hub:scratchlist/'
+export const HUB_SCRATCHLIST_ATTACHMENT_PATH_PREFIX = 'hamlet-hub:scratchlist/'
 
 export function isHubScratchlistAttachmentPath(path: string): boolean {
     return path.startsWith(HUB_SCRATCHLIST_ATTACHMENT_PATH_PREFIX)

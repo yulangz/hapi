@@ -15,8 +15,8 @@ import { MessageService } from './messageService'
 import type { EventPublisher } from './eventPublisher'
 import { Store } from '../store'
 import type { Server } from 'socket.io'
-import { SESSION_EXPORT_MESSAGE_LIMIT } from '@hapi/protocol/sessionExport'
-import type { Session, SyncEvent } from '@hapi/protocol/types'
+import { SESSION_EXPORT_MESSAGE_LIMIT } from '@hamlet/protocol/sessionExport'
+import type { Session, SyncEvent } from '@hamlet/protocol/types'
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -251,7 +251,7 @@ describe('MessageService goal status filtering', () => {
                 filename: 'note.png',
                 mimeType: 'image/png',
                 size: 42,
-                path: 'hapi-hub:scratchlist/att-1'
+                path: 'hamlet-hub:scratchlist/att-1'
             }]
         })
         const newer = store.scratchlist.create(session.id, 'Follow up tomorrow', {
@@ -278,7 +278,7 @@ describe('MessageService goal status filtering', () => {
                     filename: 'note.png',
                     mimeType: 'image/png',
                     size: 42,
-                    path: 'hapi-hub:scratchlist/att-1'
+                    path: 'hamlet-hub:scratchlist/att-1'
                 }]
             },
             {
@@ -1595,7 +1595,7 @@ describe('MessageService.releaseMatureScheduledMessages', () => {
     // #10: true cold-start restart simulation — new Store + new MessageService
     // share the same SQLite file, replicating what hub restart actually does.
     it('#10 hub cold-start restart: mature message is re-emitted by new Store+Service (true restart sim)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-restart-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-restart-test-'))
         const dbPath = join(dir, 'test.db')
         let store1: Store | undefined
         let store2: Store | undefined
@@ -1647,7 +1647,7 @@ describe('MessageService.releaseMatureScheduledMessages', () => {
 })
 
 // ---------------------------------------------------------------------------
-// HAPI Bot R4: session-end sweep must not stamp mature scheduled rows
+// HAMLET Bot R4: session-end sweep must not stamp mature scheduled rows
 // ---------------------------------------------------------------------------
 
 describe('MessageService.sweepImmediateQueuedOnSessionEnd — scheduled rows are preserved', () => {

@@ -1,8 +1,8 @@
-import type { CursorModelsResponse } from '@hapi/protocol/apiTypes';
+import type { CursorModelsResponse } from '@hamlet/protocol/apiTypes';
 import {
     parseCursorAvailableModelsFromRejection,
     remapStaleCursorModelId
-} from '@hapi/protocol';
+} from '@hamlet/protocol';
 import { readSharedCursorModelsCache } from '@/modules/common/cursorModelsSharedCache';
 
 function isDefaultSpawnModel(modelId: string): boolean {

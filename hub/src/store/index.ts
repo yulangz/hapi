@@ -1,3 +1,5 @@
+import { HamletStore } from '../hamlet/store'
+import { hamletColumnMigrations, hamletSchema } from '../hamlet/schema'
 import { Database } from 'bun:sqlite'
 import { chmodSync, closeSync, existsSync, mkdirSync, openSync } from 'node:fs'
 import { dirname } from 'node:path'
@@ -42,7 +44,7 @@ export {
     WorkGraphValidationError
 } from './workGraph'
 
-const SCHEMA_VERSION: number = 26
+const SCHEMA_VERSION: number = 29
 const REQUIRED_TABLES = [
     'sessions',
     'machines',
@@ -71,6 +73,7 @@ export class Store {
     readonly fcm: FcmStore
     readonly scratchlist: ScratchlistStore
     readonly usage: UsageStore
+    readonly hamlet: HamletStore
     readonly workGraph: WorkGraphStore
 
     /**
@@ -132,6 +135,7 @@ export class Store {
         this.fcm = new FcmStore(this.db)
         this.scratchlist = new ScratchlistStore(this.db)
         this.usage = new UsageStore(this.db)
+        this.hamlet = new HamletStore(this.db)
         this.workGraph = new WorkGraphStore(this.db)
     }
 
@@ -355,6 +359,9 @@ export class Store {
             23: () => this.migrateFromV23ToV24(),
             24: () => this.migrateFromV24ToV25(),
             25: () => this.migrateFromV25ToV26(),
+            26: () => this.db.exec(hamletSchema),
+            27: () => this.db.exec(hamletSchema),
+            28: () => this.migrateHamletColumns(),
         })
 
         if (currentVersion === 0) {
@@ -400,7 +407,16 @@ export class Store {
         this.assertRequiredTablesPresent()
     }
 
+    /** v28 -> v29: doorbell ring limits. Idempotent, since v26/v27 may already have created the newer table shape. */
+    private migrateHamletColumns(): void {
+        for (const { table, column, ddl } of hamletColumnMigrations) {
+            const columns = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
+            if (!columns.some((c) => c.name === column)) this.db.exec(ddl)
+        }
+    }
+
     private createSchema(): void {
+        this.db.exec(hamletSchema)
         this.db.exec(`
             CREATE TABLE IF NOT EXISTS sessions (
                 id TEXT PRIMARY KEY,
@@ -854,7 +870,7 @@ export class Store {
 
     /**
      * tiann/hapi#921 (scratchlist v2.2): attachment metadata JSON column.
-     * Bytes live on hub filesystem under HAPI_HOME/scratchlist-attachments/.
+     * Bytes live on hub filesystem under HAMLET_HOME/scratchlist-attachments/.
      * Upstream ladder: V11→V12 = session_scratchlist (#896); V12–V14 =
      * message_epochs reconciliation; this step is V14→V15 for attachments.
      *

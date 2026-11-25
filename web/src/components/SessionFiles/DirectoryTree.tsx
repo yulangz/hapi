@@ -267,7 +267,7 @@ function DirectoryNode(props: {
     )
 }
 
-const STORAGE_KEY_PREFIX = 'hapi-dir-expanded-'
+const STORAGE_KEY_PREFIX = 'hamlet-dir-expanded-'
 
 function readExpanded(sessionId: string): Set<string> {
     try {

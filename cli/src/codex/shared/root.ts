@@ -1,3 +1,5 @@
+import type { HamletBatch, HamletTurn } from '@hamlet/protocol/hamlet';
+import { forSession, type HamletClient } from '@/hamlet/client';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -7,17 +9,17 @@ import { logger } from '@/ui/logger';
 import { listSlashCommands } from '@/modules/common/slashCommands';
 import { normalizeCodexModel } from '@/modules/common/codexModels';
 import { formatMessageWithAttachments } from '@/utils/attachmentFormatter';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
-import { ImplementCodexPlanRequestSchema, type ImplementCodexPlanResult } from '@hapi/protocol/apiTypes';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
+import { ImplementCodexPlanRequestSchema, type ImplementCodexPlanResult } from '@hamlet/protocol/apiTypes';
 import { CodexAppServerClient, isIndeterminateError } from '../codexAppServerClient';
-import { buildHapiMcpBridge, type HapiMcpBridge } from '../utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge, type HamletMcpBridge } from '../utils/buildHamletMcpBridge';
 import { buildUserInputFromMessage } from '../utils/appServerConfig';
 import { resolveCodexPermissionModeConfig } from '../utils/permissionModeConfig';
 import { resolveCodexSlashCommand } from '../utils/slashCommands';
 import { parseReasoningEffortValue } from '../utils/reasoningEffort';
 import { SharedCodexPermissions } from './permissions';
 import { SharedCodexQueue } from './queue';
-import { SharedCodexProjection, inputText } from './projection';
+import { SharedCodexProjection, inputText, successfulMcpCall } from './projection';
 import { getCodexSystemPrompt } from '../utils/systemPrompt';
 import { record, string } from './gateway';
 import { initializeSharedClient, type SharedLaunchOptions } from './launch';
@@ -40,11 +42,11 @@ const SettingsSchema = z.object({
     personality: z.enum(['friendly', 'pragmatic', 'none']).optional()
 });
 
-/** One immutable HAPI identity + independent subscription for one root. */
+/** One immutable HAMLET identity + independent subscription for one root. */
 export class SharedCodexRoot {
     readonly client: CodexAppServerClient;
     readonly session: ApiSessionClient;
-    bridge!: HapiMcpBridge;
+    bridge!: HamletMcpBridge;
     threadId = '';
     private permissions!: SharedCodexPermissions;
     private queue!: SharedCodexQueue;
@@ -63,7 +65,12 @@ export class SharedCodexRoot {
     private settingsRevision = 0;
     private refreshing?: Promise<void>;
     private childHistory: Promise<void> = Promise.resolve();
+    private readonly hamlet?: HamletClient;
+    private readonly currentInputs = new Map<string, HamletTurn['inputs'][number]>();
+    private polling = false;
+    private enabledInbox = false;
     private interrupted = false;
+    private yieldingTurn?: string;
     private closed = false;
     private stopping = false;
     private closing?: Promise<void>;
@@ -78,8 +85,10 @@ export class SharedCodexRoot {
 
     constructor(readonly bootstrap: SessionBootstrapResult, private readonly host: RootHost) {
         this.session = bootstrap.session;
+        this.hamlet = forSession(this.session.sessionId);
         this.client = new CodexAppServerClient({ endpoint: host.endpoint, token: host.token, cwd: bootstrap.workingDirectory });
         this.client.setNotificationHandler((method, params) => {
+            const p = record(params);
             if (method === 'serverRequest/resolved') {
                 this.permissions?.resolved(string(record(params).threadId) ?? '', record(params).requestId); return;
             }
@@ -87,14 +96,36 @@ export class SharedCodexRoot {
             if (record(params).threadId === this.threadId) {
                 if (method === 'turn/started') {
                     this.turnRevision++; this.currentTurn = string(record(record(params).turn).id); this.interrupted = false;
+                    this.currentInputs.clear();
+                    this.rememberInputs(record(p.turn).items);
                     if (this.currentTurn) this.latestTurn = { id: this.currentTurn, status: 'inProgress' };
                     this.publishSteering();
                 }
+                if (this.hamlet && this.currentTurn && p.turnId === this.currentTurn &&
+                    (method === 'item/started' || method === 'item/completed') && record(p.item).type === 'userMessage') {
+                    this.turnRevision++;
+                    this.rememberInputs([p.item]);
+                }
+                if (method === 'item/completed' && this.hamlet && this.currentTurn && p.turnId === this.currentTurn && this.yieldingTurn !== p.turnId) {
+                    const item = record(p.item);
+                    if (item.server === 'hamlet' && item.tool === 'wait_message' && successfulMcpCall(item)) {
+                        const turnId = this.currentTurn;
+                        this.yieldingTurn = turnId;
+                        void this.client.request('turn/interrupt', { threadId: this.threadId, turnId }).catch(error => {
+                            if (this.currentTurn === turnId) logger.debug('[Hamlet] Could not yield turn', error);
+                        });
+                    }
+                }
                 if (method === 'turn/completed' && (!this.currentTurn || record(record(params).turn).id === this.currentTurn)) {
                     this.turnRevision++; this.currentTurn = undefined; this.interrupted = record(record(params).turn).status === 'interrupted';
+                    this.currentInputs.clear();
+                    if (this.yieldingTurn && this.yieldingTurn === record(p.turn).id) {
+                        this.yieldingTurn = undefined;
+                        // Native interruption pauses already queued user input. Resume it if present.
+                        if (this.interrupted) void this.startQueuedAfterWait().catch(error => logger.debug('[Hamlet] Resume queued input', error));
+                    }
                     this.publishSteering();
                 }
-                const p = record(params);
                 if (method === 'item/completed' && this.latestTurn && this.latestTurn.id === p.turnId) {
                     const planId = planProposalForItem(this.threadId, this.latestTurn.id, p.item);
                     if (planId) { this.turnRevision++; this.latestTurn.planId = planId; }
@@ -121,7 +152,10 @@ export class SharedCodexRoot {
                 const text = formatMessageWithAttachments(message.content.text, message.content.attachments);
                 const resolved = text.trim().startsWith('/') ? await this.queue.command(id, () => this.command(text)) : text;
                 if (resolved === null) { this.session.emitMessagesConsumed([id], { clearQueuedThinkingGrace: true }); return; }
-                await this.queue.enqueue(id, buildUserInputFromMessage(resolved), this.interrupted);
+                const skills = this.hamlet && resolved.trimStart().startsWith('$')
+                    ? (await this.client.listSkills({ cwds: [this.bootstrap.workingDirectory] })).data?.flatMap(row => row.skills)
+                    : undefined;
+                await this.queue.enqueue(id, buildUserInputFromMessage(resolved, skills), this.interrupted);
             }).catch(error => this.notice(`Message not confirmed: ${error instanceof Error ? error.message : error}. Inspect the queue before retrying.`));
         });
         this.session.onCancelQueuedMessage(async id => { await this.bound; return this.stopping ? 'indeterminate' : this.queue.cancel(id); });
@@ -147,7 +181,7 @@ export class SharedCodexRoot {
     async prepare(): Promise<void> {
         // Descendants share this bridge. The projection applies successful
         // root title calls so a child cannot rename the parent session.
-        this.bridge = await buildHapiMcpBridge(this.session, { exportSessionEnv: false, emitTitleSummary: false,
+        this.bridge = await buildHamletMcpBridge(this.session, { exportSessionEnv: false, emitTitleSummary: false,
             skillLookup: { workingDirectory: this.bootstrap.workingDirectory, flavor: 'codex' } });
         await initializeSharedClient(this.client);
         this.permissions = new SharedCodexPermissions(this.session, this.client, this.host.generation);
@@ -179,27 +213,30 @@ export class SharedCodexRoot {
     }
     config(params: Record<string, unknown>): Record<string, unknown> {
         return { ...params, cwd: params.cwd ?? this.bootstrap.workingDirectory,
-            developerInstructions: params.developerInstructions ?? getCodexSystemPrompt(), config: {
-            ...record(params.config), 'mcp_servers.hapi': this.bridge.mcpServers.hapi,
-            'shell_environment_policy.set.HAPI_SESSION_ID': this.session.sessionId
+            developerInstructions: params.developerInstructions ?? (getCodexSystemPrompt() || undefined), config: {
+            ...record(params.config), 'mcp_servers.hamlet': this.bridge.mcpServers.hamlet,
+            'shell_environment_policy.set.HAMLET_SESSION_ID': this.session.sessionId
         } };
     }
     async bind(threadId: string, response: Record<string, unknown>, subscribe: boolean): Promise<void> {
-        if (this.threadId && this.threadId !== threadId) throw new Error('Cannot retarget a shared HAPI session');
+        if (this.threadId && this.threadId !== threadId) throw new Error('Cannot retarget a shared HAMLET session');
         this.threadId = threadId;
         // Cold history can take longer than the hub's session expiry window.
         this.heartbeat ??= setInterval(() => this.alive(), 2_000);
         this.queue = new SharedCodexQueue(this.client, threadId, join(this.host.directory, `${this.session.sessionId}.queue.json`),
             (ids, steered) => this.session.emitMessagesConsumed(ids, { steered }), ids => this.session.emitSteerIndeterminate(ids),
-            (id, input) => this.session.syncNativeQueuedMessage(id, input === null ? null : inputText(input)),
+            (id, input) => { if (!id.startsWith('hamlet:')) this.session.syncNativeQueuedMessage(id, input === null ? null : inputText(input)); },
             ids => this.session.setSteerDeliveryState(ids, 'queued'));
         await this.queue.load();
-        this.projection = new SharedCodexProjection(this.session, threadId, id => this.queue.committed(id));
+        this.projection = new SharedCodexProjection(this.session, threadId, async id => {
+            await this.queue.committed(id);
+            if (id.startsWith('hamlet:steer:')) await this.hamlet?.ack(id);
+        });
         this.session.updateMetadata(metadata => ({ ...metadata, codexSessionId: threadId, capabilities: {
             ...metadata.capabilities, concurrentClients: true, terminal: true,
             // In-place rewind needs a native + hub commit barrier. Do not
             // advertise a destructive operation we cannot make atomic yet.
-            conversationHistory: { forkCurrent: true, forkAtMessage: true, rewindToMessage: false }
+            conversationHistory: { forkCurrent: !this.hamlet, forkAtMessage: !this.hamlet, rewindToMessage: false }
         } }));
         this.session.updateAgentState(state => ({ ...state, controlledByUser: false, startingMode: undefined, codexPlanProposalId: null, requests: {},
             completedRequests: { ...state.completedRequests, ...Object.fromEntries(Object.entries(state.requests ?? {}).map(([id, request]) =>
@@ -213,7 +250,7 @@ export class SharedCodexRoot {
         // Restored input cannot run before the cold-resume settings are applied.
         await this.initialSettings(options);
         if (this.stopping) throw new Error('Codex execution is stopping');
-        this.registerControls(); this.ready();
+        this.registerControls(); this.ready(); this.enabledInbox = true;
         this.heartbeat ??= setInterval(() => this.alive(), 2_000); this.alive(); this.session.emitSessionReady();
         // Completed descendants are transcript backfill, not an admission
         // barrier for the restored root or its durable input queue.
@@ -225,7 +262,28 @@ export class SharedCodexRoot {
         this.steeringActive = active;
         this.session.updateAgentState(state => ({ ...state, steeringActive: active }));
     }
+    private async startQueuedAfterWait(): Promise<void> {
+        if ((await this.queue.list()).length && !this.currentTurn) {
+            await this.client.request('thread/queue/start', { threadId: this.threadId });
+        }
+    }
+    private async pollInbox(): Promise<void> {
+        if (!this.hamlet || this.polling || !this.enabledInbox || this.currentTurn || this.closed || this.stopping || this.reconnecting) return;
+        this.polling = true;
+        try {
+            const batch = await this.hamlet.batch();
+            if (!batch || this.stopping || this.closed) return;
+            if (this.queue.state(batch.id) === 'consumed') {
+                await this.hamlet.ack(batch.id);
+                return;
+            }
+            const input = await this.hamlet.input(batch, this.session.sessionId);
+            if (!this.currentTurn && !this.stopping && !this.closed) await this.queue.enqueue(batch.id, input, this.interrupted);
+        } catch (error) { logger.debug('[Hamlet] Inbox delivery', error); }
+        finally { this.polling = false; }
+    }
     private alive(): void {
+        void this.pollInbox();
         this.publishSteering();
         this.publishPlan();
         if (!this.closed) this.session.keepAlive(Boolean(this.currentTurn), undefined, this.settings);
@@ -299,7 +357,10 @@ export class SharedCodexRoot {
         const thread = await this.readThread();
         const turns = Array.isArray(thread.turns) ? thread.turns.map(record) : [];
         if (revision === this.turnRevision) {
-            this.currentTurn = string(turns.find(turn => turn.status === 'inProgress')?.id);
+            const active = turns.find(turn => turn.status === 'inProgress');
+            this.currentTurn = string(active?.id);
+            this.currentInputs.clear();
+            this.rememberInputs(active?.items);
             this.interrupted = turns.at(-1)?.status === 'interrupted';
             const last = turns.at(-1);
             const id = string(last?.id);
@@ -450,6 +511,15 @@ export class SharedCodexRoot {
                 error: `Plan implementation was not confirmed: ${detail}. Check the mode, queue and conversation before retrying.` };
         } finally { this.submittingPlan = false; this.publishPlan(); }
     }
+    private rememberInputs(items: unknown): void {
+        if (!this.hamlet || !Array.isArray(items)) return;
+        for (const value of items) {
+            const item = record(value);
+            const id = string(item.clientId ?? item.clientUserMessageId) ?? string(item.id);
+            if (item.type !== 'userMessage' || !id || !Array.isArray(item.content)) continue;
+            this.currentInputs.set(id, id.startsWith('hamlet:') ? { batch_id: id } : { message_id: id, content: item.content });
+        }
+    }
     private registerControls(): void {
         const rpc = { registerHandler: (method: string, handler: (raw: unknown) => Promise<unknown>) => {
             this.session.rpcHandlerManager.registerHandler(method, async (raw: unknown) => {
@@ -458,6 +528,30 @@ export class SharedCodexRoot {
                 try { return await pending; } finally { this.controls.delete(pending); }
             });
         } };
+        if (this.hamlet) rpc.registerHandler(RPC_METHODS.HamletControlTurn, async raw => {
+            const { turn_id, batch } = raw as { turn_id: string; batch?: HamletBatch };
+            if (this.reconnecting || !this.client.isInitialized()) throw new Error('Codex disconnected');
+            if (batch && this.queue.state(batch.id) === 'consumed') {
+                await this.hamlet!.ack(batch.id);
+                return { status: 'delivered' };
+            }
+            if (!turn_id || this.currentTurn !== turn_id) return { status: 'turn_changed' };
+            if (!batch) {
+                await this.client.request('turn/interrupt', { threadId: this.threadId, turnId: turn_id });
+                return { status: 'interrupt_requested' };
+            }
+            const input = await this.hamlet!.input(batch, this.session.sessionId);
+            const result = await this.queue.steer(batch.id, turn_id, input);
+            if (result.steered || this.queue.state(batch.id) === 'consumed') {
+                await this.hamlet!.ack(batch.id);
+                return { status: 'delivered' };
+            }
+            return { status: result.indeterminate ? 'unconfirmed' : 'rejected', error: result.error };
+        });
+        if (this.hamlet) rpc.registerHandler(RPC_METHODS.HamletCurrentTurn, async () => {
+            if (this.reconnecting || !this.client.isInitialized()) throw new Error('Codex disconnected');
+            return this.currentTurn ? { turn_id: this.currentTurn, inputs: [...this.currentInputs.values()] } : null;
+        });
         rpc.registerHandler(RPC_METHODS.ListCodexModels, async raw => {
             const models = []; let cursor: string | undefined;
             do {
@@ -517,7 +611,7 @@ export class SharedCodexRoot {
         return { ...sandbox, cwd: this.settingsNative.cwd ?? this.bootstrap.workingDirectory, model: this.settingsNative.model, modelProvider: this.settingsNative.modelProvider,
             approvalPolicy: this.settingsNative.approvalPolicy, serviceTier: this.settingsNative.serviceTier,
             approvalsReviewer: this.settingsNative.approvalsReviewer, personality: this.settingsNative.personality,
-            developerInstructions: getCodexSystemPrompt(),
+            developerInstructions: getCodexSystemPrompt() || undefined,
             config: { ...record(sandbox.config), model_reasoning_effort: this.settings.modelReasoningEffort ?? undefined } };
     }
     private notice(message: string): void { this.session.sendSessionEvent({ type: 'message', message }); }

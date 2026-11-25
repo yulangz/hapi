@@ -15,9 +15,9 @@ afterEach(() => {
 
 describe('schema migration v21 to v22', () => {
     it('adds pinned and global_pinned columns with unpinned defaults', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v22-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v22-'))
         tempDirs.push(dir)
-        const dbPath = join(dir, 'hapi.db')
+        const dbPath = join(dir, 'hamlet.db')
 
         new Store(dbPath).close()
         const legacy = new Database(dbPath)

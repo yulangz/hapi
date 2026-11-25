@@ -22,7 +22,7 @@ import { queryKeys } from './query-keys'
  *
  * Per-test session id: each test calls `makeSid()` to get a fresh
  * session-scoped localStorage namespace. The hook's offline-cache
- * useEffect mirrors entries to `hapi.scratchlist.v1.${sessionId}` and
+ * useEffect mirrors entries to `hamlet.scratchlist.v1.${sessionId}` and
  * the cleanup effect can flush AFTER `afterEach` clears localStorage
  * for the next test, leaking entries that re-trigger the migration
  * path. Unique session ids sidestep the race.
@@ -121,7 +121,7 @@ describe('useHubScratchlist - add', () => {
         expect(result.current.entries[0]?.text).toBe('new note')
     })
 
-    it('dedupes when SSE refetch lands before POST resolves (HAPI Bot, PR #896)', async () => {
+    it('dedupes when SSE refetch lands before POST resolves (HAMLET Bot, PR #896)', async () => {
         const queryClient = new QueryClient({
             defaultOptions: {
                 queries: { retry: false, gcTime: Infinity },
@@ -200,7 +200,7 @@ describe('useHubScratchlist - add', () => {
         expect(result.current.entries.map((e) => e.id)).toEqual(['a'])
     })
 
-    it('removes optimistic ghost when create fails before initial fetch populates (HAPI Bot, PR #896)', async () => {
+    it('removes optimistic ghost when create fails before initial fetch populates (HAMLET Bot, PR #896)', async () => {
         const sid = makeSid()
         let releaseFetch: (value: { entries: HubEntry[] }) => void = () => undefined
         const fetchDeferred = new Promise<{ entries: HubEntry[] }>((resolve) => {
@@ -298,7 +298,7 @@ describe('useHubScratchlist - delete', () => {
         expect(result.current.entries.map((e) => e.id).sort()).toEqual(['a', 'b'])
     })
 
-    it('keeps entry removed when hub returns 404 (deleted elsewhere) (HAPI Bot, PR #896)', async () => {
+    it('keeps entry removed when hub returns 404 (deleted elsewhere) (HAMLET Bot, PR #896)', async () => {
         const queryClient = new QueryClient({
             defaultOptions: {
                 queries: { retry: false, gcTime: Infinity },
@@ -361,7 +361,7 @@ describe('useHubScratchlist - update', () => {
         await waitFor(() => expect(result.current.entries[0]?.text).toBe('after'))
     })
 
-    it('drops entry when update returns 404 (deleted elsewhere) (HAPI Bot, PR #896)', async () => {
+    it('drops entry when update returns 404 (deleted elsewhere) (HAMLET Bot, PR #896)', async () => {
         const sid = makeSid()
         let fetchCount = 0
         const api = createMockApi({
@@ -391,7 +391,7 @@ describe('useHubScratchlist - update', () => {
 describe('useHubScratchlist - localStorage migration', () => {
     function seedV1Entries(sid: string) {
         localStorage.setItem(
-            `hapi.scratchlist.v1.${sid}`,
+            `hamlet.scratchlist.v1.${sid}`,
             JSON.stringify([
                 { id: 'old-1', text: 'pre-v2 note', createdAt: 100 },
                 { id: 'old-2', text: 'another', createdAt: 200 }
@@ -432,13 +432,13 @@ describe('useHubScratchlist - localStorage migration', () => {
         expect(create).toHaveBeenCalledTimes(2)
         const entryIds = create.mock.calls.map((c) => (c[1] as { entryId?: string }).entryId)
         expect(entryIds.sort()).toEqual(['old-1', 'old-2'])
-        expect(localStorage.getItem(`hapi.scratchlist.v2.migrated.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.migrated.${sid}`)).toBe('1')
     })
 
     it('does not re-migrate on a mount where the migrated flag is already set', async () => {
         const sid = makeSid()
         seedV1Entries(sid)
-        localStorage.setItem(`hapi.scratchlist.v2.migrated.${sid}`, '1')
+        localStorage.setItem(`hamlet.scratchlist.v2.migrated.${sid}`, '1')
         const create = vi.fn()
         const api = createMockApi({
             getScratchlist: async () => ({ entries: [] }),
@@ -448,7 +448,7 @@ describe('useHubScratchlist - localStorage migration', () => {
         await waitFor(() => expect(result.current.isLoading).toBe(false))
         await new Promise((r) => setTimeout(r, 30))
         expect(create).not.toHaveBeenCalled()
-        // HAPI Bot, PR #896 follow-up: migrationFlag-set without a
+        // HAMLET Bot, PR #896 follow-up: migrationFlag-set without a
         // dismiss flag now means 'completed' (banner shows on
         // remount) so the operator gets a chance to see and dismiss
         // the banner across page reloads.
@@ -481,8 +481,8 @@ describe('useHubScratchlist - localStorage migration', () => {
         // mapped this to 'pre-migrated' and the banner stayed hidden
         // forever; post-fix the hook maps it to 'completed' so the
         // banner renders again until the operator clicks dismiss.
-        expect(localStorage.getItem(`hapi.scratchlist.v2.migrated.${sid}`)).toBe('1')
-        expect(localStorage.getItem(`hapi.scratchlist.v2.banner-dismissed.${sid}`)).toBeNull()
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.migrated.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.banner-dismissed.${sid}`)).toBeNull()
         const second = renderHook(() => useHubScratchlist(sid, api), { wrapper: createWrapper() })
         await waitFor(() => expect(second.result.current.isLoading).toBe(false))
         expect(second.result.current.migrationStatus).toBe('completed')
@@ -502,8 +502,8 @@ describe('useHubScratchlist - localStorage migration', () => {
         })
         const { result } = renderHook(() => useHubScratchlist(sid, api), { wrapper: createWrapper() })
         await waitFor(() => expect(result.current.migrationStatus).toBe('dismissed'))
-        expect(localStorage.getItem(`hapi.scratchlist.v2.migrated.${sid}`)).toBe('1')
-        expect(localStorage.getItem(`hapi.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.migrated.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
     })
 
     it('dismissMigrationBanner persists the dismissal flag and flips status to dismissed', async () => {
@@ -524,10 +524,10 @@ describe('useHubScratchlist - localStorage migration', () => {
             result.current.dismissMigrationBanner()
         })
         expect(result.current.migrationStatus).toBe('dismissed')
-        expect(localStorage.getItem(`hapi.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
     })
 
-    it('skips migration when localStorage is empty and pre-dismisses the banner (HAPI Bot, PR #896 follow-up)', async () => {
+    it('skips migration when localStorage is empty and pre-dismisses the banner (HAMLET Bot, PR #896 follow-up)', async () => {
         const sid = makeSid()
         const create = vi.fn()
         const api = createMockApi({
@@ -536,16 +536,16 @@ describe('useHubScratchlist - localStorage migration', () => {
         })
         const { result } = renderHook(() => useHubScratchlist(sid, api), { wrapper: createWrapper() })
         await waitFor(() => expect(result.current.isLoading).toBe(false))
-        await waitFor(() => expect(localStorage.getItem(`hapi.scratchlist.v2.migrated.${sid}`)).toBe('1'))
+        await waitFor(() => expect(localStorage.getItem(`hamlet.scratchlist.v2.migrated.${sid}`)).toBe('1'))
         expect(create).not.toHaveBeenCalled()
         // Fresh sessions (no v1 entries) get the banner pre-dismissed
         // so the bot's banner-stickiness fix does not surface a
         // banner that has nothing to announce.
-        expect(localStorage.getItem(`hapi.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.banner-dismissed.${sid}`)).toBe('1')
         expect(result.current.migrationStatus).toBe('dismissed')
     })
 
-    it('persists FAILED entries back to localStorage and leaves the flag unset (HAPI Bot, PR #896)', async () => {
+    it('persists FAILED entries back to localStorage and leaves the flag unset (HAMLET Bot, PR #896)', async () => {
         // Migration partial failure: 2 entries in localStorage, the
         // first POST succeeds and the second throws. Per the bot
         // review, the failed entry must be written back to
@@ -578,16 +578,16 @@ describe('useHubScratchlist - localStorage migration', () => {
         await waitFor(() => expect(result.current.migrationStatus).toBe('idle'))
 
         // Flag must NOT be set: a future mount must retry.
-        expect(localStorage.getItem(`hapi.scratchlist.v2.migrated.${sid}`)).toBeNull()
+        expect(localStorage.getItem(`hamlet.scratchlist.v2.migrated.${sid}`)).toBeNull()
         // The failed entry (the second one) must be back in localStorage.
-        const persisted = localStorage.getItem(`hapi.scratchlist.v1.${sid}`)
+        const persisted = localStorage.getItem(`hamlet.scratchlist.v1.${sid}`)
         expect(persisted).not.toBeNull()
         const parsed = JSON.parse(persisted!) as Array<{ id: string; text: string }>
         expect(parsed.map((e) => e.id)).toEqual(['old-2'])
         expect(parsed[0]?.text).toBe('another')
     })
 
-    it('does not retry failed migration in a tight loop within the same mount (HAPI Bot, PR #896)', async () => {
+    it('does not retry failed migration in a tight loop within the same mount (HAMLET Bot, PR #896)', async () => {
         const sid = makeSid()
         seedV1Entries(sid)
         const create = vi.fn(async () => {
@@ -609,7 +609,7 @@ describe('useHubScratchlist - localStorage migration', () => {
         expect(create).toHaveBeenCalledTimes(callsAfterFailure)
     })
 
-    it('does NOT mirror an empty hub fetch into localStorage before migration runs (HAPI Bot, PR #896)', async () => {
+    it('does NOT mirror an empty hub fetch into localStorage before migration runs (HAMLET Bot, PR #896)', async () => {
         // Pre-fix the offline-cache effect would clobber the v1
         // entries with `[]` the moment the initial fetch returned an
         // empty list, racing the migration effect's localStorage
@@ -641,7 +641,7 @@ describe('useHubScratchlist - localStorage migration', () => {
         // localStorage now mirrors hub state (post-migration). It must
         // contain the v1 entries that round-tripped through the hub
         // fetch, NOT an empty array.
-        const persisted = localStorage.getItem(`hapi.scratchlist.v1.${sid}`)
+        const persisted = localStorage.getItem(`hamlet.scratchlist.v1.${sid}`)
         expect(persisted).not.toBeNull()
         const parsed = JSON.parse(persisted!) as Array<{ id: string }>
         expect(parsed.map((e) => e.id).sort()).toEqual(['old-1', 'old-2'])

@@ -12,8 +12,8 @@ const PROJECT_PATH = '/work/proj'
 
 afterEach(() => {
     cleanup()
-    localStorage.removeItem('hapi-session-preview-limit')
-    localStorage.removeItem('hapi-pin-in-progress-sessions')
+    localStorage.removeItem('hamlet-session-preview-limit')
+    localStorage.removeItem('hamlet-pin-in-progress-sessions')
 })
 
 function makeSession(overrides: Partial<SessionSummary> & { id: string }): SessionSummary {

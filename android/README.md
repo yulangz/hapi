@@ -1,11 +1,11 @@
-# HAPI Android
+# HAMLET Android
 
-Native Android client (Kotlin + Jetpack Compose) for the HAPI hub. Fully
+Native Android client (Kotlin + Jetpack Compose) for the HAMLET hub. Fully
 independent from the web app; shares the
 [client contract](../docs/api/client-contract/index.md) and the web-generated
 golden fixtures (`shared/fixtures/`).
 
-- **applicationId**: `run.hapi.companion` · **minSdk** 26 · **target/compileSdk** 36
+- **applicationId**: `run.hamlet.companion` · **minSdk** 26 · **target/compileSdk** 36
 - **Toolchain**: Gradle 8.14.2 (wrapper) · AGP 8.11.1 · Kotlin 2.1.21 · Compose BOM 2025.05.00 · JDK 17+ (CI uses 21)
 
 ## Current capabilities
@@ -70,11 +70,11 @@ The test task already passes the fixtures location as a system property:
 ```kotlin
 // core/protocol/build.gradle.kts
 tasks.test {
-    systemProperty("hapi.fixtures.dir", rootDir.parentFile.resolve("shared/fixtures").absolutePath)
+    systemProperty("hamlet.fixtures.dir", rootDir.parentFile.resolve("shared/fixtures").absolutePath)
 }
 ```
 
-Fixture-driven tests read `System.getProperty("hapi.fixtures.dir")` from the
+Fixture-driven tests read `System.getProperty("hamlet.fixtures.dir")` from the
 checked-in golden fixture set. CI re-runs this suite whenever `android/**`
 or `shared/fixtures/**` change.
 
@@ -85,7 +85,7 @@ repo root and include generated changes; never hand-edit fixtures. See the
 
 ## Pairing
 
-HAPI is self-hosted: the app talks to a hub **you** run. Pairing = giving the
+HAMLET is self-hosted: the app talks to a hub **you** run. Pairing = giving the
 app a hub URL plus that hub's access token; the app verifies the hub
 (`GET /health`, requiring the supported protocol version exactly), exchanges
 the token for a JWT
@@ -95,10 +95,10 @@ lands on the session UI. Three entry points:
 
 1. **QR scan** — the hub prints two QR codes when started with `--relay`
    (also under web Settings → Companion pairing). The in-app scanner accepts
-   both: the companion deeplink (`hapicompanion://bind?hub=…&code=…`) and the
+   both: the companion deeplink (`hamletcompanion://bind?hub=…&code=…`) and the
    web direct-access URL (`…?hub=…&token=…`).
 2. **Deep link** — scanning the companion QR with the system camera opens the
-   app directly with a confirm screen (`hapicompanion://bind` intent filter).
+   app directly with a confirm screen (`hamletcompanion://bind` intent filter).
 3. **Manual entry** — hub URL + access token, for hubs started without
    `--relay`.
 
@@ -106,12 +106,12 @@ lands on the session UI. Three entry points:
 
 ```sh
 # Start a hub with the built-in HTTPS relay (prints the access token + QR codes).
-hapi hub --relay
+hamlet hub --relay
 
 # Use the printed https:// URL. For a source-tree `bun run dev` hub, put an
 # HTTPS reverse proxy or tunnel in front of localhost:3006 first.
 adb shell am start -a android.intent.action.VIEW \
-  -d "hapicompanion://bind?hub=https%3A%2F%2Fhub.example.com&code=<accessToken>"  # optional: exercises the deep link
+  -d "hamletcompanion://bind?hub=https%3A%2F%2Fhub.example.com&code=<accessToken>"  # optional: exercises the deep link
 ```
 
 The app rejects plain-`http` hub URLs in manual entry, deep links, QR codes,
@@ -132,13 +132,13 @@ app. Hubs without a private `FCM_SERVICE_ACCOUNT_PATH` use the official push
 relay automatically; users do not create Firebase projects or configure
 service-account keys. Google Play services and FCM connectivity are needed.
 The push relay also works with hubs accessed through Tailscale or other HTTPS
-setups; it is independent of `hapi hub --relay`.
+setups; it is independent of `hamlet hub --relay`.
 
 **Private builds:** create a Firebase project for your application ID,
 download `google-services.json` into `android/app/`, and configure the hub's
 `FCM_SERVICE_ACCOUNT_PATH` for that same project. Existing configured hubs
-keep direct delivery under the default `HAPI_ANDROID_PUSH=auto`. Use
-`relay`, `fcm`, or `off` to select explicitly. `HAPI_PUSH_RELAY_URL` overrides
+keep direct delivery under the default `HAMLET_ANDROID_PUSH=auto`. Use
+`relay`, `fcm`, or `off` to select explicitly. `HAMLET_PUSH_RELAY_URL` overrides
 the shared Android/iOS relay URL. One hub cannot mix private-project builds
 and official-project builds.
 
@@ -155,7 +155,7 @@ hub's token deduplication; later token rotations reuse the ID/key. On start,
 pairing, token rotation and worker retries, registrations refresh
 automatically. Sign-out unregisters before wiping that hub's credentials.
 
-Relay messages carry only `hapi_v`/`hapi_e`. AES-256-GCM decryption uses the
+Relay messages carry only `hamlet_v`/`hamlet_e`. AES-256-GCM decryption uses the
 same golden vector as iOS; notification content is unavailable to the relay
 and Google. Failed decrypts are dropped. Direct private FCM retains its
 existing unwrapped data payload. Rendering, foreground-chat suppression,
@@ -183,16 +183,16 @@ Repository configuration, set once by the maintainer:
 | Setting | Value |
 |---|---|
 | Variable `ANDROID_FIREBASE_PROJECT_ID` | Project used by the deployed relay's FCM service account |
-| Secret `ANDROID_GOOGLE_SERVICES_JSON` | Firebase **client** config for `run.hapi.companion` in that project |
-| Secret `HAPI_UPLOAD_KEYSTORE_BASE64` | Base64-encoded release keystore |
-| Secret `HAPI_UPLOAD_KEYSTORE_PASSWORD` | Keystore password |
-| Secret `HAPI_UPLOAD_KEY_ALIAS` | Optional, defaults to `upload` |
-| Secret `HAPI_UPLOAD_KEY_PASSWORD` | Optional, defaults to store password |
+| Secret `ANDROID_GOOGLE_SERVICES_JSON` | Firebase **client** config for `run.hamlet.companion` in that project |
+| Secret `HAMLET_UPLOAD_KEYSTORE_BASE64` | Base64-encoded release keystore |
+| Secret `HAMLET_UPLOAD_KEYSTORE_PASSWORD` | Keystore password |
+| Secret `HAMLET_UPLOAD_KEY_ALIAS` | Optional, defaults to `upload` |
+| Secret `HAMLET_UPLOAD_KEY_PASSWORD` | Optional, defaults to store password |
 
-`-PhapiOfficialBuild=true -PhapiFirebaseProjectId=<project>` requires a
+`-PhamletOfficialBuild=true -PhamletFirebaseProjectId=<project>` requires a
 matching Firebase project/package and release signing configuration.
 Missing or mismatched settings fail the build instead of shipping a package
-without working push. `hapiVersionCode` and `hapiVersionName` override the
+without working push. `hamletVersionCode` and `hamletVersionName` override the
 normal version defaults. The Firebase service-account private key belongs
 only on the relay and must never enter Android build artifacts.
 
@@ -211,17 +211,17 @@ of gradle's own property chain):
 
 | gradle property | env | meaning |
 |---|---|---|
-| `hapiUploadKeystore` | `HAPI_UPLOAD_KEYSTORE` | keystore path (`~` ok) |
-| `hapiUploadKeystorePassword` | `HAPI_UPLOAD_KEYSTORE_PASSWORD` | store password |
-| `hapiUploadKeyAlias` | `HAPI_UPLOAD_KEY_ALIAS` | default `upload` |
-| `hapiUploadKeyPassword` | `HAPI_UPLOAD_KEY_PASSWORD` | default: store password |
+| `hamletUploadKeystore` | `HAMLET_UPLOAD_KEYSTORE` | keystore path (`~` ok) |
+| `hamletUploadKeystorePassword` | `HAMLET_UPLOAD_KEYSTORE_PASSWORD` | store password |
+| `hamletUploadKeyAlias` | `HAMLET_UPLOAD_KEY_ALIAS` | default `upload` |
+| `hamletUploadKeyPassword` | `HAMLET_UPLOAD_KEY_PASSWORD` | default: store password |
 
 This is an **upload key** for Play App Signing (Google holds the actual
 distribution key, so a lost upload key is resettable in Play Console).
 Generate one with:
 
 ```bash
-keytool -genkeypair -v -keystore ~/.hapi/upload.keystore -alias upload \
+keytool -genkeypair -v -keystore ~/.hamlet/upload.keystore -alias upload \
   -keyalg RSA -keysize 2048 -validity 10950
 ```
 

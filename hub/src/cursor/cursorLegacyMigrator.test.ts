@@ -8,7 +8,7 @@
  *   - MOCK agent acp via the createProbe dependency injection point. The
  *     mock probe records calls and returns scripted responses so we can
  *     exercise every branch without spawning a child process.
- *   - MOCK the hapi.db write via the updateSessionAfterMigrate dep.
+ *   - MOCK the hamlet.db write via the updateSessionAfterMigrate dep.
  *
  * Covers:
  *   - happy path: cp + verify + flip + rm
@@ -29,8 +29,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync, statSync } f
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-import type { Metadata } from '@hapi/protocol/schemas'
-import type { Session } from '@hapi/protocol/types'
+import type { Metadata } from '@hamlet/protocol/schemas'
+import type { Session } from '@hamlet/protocol/types'
 import type { AcpRpcResponse } from './acpVerifyProbe'
 import {
     AmbiguousLegacyStoreError,
@@ -131,8 +131,8 @@ interface Harness {
 }
 
 function makeHarness(): Harness {
-    const home = mkdtempSync(join(tmpdir(), 'hapi-migrator-test-home-'))
-    const tmp = mkdtempSync(join(tmpdir(), 'hapi-migrator-test-tmp-'))
+    const home = mkdtempSync(join(tmpdir(), 'hamlet-migrator-test-home-'))
+    const tmp = mkdtempSync(join(tmpdir(), 'hamlet-migrator-test-tmp-'))
     const chatsDir = join(home, '.cursor', 'chats')
     const acpSessionsDir = join(home, '.cursor', 'acp-sessions')
     mkdirSync(chatsDir, { recursive: true })
@@ -205,7 +205,7 @@ function cleanupHarness(h: Harness): void {
     try { rmSync(h.tmp, { recursive: true, force: true }) } catch {}
 }
 
-function makeMigrator(h: Harness, probe: ReturnType<typeof makeMockProbe> | null, opts: { archiveSession?: (id: string) => Promise<void>; updateOverride?: (sessionId: string, namespace: string, lastUsedModel: string | null) => { ok: true } | { ok: false; reason: 'version_mismatch_or_missing' } | { ok: false; reason: 'session_active' }; isAgentAcpTransportActive?: () => { active: boolean; holderPid: number | null }; getCurrentSession?: (sessionId: string, namespace: string) => { active: boolean; lifecycleState?: string; cursorSessionProtocol?: string } | null; acquireAcpActiveLock?: () => { release(): void } | null; checkpointLegacyStore?: (storeDbPath: string) => void; removeSourceFile?: (storeDbPath: string) => void; getHapiMessageCount?: (sessionId: string, namespace: string) => number } = {}): CursorLegacyMigrator {
+function makeMigrator(h: Harness, probe: ReturnType<typeof makeMockProbe> | null, opts: { archiveSession?: (id: string) => Promise<void>; updateOverride?: (sessionId: string, namespace: string, lastUsedModel: string | null) => { ok: true } | { ok: false; reason: 'version_mismatch_or_missing' } | { ok: false; reason: 'session_active' }; isAgentAcpTransportActive?: () => { active: boolean; holderPid: number | null }; getCurrentSession?: (sessionId: string, namespace: string) => { active: boolean; lifecycleState?: string; cursorSessionProtocol?: string } | null; acquireAcpActiveLock?: () => { release(): void } | null; checkpointLegacyStore?: (storeDbPath: string) => void; removeSourceFile?: (storeDbPath: string) => void; getHamletMessageCount?: (sessionId: string, namespace: string) => number } = {}): CursorLegacyMigrator {
     return new CursorLegacyMigrator({}, {
         homeDir: () => h.home,
         hostName: () => 'h', // matches the test sessions' metadata.host
@@ -215,7 +215,7 @@ function makeMigrator(h: Harness, probe: ReturnType<typeof makeMockProbe> | null
         createProbe: () => (probe ?? makeMockProbe()) as any,
         awaitLockRelease: async () => true,
         // Default to "no ACP transport active" so the migrator does not
-        // accidentally refuse on a real-world HAPI_HOME that happens to have
+        // accidentally refuse on a real-world HAMLET_HOME that happens to have
         // a live lock during the test run (e.g. running on the operator's
         // own machine while the dogfood agent is active).
         isAgentAcpTransportActive: opts.isAgentAcpTransportActive ?? (() => ({ active: false, holderPid: null })),
@@ -237,7 +237,7 @@ function makeMigrator(h: Harness, probe: ReturnType<typeof makeMockProbe> | null
             h.updateCalls.push({ sessionId, namespace, lastUsedModel })
             return { ok: true }
         }),
-        getHapiMessageCount: opts.getHapiMessageCount
+        getHamletMessageCount: opts.getHamletMessageCount
     })
 }
 
@@ -291,7 +291,7 @@ describe('findLegacyChatStore', () => {
     })
 
     it('canonical workspace path wins over any readdir-order match (tiann/hapi#872)', () => {
-        const canonical = '/coding/hapi'
+        const canonical = '/coding/hamlet'
         const canonicalHash = workspaceHashFromPath(canonical)
         // Plant the SAME cursorSessionId under three workspace-hash drawers.
         // The canonical hash for `canonical` is one of them; the other two
@@ -368,7 +368,7 @@ describe('findLegacyChatStore', () => {
     })
 
     it('workspaceHashFromPath returns a 32-char lowercase hex md5', () => {
-        const hash = workspaceHashFromPath('/coding/hapi')
+        const hash = workspaceHashFromPath('/coding/hamlet')
         expect(hash).toMatch(/^[0-9a-f]{32}$/)
     })
 
@@ -398,7 +398,7 @@ describe('findLegacyChatStore', () => {
         // not statSync arbitrary paths when fed a malformed id. All of the
         // following must return null (and never throw / never probe).
         for (const id of ['..', '.', '../etc', '/etc/passwd', 'a/b', 'a/../b']) {
-            expect(findLegacyChatStore(id, h.home, '/coding/hapi')).toBeNull()
+            expect(findLegacyChatStore(id, h.home, '/coding/hamlet')).toBeNull()
             expect(findLegacyChatStore(id, h.home)).toBeNull()
         }
     })
@@ -593,10 +593,10 @@ describe('CursorLegacyMigrator.migrateOne — happy path', () => {
         expect(probe.promptCalls).toBe(1)
     })
 
-    it('passes HOME and HAPI_HOME isolated to the fakeHome into the verify probe (tiann/hapi#824)', async () => {
-        // tiann/hapi#824: the verify probe must inherit a private HAPI_HOME
+    it('passes HOME and HAMLET_HOME isolated to the fakeHome into the verify probe (tiann/hapi#824)', async () => {
+        // tiann/hapi#824: the verify probe must inherit a private HAMLET_HOME
         // so its child `agent acp` registers its lock in an isolated tmp dir
-        // — NOT in the host's $HAPI_HOME where peer agents may hold the
+        // — NOT in the host's $HAMLET_HOME where peer agents may hold the
         // global agent-acp-active lock. Without this isolation the auto-
         // migration path on a busy machine would always refuse with
         // acp_transport_active, defeating its own purpose.
@@ -631,17 +631,17 @@ describe('CursorLegacyMigrator.migrateOne — happy path', () => {
         const env = capturedEnv as unknown as NodeJS.ProcessEnv
         // The fakeHome path is generated inside verifyInTempHome under
         // h.tmp; we don't need its exact value, only that HOME and
-        // HAPI_HOME point at the same path and that path is under our
-        // temp root (i.e. NOT the operator's real $HOME or $HAPI_HOME).
+        // HAMLET_HOME point at the same path and that path is under our
+        // temp root (i.e. NOT the operator's real $HOME or $HAMLET_HOME).
         expect(typeof env.HOME).toBe('string')
-        expect(typeof env.HAPI_HOME).toBe('string')
-        expect(env.HOME).toBe(env.HAPI_HOME)
+        expect(typeof env.HAMLET_HOME).toBe('string')
+        expect(env.HOME).toBe(env.HAMLET_HOME)
         expect(env.HOME!.startsWith(h.tmp)).toBe(true)
         // Defence in depth: the captured env must NOT leak the host's
-        // real HAPI_HOME (which could point at ~/.hapi or /tmp/hapi).
-        const realHapiHome = process.env.HAPI_HOME?.trim() || ''
-        if (realHapiHome.length > 0) {
-            expect(env.HAPI_HOME).not.toBe(realHapiHome)
+        // real HAMLET_HOME (which could point at ~/.hamlet or /tmp/hamlet).
+        const realHamletHome = process.env.HAMLET_HOME?.trim() || ''
+        if (realHamletHome.length > 0) {
+            expect(env.HAMLET_HOME).not.toBe(realHamletHome)
         }
     })
 
@@ -655,7 +655,7 @@ describe('CursorLegacyMigrator.migrateOne — happy path', () => {
         // silently looked up `agent` under the wrong home and migrations
         // fell back to legacy. The fix: createProbe takes a 2nd arg, and
         // verifyInTempHome passes opts.sourceHome through.
-        const userHome = mkdtempSync(join(tmpdir(), 'hapi-migrator-user-home-'))
+        const userHome = mkdtempSync(join(tmpdir(), 'hamlet-migrator-user-home-'))
         try {
             const hubHome = h.home // distinct from userHome
             const cursorSessionId = 'service-account-uuid'
@@ -939,7 +939,7 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
     beforeEach(() => { h = makeHarness() })
     afterEach(() => cleanupHarness(h))
 
-    it('refuses with size_mismatch when HAPI has > 100 messages and candidate has <messageCount/4 blobs', async () => {
+    it('refuses with size_mismatch when HAMLET has > 100 messages and candidate has <messageCount/4 blobs', async () => {
         const cursorSessionId = 'sm-tiny-uuid'
         // Synthetic store has a tiny number of blobs (single seed row).
         const sourceStore = h.placeLegacyStore(cursorSessionId)
@@ -947,12 +947,12 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => 6000
+            getHamletMessageCount: () => 6000
         }).migrateOne(session, {})
         expect(out.ok).toBe(false)
         if (out.ok) return
         expect(out.reason).toBe('size_mismatch')
-        expect(out.message).toMatch(/HAPI tracks 6000 message/)
+        expect(out.message).toMatch(/HAMLET tracks 6000 message/)
         // Source untouched, no ACP placement.
         expect(existsSync(sourceStore)).toBe(true)
         expect(existsSync(join(h.acpSessionsDir, cursorSessionId))).toBe(false)
@@ -982,7 +982,7 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => 600 // floor = 150; padded blobs > 200
+            getHamletMessageCount: () => 600 // floor = 150; padded blobs > 200
         }).migrateOne(session, {})
         expect(out.ok).toBe(true)
         if (!out.ok) return
@@ -991,37 +991,37 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
         expect(existsSync(join(h.acpSessionsDir, cursorSessionId, 'store.db'))).toBe(true)
     })
 
-    it('skips the sanity check when HAPI message count is 0 (brand new session)', async () => {
+    it('skips the sanity check when HAMLET message count is 0 (brand new session)', async () => {
         const cursorSessionId = 'sm-zero-uuid'
         h.placeLegacyStore(cursorSessionId)
         const session = h.makeSession({
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => 0
+            getHamletMessageCount: () => 0
         }).migrateOne(session, {})
         expect(out.ok).toBe(true)
     })
 
-    it('skips the sanity check when the getHapiMessageCount dep is not wired', async () => {
+    it('skips the sanity check when the getHamletMessageCount dep is not wired', async () => {
         const cursorSessionId = 'sm-nodep-uuid'
         h.placeLegacyStore(cursorSessionId)
         const session = h.makeSession({
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
-        // No getHapiMessageCount override → dep undefined → check disabled.
+        // No getHamletMessageCount override → dep undefined → check disabled.
         const out = await makeMigrator(h, makeMockProbe()).migrateOne(session, {})
         expect(out.ok).toBe(true)
     })
 
-    it('skips the sanity check when getHapiMessageCount throws (fail-open)', async () => {
+    it('skips the sanity check when getHamletMessageCount throws (fail-open)', async () => {
         const cursorSessionId = 'sm-throws-uuid'
         h.placeLegacyStore(cursorSessionId)
         const session = h.makeSession({
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => { throw new Error('store unreadable') }
+            getHamletMessageCount: () => { throw new Error('store unreadable') }
         }).migrateOne(session, {})
         expect(out.ok).toBe(true)
     })
@@ -1033,7 +1033,7 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => 100
+            getHamletMessageCount: () => 100
         }).migrateOne(session, {})
         expect(out.ok).toBe(true)
     })
@@ -1051,7 +1051,7 @@ describe('CursorLegacyMigrator.migrateOne — size sanity (tiann/hapi#872)', () 
             metadata: { path: '/workspace/x', host: 'h', flavor: 'cursor', cursorSessionId }
         })
         const out = await makeMigrator(h, makeMockProbe(), {
-            getHapiMessageCount: () => 101
+            getHamletMessageCount: () => 101
         }).migrateOne(session, {})
         expect(out.ok).toBe(false)
         if (out.ok) return
@@ -1100,7 +1100,7 @@ describe('CursorLegacyMigrator.migrateOne — rollback paths', () => {
         expect(existsSync(acpStorePath)).toBe(false)
         // Source untouched.
         expect(existsSync(sourceStore)).toBe(true)
-        // No hapi.db write.
+        // No hamlet.db write.
         expect(h.updateCalls).toHaveLength(0)
     })
 
@@ -1309,7 +1309,7 @@ describe('CursorLegacyMigrator.migrateOne — rollback paths', () => {
         expect(existsSync(sourceStore)).toBe(true)
     })
 
-    it('rolls back ACP placement when hapi.db metadata write fails', async () => {
+    it('rolls back ACP placement when hamlet.db metadata write fails', async () => {
         const cursorSessionId = 'meta-fail-uuid'
         const sourceStore = h.placeLegacyStore(cursorSessionId)
         const session = h.makeSession({
@@ -1519,7 +1519,7 @@ describe('CursorLegacyMigrator.migrateOne — telemetry', () => {
         // Use a SEPARATE home dir than the harness's `h.home`, set on
         // metadata. The legacy chat must live under the metadata-recorded
         // home; the migrator should pick that path, not the hub HOME.
-        const ownerHome = mkdtempSync(join(tmpdir(), 'hapi-owner-home-'))
+        const ownerHome = mkdtempSync(join(tmpdir(), 'hamlet-owner-home-'))
         try {
             const cursorSessionId = 'owner-home-uuid'
             const ownerChatsDir = join(ownerHome, '.cursor', 'chats', 'wsh-owner', cursorSessionId)

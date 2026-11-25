@@ -43,7 +43,7 @@ vi.mock('@/components/AssistantChat/context', () => ({
 
 import { Reasoning, ReasoningGroup } from './reasoning'
 
-const STORAGE_KEY = 'hapi-reasoning-collapsed'
+const STORAGE_KEY = 'hamlet-reasoning-collapsed'
 
 function renderGroup() {
     return render(

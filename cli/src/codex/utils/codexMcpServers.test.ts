@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     extractCodexMcpServers,
-    HAPI_MCP_SERVER_NAME,
+    HAMLET_MCP_SERVER_NAME,
     mergeCodexMcpServers
 } from './codexMcpServers';
 
@@ -77,20 +77,20 @@ describe('codexMcpServers', () => {
         });
     });
 
-    it('reserves the HAPI server name and keeps the HAPI bridge on merge', () => {
+    it('reserves the HAMLET server name and keeps the HAMLET bridge on merge', () => {
         const merged = mergeCodexMcpServers(
             {
-                [HAPI_MCP_SERVER_NAME]: { command: 'user-hapi', args: [] },
+                [HAMLET_MCP_SERVER_NAME]: { command: 'user-hamlet', args: [] },
                 external: { command: 'external', args: [] }
             },
             {
-                [HAPI_MCP_SERVER_NAME]: { command: 'hapi', args: ['mcp'] }
+                [HAMLET_MCP_SERVER_NAME]: { command: 'hamlet', args: ['mcp'] }
             }
         );
 
         expect(merged).toEqual({
             external: { command: 'external', args: [] },
-            [HAPI_MCP_SERVER_NAME]: { command: 'hapi', args: ['mcp'] }
+            [HAMLET_MCP_SERVER_NAME]: { command: 'hamlet', args: ['mcp'] }
         });
     });
 });

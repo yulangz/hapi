@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { logger } from '@/ui/logger';
-import type { CodexPermissionMode } from '@hapi/protocol/types';
+import type { CodexPermissionMode } from '@hamlet/protocol/types';
 import type { CodexPermissionHandler } from './permissionHandler';
 import type { CodexAppServerClient } from '../codexAppServerClient';
 
@@ -371,9 +371,9 @@ function buildElicitationContent(params: unknown, answers: UserInputAnswer): Rec
     return content;
 }
 
-function isHapiBridgeElicitation(params: unknown): boolean {
+function isHamletBridgeElicitation(params: unknown): boolean {
     const record = asRecord(params);
-    return record?.serverName === 'hapi';
+    return record?.serverName === 'hamlet';
 }
 
 export function registerAppServerPermissionHandlers(args: {
@@ -483,8 +483,8 @@ export function registerAppServerPermissionHandlers(args: {
         const record = asRecord(params) ?? {};
         const request = unwrapElicitationRequest(params);
 
-        // HAPI's own bridge only asks for values whose safe defaults are defined by HAPI.
-        if (isHapiBridgeElicitation(params)) {
+        // HAMLET's own bridge only asks for values whose safe defaults are defined by HAMLET.
+        if (isHamletBridgeElicitation(params)) {
             return {
                 action: 'accept',
                 content: buildAcceptedElicitationContent(request),

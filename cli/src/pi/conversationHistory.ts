@@ -5,9 +5,9 @@ import {
     markUnsupported,
     toConversationHistoryCapabilities,
     type ConversationHistoryCapabilityStates
-} from '@hapi/protocol/conversationHistory'
-import type { ForkConversationRpcResult, RewindConversationRpcResult } from '@hapi/protocol/apiTypes'
-import { PI_THINKING_LEVELS } from '@hapi/protocol'
+} from '@hamlet/protocol/conversationHistory'
+import type { ForkConversationRpcResult, RewindConversationRpcResult } from '@hamlet/protocol/apiTypes'
+import { PI_THINKING_LEVELS } from '@hamlet/protocol'
 import type { PiThinkingLevel } from './types'
 import type { PiNativeRuntimeState, PiSession } from './session'
 
@@ -142,7 +142,7 @@ function containsForkEntry(data: unknown, entryId: string): boolean {
 
 /**
  * Native Pi history coordinator. Entry association is intentionally FIFO only:
- * a HAPI prompt is paired with the next Pi user entry, never with message text.
+ * a HAMLET prompt is paired with the next Pi user entry, never with message text.
  */
 export class PiConversationHistory {
     private states: ConversationHistoryCapabilityStates = { ...PI_CONVERSATION_HISTORY_INITIAL }
@@ -193,7 +193,7 @@ export class PiConversationHistory {
             // A trustworthy append-log baseline is mandatory before prompts are
             // released. Any startup failure disables history for this wrapper;
             // otherwise a later full-log read could pair an old user entry with
-            // the first new HAPI localId.
+            // the first new HAMLET localId.
             this.historySyncDisabled = true
             this.pendingUserEntries.length = 0
             this.states = markUnsupported(this.states, 'forkCurrent')
@@ -212,7 +212,7 @@ export class PiConversationHistory {
     }
 
     /**
-     * Register a HAPI user message before its corresponding native command is
+     * Register a HAMLET user message before its corresponding native command is
      * written. Prompts and native steers both append Pi user entries, so their
      * associations share one strict FIFO rather than a prompt-only queue.
      */

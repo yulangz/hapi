@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const STORAGE_KEY = 'hapi:queued-edit-recovery'
+const STORAGE_KEY = 'hamlet:queued-edit-recovery'
 
 async function loadStore() {
     return await import('./queued-edit-recovery')

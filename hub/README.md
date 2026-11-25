@@ -1,6 +1,6 @@
-# hapi-hub
+# hamlet-hub
 
-Telegram bot + HTTP API + realtime updates for hapi hub.
+Telegram bot + HTTP API + realtime updates for hamlet hub.
 
 ## What it does
 
@@ -22,7 +22,7 @@ See `src/configuration.ts` for all options.
 ### Optional (Telegram)
 
 - `TELEGRAM_BOT_TOKEN` - Token from @BotFather.
-- `HAPI_PUBLIC_URL` - Public HTTPS URL for Telegram Mini App access. Also used to derive default CORS origins for the web app.
+- `HAMLET_PUBLIC_URL` - Public HTTPS URL for Telegram Mini App access. Also used to derive default CORS origins for the web app.
 
 ### Optional (Voice)
 
@@ -41,21 +41,21 @@ Dictation and voice-assistant provider keys can also be added from **Settings â†
 
 ### Optional
 
-- `HAPI_LISTEN_HOST` - HTTP bind address (default: 127.0.0.1).
-- `HAPI_LISTEN_PORT` - HTTP port (default: 3006).
+- `HAMLET_LISTEN_HOST` - HTTP bind address (default: 127.0.0.1).
+- `HAMLET_LISTEN_PORT` - HTTP port (default: 3006).
 - `CORS_ORIGINS` - Comma-separated origins, or `*`.
-- `HAPI_HOME` - Data directory (default: ~/.hapi).
-- `DB_PATH` - SQLite database path (default: HAPI_HOME/hapi.db).
+- `HAMLET_HOME` - Data directory (default: ~/.hamlet).
+- `DB_PATH` - SQLite database path (default: HAMLET_HOME/hamlet.db).
 - `TELEGRAM_NOTIFICATION` - Enable/disable Telegram notifications (default: true).
-- `HAPI_RELAY_API` - Relay API domain (default: relay.hapi.run).
-- `HAPI_RELAY_AUTH` - Explicit relay auth key. By default the hub obtains and persists an individually revocable key from the relay. A persisted key rejected with HTTP 403 is discarded and reissued once; an explicitly configured environment key must be updated manually.
-- `HAPI_RELAY_FORCE_TCP` - Force TCP relay mode (true/1).
+- `HAMLET_RELAY_API` - Relay API domain (default: relay.hapi.run).
+- `HAMLET_RELAY_AUTH` - Explicit relay auth key. By default the hub obtains and persists an individually revocable key from the relay. A persisted key rejected with HTTP 403 is discarded and reissued once; an explicitly configured environment key must be updated manually.
+- `HAMLET_RELAY_FORCE_TCP` - Force TCP relay mode (true/1).
 - `VAPID_SUBJECT` - Contact email/URL for Web Push.
-- `HAPI_WEB_PUSH_FOREGROUND` - Also send Web Push while any web client is visible (`true`/`false`, default `false`; persisted as `webPushForeground`). Native-delivery deduplication remains in effect.
-- `HAPI_ANDROID_PUSH` - `auto` (default: direct FCM when credentials are configured, otherwise relay), `relay`, `fcm`, or `off`.
+- `HAMLET_WEB_PUSH_FOREGROUND` - Also send Web Push while any web client is visible (`true`/`false`, default `false`; persisted as `webPushForeground`). Native-delivery deduplication remains in effect.
+- `HAMLET_ANDROID_PUSH` - `auto` (default: direct FCM when credentials are configured, otherwise relay), `relay`, `fcm`, or `off`.
 - `FCM_SERVICE_ACCOUNT_PATH` - Service-account JSON for private Firebase builds; the app must use the same project. Invalid configured credentials disable Android push instead of switching projects.
-- `HAPI_IOS_PUSH` - `relay` (default), `apns`, or `off`.
-- `HAPI_PUSH_RELAY_URL` - Shared Android/iOS push relay (default: `https://push.hapi.run`; persisted as `iosPushRelayUrl`). Independent of the `--relay` network tunnel.
+- `HAMLET_IOS_PUSH` - `relay` (default), `apns`, or `off`.
+- `HAMLET_PUSH_RELAY_URL` - Shared Android/iOS push relay (default: `https://push.hapi.run`; persisted as `iosPushRelayUrl`). Independent of the `--relay` network tunnel.
 
 Official native apps register their encryption keys automatically; no push
 provider setup is needed on a fresh hub. See the [native companion push
@@ -68,15 +68,15 @@ Binary (single executable):
 ```bash
 export TELEGRAM_BOT_TOKEN="..."
 export CLI_API_TOKEN="shared-secret"
-export HAPI_PUBLIC_URL="https://your-domain.example"
+export HAMLET_PUBLIC_URL="https://your-domain.example"
 
-hapi hub
+hamlet hub
 ```
 
-`hapi server` remains supported as an alias.
+`hamlet server` remains supported as an alias.
 
 For web/native clients + CLI, you can omit TELEGRAM_BOT_TOKEN.
-To enable Telegram, set TELEGRAM_BOT_TOKEN and HAPI_PUBLIC_URL, start the hub, open `/app`
+To enable Telegram, set TELEGRAM_BOT_TOKEN and HAMLET_PUBLIC_URL, start the hub, open `/app`
 in the bot chat, and bind the Mini App with `CLI_API_TOKEN:<namespace>` when prompted.
 
 From source:
@@ -310,15 +310,15 @@ The hub build output is `hub/dist/index.js`, and the web assets are in `web/dist
 
 ## Networking notes
 
-- Telegram Mini Apps require HTTPS and a public URL. If the hub has no public IP, use Cloudflare Tunnel or Tailscale and set `HAPI_PUBLIC_URL` to the HTTPS endpoint.
-- If the web app is hosted on a different origin, set `CORS_ORIGINS` (or `HAPI_PUBLIC_URL`) to include that static host origin.
+- Telegram Mini Apps require HTTPS and a public URL. If the hub has no public IP, use Cloudflare Tunnel or Tailscale and set `HAMLET_PUBLIC_URL` to the HTTPS endpoint.
+- If the web app is hosted on a different origin, set `CORS_ORIGINS` (or `HAMLET_PUBLIC_URL`) to include that static host origin.
 
 ## Standalone web hosting
 
 The web UI can be hosted separately from the hub (for example on GitHub Pages or Cloudflare Pages):
 
 1. Build and deploy `web/dist` from the repo root.
-2. Set `CORS_ORIGINS` (or `HAPI_PUBLIC_URL`) to the static host origin.
-3. Open the static site, click the Hub button on the login screen, and enter the hapi hub origin.
+2. Set `CORS_ORIGINS` (or `HAMLET_PUBLIC_URL`) to the static host origin.
+3. Open the static site, click the Hub button on the login screen, and enter the hamlet hub origin.
 
 Leaving the hub override empty preserves the default same-origin behavior when the hub serves the web assets directly.

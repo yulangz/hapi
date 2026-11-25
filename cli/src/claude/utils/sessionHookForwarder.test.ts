@@ -266,19 +266,19 @@ describe('runSessionHookForwarder — agy flavor', () => {
         const port = await startStub(() => ({ status: 200, body: JSON.stringify({ permissionDecision: 'allow' }) }));
         const payload = JSON.stringify({ toolCall: { name: 'run_command', args: {} } });
         const out = captureStdout();
-        const previousPort = process.env.HAPI_AGY_HOOK_PORT;
-        const previousToken = process.env.HAPI_AGY_HOOK_TOKEN;
-        process.env.HAPI_AGY_HOOK_PORT = String(port);
-        process.env.HAPI_AGY_HOOK_TOKEN = 'tok';
+        const previousPort = process.env.HAMLET_AGY_HOOK_PORT;
+        const previousToken = process.env.HAMLET_AGY_HOOK_TOKEN;
+        process.env.HAMLET_AGY_HOOK_PORT = String(port);
+        process.env.HAMLET_AGY_HOOK_TOKEN = 'tok';
         try {
             await withStdin(payload, () => runSessionHookForwarder(['--from-env', '--flavor', 'agy']));
             expect(JSON.parse(out.get())).toMatchObject({ decision: 'allow' });
         } finally {
             out.restore();
-            if (previousPort === undefined) delete process.env.HAPI_AGY_HOOK_PORT;
-            else process.env.HAPI_AGY_HOOK_PORT = previousPort;
-            if (previousToken === undefined) delete process.env.HAPI_AGY_HOOK_TOKEN;
-            else process.env.HAPI_AGY_HOOK_TOKEN = previousToken;
+            if (previousPort === undefined) delete process.env.HAMLET_AGY_HOOK_PORT;
+            else process.env.HAMLET_AGY_HOOK_PORT = previousPort;
+            if (previousToken === undefined) delete process.env.HAMLET_AGY_HOOK_TOKEN;
+            else process.env.HAMLET_AGY_HOOK_TOKEN = previousToken;
         }
     });
     it('POSTs agy PreToolUse to /hook/pre-tool-use and echoes agy-native decision on stdout', async () => {

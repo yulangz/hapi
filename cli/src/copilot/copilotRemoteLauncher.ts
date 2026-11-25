@@ -1,7 +1,7 @@
 import React from 'react';
 import { registerAcpSessionTitleSync } from '@/agent/acpSessionTitle';
 import { logger } from '@/ui/logger';
-import { buildHapiMcpBridge } from '@/codex/utils/buildHapiMcpBridge';
+import { buildHamletMcpBridge } from '@/codex/utils/buildHamletMcpBridge';
 import { convertAgentMessage } from '@/agent/messageConverter';
 import type { AgentMessage, McpServerStdio, PromptContent } from '@/agent/types';
 import { RemoteLauncherBase, type RemoteLauncherDisplayContext, type RemoteLauncherExitReason } from '@/modules/common/remote/RemoteLauncherBase';
@@ -11,8 +11,8 @@ import type { PermissionMode } from './types';
 import { createCopilotBackend } from './utils/copilotBackend';
 import { CopilotPermissionHandler } from './utils/permissionHandler';
 import { resolveCopilotRuntimeConfig } from './utils/config';
-import { getCopilotAgentModeLabel, type CopilotAgentMode } from '@hapi/protocol';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { getCopilotAgentModeLabel, type CopilotAgentMode } from '@hamlet/protocol';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import { buildCopilotModelsResponseFromBackend } from '@/modules/common/copilotModels';
 
 export class CopilotRemoteLauncher extends RemoteLauncherBase {
@@ -58,7 +58,7 @@ export class CopilotRemoteLauncher extends RemoteLauncherBase {
         const session = this.session;
         const messageBuffer = this.messageBuffer;
 
-        const { server: happyServer, mcpServers } = await buildHapiMcpBridge(session.client, {
+        const { server: happyServer, mcpServers } = await buildHamletMcpBridge(session.client, {
             enableChangeTitle: false,
             skillLookup: { workingDirectory: session.path, flavor: 'copilot' }
         });

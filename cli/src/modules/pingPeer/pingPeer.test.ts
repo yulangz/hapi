@@ -588,7 +588,7 @@ describe('listPeerSessions auth failures', () => {
         expect(caught).toBeInstanceOf(PingPeerError)
         const message = (caught as InstanceType<typeof PingPeerError>).message
         expect(message).toMatch(/auth login/i)
-        expect(message).toMatch(/HAPI_API_URL/)
+        expect(message).toMatch(/HAMLET_API_URL/)
         expect(message).toMatch(/CLI_API_TOKEN|auth login/i)
     })
 })

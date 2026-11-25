@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { OpencodeModelsResponse } from '@hapi/protocol/apiTypes'
+import type { OpencodeModelsResponse } from '@hamlet/protocol/apiTypes'
 import type { ApiClient } from '@/api/client'
 import type { OpencodeModelSummary } from '@/types/api'
 import { queryKeys } from '@/lib/query-keys'

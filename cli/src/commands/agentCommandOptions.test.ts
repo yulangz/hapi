@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AGY_PERMISSION_MODES, GEMINI_PERMISSION_MODES, OPENCODE_PERMISSION_MODES } from '@hapi/protocol/modes'
+import { AGY_PERMISSION_MODES, GEMINI_PERMISSION_MODES, OPENCODE_PERMISSION_MODES } from '@hamlet/protocol/modes'
 import { parseRemoteAgentCommandOptions } from './agentCommandOptions'
 
 describe('parseRemoteAgentCommandOptions', () => {
@@ -13,26 +13,26 @@ describe('parseRemoteAgentCommandOptions', () => {
             .toBe('yolo')
     })
 
-    it('parses --hapi-session-id into existingSessionId (pty reopen id reuse)', () => {
-        // The runner emits --hapi-session-id when reopening a pty session so the
+    it('parses --hamlet-session-id into existingSessionId (pty reopen id reuse)', () => {
+        // The runner emits --hamlet-session-id when reopening a pty session so the
         // child reuses the existing hub row. agy (this shared parser) must consume
         // it — else the flag is silently dropped and reopen mints a new id + 404.
-        expect(parseRemoteAgentCommandOptions(['--hapi-session-id', 'hub-id-1'], AGY_PERMISSION_MODES).existingSessionId)
+        expect(parseRemoteAgentCommandOptions(['--hamlet-session-id', 'hub-id-1'], AGY_PERMISSION_MODES).existingSessionId)
             .toBe('hub-id-1')
     })
 
     it('parses common remote agent flags', () => {
         expect(parseRemoteAgentCommandOptions([
             '--started-by', 'runner',
-            '--hapi-starting-mode', 'remote',
-            '--existing-session-id', 'hapi-session-1',
+            '--hamlet-starting-mode', 'remote',
+            '--existing-session-id', 'hamlet-session-1',
             '--permission-mode', 'yolo',
             '--resume', 'session-1',
             '--model', 'model-a'
         ], GEMINI_PERMISSION_MODES)).toEqual({
             startedBy: 'runner',
             startingMode: 'remote',
-            existingSessionId: 'hapi-session-1',
+            existingSessionId: 'hamlet-session-1',
             permissionMode: 'yolo',
             resumeSessionId: 'session-1',
             model: 'model-a'
@@ -42,7 +42,7 @@ describe('parseRemoteAgentCommandOptions', () => {
     it('accepts pty as the agy runner starting mode', () => {
         expect(parseRemoteAgentCommandOptions([
             '--started-by', 'runner',
-            '--hapi-starting-mode', 'pty',
+            '--hamlet-starting-mode', 'pty',
         ], AGY_PERMISSION_MODES, ['local', 'remote', 'pty'])).toMatchObject({
             startedBy: 'runner',
             startingMode: 'pty',
@@ -51,8 +51,8 @@ describe('parseRemoteAgentCommandOptions', () => {
 
     it('parses --existing-session-id and rejects a missing value', () => {
         expect(parseRemoteAgentCommandOptions([
-            '--existing-session-id', 'preallocated-hapi-id'
-        ], OPENCODE_PERMISSION_MODES).existingSessionId).toBe('preallocated-hapi-id')
+            '--existing-session-id', 'preallocated-hamlet-id'
+        ], OPENCODE_PERMISSION_MODES).existingSessionId).toBe('preallocated-hamlet-id')
         expect(() => parseRemoteAgentCommandOptions([
             '--existing-session-id'
         ], OPENCODE_PERMISSION_MODES)).toThrow('Missing --existing-session-id value')
@@ -85,9 +85,9 @@ describe('parseRemoteAgentCommandOptions', () => {
 
     it('rejects invalid constrained values', () => {
         expect(() => parseRemoteAgentCommandOptions([
-            '--hapi-starting-mode',
+            '--hamlet-starting-mode',
             'sideways'
-        ], GEMINI_PERMISSION_MODES)).toThrow('Invalid --hapi-starting-mode')
+        ], GEMINI_PERMISSION_MODES)).toThrow('Invalid --hamlet-starting-mode')
 
         expect(() => parseRemoteAgentCommandOptions([
             '--permission-mode',
@@ -200,37 +200,37 @@ describe('parseRemoteAgentCommandOptions — pi flavor', () => {
         expect(result.startedBy).toBe('terminal')
     })
 
-    it('parses --hapi-starting-mode remote', () => {
+    it('parses --hamlet-starting-mode remote', () => {
         const result = parseRemoteAgentCommandOptions(
-            ['--hapi-starting-mode', 'remote'],
+            ['--hamlet-starting-mode', 'remote'],
             ALLOWED
         )
         expect(result.startingMode).toBe('remote')
     })
 
-    it('parses --hapi-starting-mode local', () => {
+    it('parses --hamlet-starting-mode local', () => {
         const result = parseRemoteAgentCommandOptions(
-            ['--hapi-starting-mode', 'local'],
+            ['--hamlet-starting-mode', 'local'],
             ALLOWED
         )
         expect(result.startingMode).toBe('local')
     })
 
-    it('rejects invalid --hapi-starting-mode', () => {
+    it('rejects invalid --hamlet-starting-mode', () => {
         expect(() => parseRemoteAgentCommandOptions(
-            ['--hapi-starting-mode', 'invalid'],
+            ['--hamlet-starting-mode', 'invalid'],
             ALLOWED
-        )).toThrow('Invalid --hapi-starting-mode')
+        )).toThrow('Invalid --hamlet-starting-mode')
     })
 
     it('handles a full pi invocation end-to-end', () => {
         const result = parseRemoteAgentCommandOptions(
             [
                 '--started-by', 'runner',
-                '--hapi-starting-mode', 'remote',
+                '--hamlet-starting-mode', 'remote',
                 '--model', 'claude-sonnet-4-5',
                 '--session-id', 'pi-sess-full',
-                '--existing-session-id', 'hapi-session-pi-full',
+                '--existing-session-id', 'hamlet-session-pi-full',
             ],
             ALLOWED
         )
@@ -239,7 +239,7 @@ describe('parseRemoteAgentCommandOptions — pi flavor', () => {
             startingMode: 'remote',
             model: 'claude-sonnet-4-5',
             resumeSessionId: 'pi-sess-full',
-            existingSessionId: 'hapi-session-pi-full',
+            existingSessionId: 'hamlet-session-pi-full',
         })
     })
 })

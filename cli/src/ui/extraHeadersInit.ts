@@ -2,7 +2,7 @@ import { configuration, normalizeExtraHeaders } from '@/configuration'
 import { readSettings } from '@/persistence'
 
 export async function initializeExtraHeaders(): Promise<void> {
-    if (process.env.HAPI_EXTRA_HEADERS_JSON !== undefined) {
+    if (process.env.HAMLET_EXTRA_HEADERS_JSON !== undefined) {
         return
     }
 

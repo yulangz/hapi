@@ -19,10 +19,10 @@ import { configuration } from '@/configuration'
 import { initializeToken } from './tokenInit'
 
 describe('initializeToken extra headers', () => {
-    const originalExtraHeadersEnv = process.env.HAPI_EXTRA_HEADERS_JSON
+    const originalExtraHeadersEnv = process.env.HAMLET_EXTRA_HEADERS_JSON
 
     beforeEach(() => {
-        delete process.env.HAPI_EXTRA_HEADERS_JSON
+        delete process.env.HAMLET_EXTRA_HEADERS_JSON
         configuration._setCliApiToken('token-from-env')
         configuration._setExtraHeaders({})
         initializeApiUrlMock.mockClear()
@@ -32,9 +32,9 @@ describe('initializeToken extra headers', () => {
 
     afterEach(() => {
         if (originalExtraHeadersEnv === undefined) {
-            delete process.env.HAPI_EXTRA_HEADERS_JSON
+            delete process.env.HAMLET_EXTRA_HEADERS_JSON
         } else {
-            process.env.HAPI_EXTRA_HEADERS_JSON = originalExtraHeadersEnv
+            process.env.HAMLET_EXTRA_HEADERS_JSON = originalExtraHeadersEnv
         }
         configuration._setExtraHeaders({})
     })
@@ -73,7 +73,7 @@ describe('initializeToken extra headers', () => {
     })
 
     it('keeps environment extra headers instead of loading settings', async () => {
-        process.env.HAPI_EXTRA_HEADERS_JSON = '{"X-Source":"environment"}'
+        process.env.HAMLET_EXTRA_HEADERS_JSON = '{"X-Source":"environment"}'
         configuration._setExtraHeaders({ 'X-Source': 'environment' })
         readSettingsMock.mockResolvedValue({
             extraHeaders: { 'X-Source': 'settings' }
@@ -88,7 +88,7 @@ describe('initializeToken extra headers', () => {
     it.each(['{}', '{not-json'])(
         'does not fall back to settings when the environment value is %s',
         async (environmentValue) => {
-            process.env.HAPI_EXTRA_HEADERS_JSON = environmentValue
+            process.env.HAMLET_EXTRA_HEADERS_JSON = environmentValue
             configuration._setExtraHeaders({})
             readSettingsMock.mockResolvedValue({
                 extraHeaders: { Cookie: 'CF_Authorization=from-settings' }

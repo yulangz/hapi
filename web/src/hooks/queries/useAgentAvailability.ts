@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { AgentAvailabilityEntry } from '@hapi/protocol'
+import type { AgentAvailabilityEntry } from '@hamlet/protocol'
 import { ApiError, type ApiClient } from '@/api/client'
 import { queryKeys } from '@/lib/query-keys'
 

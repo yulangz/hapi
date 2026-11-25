@@ -1,22 +1,22 @@
 import { expect, test } from '@playwright/test'
 import { MERMAID_LIGHTBOX_CASE_IDS } from '../src/dev/mermaid-lightbox-cases'
 import {
-    getHapiBaseUrl,
+    getHamletBaseUrl,
     getMermaidTestSessionId,
-    installHapiAuth,
+    installHamletAuth,
     readCliAccessToken,
     readLiveLightboxMetrics,
     scrollChatToBottom,
-} from './helpers/hapi-live'
+} from './helpers/hamlet-live'
 
-const liveEnabled = process.env.HAPI_LIVE === '1'
+const liveEnabled = process.env.HAMLET_LIVE === '1'
 const MIN_COVERAGE = Number(process.env.MERMAID_E2E_MIN_COVERAGE ?? '0.35')
 const MIN_EXPAND_RATIO = Number(process.env.MERMAID_E2E_MIN_EXPAND_RATIO ?? '1.25')
 
 test.describe.configure({ mode: 'serial' })
 
-test.describe('mermaid lightbox (live HAPI session)', () => {
-    test.skip(!liveEnabled, 'Set HAPI_LIVE=1 to run against a real hub session')
+test.describe('mermaid lightbox (live HAMLET session)', () => {
+    test.skip(!liveEnabled, 'Set HAMLET_LIVE=1 to run against a real hub session')
 
     test.beforeAll(() => {
         readCliAccessToken()
@@ -24,11 +24,11 @@ test.describe('mermaid lightbox (live HAPI session)', () => {
 
     for (const caseId of MERMAID_LIGHTBOX_CASE_IDS) {
         test(`live session lightbox: ${caseId}`, async ({ page }) => {
-            const baseUrl = getHapiBaseUrl()
+            const baseUrl = getHamletBaseUrl()
             const sessionId = getMermaidTestSessionId()
             const token = readCliAccessToken()
 
-            await installHapiAuth(page, baseUrl, token)
+            await installHamletAuth(page, baseUrl, token)
             await page.goto(`${baseUrl}/sessions/${sessionId}`, {
                 waitUntil: 'domcontentloaded',
                 timeout: 60_000,
@@ -106,11 +106,11 @@ test.describe('mermaid lightbox (live HAPI session)', () => {
     }
 
     test('live session chat viewport keeps keyboard focus visible', async ({ page }) => {
-        const baseUrl = getHapiBaseUrl()
+        const baseUrl = getHamletBaseUrl()
         const sessionId = getMermaidTestSessionId()
         const token = readCliAccessToken()
 
-        await installHapiAuth(page, baseUrl, token)
+        await installHamletAuth(page, baseUrl, token)
         await page.goto(`${baseUrl}/sessions/${sessionId}`, {
             waitUntil: 'domcontentloaded',
             timeout: 60_000,

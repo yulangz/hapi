@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { Session } from '@hapi/protocol/types'
+import type { Session } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { SyncEngine } from './syncEngine'
@@ -19,7 +19,7 @@ import { SyncEngine } from './syncEngine'
  * without conflict, and swear01's tiann/hapi#835 refactors the
  * agent-acp-active lock into a cross-process refcount that explicitly
  * supports this. So this helper does NOT pre-check the lock — the
- * migrator's verify probe runs in an isolated HAPI_HOME (see
+ * migrator's verify probe runs in an isolated HAMLET_HOME (see
  * verifyInTempHome) and the post-migration runner goes through the
  * normal refcount-aware lock acquisition path.
  *
@@ -31,9 +31,9 @@ import { SyncEngine } from './syncEngine'
 describe('SyncEngine.maybeAutoMigrateLegacyCursorSession', () => {
     let store: Store
     let engine: SyncEngine
-    let hapiHomeRoot: string
+    let hamletHomeRoot: string
     let originalEnvFlag: string | undefined
-    let originalHapiHome: string | undefined
+    let originalHamletHome: string | undefined
 
     function makeLegacySession(overrides: Partial<Session['metadata']> = {}): Session {
         return {
@@ -57,25 +57,25 @@ describe('SyncEngine.maybeAutoMigrateLegacyCursorSession', () => {
     beforeEach(() => {
         store = new Store(':memory:')
         engine = new SyncEngine(store, {} as never, new RpcRegistry(), { broadcast() {} } as never)
-        hapiHomeRoot = mkdtempSync(join(tmpdir(), 'auto-migrate-test-'))
-        originalEnvFlag = process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE
-        originalHapiHome = process.env.HAPI_HOME
-        process.env.HAPI_HOME = hapiHomeRoot
-        delete process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE
+        hamletHomeRoot = mkdtempSync(join(tmpdir(), 'auto-migrate-test-'))
+        originalEnvFlag = process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE
+        originalHamletHome = process.env.HAMLET_HOME
+        process.env.HAMLET_HOME = hamletHomeRoot
+        delete process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE
     })
 
     afterEach(() => {
         if (originalEnvFlag === undefined) {
-            delete process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE
+            delete process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE
         } else {
-            process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE = originalEnvFlag
+            process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE = originalEnvFlag
         }
-        if (originalHapiHome === undefined) {
-            delete process.env.HAPI_HOME
+        if (originalHamletHome === undefined) {
+            delete process.env.HAMLET_HOME
         } else {
-            process.env.HAPI_HOME = originalHapiHome
+            process.env.HAMLET_HOME = originalHamletHome
         }
-        try { rmSync(hapiHomeRoot, { recursive: true, force: true }) } catch {}
+        try { rmSync(hamletHomeRoot, { recursive: true, force: true }) } catch {}
     })
 
     async function callHelper(session: Session): Promise<Session> {
@@ -137,8 +137,8 @@ describe('SyncEngine.maybeAutoMigrateLegacyCursorSession', () => {
         expect(calls).toHaveLength(0)
     })
 
-    it('respects HAPI_CURSOR_LEGACY_AUTO_MIGRATE=0', async () => {
-        process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE = '0'
+    it('respects HAMLET_CURSOR_LEGACY_AUTO_MIGRATE=0', async () => {
+        process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE = '0'
         const session = makeLegacySession()
         const { calls } = stubMigrator({ ok: true })
         const out = await callHelper(session)
@@ -146,8 +146,8 @@ describe('SyncEngine.maybeAutoMigrateLegacyCursorSession', () => {
         expect(calls).toHaveLength(0)
     })
 
-    it('respects HAPI_CURSOR_LEGACY_AUTO_MIGRATE=false', async () => {
-        process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE = 'false'
+    it('respects HAMLET_CURSOR_LEGACY_AUTO_MIGRATE=false', async () => {
+        process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE = 'false'
         const session = makeLegacySession()
         const { calls } = stubMigrator({ ok: true })
         const out = await callHelper(session)
@@ -158,7 +158,7 @@ describe('SyncEngine.maybeAutoMigrateLegacyCursorSession', () => {
     it('proceeds with migration regardless of the agent-acp-active lock state (refcount-aware after #835)', async () => {
         // Per tiann/hapi#832/#835: multiple `agent acp` processes coexist on
         // the same host. The auto-migrate helper does NOT pre-check the
-        // lock — the migrator's verify probe uses HAPI_HOME isolation and
+        // lock — the migrator's verify probe uses HAMLET_HOME isolation and
         // the post-migration runner uses the refcount-aware lock path.
         const session = makeLegacySession()
         const { calls } = stubMigrator({ ok: true })

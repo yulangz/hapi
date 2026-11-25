@@ -34,7 +34,7 @@ class MockSession {
     sendSessionDeath() { this.dead = true; } async flush() {} close() {} isPending() { return false; }
 }
 vi.mock('@/configuration', () => ({ configuration: { get happyHomeDir() { return state.home; }, apiUrl: 'http://mock-hub', cliApiToken: 'test' } }));
-vi.mock('@/ui/logger', () => ({ logger: { debug: (...args: unknown[]) => { if (process.env.HAPI_DEBUG_SHARED_TEST) console.log(...args); }, warn: vi.fn(), info: vi.fn(), debugLargeJson: vi.fn() } }));
+vi.mock('@/ui/logger', () => ({ logger: { debug: (...args: unknown[]) => { if (process.env.HAMLET_DEBUG_SHARED_TEST) console.log(...args); }, warn: vi.fn(), info: vi.fn(), debugLargeJson: vi.fn() } }));
 vi.mock('@/agent/sessionFactory', () => ({ bootstrapSession: async (options: { workingDirectory: string; metadataOverrides: Partial<Metadata> }) => {
     await state.beforeBootstrap?.();
     const session = new MockSession(options.workingDirectory); session.metadata = { ...session.metadata, ...options.metadataOverrides };
@@ -43,13 +43,13 @@ vi.mock('@/agent/sessionFactory', () => ({ bootstrapSession: async (options: { w
         workingDirectory: options.workingDirectory, machineId: 'test', startedBy: 'terminal', api: {} };
 }, bootstrapExistingSession: vi.fn() }));
 vi.mock('@/runner/controlClient', () => ({ notifyRunnerSessionStarted: vi.fn(async () => ({})) }));
-vi.mock('../utils/buildHapiMcpBridge', () => ({ buildHapiMcpBridge: async () => ({ server: { url: 'http://unused', stop() {} }, mcpServers: {} }) }));
+vi.mock('../utils/buildHamletMcpBridge', () => ({ buildHamletMcpBridge: async () => ({ server: { url: 'http://unused', stop() {} }, mcpServers: {} }) }));
 
 // Explicit opt-in: installed official binary, entirely isolated CODEX_HOME, mock Responses API only.
-describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Codex shared runtime', () => {
+describe.skipIf(process.env.HAMLET_RUN_SHARED_CODEX_TESTS !== '1')('installed Codex shared runtime', () => {
     afterEach(() => { vi.unstubAllEnvs(); state.sessions.clear(); state.beforeBootstrap = undefined; });
     it('materializes new empty roots before resume without making model requests', async () => {
-        const home = await mkdtemp('/tmp/hapi-shared-empty-'); state.home = home;
+        const home = await mkdtemp('/tmp/hamlet-shared-empty-'); state.home = home;
         const ch = join(home, 'codex'); await mkdir(ch);
         await writeFile(join(ch, 'config.toml'), 'model = "mock-model"\nmodel_provider = "mock"\n[model_providers.mock]\nname = "No inference"\nbase_url = "http://127.0.0.1:1/v1"\nwire_api = "responses"\nrequires_openai_auth = false\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n');
         vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home);
@@ -80,8 +80,8 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
             await rm(home, { recursive: true, force: true, maxRetries: 3 });
         }
     }, 45_000);
-    it('rejects a child ID before creating a HAPI binding or calling native resume', async () => {
-        const home = await mkdtemp('/tmp/hapi-shared-child-'); state.home = home;
+    it('rejects a child ID before creating a HAMLET binding or calling native resume', async () => {
+        const home = await mkdtemp('/tmp/hamlet-shared-child-'); state.home = home;
         const ch = join(home, 'codex'); await mkdir(ch);
         await writeFile(join(ch, 'config.toml'), 'model = "mock-model"\nmodel_provider = "mock"\n[model_providers.mock]\nname = "No model calls"\nbase_url = "http://127.0.0.1:1/v1"\nwire_api = "responses"\nrequires_openai_auth = false\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n');
         vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home);
@@ -104,7 +104,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
         } finally { requests.mockRestore(); await rm(home, { recursive: true, force: true }); }
     }, 30_000);
     it.each(['abort', 'failure'])('cleans up the native engine and partial roots on startup %s', async outcome => {
-        const home = await mkdtemp('/tmp/hapi-shared-startup-'); state.home = home;
+        const home = await mkdtemp('/tmp/hamlet-shared-startup-'); state.home = home;
         const ch = join(home, 'codex'); await mkdir(ch);
         await writeFile(join(ch, 'config.toml'), 'model = "mock-model"\nmodel_provider = "mock"\n[model_providers.mock]\nname = "No model calls"\nbase_url = "http://127.0.0.1:1/v1"\nwire_api = "responses"\nrequires_openai_auth = false\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n');
         vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home);
@@ -130,7 +130,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
         } finally { release(); abort.abort(); await running.catch(() => {}); await rm(home, { recursive: true, force: true }); }
     }, 30_000);
     it('binds empty roots, exchanges messages, isolates /new, and archives only the selected root', async () => {
-        const home = await mkdtemp('/tmp/hapi-shared-test-'); state.home = home;
+        const home = await mkdtemp('/tmp/hamlet-shared-test-'); state.home = home;
         const ch = join(home, 'codex'); const cwd = join(home, 'work'); await mkdir(ch); await mkdir(cwd);
         const modelRequests: unknown[] = [];
         const http = createServer((request, response) => {
@@ -150,7 +150,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
         await new Promise<void>(resolve => http.listen(0, '127.0.0.1', resolve));
         const port = (http.address() as { port: number }).port;
         await writeFile(join(ch, 'config.toml'), `model = "mock-model"\nmodel_provider = "mock_provider"\napproval_policy = "never"\nsandbox_mode = "read-only"\ncheck_for_update_on_startup = false\n[model_providers.mock_provider]\nname = "Isolated mock"\nbase_url = "http://127.0.0.1:${port}/v1"\nwire_api = "responses"\nrequires_openai_auth = false\nsupports_websockets = false\nrequest_max_retries = 0\nstream_max_retries = 0\n[analytics]\nenabled = false\n[feedback]\nenabled = false\n[projects."${cwd}"]\ntrust_level = "trusted"\n`);
-        vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home); vi.stubEnv('HAPI_SESSION_ID', 'parent-must-not-leak');
+        vi.stubEnv('CODEX_HOME', ch); vi.stubEnv('HOME', home); vi.stubEnv('HAMLET_SESSION_ID', 'parent-must-not-leak');
         const { runSharedRuntime } = await import('./runtime');
         let ready!: (value: import('./runtime').RuntimeReady) => void;
         const readiness = new Promise<import('./runtime').RuntimeReady>(resolve => { ready = resolve; });
@@ -179,7 +179,7 @@ describe.skipIf(process.env.HAPI_RUN_SHARED_CODEX_TESTS !== '1')('installed Code
             expect(next).not.toBe(initial); expect(state.sessions.size).toBe(2);
             const nextSession = [...state.sessions.values()].find(session => session.metadata.codexSessionId === next)!;
             expect(web.metadata.codexSessionId).toBe(initial);
-            expect(process.env.HAPI_SESSION_ID).toBe('parent-must-not-leak');
+            expect(process.env.HAMLET_SESSION_ID).toBe('parent-must-not-leak');
             await first.request('thread/archive', { threadId: next }); roots = [initial];
             await vi.waitFor(() => expect(nextSession.dead).toBe(true)); expect(web.dead).toBe(false);
             await second.request('turn/start', { threadId: initial, model: 'second-mock', input: [{ type: 'text', text: 'HELLO FROM TERMINAL', text_elements: [] }], clientUserMessageId: 'native-1' });

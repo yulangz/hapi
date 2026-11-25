@@ -1,8 +1,8 @@
 {
-    "name": "hapi-hub",
+    "name": "hamlet-hub",
     "private": true,
     "version": "0.1.0",
-    "description": "Telegram Bot client for HAPI - control Claude Code sessions",
+    "description": "Telegram Bot client for HAMLET - control Claude Code sessions",
     "author": "weishu",
     "license": "AGPL-3.0-only",
     "type": "module",
@@ -21,7 +21,7 @@
         "generate:embedded-web-assets": "bun run scripts/generate-embedded-web-assets.ts"
     },
     "dependencies": {
-        "@hapi/protocol": "workspace:*",
+        "@hamlet/protocol": "workspace:*",
         "@socket.io/bun-engine": "^0.1.0",
         "grammy": "^1.38.4",
         "hono": "^4.11.2",

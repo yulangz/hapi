@@ -71,9 +71,9 @@ afterEach(() => {
 })
 
 describe('hubAttachmentFromRestoredDraft', () => {
-    it('reconstructs hub metadata from hapi-hub:scratchlist storage key', () => {
+    it('reconstructs hub metadata from hamlet-hub:scratchlist storage key', () => {
         const file = new File([new Uint8Array([1, 2, 3])], 'proof.png', { type: 'image/png' })
-        const path = 'hapi-hub:scratchlist/default/session-1/a1b2c3d4-e5f6-4789-a012-3456789abcde-proof.png'
+        const path = 'hamlet-hub:scratchlist/default/session-1/a1b2c3d4-e5f6-4789-a012-3456789abcde-proof.png'
         expect(hubAttachmentFromRestoredDraft(path, file, 'image/png')).toEqual({
             id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
             filename: 'proof.png',
@@ -99,7 +99,7 @@ describe('createScratchlistAttachmentAdapter', () => {
     it('reuses restored hub path without re-uploading', async () => {
         const drafts = await import('./composer-attachment-drafts')
         const hubId = 'a1b2c3d4-e5f6-4789-a012-3456789abcde'
-        const path = `hapi-hub:scratchlist/default/session-1/${hubId}-proof.png`
+        const path = `hamlet-hub:scratchlist/default/session-1/${hubId}-proof.png`
         const file = new File([new Uint8Array([137, 80, 78, 71])], 'proof.png', { type: 'image/png' })
         drafts.saveDraftAttachments('session-restore', [{
             id: 'composer-att-1',
@@ -177,7 +177,7 @@ describe('createScratchlistAttachmentAdapter', () => {
             filename: 'proof.png',
             mimeType: 'image/png',
             size: 5,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-proof-proof.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-proof-proof.png',
         }
         const uploadScratchlistAttachment = vi.fn().mockResolvedValue({ success: true, attachment })
         const deleteScratchlistAttachment = vi.fn().mockResolvedValue(undefined)
@@ -225,7 +225,7 @@ describe('createScratchlistAttachmentAdapter', () => {
             filename: 'proof.png',
             mimeType: 'image/png',
             size: 5,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-proof-proof.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-proof-proof.png',
         }
         const uploadScratchlistAttachment = vi.fn().mockResolvedValue({ success: true, attachment })
         const deleteScratchlistAttachment = vi.fn().mockResolvedValue(undefined)
@@ -278,7 +278,7 @@ describe('createScratchlistAttachmentAdapter', () => {
                     filename: 'proof.png',
                     mimeType: 'image/png',
                     size: 4,
-                    path: 'hapi-hub:scratchlist/default/session-1/hub-race-proof.png',
+                    path: 'hamlet-hub:scratchlist/default/session-1/hub-race-proof.png',
                 },
             }
         })
@@ -305,7 +305,7 @@ describe('createScratchlistAttachmentAdapter.send migrates chat-path chips (#122
             filename: 'before-mode.png',
             mimeType: 'image/png',
             size: 4,
-            path: 'hapi-hub:scratchlist/default/session-1/hub-migrated-before-mode.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-migrated-before-mode.png',
         }
         const uploadScratchlistAttachment = vi.fn().mockResolvedValue({
             success: true,
@@ -323,7 +323,7 @@ describe('createScratchlistAttachmentAdapter.send migrates chat-path chips (#122
             contentType: 'image/png',
             file,
             status: { type: 'requires-action', reason: 'composer-send' },
-            path: '/tmp/hapi-blobs/session-1/before-mode.png',
+            path: '/tmp/hamlet-blobs/session-1/before-mode.png',
             previewUrl: 'data:image/png;base64,iVBORw0KGgo=',
         } as never)
 
@@ -342,7 +342,7 @@ describe('createScratchlistAttachmentAdapter.send migrates chat-path chips (#122
                     __attachmentMetadata: {
                         ...hubAttachment,
                         previewUrl: 'data:image/png;base64,iVBORw0KGgo=',
-                        migratedFromPath: '/tmp/hapi-blobs/session-1/before-mode.png',
+                        migratedFromPath: '/tmp/hamlet-blobs/session-1/before-mode.png',
                     },
                 }),
             },
@@ -365,7 +365,7 @@ describe('createScratchlistAttachmentAdapter.send migrates chat-path chips (#122
             contentType: 'image/png',
             file,
             status: { type: 'requires-action', reason: 'composer-send' },
-            path: '/tmp/hapi-blobs/x.png',
+            path: '/tmp/hamlet-blobs/x.png',
         } as never)).rejects.toThrow(/quota|Failed to migrate/i)
     })
 
@@ -380,13 +380,13 @@ describe('createScratchlistAttachmentAdapter.send migrates chat-path chips (#122
             name: 'a.png',
             contentType: 'image/png',
             status: { type: 'requires-action' as const, reason: 'composer-send' as const },
-            path: 'hapi-hub:scratchlist/default/session-1/hub-1-a.png',
+            path: 'hamlet-hub:scratchlist/default/session-1/hub-1-a.png',
             hubAttachment: {
                 id: 'hub-1',
                 filename: 'a.png',
                 mimeType: 'image/png',
                 size: 1,
-                path: 'hapi-hub:scratchlist/default/session-1/hub-1-a.png',
+                path: 'hamlet-hub:scratchlist/default/session-1/hub-1-a.png',
             },
         }
 

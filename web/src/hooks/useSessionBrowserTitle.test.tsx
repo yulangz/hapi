@@ -16,9 +16,9 @@ function makeSession(metadata: Session['metadata']): Session {
 
 describe('useSessionBrowserTitle', () => {
     it('tracks session title updates and restores the app title on unmount', () => {
-        document.title = 'HAPI'
+        document.title = 'HAMLET'
         const initialSession = makeSession({
-            path: '/work/hapi',
+            path: '/work/hamlet',
             host: 'localhost',
             summary: { text: 'Initial summary', updatedAt: 1 },
         })
@@ -28,7 +28,7 @@ describe('useSessionBrowserTitle', () => {
             { initialProps: { session: initialSession } },
         )
 
-        expect(document.title).toBe('Initial summary - HAPI')
+        expect(document.title).toBe('Initial summary - HAMLET')
 
         rerender({
             session: makeSession({
@@ -37,28 +37,28 @@ describe('useSessionBrowserTitle', () => {
             }),
         })
 
-        expect(document.title).toBe('Renamed session - HAPI')
+        expect(document.title).toBe('Renamed session - HAMLET')
 
         unmount()
-        expect(document.title).toBe('HAPI')
+        expect(document.title).toBe('HAMLET')
     })
 
     it('uses the app title while loading and the shared session fallbacks when titles are missing', () => {
-        document.title = 'Stale session - HAPI'
+        document.title = 'Stale session - HAMLET'
 
         const { rerender } = renderHook(
             ({ session }: { session: Session | null }) => useSessionBrowserTitle(session),
             { initialProps: { session: null as Session | null } },
         )
 
-        expect(document.title).toBe('HAPI')
+        expect(document.title).toBe('HAMLET')
 
         rerender({
-            session: makeSession({ path: '/work/hapi', host: 'localhost' }),
+            session: makeSession({ path: '/work/hamlet', host: 'localhost' }),
         })
-        expect(document.title).toBe('hapi - HAPI')
+        expect(document.title).toBe('hamlet - HAMLET')
 
         rerender({ session: makeSession(null) })
-        expect(document.title).toBe('12345678 - HAPI')
+        expect(document.title).toBe('12345678 - HAMLET')
     })
 })

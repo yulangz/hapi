@@ -1,24 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { Button } from '@/components/ui/button'
+import { getHubAccessToken } from '@/hooks/useAuthSource'
 import { useTranslation } from '@/lib/use-translation'
 
 type CompanionPairingProps = {
     baseUrl: string
 }
 
-const COMPANION_DEEPLINK_SCHEME = 'hapicompanion://bind'
-const ACCESS_TOKEN_PREFIX = 'hapi_access_token::'
-
-function readAccessToken(baseUrl: string): string {
-    if (typeof window === 'undefined') return ''
-    try {
-        return window.localStorage.getItem(`${ACCESS_TOKEN_PREFIX}${baseUrl}`) ?? ''
-    } catch {
-        return ''
-    }
-}
-
+const COMPANION_DEEPLINK_SCHEME = 'hamletcompanion://bind'
 function buildDeeplink(hub: string, code: string): string {
     const params = new URLSearchParams({ hub, code })
     return `${COMPANION_DEEPLINK_SCHEME}?${params.toString()}`
@@ -30,7 +20,7 @@ export function CompanionPairing({ baseUrl }: CompanionPairingProps) {
     const [copied, setCopied] = useState(false)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
-    const accessToken = useMemo(() => readAccessToken(baseUrl), [baseUrl])
+    const accessToken = useMemo(() => getHubAccessToken(baseUrl), [baseUrl])
 
     const deeplink = useMemo(() => {
         const hub = (baseUrl || '').trim()

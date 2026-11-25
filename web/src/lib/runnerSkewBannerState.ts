@@ -1,5 +1,5 @@
-const MINIMIZED_KEY = 'hapi.runnerSkew.minimized.v1'
-const DISMISS_UNTIL_KEY = 'hapi.runnerSkew.dismissUntil.v1'
+const MINIMIZED_KEY = 'hamlet.runnerSkew.minimized.v1'
+const DISMISS_UNTIL_KEY = 'hamlet.runnerSkew.dismissUntil.v1'
 export const RUNNER_SKEW_TEMP_DISMISS_MS = 60 * 60_000
 
 /** In-memory fallback when sessionStorage is full / blocked (QuotaExceededError). */

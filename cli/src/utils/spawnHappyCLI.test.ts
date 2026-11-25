@@ -8,7 +8,7 @@ const {
   projectPathMock
 } = vi.hoisted(() => ({
   spawnMock: vi.fn((..._args: any[]) => ({ pid: 12345 }) as any),
-  existsSyncMock: vi.fn((path: string) => !path.includes('missing-hapi.exe')),
+  existsSyncMock: vi.fn((path: string) => !path.includes('missing-hamlet.exe')),
   isBunCompiledMock: vi.fn(() => false),
   projectPathMock: vi.fn(() => process.cwd())
 }));
@@ -35,9 +35,9 @@ vi.mock('@/projectPath', () => ({
 }));
 
 const originalPlatformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
-const originalInvokedCwd = process.env.HAPI_INVOKED_CWD;
-const originalCliExecutable = process.env.HAPI_CLI_EXECUTABLE;
-const originalBunExec = process.env.HAPI_BUN_EXEC;
+const originalInvokedCwd = process.env.HAMLET_INVOKED_CWD;
+const originalCliExecutable = process.env.HAMLET_CLI_EXECUTABLE;
+const originalBunExec = process.env.HAMLET_BUN_EXEC;
 
 function setPlatform(value: string) {
   Object.defineProperty(process, 'platform', {
@@ -66,23 +66,23 @@ describe('spawnHappyCLI windowsHide behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
-    existsSyncMock.mockImplementation((path: string) => !path.includes('missing-hapi.exe'));
+    existsSyncMock.mockImplementation((path: string) => !path.includes('missing-hamlet.exe'));
     isBunCompiledMock.mockReturnValue(false);
     projectPathMock.mockReturnValue(process.cwd());
     if (originalInvokedCwd === undefined) {
-      delete process.env.HAPI_INVOKED_CWD;
+      delete process.env.HAMLET_INVOKED_CWD;
     } else {
-      process.env.HAPI_INVOKED_CWD = originalInvokedCwd;
+      process.env.HAMLET_INVOKED_CWD = originalInvokedCwd;
     }
     if (originalCliExecutable === undefined) {
-      delete process.env.HAPI_CLI_EXECUTABLE;
+      delete process.env.HAMLET_CLI_EXECUTABLE;
     } else {
-      process.env.HAPI_CLI_EXECUTABLE = originalCliExecutable;
+      process.env.HAMLET_CLI_EXECUTABLE = originalCliExecutable;
     }
     if (originalBunExec === undefined) {
-      delete process.env.HAPI_BUN_EXEC;
+      delete process.env.HAMLET_BUN_EXEC;
     } else {
-      process.env.HAPI_BUN_EXEC = originalBunExec;
+      process.env.HAMLET_BUN_EXEC = originalBunExec;
     }
   });
 
@@ -136,7 +136,7 @@ describe('spawnHappyCLI windowsHide behavior', () => {
 
   it('forces Bun child processes to run with the cli project root as cwd', async () => {
     // Clear the test-isolation override so we test the pure runtime behaviour
-    delete process.env.HAPI_BUN_EXEC;
+    delete process.env.HAMLET_BUN_EXEC;
     const { getHappyCliCommand } = await import('./spawnHappyCLI');
 
     const command = getHappyCliCommand(['mcp', '--url', 'http://127.0.0.1:1234/']);
@@ -154,21 +154,21 @@ describe('spawnHappyCLI windowsHide behavior', () => {
 
   it('uses an inherited compiled CLI executable override when it points to an existing binary', async () => {
     isBunCompiledMock.mockReturnValue(true);
-    process.env.HAPI_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hapi\\patched\\hapi.exe';
+    process.env.HAMLET_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hamlet\\patched\\hamlet.exe';
     const { getHappyCliCommand, resolveHappyCliExecutable } = await import('./spawnHappyCLI');
 
     const command = getHappyCliCommand(['mcp', '--url', 'http://127.0.0.1:1234/']);
 
-    expect(resolveHappyCliExecutable()).toBe(process.env.HAPI_CLI_EXECUTABLE);
-    expect(command.command).toBe(process.env.HAPI_CLI_EXECUTABLE);
+    expect(resolveHappyCliExecutable()).toBe(process.env.HAMLET_CLI_EXECUTABLE);
+    expect(command.command).toBe(process.env.HAMLET_CLI_EXECUTABLE);
   });
 
   it('falls back to a real argv0 executable before process.execPath in compiled mode', async () => {
     isBunCompiledMock.mockReturnValue(true);
-    const previousCliExecutable = process.env.HAPI_CLI_EXECUTABLE;
-    delete process.env.HAPI_CLI_EXECUTABLE;
+    const previousCliExecutable = process.env.HAMLET_CLI_EXECUTABLE;
+    delete process.env.HAMLET_CLI_EXECUTABLE;
     const previousArgv0 = process.argv[0];
-    process.argv[0] = 'C:\\Users\\Administrator\\.hapi\\patched\\resume-recovery-0.17.2\\hapi.exe';
+    process.argv[0] = 'C:\\Users\\Administrator\\.hamlet\\patched\\resume-recovery-0.17.2\\hamlet.exe';
     const { resolveHappyCliExecutable } = await import('./spawnHappyCLI');
 
     try {
@@ -176,16 +176,16 @@ describe('spawnHappyCLI windowsHide behavior', () => {
     } finally {
       process.argv[0] = previousArgv0;
       if (previousCliExecutable === undefined) {
-        delete process.env.HAPI_CLI_EXECUTABLE;
+        delete process.env.HAMLET_CLI_EXECUTABLE;
       } else {
-        process.env.HAPI_CLI_EXECUTABLE = previousCliExecutable;
+        process.env.HAMLET_CLI_EXECUTABLE = previousCliExecutable;
       }
     }
   });
 
   it('ignores an inherited compiled CLI executable override when the binary is missing', async () => {
     isBunCompiledMock.mockReturnValue(true);
-    process.env.HAPI_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hapi\\patched\\missing-hapi.exe';
+    process.env.HAMLET_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hamlet\\patched\\missing-hamlet.exe';
     const { getHappyCliCommand } = await import('./spawnHappyCLI');
 
     const command = getHappyCliCommand(['mcp', '--url', 'http://127.0.0.1:1234/']);
@@ -193,9 +193,9 @@ describe('spawnHappyCLI windowsHide behavior', () => {
     expect(command.command).toBe(process.execPath);
   });
 
-  it('passes the resolved compiled executable to child HAPI processes', async () => {
+  it('passes the resolved compiled executable to child HAMLET processes', async () => {
     isBunCompiledMock.mockReturnValue(true);
-    process.env.HAPI_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hapi\\patched\\hapi.exe';
+    process.env.HAMLET_CLI_EXECUTABLE = 'C:\\Users\\Administrator\\.hamlet\\patched\\hamlet.exe';
     const { spawnHappyCLI } = await import('./spawnHappyCLI');
 
     spawnHappyCLI(['mcp', '--url', 'http://127.0.0.1:1234/'], {
@@ -203,8 +203,8 @@ describe('spawnHappyCLI windowsHide behavior', () => {
     });
 
     const [command, _args, options] = spawnMock.mock.calls[0] as unknown[] | undefined ?? [];
-    expect(command).toBe(process.env.HAPI_CLI_EXECUTABLE);
-    expect((options as SpawnOptions | undefined)?.env?.HAPI_CLI_EXECUTABLE).toBe(process.env.HAPI_CLI_EXECUTABLE);
+    expect(command).toBe(process.env.HAMLET_CLI_EXECUTABLE);
+    expect((options as SpawnOptions | undefined)?.env?.HAMLET_CLI_EXECUTABLE).toBe(process.env.HAMLET_CLI_EXECUTABLE);
   });
 
   it('passes invoked workspace cwd to child processes when cwd is provided', async () => {
@@ -217,10 +217,10 @@ describe('spawnHappyCLI windowsHide behavior', () => {
     });
 
     const options = getSpawnOptionsOrThrow();
-    expect(options.env?.HAPI_INVOKED_CWD).toBe(childCwd);
+    expect(options.env?.HAMLET_INVOKED_CWD).toBe(childCwd);
   });
 
-  it('prefers the explicit child cwd over an inherited HAPI_INVOKED_CWD', async () => {
+  it('prefers the explicit child cwd over an inherited HAMLET_INVOKED_CWD', async () => {
     const { spawnHappyCLI } = await import('./spawnHappyCLI');
     const inheritedInvokedCwd = 'C:\\workspace\\other-project';
     const childCwd = 'C:\\workspace\\project';
@@ -228,27 +228,27 @@ describe('spawnHappyCLI windowsHide behavior', () => {
     spawnHappyCLI(['runner', 'start-sync'], {
       cwd: childCwd,
       env: {
-        HAPI_INVOKED_CWD: inheritedInvokedCwd
+        HAMLET_INVOKED_CWD: inheritedInvokedCwd
       },
       stdio: 'ignore'
     });
 
     const options = getSpawnOptionsOrThrow();
-    expect(options.env?.HAPI_INVOKED_CWD).toBe(childCwd);
+    expect(options.env?.HAMLET_INVOKED_CWD).toBe(childCwd);
   });
 
-  it('keeps an existing absolute HAPI_INVOKED_CWD when no child cwd is provided', async () => {
+  it('keeps an existing absolute HAMLET_INVOKED_CWD when no child cwd is provided', async () => {
     const { spawnHappyCLI } = await import('./spawnHappyCLI');
     const inheritedInvokedCwd = 'C:\\workspace\\other-project';
 
     spawnHappyCLI(['runner', 'start-sync'], {
       env: {
-        HAPI_INVOKED_CWD: inheritedInvokedCwd
+        HAMLET_INVOKED_CWD: inheritedInvokedCwd
       },
       stdio: 'ignore'
     });
 
     const options = getSpawnOptionsOrThrow();
-    expect(options.env?.HAPI_INVOKED_CWD).toBe(inheritedInvokedCwd);
+    expect(options.env?.HAMLET_INVOKED_CWD).toBe(inheritedInvokedCwd);
   });
 });

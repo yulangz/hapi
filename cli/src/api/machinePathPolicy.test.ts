@@ -6,7 +6,7 @@ import { MachinePathPolicy } from './machinePathPolicy'
 
 describe('MachinePathPolicy', () => {
     it('accepts paths inside any configured root and rejects prefix collisions', async () => {
-        const base = await mkdtemp(join(tmpdir(), 'hapi-path-policy-'))
+        const base = await mkdtemp(join(tmpdir(), 'hamlet-path-policy-'))
         const first = join(base, 'one')
         const second = join(base, 'two')
         const collision = join(base, 'one-other')
@@ -22,7 +22,7 @@ describe('MachinePathPolicy', () => {
     })
 
     it('resolves an existing symlink before checking a missing child', async () => {
-        const base = await mkdtemp(join(tmpdir(), 'hapi-path-policy-'))
+        const base = await mkdtemp(join(tmpdir(), 'hamlet-path-policy-'))
         const root = join(base, 'root')
         const outside = join(base, 'outside')
         await Promise.all([mkdir(root), mkdir(outside)])
@@ -38,7 +38,7 @@ describe('MachinePathPolicy', () => {
     })
 
     it('allows both browsing and spawning outside home without explicit roots', async () => {
-        const base = await mkdtemp(join(tmpdir(), 'hapi-path-policy-'))
+        const base = await mkdtemp(join(tmpdir(), 'hamlet-path-policy-'))
         const home = join(base, 'home')
         const outside = join(base, 'outside')
         await Promise.all([mkdir(home), mkdir(outside)])

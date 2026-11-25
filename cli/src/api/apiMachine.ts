@@ -1,13 +1,14 @@
 /**
- * WebSocket client for machine/runner communication with hapi-hub
+ * WebSocket client for machine/runner communication with hamlet-hub
  */
 
+import { Doorbells, machineExec } from '@/hamlet/runner'
 import { io, type Socket } from 'socket.io-client'
 import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { logger } from '@/ui/logger'
 import { configuration } from '@/configuration'
-import type { ClientToServerEvents, ServerToClientEvents, Update, UpdateMachineBody } from '@hapi/protocol'
+import type { ClientToServerEvents, ServerToClientEvents, Update, UpdateMachineBody } from '@hamlet/protocol'
 import {
     ArchiveCodexSessionRpcRequestSchema,
     ListCodexSessionsRpcRequestSchema,
@@ -19,9 +20,9 @@ import {
     type MachineDirectoryEntry,
     type MachineListDirectoryResponse,
     type PathExistsResponse
-} from '@hapi/protocol/apiTypes'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
-import { RUNNER_CAPABILITIES } from '@hapi/protocol'
+} from '@hamlet/protocol/apiTypes'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
+import { RUNNER_CAPABILITIES } from '@hamlet/protocol'
 import type { RunnerState, Machine, MachineMetadata } from './types'
 import { RunnerStateSchema, MachineMetadataSchema } from './types'
 import { getInstalledCliMtimeMs } from '@/runner/controlClient'
@@ -57,7 +58,7 @@ import { buildSocketIoExtraHeaderOptions } from './hubExtraHeaders'
 import { collectMachineHealth } from '@/utils/machineHealth'
 import { inspectCursorChatStore } from '@/cursor/cursorChatStoreStatus'
 import { homedir } from 'node:os'
-import type { CursorChatStoreStatus } from '@hapi/protocol/apiTypes'
+import type { CursorChatStoreStatus } from '@hamlet/protocol/apiTypes'
 import { MachinePathPolicy } from './machinePathPolicy'
 import { getAgentAvailabilityResponse } from '@/agent/agentAvailability'
 
@@ -99,6 +100,7 @@ function formatWorkspaceRoots(paths?: string[]): string {
 }
 
 export class ApiMachineClient {
+    private readonly hamletDoorbells = new Doorbells()
     private socket!: Socket<ServerToClientEvents, ClientToServerEvents>
     private keepAliveInterval: NodeJS.Timeout | null = null
     private keepAliveStartTimeout: ReturnType<typeof setTimeout> | null = null
@@ -121,6 +123,10 @@ export class ApiMachineClient {
         })
 
         registerCommonHandlers(this.rpcHandlerManager, getInvokedCwd())
+        this.rpcHandlerManager.registerHandler('hamlet-exec', machineExec)
+        this.rpcHandlerManager.registerHandler('hamlet-doorbell-log', ({ id }: { id: string }) => this.hamletDoorbells.log(id))
+        this.rpcHandlerManager.registerHandler('hamlet-doorbells', (request: Parameters<Doorbells['reconcile']>[0]) =>
+            this.hamletDoorbells.reconcile(request))
 
         // Only the machine daemon answers `<machineId>:listAgyModels`, so it is
         // the one process that can tell the hub its catalog moved.
@@ -397,6 +403,7 @@ export class ApiMachineClient {
             }
 
             const result = await spawnSession({
+                hamletToken: params.hamletToken, hamletMain: params.hamletMain, hamletTimezone: params.hamletTimezone,
                 directory,
                 sessionId,
                 existingSessionId,
@@ -550,9 +557,9 @@ export class ApiMachineClient {
             const desiredWorkspaceRoots = this.workspaceRoots
             if (!workspaceRootsEqual(desiredWorkspaceRoots, hubWorkspaceRoots)) {
                 if (desiredWorkspaceRoots?.length) {
-                    console.log(`[HAPI] Syncing workspace roots to hub: ${formatWorkspaceRoots(desiredWorkspaceRoots)} (current hub value: ${formatWorkspaceRoots(hubWorkspaceRoots)})`)
+                    console.log(`[HAMLET] Syncing workspace roots to hub: ${formatWorkspaceRoots(desiredWorkspaceRoots)} (current hub value: ${formatWorkspaceRoots(hubWorkspaceRoots)})`)
                 } else {
-                    console.log(`[HAPI] Clearing workspace roots on hub (was: ${formatWorkspaceRoots(hubWorkspaceRoots)})`)
+                    console.log(`[HAMLET] Clearing workspace roots on hub (was: ${formatWorkspaceRoots(hubWorkspaceRoots)})`)
                 }
                 this.updateMachineMetadata((current) => {
                     const base = current ?? this.machine.metadata
@@ -565,12 +572,12 @@ export class ApiMachineClient {
                     const { workspaceRoots: _workspaceRoots, ...rest } = base
                     return rest as MachineMetadata
                 }).then(() => {
-                    console.log(`[HAPI] Workspace roots synced: ${formatWorkspaceRoots(this.machine.metadata?.workspaceRoots)}`)
+                    console.log(`[HAMLET] Workspace roots synced: ${formatWorkspaceRoots(this.machine.metadata?.workspaceRoots)}`)
                 }).catch((error) => {
-                    console.error('[HAPI] Failed to sync workspace roots:', error instanceof Error ? error.message : error)
+                    console.error('[HAMLET] Failed to sync workspace roots:', error instanceof Error ? error.message : error)
                 })
             } else if (desiredWorkspaceRoots?.length) {
-                console.log(`[HAPI] Workspace roots already up to date on hub: ${formatWorkspaceRoots(desiredWorkspaceRoots)}`)
+                console.log(`[HAMLET] Workspace roots already up to date on hub: ${formatWorkspaceRoots(desiredWorkspaceRoots)}`)
             }
 
             this.startKeepAlive()
@@ -674,6 +681,7 @@ export class ApiMachineClient {
     }
 
     shutdown(): void {
+        this.hamletDoorbells.close()
         this.stopKeepAlive()
         // The listener holds this client, and the socket is about to close.
         setAgyCatalogChangeListener(null)

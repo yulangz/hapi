@@ -242,7 +242,7 @@ describe('shouldRouteToScratchlist', () => {
     }
 
     function hubAttachment(): AttachmentMetadata {
-        return attachment('hapi-hub:scratchlist/default/session-1/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-a.png')
+        return attachment('hamlet-hub:scratchlist/default/session-1/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee-a.png')
     }
 
     it('returns false when scratchlist mode is off, regardless of payload', () => {
@@ -314,7 +314,7 @@ describe('mergeStagedAttachmentsInOrder', () => {
     }
 
     it('replaces staged hub attachments without changing mixed attachment order', () => {
-        const hubAttachment = attachment('hub-a', 'hapi-hub:scratchlist/default/session/hub-a.png')
+        const hubAttachment = attachment('hub-a', 'hamlet-hub:scratchlist/default/session/hub-a.png')
         const normalAttachment = attachment('normal-b', '/tmp/normal-b.png')
         const stagedAttachment = attachment('hub-a', '/tmp/staged-hub-a.png')
 

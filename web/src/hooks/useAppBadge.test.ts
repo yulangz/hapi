@@ -32,7 +32,7 @@ function createSession(id: string, updatedAt: number): SessionSummary {
 }
 
 /** A duplicate/reconnect artifact with no real content — excluded from the sidebar's
- *  "Unread" filter and "mark all read" via shouldShowSessionInSidebar (hapi#1845). */
+ *  "Unread" filter and "mark all read" via shouldShowSessionInSidebar (hamlet#1845). */
 function createStubSession(id: string, updatedAt: number): SessionSummary {
     return { ...createSession(id, updatedAt), hasConversationContent: false }
 }
@@ -77,14 +77,14 @@ describe('useAppBadge', () => {
     it('sets the native badge to the number of unread sessions in an installed PWA', async () => {
         setDisplayMode(true)
         const { setAppBadge, clearAppBadge } = setAppBadgeNavigator()
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({
             'session-a': 10,
             'session-b': 20,
         }))
 
         renderHook(() => useAppBadge({
             enabled: true,
-            scope: 'https://hapi.test',
+            scope: 'https://hamlet.test',
             sessions: [createSession('session-a', 11), createSession('session-b', 20)],
             isLoading: false,
             hasError: false,
@@ -97,11 +97,11 @@ describe('useAppBadge', () => {
     it('clears the native badge after the unread session is seen', async () => {
         setDisplayMode(true)
         const { setAppBadge, clearAppBadge } = setAppBadgeNavigator()
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
 
         renderHook(() => useAppBadge({
             enabled: true,
-            scope: 'https://hapi.test',
+            scope: 'https://hamlet.test',
             sessions: [createSession('session-a', 11)],
             isLoading: false,
             hasError: false,
@@ -118,7 +118,7 @@ describe('useAppBadge', () => {
 
         renderHook(() => useAppBadge({
             enabled: true,
-            scope: 'https://hapi.test',
+            scope: 'https://hamlet.test',
             sessions: [createSession('session-a', 11)],
             isLoading: false,
             hasError: false,
@@ -131,12 +131,12 @@ describe('useAppBadge', () => {
     it('clears the badge when the feature is disabled', async () => {
         setDisplayMode(true)
         const { setAppBadge, clearAppBadge } = setAppBadgeNavigator()
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
 
         const { rerender } = renderHook(
             (options: { enabled: boolean }) => useAppBadge({
                 enabled: options.enabled,
-                scope: 'https://hapi.test',
+                scope: 'https://hamlet.test',
                 sessions: [createSession('session-a', 11)],
                 isLoading: false,
                 hasError: false,
@@ -152,12 +152,12 @@ describe('useAppBadge', () => {
     it('does not repeat the native update when the unread count is unchanged', async () => {
         setDisplayMode(true)
         const { setAppBadge } = setAppBadgeNavigator()
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ 'session-a': 10 }))
 
         const { rerender } = renderHook(
             (sessions: SessionSummary[]) => useAppBadge({
                 enabled: true,
-                scope: 'https://hapi.test',
+                scope: 'https://hamlet.test',
                 sessions,
                 isLoading: false,
                 hasError: false,
@@ -171,14 +171,14 @@ describe('useAppBadge', () => {
         expect(setAppBadge).toHaveBeenCalledTimes(1)
     })
 
-    it('does not count an empty stub session the sidebar filters out of "Unread"/"mark all read" (hapi#1845)', async () => {
+    it('does not count an empty stub session the sidebar filters out of "Unread"/"mark all read" (hamlet#1845)', async () => {
         setDisplayMode(true)
         const { setAppBadge, clearAppBadge } = setAppBadgeNavigator()
-        localStorage.setItem('hapi.sessionLastSeen.v1', JSON.stringify({ 'stub-session': 10 }))
+        localStorage.setItem('hamlet.sessionLastSeen.v1', JSON.stringify({ 'stub-session': 10 }))
 
         renderHook(() => useAppBadge({
             enabled: true,
-            scope: 'https://hapi.test',
+            scope: 'https://hamlet.test',
             sessions: [createStubSession('stub-session', 11)],
             isLoading: false,
             hasError: false,
@@ -194,7 +194,7 @@ describe('useAppBadge', () => {
 
         renderHook(() => useAppBadge({
             enabled: true,
-            scope: 'https://hapi.test',
+            scope: 'https://hamlet.test',
             sessions: [createSession('session-a', 11)],
             isLoading: false,
             hasError: false,

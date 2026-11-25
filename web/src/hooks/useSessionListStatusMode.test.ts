@@ -20,12 +20,12 @@ describe('useSessionListStatusMode helpers', () => {
     it('falls back to the default mode for missing or invalid storage values', () => {
         expect(getInitialSessionListStatusMode()).toBe(DEFAULT_SESSION_LIST_STATUS_MODE)
 
-        window.localStorage.setItem('hapi-session-list-status-mode', 'invalid')
+        window.localStorage.setItem('hamlet-session-list-status-mode', 'invalid')
         expect(getInitialSessionListStatusMode()).toBe(DEFAULT_SESSION_LIST_STATUS_MODE)
     })
 
     it('reads a valid stored session list status mode', () => {
-        window.localStorage.setItem('hapi-session-list-status-mode', 'detailed')
+        window.localStorage.setItem('hamlet-session-list-status-mode', 'detailed')
 
         expect(getInitialSessionListStatusMode()).toBe('detailed')
     })

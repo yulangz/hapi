@@ -6,7 +6,7 @@ import {
     useAppBadgePreference,
 } from './useAppBadgePreference'
 
-const STORAGE_KEY = 'hapi-app-badge-enabled'
+const STORAGE_KEY = 'hamlet-app-badge-enabled'
 
 describe('useAppBadgePreference helpers', () => {
     beforeEach(() => {
@@ -67,7 +67,7 @@ describe('useAppBadgePreference', () => {
 
         act(() => {
             window.dispatchEvent(new StorageEvent('storage', {
-                key: 'hapi-other-setting',
+                key: 'hamlet-other-setting',
                 newValue: 'false',
             }))
         })

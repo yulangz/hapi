@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api/client'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
-const VAPID_STORAGE_KEY = 'hapi.push.vapidKey'
+const VAPID_STORAGE_KEY = 'hamlet.push.vapidKey'
 const CURRENT_VAPID_KEY = 'AQIDBA'
 
 type PushSubscriptionMock = {

@@ -177,7 +177,7 @@ export function isPermissionModeAllowedForFlavor(mode: PermissionMode, flavor?: 
     return getPermissionModesForFlavor(flavor).includes(mode)
 }
 
-/** New Codex sessions use the native shared runtime, without HAPI Safe Yolo. */
+/** New Codex sessions use the native shared runtime, without HAMLET Safe Yolo. */
 export function getLaunchPermissionModesForFlavor(flavor?: string | null): readonly PermissionMode[] {
     return getPermissionModesForFlavor(flavor).filter(mode => flavor !== 'codex' || mode !== 'safe-yolo')
 }

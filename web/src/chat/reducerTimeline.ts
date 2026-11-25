@@ -4,13 +4,13 @@ import { createCliOutputBlock, isCliOutputText, mergeCliOutputBlocks } from '@/c
 import { parseMessageAsEvent } from '@/chat/reducerEvents'
 import { collectTitleChanges, ensureToolBlock, extractTitleFromChangeTitleInput, isChangeTitleToolName, type PermissionEntry } from '@/chat/reducerTools'
 import { isSubagentToolName } from '@/chat/subagentTool'
-import { asString, isObject } from '@hapi/protocol'
+import { asString, isObject } from '@hamlet/protocol'
 
 function getEventString(event: Record<string, unknown>, key: string): string | null {
     return asString(event[key])
 }
 
-// Stream identity must match the wire-level semantics in @hapi/protocol
+// Stream identity must match the wire-level semantics in @hamlet/protocol
 // (blank ids are not streams): a blank value falls back to row-derived ids
 // instead of colliding every blank-id row onto one block identity.
 function nonBlank(value: unknown): string | null {

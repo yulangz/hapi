@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SyncEvent } from '@hapi/protocol/types'
+import type { SyncEvent } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import type { EventPublisher } from './eventPublisher'
 import { SessionCache } from './sessionCache'
@@ -142,7 +142,7 @@ describe('SessionCache.applySessionPatch', () => {
     })
 
     it('clears cached teamState when a null teamState patch lands (TeamDelete)', () => {
-        // PR #897 review (HAPI Bot, 2026-06-13 Major): TeamDelete events
+        // PR #897 review (HAMLET Bot, 2026-06-13 Major): TeamDelete events
         // drive applyTeamStateDelta to return null; the emit-site sends
         // { teamState: null } as the explicit clear signal. Without
         // hasOwnProperty-discrimination, `if (patch.teamState !== undefined)`

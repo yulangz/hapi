@@ -3,7 +3,7 @@ import {
     AgentConfigDescriptorSchema,
     getAgentConfigDescriptor,
     getBuiltinAgentConfigDescriptors,
-    resolveHapiYoloPermissionMode
+    resolveHamletYoloPermissionMode
 } from './agentConfig'
 
 describe('agent config descriptors', () => {
@@ -34,7 +34,7 @@ describe('agent config descriptors', () => {
             kind: 'status',
             availability: 'managed'
         })])
-        expect(resolveHapiYoloPermissionMode('dsh')).toBeNull()
+        expect(resolveHamletYoloPermissionMode('dsh')).toBeNull()
     })
 
     test('reports Pi permission as managed rather than pretending YOLO applies', () => {
@@ -55,16 +55,16 @@ describe('agent config descriptors', () => {
             optionSource: 'static',
             availability: 'both'
         }))
-        expect(resolveHapiYoloPermissionMode('pi')).toBeNull()
+        expect(resolveHamletYoloPermissionMode('pi')).toBeNull()
     })
 
-    test('maps HAPI YOLO to each supported agent native permission mode', () => {
-        expect(resolveHapiYoloPermissionMode('claude')).toBe('bypassPermissions')
-        expect(resolveHapiYoloPermissionMode('grok')).toBe('bypassPermissions')
-        expect(resolveHapiYoloPermissionMode('codex')).toBe('yolo')
-        expect(resolveHapiYoloPermissionMode('cursor')).toBe('yolo')
-        expect(resolveHapiYoloPermissionMode('opencode')).toBe('yolo')
-        expect(resolveHapiYoloPermissionMode('kimi')).toBe('yolo')
+    test('maps HAMLET YOLO to each supported agent native permission mode', () => {
+        expect(resolveHamletYoloPermissionMode('claude')).toBe('bypassPermissions')
+        expect(resolveHamletYoloPermissionMode('grok')).toBe('bypassPermissions')
+        expect(resolveHamletYoloPermissionMode('codex')).toBe('yolo')
+        expect(resolveHamletYoloPermissionMode('cursor')).toBe('yolo')
+        expect(resolveHamletYoloPermissionMode('opencode')).toBe('yolo')
+        expect(resolveHamletYoloPermissionMode('kimi')).toBe('yolo')
     })
 
     test('validates descriptors received from a runner', () => {

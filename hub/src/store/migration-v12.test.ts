@@ -33,7 +33,7 @@ describe('Store V11→V12 migration: session_scratchlist table', () => {
     })
 
     it('V11 DB migrates through V14 via Store: session_scratchlist created', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v12-test-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v12-test-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -62,7 +62,7 @@ describe('Store V11→V12 migration: session_scratchlist table', () => {
     })
 
     it('V9 DB migrates through V14 (multi-hop service_tier + fcm_devices + scratchlist)', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v9-to-v12-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v9-to-v12-'))
         const dbPath = join(dir, 'test.db')
         let store: Store | undefined
         try {
@@ -85,7 +85,7 @@ describe('Store V11→V12 migration: session_scratchlist table', () => {
     })
 
     it('current DB reopen is idempotent: schema unchanged', () => {
-        const dir = mkdtempSync(join(tmpdir(), 'hapi-migration-v12-idempotent-'))
+        const dir = mkdtempSync(join(tmpdir(), 'hamlet-migration-v12-idempotent-'))
         const dbPath = join(dir, 'test.db')
         let store1: Store | undefined
         let store2: Store | undefined

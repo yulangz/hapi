@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SyncEvent } from '@hapi/protocol/types'
+import type { SyncEvent } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import type { SSEManager } from '../sse/sseManager'
 import { EventPublisher } from './eventPublisher'

@@ -1,7 +1,7 @@
 import {
     isHubScratchlistAttachmentPath,
     type ScratchlistAttachmentMetadata,
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import type { AttachmentMetadata } from '@/types/api'
 import { isImageMimeType } from '@/lib/fileAttachments'

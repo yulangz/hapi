@@ -19,9 +19,9 @@ const OLD_SETTINGS_FIELDS = ['webappHost', 'webappPort', 'webappUrl'] as const
  */
 const PUSH_SETTING_KEYS = [
     ['fcmServiceAccountPath', 'FCM_SERVICE_ACCOUNT_PATH'],
-    ['androidPushMode', 'HAPI_ANDROID_PUSH'],
-    ['iosPushMode', 'HAPI_IOS_PUSH'],
-    ['iosPushRelayUrl', 'HAPI_PUSH_RELAY_URL'],
+    ['androidPushMode', 'HAMLET_ANDROID_PUSH'],
+    ['iosPushMode', 'HAMLET_IOS_PUSH'],
+    ['iosPushRelayUrl', 'HAMLET_PUSH_RELAY_URL'],
     ['apnsKeyP8Path', 'APNS_KEY_P8_PATH'],
     ['apnsKeyId', 'APNS_KEY_ID'],
     ['apnsTeamId', 'APNS_TEAM_ID'],
@@ -222,11 +222,11 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
 
         // webPushForeground: env > file > false
         let webPushForeground = false
-        if (process.env.HAPI_WEB_PUSH_FOREGROUND !== undefined) {
-            if (!['true', 'false'].includes(process.env.HAPI_WEB_PUSH_FOREGROUND)) {
-                throw new Error('HAPI_WEB_PUSH_FOREGROUND must be true or false')
+        if (process.env.HAMLET_WEB_PUSH_FOREGROUND !== undefined) {
+            if (!['true', 'false'].includes(process.env.HAMLET_WEB_PUSH_FOREGROUND)) {
+                throw new Error('HAMLET_WEB_PUSH_FOREGROUND must be true or false')
             }
-            webPushForeground = process.env.HAPI_WEB_PUSH_FOREGROUND === 'true'
+            webPushForeground = process.env.HAMLET_WEB_PUSH_FOREGROUND === 'true'
             sources.webPushForeground = 'env'
             if (settings.webPushForeground === undefined) {
                 settings.webPushForeground = webPushForeground
@@ -241,8 +241,8 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
 
         // listenHost: env > file > default
         let listenHost = '127.0.0.1'
-        if (process.env.HAPI_LISTEN_HOST) {
-            listenHost = process.env.HAPI_LISTEN_HOST
+        if (process.env.HAMLET_LISTEN_HOST) {
+            listenHost = process.env.HAMLET_LISTEN_HOST
             sources.listenHost = 'env'
             if (settings.listenHost === undefined) {
                 settings.listenHost = listenHost
@@ -255,10 +255,10 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
 
         // listenPort: env > file > default
         let listenPort = 3006
-        if (process.env.HAPI_LISTEN_PORT) {
-            const parsed = parseInt(process.env.HAPI_LISTEN_PORT, 10)
+        if (process.env.HAMLET_LISTEN_PORT) {
+            const parsed = parseInt(process.env.HAMLET_LISTEN_PORT, 10)
             if (!Number.isFinite(parsed) || parsed <= 0) {
-                throw new Error('HAPI_LISTEN_PORT must be a valid port number')
+                throw new Error('HAMLET_LISTEN_PORT must be a valid port number')
             }
             listenPort = parsed
             sources.listenPort = 'env'
@@ -273,8 +273,8 @@ export async function loadServerSettings(dataDir: string): Promise<ServerSetting
 
         // publicUrl: env > file > default
         let publicUrl = `http://localhost:${listenPort}`
-        if (process.env.HAPI_PUBLIC_URL) {
-            publicUrl = process.env.HAPI_PUBLIC_URL
+        if (process.env.HAMLET_PUBLIC_URL) {
+            publicUrl = process.env.HAMLET_PUBLIC_URL
             sources.publicUrl = 'env'
             if (settings.publicUrl === undefined) {
                 settings.publicUrl = publicUrl

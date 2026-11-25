@@ -410,7 +410,7 @@ describe('POST /api/voice/token', () => {
         delete process.env.ELEVENLABS_AGENT_ID
 
         const existingAgentId = `agent_ensure_${Math.random().toString(36).slice(2, 10)}`
-        const existingAgentName = `Hapi Voice Assistant [voice:ensure-voice-${Math.random().toString(36).slice(2, 6)}]`
+        const existingAgentName = `Hamlet Voice Assistant [voice:ensure-voice-${Math.random().toString(36).slice(2, 6)}]`
         const voiceId = existingAgentName.match(/\[voice:([^\]]+)\]/)?.[1] ?? ''
 
         const patchCalls: Array<{ url: string; body: unknown }> = []
@@ -782,7 +782,7 @@ describe('transcription credentials onboarding', () => {
 
     test('PUT saves a key, masks GET response, and discovers the provider live', async () => {
         clearManagedEnv()
-        dir = mkdtempSync(join(tmpdir(), 'hapi-voice-creds-'))
+        dir = mkdtempSync(join(tmpdir(), 'hamlet-voice-creds-'))
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({}))
         const app = createApp(dir)
         const headers = await authHeaders()
@@ -819,7 +819,7 @@ describe('transcription credentials onboarding', () => {
         resetProviderCredentialEnvLocksForTests()
         // Re-lock as if hub started with this env
         const { applyProviderCredentialsFromSettings } = await import('../../config/providerCredentials')
-        dir = mkdtempSync(join(tmpdir(), 'hapi-voice-creds-env-'))
+        dir = mkdtempSync(join(tmpdir(), 'hamlet-voice-creds-env-'))
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({}))
         await applyProviderCredentialsFromSettings(dir)
 
@@ -836,7 +836,7 @@ describe('transcription credentials onboarding', () => {
 
     test('credentials routes refuse non-owner namespaces', async () => {
         clearManagedEnv()
-        dir = mkdtempSync(join(tmpdir(), 'hapi-voice-creds-ns-'))
+        dir = mkdtempSync(join(tmpdir(), 'hamlet-voice-creds-ns-'))
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({}))
         const app = createApp(dir)
         const token = await new SignJWT({ uid: 2, ns: 'other' })

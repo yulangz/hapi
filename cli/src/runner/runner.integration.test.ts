@@ -17,7 +17,7 @@
  * then bounded process-tree termination). The final audit lives in
  * globalSetup teardown and fails the run if any test-owned process survives.
  * 
- * The 20-session stress test is opt-in via HAPI_RUN_STRESS_TESTS=true.
+ * The 20-session stress test is opt-in via HAMLET_RUN_STRESS_TESTS=true.
  */
 
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
@@ -106,7 +106,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     // This will return and start a background process - we don't need to wait for it
     const runnerLauncher = spawnHappyCLI(['runner', 'start'], {
       stdio: 'ignore',
-      // Test-scoped env: neutralizes any outer HAPI/pi session identity and
+      // Test-scoped env: neutralizes any outer HAMLET/pi session identity and
       // stamps every child with the run's unique test marker.
       env: buildTestChildEnv()
     });
@@ -137,7 +137,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
   /** Bounded wrapper around the graceful runner stop. */
   async function stopRunnerBounded(): Promise<void> {
     // stopRunner()'s HTTP stop can burn the worker-wide 60s timeout
-    // (HAPI_RUNNER_HTTP_TIMEOUT) on a hung-but-live runner, which would
+    // (HAMLET_RUNNER_HTTP_TIMEOUT) on a hung-but-live runner, which would
     // exhaust the hook budget before the marker sweep runs. Bound it: if the
     // runner does not stop in time, the sweep below force-reaps it (it
     // carries the run marker) and the next beforeEach's alive-PID guard
@@ -206,7 +206,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     expect(sessions).toHaveLength(1);
     
     const tracked = sessions[0];
-    expect(tracked.startedBy).toBe('hapi directly - likely by user from terminal');
+    expect(tracked.startedBy).toBe('hamlet directly - likely by user from terminal');
     expect(tracked.happySessionId).toBe('test-session-123');
     expect(tracked.pid).toBe(99999);
   });
@@ -233,8 +233,8 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     expect(await stopRunnerSession('unknown-session-id')).toBe('still_alive');
   });
 
-  it.skipIf(process.env.HAPI_RUN_STRESS_TESTS !== 'true')(
-    'stress test: spawn / stop (opt-in via HAPI_RUN_STRESS_TESTS=true)',
+  it.skipIf(process.env.HAMLET_RUN_STRESS_TESTS !== 'true')(
+    'stress test: spawn / stop (opt-in via HAMLET_RUN_STRESS_TESTS=true)',
     { timeout: 60_000 },
     async () => {
       const promises = [];
@@ -268,10 +268,10 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
   });
 
   it('should track both runner-spawned and terminal sessions', async () => {
-    // Spawn a real hapi process that looks like it was started from terminal
+    // Spawn a real hamlet process that looks like it was started from terminal
     const terminalHappyProcess = spawnHappyCLI([
       'claude',
-      '--hapi-starting-mode', 'remote',
+      '--hamlet-starting-mode', 'remote',
       '--started-by', 'terminal'
     ], {
       cwd: '/tmp',
@@ -282,7 +282,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     // Register immediately after spawn so cleanup runs even on failure.
     trackChildProcess(terminalHappyProcess, 'terminal-session');
     if (!terminalHappyProcess || !terminalHappyProcess.pid) {
-      throw new Error('Failed to spawn terminal hapi process');
+      throw new Error('Failed to spawn terminal hamlet process');
     }
     // Give time to start & report itself
     await new Promise(resolve => setTimeout(resolve, 5_000));
@@ -303,7 +303,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     );
 
     expect(terminalSession).toBeDefined();
-    expect(terminalSession.startedBy).toBe('hapi directly - likely by user from terminal');
+    expect(terminalSession.startedBy).toBe('hamlet directly - likely by user from terminal');
     
     expect(runnerSession).toBeDefined();
     expect(runnerSession.startedBy).toBe('runner');
@@ -476,9 +476,9 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
    * 7. New runner starts, reads runner.state.json, sees old version != its compiled version
    * 8. New runner calls stopRunner() to kill old runner, then takes over
    * 
-   * This simulates what happens during `npm upgrade hapi`:
+   * This simulates what happens during `npm upgrade hamlet`:
    * - Running runner has OLD version loaded in memory (configuration.currentCliVersion)
-   * - npm replaces node_modules/hapi/ with NEW version files
+   * - npm replaces node_modules/hamlet/ with NEW version files
    * - package.json on disk now has NEW version
    * - Runner reads package.json, detects mismatch, triggers self-update
    * - Key difference: npm atomically replaces the entire module directory, while
@@ -525,7 +525,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
 
       // The runner should automatically detect the version mismatch and restart itself
       // We check once per minute, wait for a little longer than that
-      await new Promise(resolve => setTimeout(resolve, parseInt(process.env.HAPI_RUNNER_HEARTBEAT_INTERVAL || '30000') + 10_000));
+      await new Promise(resolve => setTimeout(resolve, parseInt(process.env.HAMLET_RUNNER_HEARTBEAT_INTERVAL || '30000') + 10_000));
 
       // Check that the runner is running with the new version
       const finalState = await readRunnerState();
@@ -557,7 +557,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
   it('regression: registered detached child is reaped even when the test body never reaches its own cleanup', async () => {
     const child = spawnHappyCLI([
       'claude',
-      '--hapi-starting-mode', 'remote',
+      '--hamlet-starting-mode', 'remote',
       '--started-by', 'terminal'
     ], {
       cwd: '/tmp',
@@ -569,7 +569,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
     // test deliberately performs no per-test teardown of its own.
     trackChildProcess(child, 'regression-terminal');
     if (!child.pid) {
-      throw new Error('Failed to spawn regression terminal hapi process');
+      throw new Error('Failed to spawn regression terminal hamlet process');
     }
 
     // Give the detached child time to fully start (including its agent
@@ -611,7 +611,7 @@ describe.skipIf(!await isServerHealthy())('Runner Integration Tests', { timeout:
 
   // TODO: Add a test to see if a corrupted file will work
   
-  // TODO: Test npm uninstall scenario - runner should gracefully handle when hapi is uninstalled
+  // TODO: Test npm uninstall scenario - runner should gracefully handle when hamlet is uninstalled
   // Current behavior: runner tries to spawn new runner on version mismatch but entrypoint is gone
   // Expected: runner should detect missing entrypoint and either exit cleanly or at minimum not respawn infinitely
 });

@@ -26,35 +26,35 @@ const PLATFORMS = [
         os: 'darwin',
         cpu: 'arm64',
         buildTarget: 'bun-darwin-arm64',
-        binName: 'hapi'
+        binName: 'hamlet'
     },
     {
         name: 'darwin-x64',
         os: 'darwin',
         cpu: 'x64',
         buildTarget: 'bun-darwin-x64',
-        binName: 'hapi'
+        binName: 'hamlet'
     },
     {
         name: 'linux-arm64',
         os: 'linux',
         cpu: 'arm64',
         buildTarget: 'bun-linux-arm64',
-        binName: 'hapi'
+        binName: 'hamlet'
     },
     {
         name: 'linux-x64',
         os: 'linux',
         cpu: 'x64',
         buildTarget: 'bun-linux-x64-baseline',
-        binName: 'hapi'
+        binName: 'hamlet'
     },
     {
         name: 'win32-x64',
         os: 'win32',
         cpu: 'x64',
         buildTarget: 'bun-windows-x64',
-        binName: 'hapi.exe'
+        binName: 'hamlet.exe'
     }
 ] as const;
 
@@ -86,13 +86,13 @@ function generatePlatformPackageJson(
     mainPkg: MainPackageJson
 ): object {
     return {
-        name: `@twsxtd/hapi-${platform.name}`,
+        name: `@twsxtd/hamlet-${platform.name}`,
         version: mainPkg.version,
-        description: `hapi binary for ${platform.os} ${platform.cpu}`,
+        description: `hamlet binary for ${platform.os} ${platform.cpu}`,
         os: [platform.os],
         cpu: [platform.cpu],
         bin: {
-            hapi: `bin/${platform.binName}`
+            hamlet: `bin/${platform.binName}`
         },
         files: [`bin/${platform.binName}`],
         license: mainPkg.license ?? 'MIT',
@@ -104,7 +104,7 @@ function buildOptionalDependencies(version: string): Record<string, string> {
     const optionalDependencies: Record<string, string> = {};
 
     for (const platform of PLATFORMS) {
-        optionalDependencies[`@twsxtd/hapi-${platform.name}`] = version;
+        optionalDependencies[`@twsxtd/hamlet-${platform.name}`] = version;
     }
 
     return optionalDependencies;
@@ -124,8 +124,8 @@ function generateMainPackageJson(
         homepage: mainPkg.homepage,
         bugs: mainPkg.bugs,
         repository: mainPkg.repository,
-        bin: mainPkg.bin ?? { hapi: 'bin/hapi.cjs' },
-        files: ['bin/hapi.cjs', 'NOTICE'],
+        bin: mainPkg.bin ?? { hamlet: 'bin/hamlet.cjs' },
+        files: ['bin/hamlet.cjs', 'NOTICE'],
         optionalDependencies
     };
 }
@@ -141,8 +141,8 @@ function prepareMainPackage(
 
     mkdirSync(binDir, { recursive: true });
 
-    const srcBin = join(projectRoot, 'bin', 'hapi.cjs');
-    const destBin = join(binDir, 'hapi.cjs');
+    const srcBin = join(projectRoot, 'bin', 'hamlet.cjs');
+    const destBin = join(binDir, 'hamlet.cjs');
     copyFileSync(srcBin, destBin);
     chmodSync(destBin, 0o755);
 

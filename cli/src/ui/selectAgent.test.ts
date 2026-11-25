@@ -1,6 +1,6 @@
 import type React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CREATABLE_AGENT_FLAVORS, type AgentAvailabilityEntry, type AgentFlavor } from '@hapi/protocol'
+import { CREATABLE_AGENT_FLAVORS, type AgentAvailabilityEntry, type AgentFlavor } from '@hamlet/protocol'
 import type { AgentPickerProps } from './ink/AgentPicker'
 
 const { availabilityMock, renderMock, restoreMock } = vi.hoisted(() => ({

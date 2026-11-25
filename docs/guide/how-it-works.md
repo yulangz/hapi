@@ -1,6 +1,6 @@
 # How it Works
 
-HAPI connects coding agents, a self-hosted hub, and web/native clients for remote control.
+HAMLET connects coding agents, a self-hosted hub, and web/native clients for remote control.
 
 ## Architecture Overview
 
@@ -19,26 +19,26 @@ HTTPS hub origin for native pairing; see [Deployment](./deployment.md).
 
 ## Components
 
-### HAPI CLI
+### HAMLET CLI
 
 The CLI is a wrapper around AI coding agents. It supports multiple agent flavors out of the box — see [Supported agents](./agents.md) for the full list. It:
 
 - Starts and manages coding sessions
-- Registers sessions with the HAPI hub
+- Registers sessions with the HAMLET hub
 - Relays messages and permission requests
 - Provides MCP (Model Context Protocol) tools
 
 **Key Commands:**
 ```bash
-hapi              # Choose an agent interactively and start a session
-hapi <agent>      # Start a supported agent directly (required in scripts)
-hapi runner start # Run background service for remote session spawning
-hapi ping-peer --list  # Shell peer shortlist (prefer MCP list_peers in-session)
+hamlet              # Choose an agent interactively and start a session
+hamlet <agent>      # Start a supported agent directly (required in scripts)
+hamlet runner start # Run background service for remote session spawning
+hamlet ping-peer --list  # Shell peer shortlist (prefer MCP list_peers in-session)
 ```
 
 MCP peer tools (same hub/namespace as the session): `list_peers` (discover), `inspect_peer` (read), `ping_peer` (message). These work from runner-spawned sessions even when the hub is on another host - see [Installation → Split hub + remote runner](./installation.md#split-hub-remote-runner-peer-discovery).
 
-### HAPI Hub
+### HAMLET Hub
 
 The hub is the central service that connects everything:
 
@@ -79,7 +79,7 @@ capabilities, platform differences and build/pairing instructions.
 ### Starting a Session
 
 ```
-1. User runs `hapi` and chooses an agent
+1. User runs `hamlet` and chooses an agent
          │
          ▼
 2. CLI starts the selected agent
@@ -155,14 +155,14 @@ Real-time bidirectional communication for:
 ### External Access: Tunnel
 
 For remote access outside your local network:
-- **Built-in relay** (`hapi hub --relay`) - Managed tunwg tunnel (WireGuard + TLS), no third-party account required
+- **Built-in relay** (`hamlet hub --relay`) - Managed tunwg tunnel (WireGuard + TLS), no third-party account required
 - **Cloudflare Tunnel** (recommended) - Free, secure, reliable
 - **Tailscale** - Mesh VPN for private networks
 - **ngrok** - Quick setup for testing
 
 ## Seamless Handoff
 
-HAPI's defining feature is the ability to seamlessly hand off control between local terminal and remote devices without losing session state.
+HAMLET's defining feature is the ability to seamlessly hand off control between local terminal and remote devices without losing session state.
 
 ### Local Mode
 
@@ -197,7 +197,7 @@ Switch to remote mode when you need to step away:
 
 **Local → Remote:**
 - Open the session on your phone/web and send a message
-- HAPI keeps the conversation going on the same working machine
+- HAMLET keeps the conversation going on the same working machine
 
 **Remote → Local:**
 - Continue typing in the terminal

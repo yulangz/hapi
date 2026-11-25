@@ -68,7 +68,7 @@ describe('ListPiSessionsRpcResponseSchema', () => {
 })
 
 describe('ClearOpencodeSessionResponseSchema', () => {
-    it('requires the new HAPI session identity', () => {
+    it('requires the new HAMLET session identity', () => {
         expect(ClearOpencodeSessionResponseSchema.parse({ ok: true, sessionId: 'fresh-session' })).toEqual({
             ok: true,
             sessionId: 'fresh-session'

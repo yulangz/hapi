@@ -1,35 +1,35 @@
 /**
- * Configuration for hapi-hub (Direct Connect)
+ * Configuration for hamlet-hub (Direct Connect)
  *
  * Configuration is loaded with priority: environment variable > settings.json > default
  * When values are read from environment variables and not present in settings.json,
  * they are automatically saved for future use
  *
  * Optional environment variables:
- * - CLI_API_TOKEN: Shared secret for hapi CLI authentication (auto-generated if not set)
+ * - CLI_API_TOKEN: Shared secret for hamlet CLI authentication (auto-generated if not set)
  * - TELEGRAM_BOT_TOKEN: Telegram Bot API token from @BotFather
  * - TELEGRAM_NOTIFICATION: Enable/disable Telegram notifications (default: true)
  * - SERVERCHAN_SENDKEY: Server酱 SendKey/AppKey for push notifications
  * - SERVERCHAN_NOTIFICATION: Enable/disable Server酱 notifications (default: true)
- * - SERVERCHAN_BACKGROUND_ONLY: Only send Server酱 notifications without visible HAPI clients (default: false)
- * - HAPI_LISTEN_HOST: Host/IP to bind the HTTP service (default: 127.0.0.1)
- * - HAPI_LISTEN_PORT: Port for HTTP service (default: 3006)
- * - HAPI_PUBLIC_URL: Public URL for external access (e.g., Telegram Mini App)
+ * - SERVERCHAN_BACKGROUND_ONLY: Only send Server酱 notifications without visible HAMLET clients (default: false)
+ * - HAMLET_LISTEN_HOST: Host/IP to bind the HTTP service (default: 127.0.0.1)
+ * - HAMLET_LISTEN_PORT: Port for HTTP service (default: 3006)
+ * - HAMLET_PUBLIC_URL: Public URL for external access (e.g., Telegram Mini App)
  * - CORS_ORIGINS: Comma-separated CORS origins
- * - HAPI_RELAY_API: Relay API domain for tunwg (default: relay.hapi.run)
- * - HAPI_RELAY_AUTH: Relay auth key override (default: per-hub key issued by the relay)
- * - HAPI_RELAY_FORCE_TCP: Force TCP relay mode when UDP is unavailable (true/1)
- * - HAPI_WEB_PUSH_FOREGROUND: Also send Web Push while a web client is visible (default: false)
+ * - HAMLET_RELAY_API: Relay API domain for tunwg (default: relay.hapi.run)
+ * - HAMLET_RELAY_AUTH: Relay auth key override (default: per-hub key issued by the relay)
+ * - HAMLET_RELAY_FORCE_TCP: Force TCP relay mode when UDP is unavailable (true/1)
+ * - HAMLET_WEB_PUSH_FOREGROUND: Also send Web Push while a web client is visible (default: false)
  * - VAPID_SUBJECT: Contact email or URL for Web Push (defaults to mailto:admin@hapi.run)
  * - FCM_SERVICE_ACCOUNT_PATH: Firebase service-account JSON for Android push (settings: fcmServiceAccountPath;
  *   the project id comes from the JSON itself)
- * - HAPI_IOS_PUSH: iOS push transport apns|relay|off (default: relay; settings: iosPushMode)
- * - HAPI_ANDROID_PUSH: Android push transport auto|relay|fcm|off (default: auto; settings: androidPushMode)
- * - HAPI_PUSH_RELAY_URL: shared native push relay URL (settings: iosPushRelayUrl)
+ * - HAMLET_IOS_PUSH: iOS push transport apns|relay|off (default: relay; settings: iosPushMode)
+ * - HAMLET_ANDROID_PUSH: Android push transport auto|relay|fcm|off (default: auto; settings: androidPushMode)
+ * - HAMLET_PUSH_RELAY_URL: shared native push relay URL (settings: iosPushRelayUrl)
  * - APNS_KEY_P8_PATH, APNS_KEY_ID, APNS_TEAM_ID, APNS_BUNDLE_ID, APNS_ENV:
  *   direct-APNs credentials (settings: apnsKeyP8Path, apnsKeyId, apnsTeamId, apnsBundleId, apnsEnv)
- * - HAPI_HOME: Data directory (default: ~/.hapi)
- * - DB_PATH: SQLite database path (default: {HAPI_HOME}/hapi.db)
+ * - HAMLET_HOME: Data directory (default: ~/.hamlet)
+ * - DB_PATH: SQLite database path (default: {HAMLET_HOME}/hamlet.db)
  */
 
 import { existsSync, mkdirSync } from 'node:fs'
@@ -81,7 +81,7 @@ class Configuration {
     /** Server酱 notifications enabled */
     public readonly serverChanNotification: boolean
 
-    /** Only send Server酱 notifications when no visible HAPI client exists */
+    /** Only send Server酱 notifications when no visible HAMLET client exists */
     public readonly serverChanBackgroundOnly: boolean
 
     /** Send Web Push alongside foreground in-page toasts */
@@ -184,9 +184,9 @@ class Configuration {
     /** Create configuration asynchronously */
     static async create(): Promise<Configuration> {
         // 1. Determine data directory (env only - not persisted)
-        const dataDir = process.env.HAPI_HOME
-            ? process.env.HAPI_HOME.replace(/^~/, homedir())
-            : join(homedir(), '.hapi')
+        const dataDir = process.env.HAMLET_HOME
+            ? process.env.HAMLET_HOME.replace(/^~/, homedir())
+            : join(homedir(), '.hamlet')
 
         // Ensure data directory exists before loading settings
         if (!existsSync(dataDir)) {
@@ -196,7 +196,7 @@ class Configuration {
         // 2. Determine DB path (env only - not persisted)
         const dbPath = process.env.DB_PATH
             ? process.env.DB_PATH.replace(/^~/, homedir())
-            : join(dataDir, 'hapi.db')
+            : join(dataDir, 'hamlet.db')
 
         // 3. Load hub settings (with persistence)
         const settingsResult = await loadServerSettings(dataDir)

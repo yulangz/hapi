@@ -7,7 +7,7 @@ export type SessionListMachineFilter = string | null
 export const DEFAULT_SESSION_LIST_MACHINE_FILTER: SessionListMachineFilter = null
 
 function getSessionListMachineFilterStorageKey(): string {
-    return 'hapi-session-list-machine-filter'
+    return 'hamlet-session-list-machine-filter'
 }
 
 function isBrowser(): boolean {

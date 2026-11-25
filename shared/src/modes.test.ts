@@ -40,7 +40,7 @@ describe('getPermissionModesForFlavor', () => {
         ])
     })
 
-    test("returns no HAPI mode selector for DSH's server-owned permission policy", () => {
+    test("returns no HAMLET mode selector for DSH's server-owned permission policy", () => {
         expect(getPermissionModesForFlavor('dsh')).toEqual([])
     })
 

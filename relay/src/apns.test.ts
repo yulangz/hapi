@@ -20,14 +20,14 @@ import { makeTestKeys, MockApnsServer, type TestKeys } from './testSupport/apnsT
 
 const KEY_ID = 'ABC123DEF4'
 const TEAM_ID = 'TEAM123456'
-const TOPIC = 'app.hapi.ios'
+const TOPIC = 'app.hamlet.ios'
 const DEVICE_TOKEN = 'ab12cd34'.repeat(8)
 
 describe('buildApnsPayload', () => {
     test('produces the exact wire body from the contract', () => {
         expect(buildApnsPayload('BASE64BYTES')).toBe(
-            '{"aps":{"mutable-content":1,"alert":{"title":"HAPI","body":"New activity"},'
-            + '"sound":"default"},"hapi":{"v":1,"e":"BASE64BYTES"}}'
+            '{"aps":{"mutable-content":1,"alert":{"title":"HAMLET","body":"New activity"},'
+            + '"sound":"default"},"hamlet":{"v":1,"e":"BASE64BYTES"}}'
         )
     })
 })

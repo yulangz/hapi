@@ -23,7 +23,7 @@ vi.mock('@/ui/logger', () => ({
 import { codexLocal, filterResumeSubcommand } from './codexLocal';
 
 const codexScriptPath = win32.join('toolchains', 'nodejs', 'node_modules', '@openai', 'codex', 'bin', 'codex.js');
-const hapiCommandPath = win32.join('hapi-bin', 'hapi.exe');
+const hamletCommandPath = win32.join('hamlet-bin', 'hamlet.exe');
 const workspacePath = win32.join('workspace', 'project');
 
 describe('filterResumeSubcommand', () => {
@@ -108,8 +108,8 @@ describe('codexLocal', () => {
             path: workspacePath,
             onSessionFound: vi.fn(),
             mcpServers: {
-                hapi: {
-                    command: hapiCommandPath,
+                hamlet: {
+                    command: hamletCommandPath,
                     args: ['mcp', '--url', 'http://127.0.0.1:63995/'],
                     tools: {
                         change_title: {
@@ -144,8 +144,8 @@ describe('codexLocal', () => {
         expect(hookArg).toContain('{ hooks = [{ type = "command", command = "');
         expect(args.some((arg) => arg.startsWith('hooks.PreToolUse='))).toBe(true);
         expect(args.some((arg) => arg.startsWith('hooks.PostToolUse='))).toBe(true);
-        expect(args).toContain("mcp_servers.hapi.args=['mcp','--url','http://127.0.0.1:63995/']");
-        expect(args).toContain('mcp_servers.hapi.tools.change_title.approval_mode="approve"');
+        expect(args).toContain("mcp_servers.hamlet.args=['mcp','--url','http://127.0.0.1:63995/']");
+        expect(args).toContain('mcp_servers.hamlet.tools.change_title.approval_mode="approve"');
     });
 
     it('passes reasoning effort through Codex config instead of an unsupported CLI flag', async () => {

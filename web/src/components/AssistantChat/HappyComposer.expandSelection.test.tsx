@@ -92,7 +92,7 @@ function TestRuntime(props: { withSettings?: boolean }) {
 describe('HappyComposer plain-text expansion', () => {
     beforeEach(() => {
         localStorage.clear()
-        localStorage.setItem('hapi.composer.richMentions', '0')
+        localStorage.setItem('hamlet.composer.richMentions', '0')
     })
 
     it('preserves draft text and selection across expand and collapse', async () => {

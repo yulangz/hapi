@@ -60,13 +60,14 @@ export const MetadataSchema = z.object({
     os: z.string().optional(),
     summary: MetadataSummarySchema.optional(),
     machineId: z.string().optional(),
+    hamletAgent: z.literal(true).optional(),
     claudeSessionId: z.string().optional(),
-    // Parent HAPI session id when this session was created by message-level fork
+    // Parent HAMLET session id when this session was created by message-level fork
     // (`claude --resume <id> --fork-session`). Lets the web list mark the new
     // session as a branch of `<id>` instead of an unrelated duplicate.
     forkedFrom: z.string().optional(),
     codexSessionId: z.string().optional(),
-    // 原始 Codex thread id。导入 Codex 历史后，HAPI 会 fork 出自己的续写 thread；
+    // 原始 Codex thread id。导入 Codex 历史后，HAMLET 会 fork 出自己的续写 thread；
     // codexSessionId 保存 fork 后的 thread，codexSourceSessionId 保留来源 thread 便于同步/展示。
     codexSourceSessionId: z.string().optional(),
     geminiSessionId: z.string().optional(),
@@ -110,7 +111,7 @@ export const MetadataSchema = z.object({
     happyToolsDir: z.string().optional(),
     startedFromRunner: z.boolean().optional(),
     hostPid: z.number().optional(),
-    hapiMcpUrl: z.string().url().optional(),
+    hamletMcpUrl: z.string().url().optional(),
     startedBy: z.enum(['runner', 'terminal']).optional(),
     lifecycleState: z.string().optional(),
     lifecycleStateSince: z.number().optional(),
@@ -137,7 +138,7 @@ export const MetadataSchema = z.object({
     // Pi localId → append-only session entry id mapping. Pi entry ids are the
     // only stable native boundary accepted by its fork API.
     conversationHistoryEntryIds: z.record(z.string(), z.string().min(1)).optional(),
-    // Latest Pi append-log entry observed by HAPI. Import uses it as the
+    // Latest Pi append-log entry observed by HAMLET. Import uses it as the
     // incremental cursor so native history already streamed live is not copied twice.
     piHistoryLeafEntryId: z.string().optional(),
     piImportState: z.object({
@@ -150,7 +151,7 @@ export const MetadataSchema = z.object({
         leafEntryId: z.string().nullable().optional(),
         error: z.string().optional()
     }).optional(),
-    // Set when native rewind succeeded but HAPI truncate/hydrate failed.
+    // Set when native rewind succeeded but HAMLET truncate/hydrate failed.
     conversationHistoryDiverged: z.boolean().optional(),
     worktree: WorktreeMetadataSchema.optional(),
     // Cached Pi model list — written by CLI, read by web (inactive session fallback).
@@ -463,7 +464,7 @@ export const MachineMetadataSchema = z.object({
     /** Current on-disk CLI binary/package mtime (may differ after upgrade). */
     installedCliMtimeMs: z.number().optional(),
     /**
-     * Runner is under systemd/pm2 (HAPI_RUNNER_SUPERVISED=1). Banner Restart
+     * Runner is under systemd/pm2 (HAMLET_RUNNER_SUPERVISED=1). Banner Restart
      * may stop-runner; unsupervised detached runners must not use that path.
      */
     supervisedRestart: z.boolean().optional(),

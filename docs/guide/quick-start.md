@@ -2,10 +2,10 @@
 
 <Steps>
 
-## Install HAPI
+## Install HAMLET
 
 ```bash
-npm install -g @twsxtd/hapi --registry=https://registry.npmjs.org
+npm install -g @twsxtd/hamlet --registry=https://registry.npmjs.org
 ```
 
 Other install options (Homebrew, npx, prebuilt binary, source): [Installation](./installation.md#install-the-cli)
@@ -13,21 +13,21 @@ Other install options (Homebrew, npx, prebuilt binary, source): [Installation](.
 ## Start the hub
 
 ```bash
-hapi hub --relay
+hamlet hub --relay
 ```
 
-On first run, HAPI prints an access token and saves it to `~/.hapi/settings.json`. The terminal displays a web URL and two QR codes for web access and native app pairing.
+On first run, HAMLET prints an access token and saves it to `~/.hamlet/settings.json`. The terminal displays a web URL and two QR codes for web access and native app pairing.
 
 Details and local-only mode: [Hub setup](./installation.md#hub-setup)
 
 ## Start a coding session
 
 ```bash
-hapi
+hamlet
 ```
 
 Choose an installed agent from the picker. Its session appears in connected web and native clients.
-To start one directly, use `hapi claude`, `hapi codex`, or another
+To start one directly, use `hamlet claude`, `hamlet codex`, or another
 [supported agent command](./agents.md). Scripts must specify the agent explicitly.
 
 ## Open the UI
@@ -40,8 +40,8 @@ To start one directly, use `hapi claude`, `hapi codex`, or another
 ## Next steps
 
 - [Seamless Handoff](./how-it-works.md#seamless-handoff) - Switch between terminal and phone seamlessly
-- [Hub setup](./installation.md#hub-setup) - Access HAPI from anywhere
+- [Hub setup](./installation.md#hub-setup) - Access HAMLET from anywhere
 - [Notifications](./notifications.md) - Native app, Web Push, Telegram and ServerChan notifications
-- [Deployment](./deployment.md) - Run HAPI as a persistent background service
+- [Deployment](./deployment.md) - Run HAMLET as a persistent background service
 - [Native apps](./native-apps.md) - Build, pair and use the iOS / Android clients
 - [Install the PWA](./pwa.md) - Add the web app to your home screen

@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
 import { z } from 'zod'
-import { isObject } from '@hapi/protocol'
-import type { AgentStateCompletedRequest, AgentStateRequest } from '@hapi/protocol/schemas'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { isObject } from '@hamlet/protocol'
+import type { AgentStateCompletedRequest, AgentStateRequest } from '@hamlet/protocol/schemas'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import type { PermissionHandlerClient } from '@/modules/common/permission/BasePermissionHandler'
 import { buildAskUserQuestionUpdatedInput } from './askUserQuestionAnswers'
 import {
@@ -42,7 +42,7 @@ type PendingRequest = {
 }
 
 /**
- * Main-thread local permissions only. Claude, not HAPI, arbitrates the native
+ * Main-thread local permissions only. Claude, not HAMLET, arbitrates the native
  * dialog versus the hook. Sending a verdict is NOT proof that it won the race;
  * only native tool lifecycle/transcript results complete the corresponding UI.
  */
@@ -58,7 +58,7 @@ export class LocalPermissionBridge {
         this.stop()
         this.active = true
         this.nativeSessionId = nativeSessionId
-        // A resumed HAPI session may retain requests from a dead local process.
+        // A resumed HAMLET session may retain requests from a dead local process.
         this.client.updateAgentState(state => ({
             ...state,
             requests: Object.fromEntries(Object.entries(state.requests ?? {}).filter(([id]) => !id.startsWith(REQUEST_PREFIX)))

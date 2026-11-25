@@ -32,7 +32,7 @@ function sleepMsSync(ms: number): void {
 }
 
 function spawnLockfilePath(lockTarget: string): string {
-    return `${lockTarget}.hapi.lock`
+    return `${lockTarget}.hamlet.lock`
 }
 
 function lockOptions(lockTarget: string): {
@@ -52,8 +52,8 @@ function lockOptions(lockTarget: string): {
 }
 
 /** Lease anchor file colocated with the agent-acp-active marker directory. */
-export function getAgentCliSpawnLockTarget(hapiHome: string): string {
-    const locksDir = join(hapiHome, 'locks')
+export function getAgentCliSpawnLockTarget(hamletHome: string): string {
+    const locksDir = join(hamletHome, 'locks')
     mkdirSync(locksDir, { recursive: true })
     const target = join(locksDir, 'agent-cli.spawn')
     if (!existsSync(target)) {
@@ -62,11 +62,11 @@ export function getAgentCliSpawnLockTarget(hapiHome: string): string {
     return target
 }
 
-function claimSpawnLeaseSync(hapiHome: string): boolean {
+function claimSpawnLeaseSync(hamletHome: string): boolean {
     if (leaseRelease !== null) {
         return false
     }
-    const lockTarget = getAgentCliSpawnLockTarget(hapiHome)
+    const lockTarget = getAgentCliSpawnLockTarget(hamletHome)
     try {
         leaseRelease = lockfile.lockSync(lockTarget, lockOptions(lockTarget))
         return true
@@ -79,11 +79,11 @@ function claimSpawnLeaseSync(hapiHome: string): boolean {
  * Non-blocking exclusive lease for model-list probes. Returns false when
  * another holder (ACP or probe) already owns the spawn lease.
  */
-export function tryAcquireAgentCliSpawnLeaseSync(hapiHome: string): boolean {
+export function tryAcquireAgentCliSpawnLeaseSync(hamletHome: string): boolean {
     if (leaseRelease !== null || acpRegisterLeaseDepth > 0) {
         return false
     }
-    return claimSpawnLeaseSync(hapiHome)
+    return claimSpawnLeaseSync(hamletHome)
 }
 
 function sleepMs(ms: number): Promise<void> {
@@ -91,14 +91,14 @@ function sleepMs(ms: number): Promise<void> {
 }
 
 /** Blocking exclusive lease for ACP transport startup (sync — tests only). */
-export function acquireAgentCliSpawnLeaseSync(hapiHome: string): void {
+export function acquireAgentCliSpawnLeaseSync(hamletHome: string): void {
     if (acpRegisterLeaseDepth > 0) {
         acpRegisterLeaseDepth += 1
         return
     }
 
     for (let attempt = 0; attempt < SPAWN_LOCK_MAX_ATTEMPTS; attempt++) {
-        if (claimSpawnLeaseSync(hapiHome)) {
+        if (claimSpawnLeaseSync(hamletHome)) {
             acpRegisterLeaseDepth = 1
             return
         }
@@ -109,14 +109,14 @@ export function acquireAgentCliSpawnLeaseSync(hapiHome: string): void {
 }
 
 /** Blocking exclusive lease for ACP transport startup (yields event loop between retries). */
-export async function acquireAgentCliSpawnLease(hapiHome: string): Promise<void> {
+export async function acquireAgentCliSpawnLease(hamletHome: string): Promise<void> {
     if (acpRegisterLeaseDepth > 0) {
         acpRegisterLeaseDepth += 1
         return
     }
 
     for (let attempt = 0; attempt < SPAWN_LOCK_MAX_ATTEMPTS; attempt++) {
-        if (claimSpawnLeaseSync(hapiHome)) {
+        if (claimSpawnLeaseSync(hamletHome)) {
             acpRegisterLeaseDepth = 1
             return
         }
@@ -149,16 +149,16 @@ export function releaseAgentCliSpawnLeaseFromAcpRegisterSync(): void {
 }
 
 /** @internal test-only */
-export function _resetAgentCliSpawnLeaseForTests(hapiHome?: string): void {
+export function _resetAgentCliSpawnLeaseForTests(hamletHome?: string): void {
     acpRegisterLeaseDepth = 0
     if (leaseRelease) {
         leaseRelease()
         leaseRelease = null
     }
-    if (!hapiHome) {
+    if (!hamletHome) {
         return
     }
-    const lockTarget = getAgentCliSpawnLockTarget(hapiHome)
+    const lockTarget = getAgentCliSpawnLockTarget(hamletHome)
     try {
         lockfile.unlockSync(lockTarget, {
             realpath: false,

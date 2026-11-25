@@ -1,5 +1,5 @@
 import type { ThreadAssistantMessagePart } from '@assistant-ui/react'
-import { stripNotifySummaryFooter } from '@hapi/protocol/messages'
+import { stripNotifySummaryFooter } from '@hamlet/protocol/messages'
 
 export function getAssistantCopyText(
     parts: readonly ThreadAssistantMessagePart[],

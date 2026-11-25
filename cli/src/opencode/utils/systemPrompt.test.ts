@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { ensureOpencodeConfig } from './opencodeConfig'
 import { TITLE_INSTRUCTION } from './systemPrompt'
 
-describe('OpenCode local HAPI instructions', () => {
+describe('OpenCode local HAMLET instructions', () => {
     let configDirectory: string | null = null
 
     afterEach(async () => {
@@ -16,10 +16,10 @@ describe('OpenCode local HAPI instructions', () => {
     })
 
     it('writes the skill lookup instruction into the configured system prompt', async () => {
-        configDirectory = await mkdtemp(join(tmpdir(), 'hapi-opencode-prompt-'))
+        configDirectory = await mkdtemp(join(tmpdir(), 'hamlet-opencode-prompt-'))
         const { instructionsPath } = ensureOpencodeConfig(
             configDirectory,
-            { command: 'hapi', args: ['mcp'] },
+            { command: 'hamlet', args: ['mcp'] },
             TITLE_INSTRUCTION
         )
 

@@ -45,7 +45,7 @@ describe('search field match helpers', () => {
         expect(searchFieldHasBoundaryMatch('homelab', 'home')).toBe(false)
         expect(searchFieldHasBoundaryMatch('home-lab', 'home')).toBe(true)
         expect(searchFieldHasBoundaryMatch('Home Assistant', 'home')).toBe(true)
-        expect(searchFieldHasBoundaryMatch('/home/heavygee/coding/hapi', 'home')).toBe(true)
+        expect(searchFieldHasBoundaryMatch('/home/heavygee/coding/hamlet', 'home')).toBe(true)
     })
 })
 
@@ -53,11 +53,11 @@ describe('sessionMatchesQuery', () => {
     it('keeps path searchable including OS home prefixes', () => {
         const underHome = makeSession({
             id: 'meta',
-            metadata: { path: '/home/heavygee/coding/hapi', name: 'meta HAPI triage' },
+            metadata: { path: '/home/heavygee/coding/hamlet', name: 'meta HAMLET triage' },
         })
         expect(sessionMatchesQuery(underHome, 'home', 'oos')).toBe(true)
-        expect(sessionMatchesQuery(underHome, 'hapi', 'oos')).toBe(true)
-        expect(sessionMatchesQuery(underHome, 'hap', 'oos')).toBe(true)
+        expect(sessionMatchesQuery(underHome, 'hamlet', 'oos')).toBe(true)
+        expect(sessionMatchesQuery(underHome, 'ham', 'oos')).toBe(true)
     })
 
     it('still matches machine label substrings for shared callers', () => {
@@ -73,16 +73,16 @@ describe('sessionMatchesQuery', () => {
         const session = makeSession({
             id: 'wt',
             metadata: {
-                path: '/home/heavygee/coding/hapi',
+                path: '/home/heavygee/coding/hamlet',
                 worktree: {
-                    basePath: '/home/heavygee/coding/hapi',
+                    basePath: '/home/heavygee/coding/hamlet',
                     branch: 'feat/x',
                     name: 'x',
-                    worktreePath: '/home/heavygee/coding/hapi-worktrees/x',
+                    worktreePath: '/home/heavygee/coding/hamlet-worktrees/x',
                 },
             },
         })
-        expect(sessionMatchesQuery(session, '*coding/hapi', 'oos')).toBe(true)
+        expect(sessionMatchesQuery(session, '*coding/hamlet', 'oos')).toBe(true)
     })
 })
 
@@ -105,8 +105,8 @@ describe('session search relevance ranking', () => {
             id: 'meta-triage',
             updatedAt: 9_000,
             metadata: {
-                path: '/home/heavygee/coding/hapi',
-                name: 'meta HAPI triage/problems',
+                path: '/home/heavygee/coding/hamlet',
+                name: 'meta HAMLET triage/problems',
                 machineId: 'oos',
             },
         })

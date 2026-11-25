@@ -1,9 +1,9 @@
-import type { ClientToServerEvents } from '@hapi/protocol'
+import type { ClientToServerEvents } from '@hamlet/protocol'
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
-import type { CopilotAgentMode } from '@hapi/protocol'
-import type { AgentState, CodexCollaborationMode, Metadata, PermissionMode } from '@hapi/protocol/types'
-import { getReasoningStreamId, isRedundantGoalStatusEventContent } from '@hapi/protocol/messages'
+import type { CopilotAgentMode } from '@hamlet/protocol'
+import type { AgentState, CodexCollaborationMode, Metadata, PermissionMode } from '@hamlet/protocol/types'
+import { getReasoningStreamId, isRedundantGoalStatusEventContent } from '@hamlet/protocol/messages'
 import type { Store, StoredSession } from '../../../store'
 import type { SyncEvent } from '../../../sync/syncEngine'
 import { extractTodoWriteTodosFromMessageContent } from '../../../sync/todos'
@@ -11,7 +11,7 @@ import { extractTeamStateFromMessageContent, applyTeamStateDelta } from '../../.
 import { extractBackgroundTaskDelta } from '../../../sync/backgroundTasks'
 import { shouldRecordSessionActivity } from '../../../sync/sessionActivity'
 import type { CliSocketWithData } from '../../socketTypes'
-import type { SessionEndReason } from '@hapi/protocol'
+import type { SessionEndReason } from '@hamlet/protocol'
 import type { AccessErrorReason, AccessResult } from './types'
 
 type SessionAlivePayload = {
@@ -162,7 +162,7 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
             && (content as { role?: unknown }).role === 'agent'
             && store.messages.getLocalMessageStates(sid, [localId]).length > 0) {
             skippedAgentReplays++
-            if (process.env.HAPI_NOTIFY_DEBUG === '1' && (skippedAgentReplays === 1 || skippedAgentReplays % 1000 === 0)) {
+            if (process.env.HAMLET_NOTIFY_DEBUG === '1' && (skippedAgentReplays === 1 || skippedAgentReplays % 1000 === 0)) {
                 console.log(`[CLI] Skipped stored agent replay session=${sid} count=${skippedAgentReplays}`)
             }
             return
@@ -208,7 +208,7 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
         const teamDelta = extractTeamStateFromMessageContent(content)
         if (teamDelta) {
             const existingSession = store.sessions.getSession(sid)
-            const existingTeamState = existingSession?.teamState as import('@hapi/protocol/types').TeamState | null | undefined
+            const existingTeamState = existingSession?.teamState as import('@hamlet/protocol/types').TeamState | null | undefined
             const newTeamState = applyTeamStateDelta(existingTeamState ?? null, teamDelta)
             const updated = store.sessions.setSessionTeamState(sid, newTeamState, msg.createdAt, session.namespace)
             if (updated) {
@@ -532,7 +532,7 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
         // session end.  *All* scheduled rows — mature or future — are deliberately
         // preserved in DB so the mature-scan path (releaseMatureScheduledMessages)
         // remains the sole emit channel and the CLI ack remains the sole writer of
-        // invoked_at.  See HAPI Bot R4: stamping a mature scheduled row here would
+        // invoked_at.  See HAMLET Bot R4: stamping a mature scheduled row here would
         // make the next mature-scan tick skip it (filter on invoked_at IS NULL) and
         // silently drop the user's prompt.
         //

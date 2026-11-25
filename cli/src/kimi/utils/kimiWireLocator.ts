@@ -25,7 +25,7 @@ type KimiWireLocatorOptions = {
 };
 
 const DEFAULT_LOCATOR_INTERVAL_MS = 500;
-// Grace for filesystem timestamp skew between hapi recording its launch time
+// Grace for filesystem timestamp skew between hamlet recording its launch time
 // and kimi-code creating the session directory right after.
 const STARTUP_GRACE_MS = 2000;
 
@@ -72,7 +72,7 @@ export function getKimiStatePath(sessionDir: string): string {
  * Polls the kimi-code session storage for the session the locally spawned
  * `kimi` process just created in this working directory, and resolves with
  * its wire transcript and state paths. Mirrors the codex transcript locator: sessions
- * created before hapi's launch are ignored; multiple fresh candidates are
+ * created before hamlet's launch are ignored; multiple fresh candidates are
  * treated as ambiguous rather than attaching to the wrong session.
  */
 export function createKimiWireLocator(options: KimiWireLocatorOptions): KimiWireLocator {
@@ -115,7 +115,7 @@ class KimiWireLocatorImpl {
     async start(): Promise<void> {
         if (!this.resumeSessionId) {
             // Snapshot pre-existing sessions: only directories that appear
-            // AFTER this locator starts may belong to the process hapi just
+            // AFTER this locator starts may belong to the process hamlet just
             // spawned. Without this, an immediate retry could bind to the
             // previous launch's session (created inside the birth-time grace
             // window) before the new process has written anything.

@@ -22,7 +22,7 @@
  *     before navigating so B can still seed.
  */
 
-export const SHARE_PENDING_TRANSFER_KEY = 'hapi.share.pendingTransferId'
+export const SHARE_PENDING_TRANSFER_KEY = 'hamlet.share.pendingTransferId'
 
 type SharePendingRecord = {
     transferId: string

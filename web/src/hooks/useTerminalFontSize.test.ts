@@ -25,15 +25,15 @@ describe('useTerminalFontSize helpers', () => {
     it('falls back to the default size for missing or invalid storage values', () => {
         expect(getInitialTerminalFontSize()).toBe(DEFAULT_TERMINAL_FONT_SIZE)
 
-        window.localStorage.setItem('hapi-terminal-font-size', 'not-a-number')
+        window.localStorage.setItem('hamlet-terminal-font-size', 'not-a-number')
         expect(getInitialTerminalFontSize()).toBe(DEFAULT_TERMINAL_FONT_SIZE)
 
-        window.localStorage.setItem('hapi-terminal-font-size', '19')
+        window.localStorage.setItem('hamlet-terminal-font-size', '19')
         expect(getInitialTerminalFontSize()).toBe(DEFAULT_TERMINAL_FONT_SIZE)
     })
 
     it('reads a valid stored terminal font size', () => {
-        window.localStorage.setItem('hapi-terminal-font-size', '17')
+        window.localStorage.setItem('hamlet-terminal-font-size', '17')
 
         expect(getInitialTerminalFontSize()).toBe(17)
     })

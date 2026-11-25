@@ -1,6 +1,6 @@
 import type { PendingSchedule } from '@/components/AssistantChat/ScheduleTimePicker'
 
-const STORAGE_KEY = 'hapi:queued-edit-recovery'
+const STORAGE_KEY = 'hamlet:queued-edit-recovery'
 
 export type QueuedEditRecovery = {
     id: string

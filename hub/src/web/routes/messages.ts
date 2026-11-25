@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { MessagesQuerySchema, QueuedStateRequestSchema, SendMessageRequestSchema } from '@hapi/protocol'
+import { MessagesQuerySchema, QueuedStateRequestSchema, SendMessageRequestSchema } from '@hamlet/protocol'
 import type { SyncEngine } from '../../sync/syncEngine'
 import type { WebAppEnv } from '../middleware/auth'
 import { requireSessionFromParam, requireSyncEngine } from './guards'

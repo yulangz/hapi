@@ -132,7 +132,7 @@ export function AskUserQuestionFooter(props: {
         // Restores a session-switch remount's own in-progress answer (SessionChat
         // keys the whole subtree by session.id — see its own comment), and, since
         // draftKey also changes for a genuinely new question, still resets to
-        // blank when this instance is reused for a different tool call (hapi#1734).
+        // blank when this instance is reused for a different tool call (hamlet#1734).
         submittedRef.current = false
         const draft = getAskUserQuestionDraft(draftKey)
         const restored = {

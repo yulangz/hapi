@@ -31,6 +31,7 @@ export type RunnerCapabilities = typeof RUNNER_CAPABILITIES
 export const MACHINE_CAPABILITIES = {
     AgentAvailability: RPC_METHODS.AgentAvailability,
     CursorChatStoreStatus: RPC_METHODS.CursorChatStoreStatus,
+    Hamlet: 'hamlet',
     StopRunner: RPC_METHODS.StopRunner,
 } as const
 
@@ -42,6 +43,7 @@ export const CURRENT_MACHINE_CAPABILITIES: readonly MachineCapability[] = [
     MACHINE_CAPABILITIES.AgentAvailability,
     MACHINE_CAPABILITIES.CursorChatStoreStatus,
     MACHINE_CAPABILITIES.StopRunner,
+    MACHINE_CAPABILITIES.Hamlet,
 ]
 
 /**

@@ -182,8 +182,8 @@ export type PiAgentEvent =
 // Pi RPC Commands (stdin)
 // ============================================================================
 
-import type { PiThinkingLevel } from '@hapi/protocol'
-import type { PiCommandSummary } from '@hapi/protocol/apiTypes'
+import type { PiThinkingLevel } from '@hamlet/protocol'
+import type { PiCommandSummary } from '@hamlet/protocol/apiTypes'
 export type { PiThinkingLevel, PiCommandSummary }
 
 export type PiRpcCommand =

@@ -1,5 +1,5 @@
 import { logger } from '@/ui/logger';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager';
 import {
     listPiModelsForMachine,

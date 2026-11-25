@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/api/client'
-import type { HapiSessionExport, HapiSessionExportWarning } from '@hapi/protocol/sessionExport'
+import type { HamletSessionExport, HamletSessionExportWarning } from '@hamlet/protocol/sessionExport'
 import {
     downloadSessionExport,
     type SessionExportDownloadResult
 } from './download'
 
-function makePayload(): HapiSessionExport {
+function makePayload(): HamletSessionExport {
     return {
         schemaVersion: 2,
         exportedAt: Date.UTC(2026, 5, 5, 12, 0, 0),
@@ -40,7 +40,7 @@ function makePayload(): HapiSessionExport {
     }
 }
 
-function makeApi(response: HapiSessionExport | HapiSessionExportWarning) {
+function makeApi(response: HamletSessionExport | HamletSessionExportWarning) {
     return {
         getSessionExport: vi.fn().mockResolvedValue(response)
     } as unknown as ApiClient
@@ -69,7 +69,7 @@ describe('downloadSessionExport', () => {
     })
 
     it('returns the warning without creating a file download', async () => {
-        const warning: HapiSessionExportWarning = {
+        const warning: HamletSessionExportWarning = {
             type: 'warning',
             count: 20_001,
             limit: 20_000,

@@ -479,7 +479,7 @@ describe('aggregateResponseGroups', () => {
     })
 
     it("5b. skips chunk blocks without model or usage so they do not inflate the turn count", () => {
-        // hapi's hub stores tool_result chunks as separate agent-role
+        // hamlet's hub stores tool_result chunks as separate agent-role
         // messages with no `model`, no `usage`, and `localId=null`.
         // They share an SDK turn with the preceding tool_use but the
         // fingerprint signal is missing, so the aggregator must skip

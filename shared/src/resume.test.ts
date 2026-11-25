@@ -6,7 +6,7 @@ import { SessionEndReasonSchema } from './socket'
 describe('resume schemas', () => {
     it('accepts a local resume target', () => {
         const parsed = LocalResumeTargetSchema.safeParse({
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             flavor: 'codex',
             directory: '/tmp/project',
             machineId: 'machine-1',
@@ -27,7 +27,7 @@ describe('resume schemas', () => {
 
     it('accepts a resumable session summary', () => {
         const parsed = ResumableSessionSchema.safeParse({
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             flavor: 'claude',
             directory: '/tmp/project',
             active: false,
@@ -51,7 +51,7 @@ describe('resume schemas', () => {
     it('accepts handoff in session-ended sync events', () => {
         const parsed = SyncEventSchema.safeParse({
             type: 'session-ended',
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             reason: 'handoff'
         })
 
@@ -69,13 +69,13 @@ describe('resume schemas', () => {
     it('requires invokedAt in messages-consumed sync events', () => {
         expect(SyncEventSchema.safeParse({
             type: 'messages-consumed',
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             localIds: ['local-1']
         }).success).toBe(false)
 
         expect(SyncEventSchema.safeParse({
             type: 'messages-consumed',
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             localIds: ['local-1'],
             invokedAt: 123
         }).success).toBe(true)
@@ -96,14 +96,14 @@ describe('resume schemas', () => {
     it('validates structured session and machine update patches', () => {
         expect(SyncEventSchema.safeParse({
             type: 'session-updated',
-            sessionId: 'hapi-session-1',
+            sessionId: 'hamlet-session-1',
             data: { updatedAt: 123, backgroundTaskCount: 1 }
         }).success).toBe(true)
 
         expect(SyncEventSchema.safeParse({
             type: 'session-updated',
-            sessionId: 'hapi-session-1',
-            data: { sid: 'hapi-session-1' }
+            sessionId: 'hamlet-session-1',
+            data: { sid: 'hamlet-session-1' }
         }).success).toBe(false)
 
         expect(SyncEventSchema.safeParse({

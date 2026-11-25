@@ -3,7 +3,7 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { OPENCODE_PERMISSION_MODES } from '@hapi/protocol/modes'
+import { OPENCODE_PERMISSION_MODES } from '@hamlet/protocol/modes'
 import { parseRemoteAgentCommandOptions } from './agentCommandOptions'
 
 export const opencodeCommand: CommandDefinition = {

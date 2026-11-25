@@ -1,4 +1,4 @@
-import { getReasoningStreamId } from '@hapi/protocol/messages'
+import { getReasoningStreamId } from '@hamlet/protocol/messages'
 import type { ApiClient } from '@/api/client'
 import { normalizeDecryptedMessage } from '@/chat/normalize'
 import type { DecryptedMessage, MessageStatus, MessagesResponse } from '@/types/api'
@@ -85,7 +85,7 @@ const appliedRewindLocalIds = new Map<string, Set<string>>()
 
 const NOTIFY_THROTTLE_MS = 150
 const PERSIST_THROTTLE_MS = 200
-const STORAGE_KEY_PREFIX = 'hapi:message-window:v2:'
+const STORAGE_KEY_PREFIX = 'hamlet:message-window:v2:'
 const pendingNotifySessionIds = new Set<string>()
 const pendingPersistSessionIds = new Set<string>()
 let notifyRafId: ReturnType<typeof requestAnimationFrame> | null = null

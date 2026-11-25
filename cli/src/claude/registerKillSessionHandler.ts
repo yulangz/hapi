@@ -1,6 +1,6 @@
 import { RpcHandlerManager } from "@/api/rpc/RpcHandlerManager";
 import { logger } from "@/lib";
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 interface KillSessionRequest {
     // No parameters needed
@@ -49,7 +49,7 @@ export function registerKillSessionHandler(
         // should optimistically assume the session is dead.
         return {
             success: true,
-            message: 'Killing hapi CLI process'
+            message: 'Killing hamlet CLI process'
         };
     });
 }

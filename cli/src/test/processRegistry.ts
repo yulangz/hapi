@@ -57,7 +57,7 @@ export function trackRunnerPid(pid: number, label: string): void {
 }
 
 /**
- * Registers a runner-spawned session by its HAPI session id, immediately when
+ * Registers a runner-spawned session by its HAMLET session id, immediately when
  * the spawn response arrives (the child PID is only known to the runner).
  */
 export function trackSession(sessionId: string, label: string): void {
@@ -91,7 +91,7 @@ function waitForAllDead(pids: number[], timeoutMs: number): Promise<void> {
  */
 export async function cleanupAllRegisteredProcesses(): Promise<void> {
     // The runner control API carries a long HTTP timeout (setup.ts raises
-    // HAPI_RUNNER_HTTP_TIMEOUT for the stress test), so the whole logical
+    // HAMLET_RUNNER_HTTP_TIMEOUT for the stress test), so the whole logical
     // phase is bounded: a hung-but-live runner must not exhaust the hook
     // budget before the process-tree fallback and marker sweep run.
     const LOGICAL_PHASE_BUDGET_MS = 15_000

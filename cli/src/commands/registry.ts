@@ -25,7 +25,7 @@ import type { CommandContext, CommandDefinition } from './types'
 
 // Gemini CLI was sunset (Google stopped serving the consumer Gemini CLI on
 // 2026-06-18) so the agent is no longer launchable. Keep an explicit tombstone
-// command so `hapi gemini` explains why the agent is no longer available.
+// command so `hamlet gemini` explains why the agent is no longer available.
 const removedGeminiCommand: CommandDefinition = {
     name: 'gemini',
     requiresRuntimeAssets: false,

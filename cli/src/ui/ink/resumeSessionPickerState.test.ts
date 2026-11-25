@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ResumableSession } from '@hapi/protocol'
+import type { ResumableSession } from '@hamlet/protocol'
 import {
     filterResumeSessions,
     formatResumeSessionRelativeTime,

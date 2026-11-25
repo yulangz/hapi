@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import type { ApiClient } from '@/api/client'
 import type { DecryptedMessage } from '@/types/api'
-import type { CancelMessageResponse } from '@hapi/protocol/schemas'
+import type { CancelMessageResponse } from '@hamlet/protocol/schemas'
 import {
     appendOptimisticMessage,
     markMessagesConsumed,

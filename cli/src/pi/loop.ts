@@ -208,7 +208,7 @@ function handleResponse(
             return { rejectedPromptLocalId: oldestLocalId };
         }
         // A failed initial get_state means Pi did not load its native session.
-        // Do not leave the HAPI wrapper alive until the hub's ready timeout: the
+        // Do not leave the HAMLET wrapper alive until the hub's ready timeout: the
         // caller tears down the process so the archived row can be restored.
         // A fresh Pi session keeps the historic non-fatal fallback behavior;
         // only a requested native resume must fail closed.
@@ -229,7 +229,7 @@ function handleResponse(
             // Pi has finished startup init (this is the response that persists
             // metadata.piSessionId). It is also the only native-ready signal
             // that the hub trusts for Pi resume; session-alive only proves the
-            // HAPI wrapper connected. Validate a requested native session before
+            // HAMLET wrapper connected. Validate a requested native session before
             // mutating model/metadata state: an invalid resume must not publish a
             // colliding piSessionId that auto-dedup could merge.
             if (!parsed.success) {
@@ -665,7 +665,7 @@ export function wireTransportEvents(
                         // Continuing would discard the only FIFO association for
                         // an unread native user entry. Fail the wrapper closed
                         // instead of allowing all later fork/rewind points to
-                        // shift onto the wrong HAPI messages.
+                        // shift onto the wrong HAMLET messages.
                         options.onStartupFailure?.(new Error(`Pi command-only history sync failed: ${detail}`));
                         return;
                     }
@@ -733,7 +733,7 @@ export function wireTransportEvents(
                 );
                 if (isCurrentPrompt && !parsed.data.success) {
                     const rejectedLocalId = responseOutcome.rejectedPromptLocalId ?? activePromptLocalId;
-                    // A Pi 0.83 turn_start can consume the HAPI FIFO before Pi
+                    // A Pi 0.83 turn_start can consume the HAMLET FIFO before Pi
                     // replies that prompt failed. handleResponse only has the
                     // still-pending list, so finish the exact consumed history
                     // entry here when the FIFO was already shifted.
@@ -776,8 +776,8 @@ export function wireTransportEvents(
 
         if (event.type === 'session_info_changed') {
             // Pi emits this for `/name` and the set_session_name RPC. Mirror the
-            // native rename into HAPI metadata so the web title stays in sync
-            // without any HAPI-injected change_title flow (issue #1440).
+            // native rename into HAMLET metadata so the web title stays in sync
+            // without any HAMLET-injected change_title flow (issue #1440).
             const parsed = PiSessionInfoChangedEventSchema.safeParse(event);
             if (parsed.success) {
                 syncNativeTitle(parsed.data.name);
@@ -790,7 +790,7 @@ export function wireTransportEvents(
         if (event.type === 'agent_start' || event.type === 'turn_start') {
             if (deliveredSettlement) {
                 // Pi can start an agent lifecycle on its own — subagent
-                // completion wake-ups, scheduled work — with no HAPI prompt in
+                // completion wake-ups, scheduled work — with no HAMLET prompt in
                 // flight. The previous prompt lifecycle already delivered its
                 // settlement, so every settlement path below is gated shut and
                 // this turn's agent_settled/agent_end would be swallowed,
@@ -880,7 +880,7 @@ export function wireTransportEvents(
         } else if (event.type === 'agent_end') {
             const parsed = PiAgentEndEventSchema.safeParse(event);
             // Pi can end one attempt before its built-in auto-retry starts. That
-            // is not a user-prompt settlement, so keep the HAPI FIFO blocked.
+            // is not a user-prompt settlement, so keep the HAMLET FIFO blocked.
             if (parsed.success && parsed.data.willRetry === true) return;
             agentEndObserved = true;
             scheduleLegacySettleFallback();

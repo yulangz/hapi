@@ -23,7 +23,7 @@ export const GEMINI_MODEL_PRESETS = Object.keys(GEMINI_MODEL_LABELS) as GeminiMo
 export const DEFAULT_GEMINI_MODEL: GeminiModelPreset = 'gemini-2.5-pro'
 
 // Order and labels mirror `agy models` output (the agy CLI's own listing) so the
-// HAPI picker matches what users see in the terminal. IDs follow agy's
+// HAMLET picker matches what users see in the terminal. IDs follow agy's
 // `<model>-<effort>` convention (e.g. `gemini-3.5-flash-low` verified accepted by
 // `agy --model`). NOTE: agy fetches the live list server-side and `agy models`
 // needs an interactive keyring unlock, so this stays a hand-maintained mirror —

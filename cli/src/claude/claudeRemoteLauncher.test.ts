@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods'
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods'
 import { MessageQueue2 } from '@/utils/MessageQueue2'
 import type { EnhancedMode } from './loop'
 
@@ -261,10 +261,10 @@ describe('claudeRemoteLauncher resume anchor', () => {
         const { session, queue } = createSession(client, undefined)
 
         try {
-            session.setNativeSkillNames(['hapi'])
+            session.setNativeSkillNames(['hamlet'])
             expect(session.expandSkillReference('$unknown inspect')).toBe('$unknown inspect')
-            expect(session.expandSkillReference('ask $hapi')).toBe('ask $hapi')
-            queue.push('$hapi inspect', { permissionMode: 'default' }, 'local-1')
+            expect(session.expandSkillReference('ask $hamlet')).toBe('ask $hamlet')
+            queue.push('$hamlet inspect', { permissionMode: 'default' }, 'local-1')
             harness.switchAfterCall = 1
             harness.triggerSwitch = () => {
                 client.rpcHandlers.get(RPC_METHODS.Switch)?.()
@@ -272,7 +272,7 @@ describe('claudeRemoteLauncher resume anchor', () => {
 
             await claudeRemoteLauncher(session as any)
 
-            expect(harness.initialMessages).toEqual(['/hapi inspect'])
+            expect(harness.initialMessages).toEqual(['/hamlet inspect'])
         } finally {
             session.stopKeepAlive()
         }
@@ -283,9 +283,9 @@ describe('claudeRemoteLauncher resume anchor', () => {
         const { session, queue } = createSession(client, undefined)
 
         try {
-            session.setNativeSkillNames(['hapi'])
+            session.setNativeSkillNames(['hamlet'])
             const prompt = session.expandSkillReference(
-                '$hapi inspect',
+                '$hamlet inspect',
                 '@C:\\Users\\Jane Doe\\input.txt'
             )
             queue.push(prompt, { permissionMode: 'default' }, 'local-1')
@@ -297,7 +297,7 @@ describe('claudeRemoteLauncher resume anchor', () => {
             await claudeRemoteLauncher(session as any)
 
             expect(harness.initialMessages).toEqual([
-                '/hapi inspect\n\n@C:\\Users\\Jane Doe\\input.txt'
+                '/hamlet inspect\n\n@C:\\Users\\Jane Doe\\input.txt'
             ])
         } finally {
             session.stopKeepAlive()

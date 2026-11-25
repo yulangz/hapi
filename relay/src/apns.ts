@@ -1,5 +1,5 @@
 /**
- * APNs client for the HAPI push relay: ES256 provider-token auth (jose) plus
+ * APNs client for the HAMLET push relay: ES256 provider-token auth (jose) plus
  * a persistent HTTP/2 connection (node:http2).
  *
  * NOTE - deliberate duplication: hub/src/push-ios/apnsClient.ts carries the
@@ -116,8 +116,8 @@ export function truncateCollapseId(collapseId: string): string {
 
 /**
  * The exact APNs JSON body the relay sends. The alert is a fixed, generic
- * placeholder ("HAPI" / "New activity"): the real content travels only inside
- * `hapi.e` as AES-256-GCM ciphertext, and the device's Notification Service
+ * placeholder ("HAMLET" / "New activity"): the real content travels only inside
+ * `hamlet.e` as AES-256-GCM ciphertext, and the device's Notification Service
  * Extension (`mutable-content: 1`) decrypts and rewrites the alert locally.
  * Must match what the iOS NSE and the hub-side client (P1) expect.
  */
@@ -125,10 +125,10 @@ export function buildApnsPayload(envelope: string): string {
     return JSON.stringify({
         aps: {
             'mutable-content': 1,
-            alert: { title: 'HAPI', body: 'New activity' },
+            alert: { title: 'HAMLET', body: 'New activity' },
             sound: 'default'
         },
-        hapi: { v: 1, e: envelope }
+        hamlet: { v: 1, e: envelope }
     })
 }
 

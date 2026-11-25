@@ -1,22 +1,22 @@
 import { expect, test } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import {
-    getHapiBaseUrl,
-    installHapiAuth,
+    getHamletBaseUrl,
+    installHamletAuth,
     readCliAccessToken,
-} from './helpers/hapi-live'
+} from './helpers/hamlet-live'
 
-const liveEnabled = process.env.HAPI_LIVE === '1' && Boolean(process.env.SESSION_ID?.trim())
+const liveEnabled = process.env.HAMLET_LIVE === '1' && Boolean(process.env.SESSION_ID?.trim())
 
-test.describe('LaTeX bracket math (live HAPI session)', () => {
-    test.skip(!liveEnabled, 'Set HAPI_LIVE=1 and SESSION_ID to run against a real hub session')
+test.describe('LaTeX bracket math (live HAMLET session)', () => {
+    test.skip(!liveEnabled, 'Set HAMLET_LIVE=1 and SESSION_ID to run against a real hub session')
 
     test('renders math and exports the share image', async ({ page }, testInfo) => {
-        const baseUrl = getHapiBaseUrl()
+        const baseUrl = getHamletBaseUrl()
         const sessionId = process.env.SESSION_ID?.trim()
         if (!sessionId) throw new Error('SESSION_ID is required for the live LaTeX smoke')
-        await installHapiAuth(page, baseUrl, readCliAccessToken())
-        if (process.env.HAPI_LIVE_MOBILE === '1') {
+        await installHamletAuth(page, baseUrl, readCliAccessToken())
+        if (process.env.HAMLET_LIVE_MOBILE === '1') {
             await page.addInitScript(() => {
                 Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 5 })
                 const nativeMatchMedia = window.matchMedia.bind(window)
@@ -44,7 +44,7 @@ test.describe('LaTeX bracket math (live HAPI session)', () => {
             document.documentElement.dataset.theme = 'dark'
         })
 
-        const assistant = page.locator('[data-hapi-message-role="assistant"]').last()
+        const assistant = page.locator('[data-hamlet-message-role="assistant"]').last()
         await expect.poll(() => assistant.locator('.katex').count(), { timeout: 30_000 }).toBeGreaterThan(0)
         const pageMathCount = await assistant.locator('.katex').count()
         const pageDisplayMathCount = await assistant.locator('.katex-display').count()
@@ -61,7 +61,7 @@ test.describe('LaTeX bracket math (live HAPI session)', () => {
         if (await mentionExplainer.count()) {
             await mentionExplainer.getByRole('button', { name: 'Close explainer' }).click()
         }
-        await assistant.locator('[data-hapi-share-action="true"]').click({ force: true })
+        await assistant.locator('[data-hamlet-share-action="true"]').click({ force: true })
         const dialog = page.getByRole('dialog', { name: /Share turn as image|将本轮对话分享为图片/ })
         await expect(dialog).toBeVisible()
         await expect(dialog.locator('.katex')).toHaveCount(pageMathCount, { timeout: 30_000 })

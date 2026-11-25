@@ -54,7 +54,7 @@
     --app-code-bg: #f5f6f7;
     --app-inline-code-bg: #ebecef;
 
-    /* Diff colors (light) - from hapi-app */
+    /* Diff colors (light) - from hamlet-app */
     --app-diff-added-bg: #e6ffed;
     --app-diff-added-text: #24292e;
     --app-diff-removed-bg: #ffeef0;
@@ -136,7 +136,7 @@
     --app-code-bg: #2a2f35;
     --app-inline-code-bg: #383e47;
 
-    /* Diff colors (dark) - from hapi-app */
+    /* Diff colors (dark) - from hamlet-app */
     --app-diff-added-bg: #0d2e1f;
     --app-diff-added-text: #c9d1d9;
     --app-diff-removed-bg: #3f1b23;
@@ -676,22 +676,40 @@ html[data-theme="oled"] .shiki span:not([data-line-number]) {
 /* Composer attachment controls stay discoverable on touch, but stay quiet
    until the attachment is targeted on mouse-driven layouts. */
 @media (hover: hover) and (pointer: fine) {
-  .hapi-composer-attachment-control {
+  .hamlet-composer-attachment-control {
     opacity: 0;
     pointer-events: none;
     transition: opacity 150ms ease;
   }
 
-  [data-hapi-composer-attachment-id]:hover .hapi-composer-attachment-control,
-  [data-hapi-composer-attachment-id]:focus-within .hapi-composer-attachment-control,
-  [data-hapi-composer-attachment-dragging] .hapi-composer-attachment-control {
+  [data-hamlet-composer-attachment-id]:hover .hamlet-composer-attachment-control,
+  [data-hamlet-composer-attachment-id]:focus-within .hamlet-composer-attachment-control,
+  [data-hamlet-composer-attachment-dragging] .hamlet-composer-attachment-control {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .hapi-composer-attachment-control.hapi-composer-attachment-file-control {
+  .hamlet-composer-attachment-control.hamlet-composer-attachment-file-control {
     opacity: 1;
     pointer-events: auto;
     transition: none;
   }
+}
+
+[data-hamlet-tool] {
+    --app-tool-card-bg: #edf7f4;
+    --app-tool-card-accent: #11695f;
+    border-inline-start: 3px solid #38998a;
+}
+:is([data-theme="dark"], [data-theme="oled"]) [data-hamlet-tool] {
+    --app-tool-card-bg: #16312e;
+    --app-tool-card-accent: #82dccc;
+    border-inline-start-color: #59bcab;
+}
+
+button[data-hamlet-tool="row"] {
+    background-color: color-mix(in srgb, var(--app-tool-card-accent) 14%, var(--app-bg));
+}
+button[data-hamlet-tool="row"]:hover {
+    background-color: color-mix(in srgb, var(--app-tool-card-accent) 21%, var(--app-bg));
 }

@@ -12,7 +12,7 @@ function argValue(name: string, fallback?: string): string | undefined {
     return direct ? direct.slice(prefix.length) : fallback
 }
 
-const dbPath = resolve(argValue('--db', process.env.DB_PATH ?? '/tmp/hapi-dev-codex-web/hapi.db')!)
+const dbPath = resolve(argValue('--db', process.env.DB_PATH ?? '/tmp/hamlet-dev-codex-web/hamlet.db')!)
 const reset = process.argv.includes('--reset')
 const namespace = argValue('--namespace', 'default')!
 const tag = argValue('--tag', 'codex-web-fixture')!
@@ -27,8 +27,8 @@ if (reset) {
 
 const store = new Store(dbPath)
 const session = store.sessions.getOrCreateSession(tag, {
-    path: '/tmp/hapi-fixture-workspace',
-    host: 'hapi-dev-fixture',
+    path: '/tmp/hamlet-fixture-workspace',
+    host: 'hamlet-dev-fixture',
     version: 'dev',
     flavor: 'codex',
     codexSessionId: 'codex-fixture-session',
@@ -56,7 +56,7 @@ const messages = [
                 type: 'codex',
                 data: {
                     type: 'message',
-                    message: 'Codex fixture response visible in HAPI Web.',
+                    message: 'Codex fixture response visible in HAMLET Web.',
                     id: 'fixture-msg-1'
                 }
             },

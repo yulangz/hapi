@@ -700,7 +700,7 @@ describe('isExternalUserMessage', () => {
     })
 })
 
-describe('IncomingMessageFilter (HAPI Bot R3 finding #1)', () => {
+describe('IncomingMessageFilter (HAMLET Bot R3 finding #1)', () => {
     it('accepts a mature scheduled message whose seq is below the latest cursor', () => {
         // schedule seq=10, immediate seq=11 acks first → cursor=11.
         // seq=10 matures: seq-only dedup would drop it; id-based dedup must accept.

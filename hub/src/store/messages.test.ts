@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hapi/protocol'
-import { getReasoningStreamId } from '@hapi/protocol/messages'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from '@hamlet/protocol'
+import { getReasoningStreamId } from '@hamlet/protocol/messages'
 import { Store } from './index'
 
 function makeStore(): Store {
@@ -526,7 +526,7 @@ describe('content codec integration', () => {
 
         const readContent = read[0]!.content as typeof content
         expect(readContent.content.data.output.stdout.length).toBeLessThan(stdout.length)
-        expect(readContent.content.data.output.stdout).toContain('[hapi: truncated')
+        expect(readContent.content.data.output.stdout).toContain('[hamlet: truncated')
         expect(readContent.content.data.callId).toBe('c1')
         // addMessage's return value matches what a later read sees (SSE broadcast uses it)
         expect(added.content).toEqual(read[0]!.content)

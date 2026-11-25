@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 const chromePath = process.env.PLAYWRIGHT_CHROME_PATH
 
-/** Live hub session tests — no Vite; hits HAPI_URL with HAPI_LIVE=1. */
+/** Live hub session tests — no Vite; hits HAMLET_URL with HAMLET_LIVE=1. */
 export default defineConfig({
     testDir: './e2e',
     testMatch: ['mermaid-lightbox-session.spec.ts', 'latex-bracket-math-session.spec.ts'],

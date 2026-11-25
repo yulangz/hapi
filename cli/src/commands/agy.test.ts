@@ -7,12 +7,12 @@ describe('parseAgyCommandOptions', () => {
     })
 
     it('accepts explicit remote mode', () => {
-        expect(parseAgyCommandOptions(['--hapi-starting-mode', 'remote']).startingMode).toBe('remote')
+        expect(parseAgyCommandOptions(['--hamlet-starting-mode', 'remote']).startingMode).toBe('remote')
     })
 
     it.each(['local', 'pty'])('rejects unsupported %s mode', (mode) => {
-        expect(() => parseAgyCommandOptions(['--hapi-starting-mode', mode])).toThrow(
-            'Invalid --hapi-starting-mode'
+        expect(() => parseAgyCommandOptions(['--hamlet-starting-mode', mode])).toThrow(
+            'Invalid --hamlet-starting-mode'
         )
     })
 })

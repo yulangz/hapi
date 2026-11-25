@@ -2,7 +2,7 @@ import { render } from 'ink';
 import type { ReactElement } from 'react';
 import { MessageBuffer } from '@/ui/ink/messageBuffer';
 import { restoreTerminalState } from '@/ui/terminalState';
-import { RPC_METHODS } from '@hapi/protocol/rpcMethods';
+import { RPC_METHODS } from '@hamlet/protocol/rpcMethods';
 
 export type RemoteLauncherExitReason = 'switch' | 'exit';
 

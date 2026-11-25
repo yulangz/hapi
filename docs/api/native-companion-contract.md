@@ -1,6 +1,6 @@
 # Native companion API contract (phone + Wear + iOS)
 
-**Audience:** Implementers of native companion apps (Android phone + Wear OS via FCM, iOS via APNs) that pair with a hapi hub.
+**Audience:** Implementers of native companion apps (Android phone + Wear OS via FCM, iOS via APNs) that pair with a hamlet hub.
 
 **Auth:** Exchange the pairing `code` / CLI access token with `POST /api/auth`:
 `{ "accessToken": "<code>" }`. Use the returned JWT as `Authorization: Bearer <token>`
@@ -154,7 +154,7 @@ The hub uses the same [encrypted envelope](#encrypted-envelope) as iOS.
 {"platform":"android","token":"<opaque FCM token>","envelope":"<base64>","priority":10}
 ```
 
-FCM sends only string-valued `data: {"hapi_v":"1","hapi_e":"<envelope>"}`,
+FCM sends only string-valued `data: {"hamlet_v":"1","hamlet_e":"<envelope>"}`,
 with Android priority `HIGH` (`NORMAL` for relay priority `5`) and the
 configured `restricted_package_name`. No `notification` or `collapse_key`
 is sent. The existing FCM default TTL is retained. Android decrypts locally,
@@ -165,7 +165,7 @@ dropped, never interpreted as plaintext. Unwrapped direct-FCM data remains
 supported.
 
 The encrypted envelope is capped at 3200 Base64 bytes. If needed, the hub
-removes `notifySummary`, then falls back to a minimal `HAPI / New activity`
+removes `notifySummary`, then falls back to a minimal `HAMLET / New activity`
 notification retaining type, session ID, request ID and contract version.
 It never truncates ciphertext or action IDs. If even the minimum exceeds the
 cap, the send fails and the registration is retained.
@@ -182,7 +182,7 @@ existing plaintext payload.
 
 iOS is a first-class native companion with the **same notification contract**
 as Android, delivered over APNs instead of FCM. Like Android relay delivery,
-the payload is **end-to-end encrypted**: neither Apple nor the optional hapi push relay
+the payload is **end-to-end encrypted**: neither Apple nor the optional hamlet push relay
 can read notification content (PUSH SPEC v1).
 
 ### Registration
@@ -204,7 +204,7 @@ can read notification content (PUSH SPEC v1).
   encryption key; the hub validates it decodes to exactly 32 bytes and
   rejects the registration otherwise. Keep it in the Keychain (shared with
   the Notification Service Extension via a Keychain access group). Both
-  iOS targets declare `$(AppIdentifierPrefix)run.hapi.companion.push` in
+  iOS targets declare `$(AppIdentifierPrefix)run.hamlet.companion.push` in
   `keychain-access-groups`; no App Group container is used for this key.
   Rotate it by re-registering.
 - Upsert on `(namespace, deviceId, platform)`, same as Android. Unregister
@@ -235,17 +235,17 @@ the iOS implementation must reproduce it byte-for-byte.
 {
   "aps": {
     "mutable-content": 1,
-    "alert": { "title": "HAPI", "body": "New activity" },
+    "alert": { "title": "HAMLET", "body": "New activity" },
     "sound": "default"
   },
-  "hapi": { "v": 1, "e": "<envelope>" }
+  "hamlet": { "v": 1, "e": "<envelope>" }
 }
 ```
 
-The generic `"HAPI / New activity"` alert is the no-decrypt fallback. The
+The generic `"HAMLET / New activity"` alert is the no-decrypt fallback. The
 app's **Notification Service Extension** (invoked via `mutable-content: 1`)
-decrypts `hapi.e` with the Keychain `pushKey` and replaces title/body with
-the real content; `hapi.v` is the envelope version (currently `1`).
+decrypts `hamlet.e` with the Keychain `pushKey` and replaces title/body with
+the real content; `hamlet.v` is the envelope version (currently `1`).
 
 Delivery headers: `apns-push-type: alert`, `apns-priority: 10`,
 `apns-expiration: 0`, `apns-collapse-id: "<type>-<sessionId>"` (truncated to
@@ -254,23 +254,23 @@ ones.
 
 ### Transports: self-host (direct APNs) vs official relay
 
-The hub picks one of two transports via `HAPI_IOS_PUSH` (or the
-`iosPushMode` field in `~/.hapi/settings.json` — every variable below has a
+The hub picks one of two transports via `HAMLET_IOS_PUSH` (or the
+`iosPushMode` field in `~/.hamlet/settings.json` — every variable below has a
 settings.json equivalent, see [Environment](#environment-hub-operator)):
 
 | Mode | Who talks to Apple | Requirements |
 |------|--------------------|--------------|
-| `relay` (default) | The hapi push relay (`https://push.hapi.run`), which holds the APNs credentials for the official app | none |
+| `relay` (default) | The hamlet push relay (`https://push.hapi.run`), which holds the APNs credentials for the official app | none |
 | `apns` | The hub itself, over HTTP/2 with an ES256 provider JWT | Apple developer account: `.p8` auth key, key id, team id, bundle id |
 | `off` | nobody | - |
 
 ```bash
 # default: official relay (zero setup)
-HAPI_IOS_PUSH=relay
-HAPI_PUSH_RELAY_URL=https://push.hapi.run   # override for a self-hosted relay
+HAMLET_IOS_PUSH=relay
+HAMLET_PUSH_RELAY_URL=https://push.hapi.run   # override for a self-hosted relay
 
 # self-host: direct APNs, no relay involved
-HAPI_IOS_PUSH=apns
+HAMLET_IOS_PUSH=apns
 APNS_KEY_P8_PATH=/path/to/AuthKey_XXXXXXXXXX.p8
 APNS_KEY_ID=XXXXXXXXXX
 APNS_TEAM_ID=YYYYYYYYYY
@@ -301,7 +301,7 @@ Apple's push infrastructure and the relay (official or self-hosted) see
 **ciphertext plus routing metadata only** (APNs token, collapse id, timing,
 size). The `pushKey` never leaves the device except to the operator's own
 hub over the authenticated registration call. Operators who prefer zero
-third-party involvement beyond Apple run `HAPI_IOS_PUSH=apns`.
+third-party involvement beyond Apple run `HAMLET_IOS_PUSH=apns`.
 
 Like the FCM channel, iOS push fires unconditionally for registered devices
 and suppresses the Web Push fallback for the namespace when a send succeeds
@@ -311,7 +311,7 @@ and suppresses the Web Push fallback for the namespace when a send succeeds
 
 ## Environment (hub operator)
 
-| `HAPI_ANDROID_PUSH` | Behavior |
+| `HAMLET_ANDROID_PUSH` | Behavior |
 |---|---|
 | `auto` (default) | Configured `FCM_SERVICE_ACCOUNT_PATH`: direct FCM; otherwise official relay |
 | `relay` | Force the relay, ignoring private Firebase credentials |
@@ -320,11 +320,11 @@ and suppresses the Web Push fallback for the namespace when a send succeeds
 
 ```bash
 # Default: no Firebase configuration needed for official Android apps.
-HAPI_ANDROID_PUSH=auto
-HAPI_PUSH_RELAY_URL=https://push.hapi.run
+HAMLET_ANDROID_PUSH=auto
+HAMLET_PUSH_RELAY_URL=https://push.hapi.run
 
 # Private-project builds must match the service account's Firebase project.
-HAPI_ANDROID_PUSH=fcm
+HAMLET_ANDROID_PUSH=fcm
 FCM_SERVICE_ACCOUNT_PATH=/path/to/service-account.json
 ```
 
@@ -333,11 +333,11 @@ explicit credentials or an unknown Android mode disable the channel with a
 diagnostic; they never silently switch private tokens to the official
 project. One hub selects one Android transport/project; mixing builds from
 different Firebase projects is unsupported. iOS transport selection
-(`HAPI_IOS_PUSH`, `APNS_*`) is independent. The push relay does not depend on
+(`HAMLET_IOS_PUSH`, `APNS_*`) is independent. The push relay does not depend on
 whether the hub's network tunnel (`--relay`) is enabled.
 
 Push configuration follows the hub-wide rule (env > `settings.json` >
-default; an env value is persisted into `~/.hapi/settings.json` on first
+default; an env value is persisted into `~/.hamlet/settings.json` on first
 sight, so the variable only has to be passed once). settings.json keys:
 `androidPushMode`, `fcmServiceAccountPath`, `iosPushMode`, `iosPushRelayUrl`, `apnsKeyP8Path`,
 `apnsKeyId`, `apnsTeamId`, `apnsBundleId`, `apnsEnv`. The historical

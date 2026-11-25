@@ -37,18 +37,18 @@ describe('useMachineLabels', () => {
         const { result } = renderHook(() => useMachineLabels(machines))
 
         expect(result.current['machine-1']).toBe('MacBook Pro')
-        expect(JSON.parse(window.localStorage.getItem('hapi-machine-labels')!)).toEqual({ 'machine-1': 'MacBook Pro' })
+        expect(JSON.parse(window.localStorage.getItem('hamlet-machine-labels')!)).toEqual({ 'machine-1': 'MacBook Pro' })
     })
 
     it('keeps the cached label when the machine is absent from the list', () => {
-        window.localStorage.setItem('hapi-machine-labels', JSON.stringify({ 'gone-machine': 'MacBook Pro' }))
+        window.localStorage.setItem('hamlet-machine-labels', JSON.stringify({ 'gone-machine': 'MacBook Pro' }))
         const { result } = renderHook(() => useMachineLabels([]))
 
         expect(result.current['gone-machine']).toBe('MacBook Pro')
     })
 
     it('prefers the live title over a stale cached one', () => {
-        window.localStorage.setItem('hapi-machine-labels', JSON.stringify({ 'machine-1': 'old-name' }))
+        window.localStorage.setItem('hamlet-machine-labels', JSON.stringify({ 'machine-1': 'old-name' }))
         const machines = [makeMachine('machine-1', { host: 'new-name' } as Machine['metadata'])]
         const { result } = renderHook(() => useMachineLabels(machines))
 

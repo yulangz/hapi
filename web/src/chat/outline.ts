@@ -51,5 +51,5 @@ export function buildConversationOutline(blocks: readonly ChatBlock[]): Conversa
 }
 
 export function getConversationMessageAnchorId(messageId: string): string {
-    return `hapi-message-${messageId}`
+    return `hamlet-message-${messageId}`
 }

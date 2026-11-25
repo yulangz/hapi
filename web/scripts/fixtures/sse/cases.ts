@@ -183,7 +183,7 @@ export const sseFixtureCases: SseFixtureCase[] = [
         description: 'teamState with value null means "team deleted": a strictly newer version clears the field entirely (absent in the expected session) and stores the watermark so a lagged pre-delete patch cannot resurrect the team.',
         initialSession: baseSession({
             teamState: {
-                teamName: 'hapi-dev',
+                teamName: 'hamlet-dev',
                 members: [
                     { name: 'lead', agentType: 'claude', status: 'active' },
                     { name: 'reviewer', agentType: 'claude', status: 'idle' }

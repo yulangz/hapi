@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { CURRENT_MACHINE_CAPABILITIES } from '@hapi/protocol/runnerCapabilities'
+import { CURRENT_MACHINE_CAPABILITIES } from '@hamlet/protocol/runnerCapabilities'
 import type { Machine } from '@/types/api'
 import {
     RunnerVersionSkewBanner,

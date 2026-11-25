@@ -99,7 +99,7 @@ describe('codexVersion', () => {
             })
 
             expect(() => assertCodexLocalSupported()).toThrow(
-                'Codex CLI 0.145.0+ is required for hapi codex local mode because HAPI depends on stable hooks. Detected: 0.144.9. Please upgrade Codex and retry.'
+                'Codex CLI 0.145.0+ is required for hamlet codex local mode because HAMLET depends on stable hooks. Detected: 0.144.9. Please upgrade Codex and retry.'
             )
         })
 
@@ -111,7 +111,7 @@ describe('codexVersion', () => {
             })
 
             expect(() => assertCodexLocalSupported()).toThrow(
-                'Could not determine Codex CLI version. Codex CLI 0.145.0+ is required for hapi codex local mode because HAPI depends on stable hooks. Please upgrade Codex and retry.'
+                'Could not determine Codex CLI version. Codex CLI 0.145.0+ is required for hamlet codex local mode because HAMLET depends on stable hooks. Please upgrade Codex and retry.'
             )
         })
 
@@ -126,7 +126,7 @@ describe('codexVersion', () => {
             })
 
             expect(() => assertCodexLocalSupported()).toThrow(
-                'Codex CLI 0.145.0+ is required for hapi codex local mode because HAPI depends on stable hooks. Codex was not found on PATH. Please install or upgrade Codex and retry.'
+                'Codex CLI 0.145.0+ is required for hamlet codex local mode because HAMLET depends on stable hooks. Codex was not found on PATH. Please install or upgrade Codex and retry.'
             )
         })
 
@@ -138,7 +138,7 @@ describe('codexVersion', () => {
             })
 
             expect(() => assertCodexLocalSupported()).toThrow(
-                'Could not determine Codex CLI version. codex failed Codex CLI 0.145.0+ is required for hapi codex local mode because HAPI depends on stable hooks. Please upgrade Codex and retry.'
+                'Could not determine Codex CLI version. codex failed Codex CLI 0.145.0+ is required for hamlet codex local mode because HAMLET depends on stable hooks. Please upgrade Codex and retry.'
             )
         })
     })

@@ -10,7 +10,7 @@ import {
     type WorkGraphPrincipal,
     WorkGraphPrincipalSchema,
     isPrincipalAccountable
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 
 export class WorkGraphPrincipalError extends Error {
     readonly code = 'principal_refused' as const

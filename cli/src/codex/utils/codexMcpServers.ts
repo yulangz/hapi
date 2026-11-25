@@ -1,9 +1,9 @@
 /**
- * Helpers for carrying user-configured Codex MCP servers into HAPI sessions.
+ * Helpers for carrying user-configured Codex MCP servers into HAMLET sessions.
  *
  * The app-server reports the effective Codex configuration, so keep external
  * entries opaque here. This preserves newer Codex MCP fields without making
- * HAPI duplicate Codex's transport schema.
+ * HAMLET duplicate Codex's transport schema.
  */
 
 export interface CodexMcpServerConfig {
@@ -12,7 +12,7 @@ export interface CodexMcpServerConfig {
 
 export type CodexMcpServersConfig = Record<string, CodexMcpServerConfig>;
 
-export const HAPI_MCP_SERVER_NAME = 'hapi';
+export const HAMLET_MCP_SERVER_NAME = 'hamlet';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -48,8 +48,8 @@ function omitNullishFields(value: CodexMcpServerConfig): CodexMcpServerConfig {
 /**
  * Extract the MCP server table from a Codex config/read response.
  *
- * `hapi` is intentionally excluded: that name is reserved for the bridge
- * HAPI injects into every Codex session.
+ * `hamlet` is intentionally excluded: that name is reserved for the bridge
+ * HAMLET injects into every Codex session.
  */
 export function extractCodexMcpServers(config: unknown): CodexMcpServersConfig {
     if (!isRecord(config) || !isRecord(config.mcp_servers)) {
@@ -58,7 +58,7 @@ export function extractCodexMcpServers(config: unknown): CodexMcpServersConfig {
 
     const servers: CodexMcpServersConfig = {};
     for (const [name, value] of Object.entries(config.mcp_servers)) {
-        if (name === HAPI_MCP_SERVER_NAME) {
+        if (name === HAMLET_MCP_SERVER_NAME) {
             continue;
         }
         if (!isMcpServerConfig(value)) {
@@ -70,19 +70,19 @@ export function extractCodexMcpServers(config: unknown): CodexMcpServersConfig {
 }
 
 /**
- * Merge user entries with HAPI's bridge configuration.
+ * Merge user entries with HAMLET's bridge configuration.
  *
- * HAPI wins on the reserved name, while all other user entries remain opaque
+ * HAMLET wins on the reserved name, while all other user entries remain opaque
  * so Codex can handle the transport-specific fields it understands.
  */
 export function mergeCodexMcpServers(
     userMcpServers: CodexMcpServersConfig,
-    hapiMcpServers: CodexMcpServersConfig
+    hamletMcpServers: CodexMcpServersConfig
 ): CodexMcpServersConfig {
     const merged = { ...userMcpServers };
-    delete merged[HAPI_MCP_SERVER_NAME];
+    delete merged[HAMLET_MCP_SERVER_NAME];
     return {
         ...merged,
-        ...hapiMcpServers
+        ...hamletMcpServers
     };
 }

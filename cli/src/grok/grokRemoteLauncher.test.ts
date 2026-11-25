@@ -76,8 +76,8 @@ vi.mock('./utils/grokBackend', () => ({
     )
 }))
 
-vi.mock('@/codex/utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async () => ({ server: { stop: () => {} }, mcpServers: {} })
+vi.mock('@/codex/utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async () => ({ server: { stop: () => {} }, mcpServers: {} })
 }))
 vi.mock('./utils/permissionHandler', () => ({
     GrokPermissionHandler: class { async cancelAll(): Promise<void> {} }
@@ -175,10 +175,10 @@ describe('grokRemoteLauncher runtime config', () => {
             message: expect.stringContaining('402 Payment Required')
         }))
         expect(JSON.stringify(harness.prompts[0])).toContain('/always-approve off')
-        expect(JSON.stringify(harness.prompts[1])).toContain('hapi_change_title')
+        expect(JSON.stringify(harness.prompts[1])).toContain('hamlet_change_title')
         expect(JSON.stringify(harness.prompts[1])).toContain('$name')
         expect(JSON.stringify(harness.prompts[1])).toContain('skill_lookup')
-        expect(JSON.stringify(harness.prompts[2])).not.toContain('hapi_change_title')
+        expect(JSON.stringify(harness.prompts[2])).not.toContain('hamlet_change_title')
         expect(JSON.stringify(harness.prompts[2])).not.toContain('skill_lookup')
         expect(await rpcHandlers.get('listGrokModels')?.()).toMatchObject({ success: true, currentModelId: 'grok-a' })
         expect(await rpcHandlers.get('listGrokReasoningEffortOptions')?.()).toMatchObject({ success: true, currentValue: 'low' })
@@ -223,7 +223,7 @@ describe('grokRemoteLauncher runtime config', () => {
             summary: 'Native Grok title',
             leafUuid: expect.any(String)
         })
-        expect(JSON.stringify(harness.prompts[1])).toContain('hapi_change_title')
+        expect(JSON.stringify(harness.prompts[1])).toContain('hamlet_change_title')
     })
 
     it('rolls Auto back to Default when Grok does not advertise the feature', async () => {

@@ -17,9 +17,9 @@ import { join } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import {
-    CURSOR_HAPI_MCP_SERVER_ID,
-    HAPI_MCP_OVERLAY_PID_ENV,
-    cursorHapiMcpServerId,
+    CURSOR_HAMLET_MCP_SERVER_ID,
+    HAMLET_MCP_OVERLAY_PID_ENV,
+    cursorHamletMcpServerId,
     installCursorMcpOverlay,
     isProcessAlive,
     readLockOwner,
@@ -40,7 +40,7 @@ describe('installCursorMcpOverlay', () => {
     });
 
     function makeProjectDir(initialMcpJson?: string): string {
-        const root = join(tmpdir(), `hapi-cursor-mcp-${randomUUID()}`);
+        const root = join(tmpdir(), `hamlet-cursor-mcp-${randomUUID()}`);
         mkdirSync(root, { recursive: true });
         roots.push(root);
         if (initialMcpJson !== undefined) {
@@ -61,12 +61,12 @@ describe('installCursorMcpOverlay', () => {
                 other: { command: 'echo', args: ['x'] },
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
 
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
 
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -75,11 +75,11 @@ describe('installCursorMcpOverlay', () => {
         };
         expect(merged.mcpServers.other).toEqual({ command: 'echo', args: ['x'] });
         expect(merged.mcpServers[serverId]).toEqual({
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
-            env: { [HAPI_MCP_OVERLAY_PID_ENV]: String(process.pid) },
+            env: { [HAMLET_MCP_OVERLAY_PID_ENV]: String(process.pid) },
         });
-        expect(merged.mcpServers[CURSOR_HAPI_MCP_SERVER_ID]).toBeUndefined();
+        expect(merged.mcpServers[CURSOR_HAMLET_MCP_SERVER_ID]).toBeUndefined();
 
         handle.cleanup();
         const after = JSON.parse(readFileSync(mcpPath, 'utf-8')) as {
@@ -96,16 +96,16 @@ describe('installCursorMcpOverlay', () => {
             },
         }, null, 2));
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
-        const idA = cursorHapiMcpServerId('session-a');
-        const idB = cursorHapiMcpServerId('session-b');
+        const idA = cursorHamletMcpServerId('session-a');
+        const idB = cursorHamletMcpServerId('session-b');
 
         const handleA = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:1111/'],
         }, { serverId: idA, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
         const handleB = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:2222/'],
         }, { serverId: idB, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -116,9 +116,9 @@ describe('installCursorMcpOverlay', () => {
         };
         expect(afterA.mcpServers[idA]).toBeUndefined();
         expect(afterA.mcpServers[idB]).toEqual({
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:2222/'],
-            env: { [HAPI_MCP_OVERLAY_PID_ENV]: String(process.pid) },
+            env: { [HAMLET_MCP_OVERLAY_PID_ENV]: String(process.pid) },
         });
 
         handleB.cleanup();
@@ -136,11 +136,11 @@ describe('installCursorMcpOverlay', () => {
                 other: { command: 'echo', args: ['x'] },
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
 
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -148,7 +148,7 @@ describe('installCursorMcpOverlay', () => {
             mcpServers: {
                 other: { command: 'echo', args: ['x'] },
                 [serverId]: {
-                    command: '/bin/hapi',
+                    command: '/bin/hamlet',
                     args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
                 },
                 concurrent: { command: 'npx', args: ['-y', 'some-mcp'] },
@@ -171,10 +171,10 @@ describe('installCursorMcpOverlay', () => {
                 other: { command: 'echo', args: ['x'] },
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-env');
+        const serverId = cursorHamletMcpServerId('session-env');
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -182,10 +182,10 @@ describe('installCursorMcpOverlay', () => {
             mcpServers: {
                 other: { command: 'echo', args: ['x'] },
                 [serverId]: {
-                    command: '/bin/hapi',
+                    command: '/bin/hamlet',
                     args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
                     env: {
-                        [HAPI_MCP_OVERLAY_PID_ENV]: String(process.pid),
+                        [HAMLET_MCP_OVERLAY_PID_ENV]: String(process.pid),
                         USER_TOKEN: 'keep-me',
                     },
                 },
@@ -198,18 +198,18 @@ describe('installCursorMcpOverlay', () => {
             mcpServers: Record<string, { command: string; args: string[]; env?: Record<string, string> }>;
         };
         expect(after.mcpServers[serverId]).toEqual({
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
             env: {
-                [HAPI_MCP_OVERLAY_PID_ENV]: String(process.pid),
+                [HAMLET_MCP_OVERLAY_PID_ENV]: String(process.pid),
                 USER_TOKEN: 'keep-me',
             },
         });
     });
 
     it('restores a pre-existing entry for the same server id instead of deleting it', () => {
-        const serverId = cursorHapiMcpServerId('session-a');
-        const prior = { command: 'old-hapi', args: ['mcp'] };
+        const serverId = cursorHamletMcpServerId('session-a');
+        const prior = { command: 'old-hamlet', args: ['mcp'] };
         const cwd = makeProjectDir(JSON.stringify({
             mcpServers: {
                 [serverId]: prior,
@@ -218,7 +218,7 @@ describe('installCursorMcpOverlay', () => {
 
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -230,18 +230,18 @@ describe('installCursorMcpOverlay', () => {
         expect(after.mcpServers[serverId]).toEqual(prior);
     });
 
-    it('does not touch a legacy shared hapi key when using a per-session id', () => {
-        const legacyHapi = { command: 'user-hapi', args: ['mcp', '--custom'] };
+    it('does not touch a legacy shared hamlet key when using a per-session id', () => {
+        const legacyHamlet = { command: 'user-hamlet', args: ['mcp', '--custom'] };
         const cwd = makeProjectDir(JSON.stringify({
             mcpServers: {
-                [CURSOR_HAPI_MCP_SERVER_ID]: legacyHapi,
+                [CURSOR_HAMLET_MCP_SERVER_ID]: legacyHamlet,
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
 
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -250,7 +250,7 @@ describe('installCursorMcpOverlay', () => {
         const after = JSON.parse(readFileSync(mcpPath, 'utf-8')) as {
             mcpServers: Record<string, { command: string; args: string[] }>;
         };
-        expect(after.mcpServers[CURSOR_HAPI_MCP_SERVER_ID]).toEqual(legacyHapi);
+        expect(after.mcpServers[CURSOR_HAMLET_MCP_SERVER_ID]).toEqual(legacyHamlet);
         expect(after.mcpServers[serverId]).toBeUndefined();
     });
 
@@ -260,15 +260,15 @@ describe('installCursorMcpOverlay', () => {
                 other: { command: 'echo', args: ['x'] },
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
 
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
-        const userOwned = { command: 'user-hapi', args: ['mcp', '--custom'] };
+        const userOwned = { command: 'user-hamlet', args: ['mcp', '--custom'] };
         writeFileSync(mcpPath, JSON.stringify({
             mcpServers: {
                 other: { command: 'echo', args: ['x'] },
@@ -287,11 +287,11 @@ describe('installCursorMcpOverlay', () => {
 
     it('creates .cursor/mcp.json when missing and removes file when only the session entry was present', () => {
         const cwd = makeProjectDir();
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
         expect(existsSync(join(cwd, '.cursor', 'mcp.json'))).toBe(false);
 
         const handle = installCursorMcpOverlay(cwd, {
-            command: 'hapi',
+            command: 'hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:9999/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
@@ -305,14 +305,14 @@ describe('installCursorMcpOverlay', () => {
     it('throws when existing .cursor/mcp.json is not valid JSON', () => {
         const cwd = makeProjectDir('{ not-json');
         expect(() => installCursorMcpOverlay(cwd, {
-            command: 'hapi',
+            command: 'hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:9999/'],
-        }, { serverId: cursorHapiMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow();
+        }, { serverId: cursorHamletMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow();
         // Malformed project config must stay untouched for the launcher try/catch path.
         expect(readFileSync(join(cwd, '.cursor', 'mcp.json'), 'utf-8')).toBe('{ not-json');
     });
 
-    it('prunes dead hapi-* overlays stamped with HAPI_MCP_OVERLAY_PID on install', () => {
+    it('prunes dead hamlet-* overlays stamped with HAMLET_MCP_OVERLAY_PID on install', () => {
         // spawnSync waits for exit; the returned pid is then dead.
         const probe = spawnSync(process.execPath, ['-e', ''], { encoding: 'utf-8' });
         const exitedPid = probe.pid;
@@ -322,38 +322,38 @@ describe('installCursorMcpOverlay', () => {
         const cwd = makeProjectDir(JSON.stringify({
             mcpServers: {
                 other: { command: 'echo', args: ['x'] },
-                'hapi-dead': {
-                    command: '/bin/hapi',
+                'hamlet-dead': {
+                    command: '/bin/hamlet',
                     args: ['mcp', '--url', 'http://127.0.0.1:1111/'],
-                    env: { [HAPI_MCP_OVERLAY_PID_ENV]: String(exitedPid) },
+                    env: { [HAMLET_MCP_OVERLAY_PID_ENV]: String(exitedPid) },
                 },
-                'hapi-live': {
-                    command: '/bin/hapi',
+                'hamlet-live': {
+                    command: '/bin/hamlet',
                     args: ['mcp', '--url', 'http://127.0.0.1:2222/'],
-                    env: { [HAPI_MCP_OVERLAY_PID_ENV]: String(process.pid) },
+                    env: { [HAMLET_MCP_OVERLAY_PID_ENV]: String(process.pid) },
                 },
-                'hapi-user': {
+                'hamlet-user': {
                     command: 'user-owned',
                     args: [],
                 },
             },
         }, null, 2));
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
 
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:3333/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
         const merged = JSON.parse(readFileSync(mcpPath, 'utf-8')) as {
             mcpServers: Record<string, { command: string; args?: string[]; env?: Record<string, string> }>;
         };
-        expect(merged.mcpServers['hapi-dead']).toBeUndefined();
-        expect(merged.mcpServers['hapi-live']?.command).toBe('/bin/hapi');
-        expect(merged.mcpServers['hapi-user']?.command).toBe('user-owned');
+        expect(merged.mcpServers['hamlet-dead']).toBeUndefined();
+        expect(merged.mcpServers['hamlet-live']?.command).toBe('/bin/hamlet');
+        expect(merged.mcpServers['hamlet-user']?.command).toBe('user-owned');
         expect(merged.mcpServers.other).toEqual({ command: 'echo', args: ['x'] });
-        expect(merged.mcpServers[serverId]?.env?.[HAPI_MCP_OVERLAY_PID_ENV]).toBe(String(process.pid));
+        expect(merged.mcpServers[serverId]?.env?.[HAMLET_MCP_OVERLAY_PID_ENV]).toBe(String(process.pid));
 
         handle.cleanup();
     });
@@ -373,9 +373,9 @@ describe('installCursorMcpOverlay', () => {
         symlinkSync(realConfig, mcpPath);
 
         expect(() => installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
-        }, { serverId: cursorHapiMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow(
+        }, { serverId: cursorHamletMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow(
             /Refusing to write a symlinked Cursor MCP config/
         );
 
@@ -393,9 +393,9 @@ describe('installCursorMcpOverlay', () => {
         symlinkSync(realCursorDir, join(cwd, '.cursor'));
 
         expect(() => installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
-        }, { serverId: cursorHapiMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow(
+        }, { serverId: cursorHamletMcpServerId('session-a'), enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') })).toThrow(
             /Refusing to use a symlinked Cursor config directory/
         );
 
@@ -424,7 +424,7 @@ describe('installCursorMcpOverlay', () => {
         const cwd = makeProjectDir();
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
         mkdirSync(join(cwd, '.cursor'), { recursive: true });
-        const lockPath = `${mcpPath}.hapi.lock`;
+        const lockPath = `${mcpPath}.hamlet.lock`;
 
         writeMcpJsonAtomic(mcpPath, {
             mcpServers: { a: { command: 'a', args: [] } },
@@ -452,7 +452,7 @@ describe('installCursorMcpOverlay', () => {
     it('withMcpJsonLock only unlinks its own token (does not delete a successor lock)', () => {
         const cwd = makeProjectDir();
         mkdirSync(join(cwd, '.cursor'), { recursive: true });
-        const lockPath = join(cwd, '.cursor', 'mcp.json.hapi.lock');
+        const lockPath = join(cwd, '.cursor', 'mcp.json.hamlet.lock');
 
         let releasedOwnerToken: string | undefined;
         withMcpJsonLock(lockPath, () => {
@@ -472,18 +472,18 @@ describe('installCursorMcpOverlay', () => {
 
     it('cleanup preserves concurrent top-level mcp.json fields when servers are empty', () => {
         const cwd = makeProjectDir();
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
 
         const handle = installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, { serverId, enableCursorMcp: noopEnable, mcpConfigDir: join(cwd, '.cursor') });
 
         writeFileSync(mcpPath, JSON.stringify({
             mcpServers: {
                 [serverId]: {
-                    command: '/bin/hapi',
+                    command: '/bin/hamlet',
                     args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
                 },
             },
@@ -509,7 +509,7 @@ describe('installCursorMcpOverlay', () => {
     it('fails closed on a stale lock instead of pathname-stealing', () => {
         const cwd = makeProjectDir();
         mkdirSync(join(cwd, '.cursor'), { recursive: true });
-        const lockPath = join(cwd, '.cursor', 'mcp.json.hapi.lock');
+        const lockPath = join(cwd, '.cursor', 'mcp.json.hamlet.lock');
         writeFileSync(lockPath, JSON.stringify({ pid: 2_147_483_646, token: 'dead-owner' }), 'utf-8');
 
         expect(() => withMcpJsonLock(lockPath, () => {})).toThrow(/Stale Cursor MCP overlay lock/);
@@ -517,18 +517,18 @@ describe('installCursorMcpOverlay', () => {
     });
 
     it('rolls back mcp.json and throws when agent mcp enable fails', () => {
-        const prior = { command: 'user-hapi', args: ['mcp'] };
+        const prior = { command: 'user-hamlet', args: ['mcp'] };
         const cwd = makeProjectDir(JSON.stringify({
             mcpServers: {
-                [CURSOR_HAPI_MCP_SERVER_ID]: prior,
+                [CURSOR_HAMLET_MCP_SERVER_ID]: prior,
                 other: { command: 'echo', args: ['x'] },
             },
         }, null, 2));
-        const serverId = cursorHapiMcpServerId('session-a');
+        const serverId = cursorHamletMcpServerId('session-a');
         const mcpPath = join(cwd, '.cursor', 'mcp.json');
 
         expect(() => installCursorMcpOverlay(cwd, {
-            command: '/bin/hapi',
+            command: '/bin/hamlet',
             args: ['mcp', '--url', 'http://127.0.0.1:12345/'],
         }, {
             serverId,
@@ -540,7 +540,7 @@ describe('installCursorMcpOverlay', () => {
             mcpServers: Record<string, { command: string; args: string[] }>;
         };
         expect(after.mcpServers[serverId]).toBeUndefined();
-        expect(after.mcpServers[CURSOR_HAPI_MCP_SERVER_ID]).toEqual(prior);
+        expect(after.mcpServers[CURSOR_HAMLET_MCP_SERVER_ID]).toEqual(prior);
         expect(after.mcpServers.other).toEqual({ command: 'echo', args: ['x'] });
     });
 });

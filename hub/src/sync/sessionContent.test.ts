@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { toSessionSummary, type SyncEvent } from '@hapi/protocol'
-import { SessionSchema } from '@hapi/protocol/schemas'
+import { toSessionSummary, type SyncEvent } from '@hamlet/protocol'
+import { SessionSchema } from '@hamlet/protocol/schemas'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { SyncEngine } from './syncEngine'

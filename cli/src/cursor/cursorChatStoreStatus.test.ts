@@ -8,7 +8,7 @@ import { inspectCursorChatStore } from './cursorChatStoreStatus'
 const homes: string[] = []
 
 async function makeHome(): Promise<string> {
-    const home = join(tmpdir(), `hapi-cursor-store-${randomUUID()}`)
+    const home = join(tmpdir(), `hamlet-cursor-store-${randomUUID()}`)
     homes.push(home)
     await mkdir(home, { recursive: true })
     return home

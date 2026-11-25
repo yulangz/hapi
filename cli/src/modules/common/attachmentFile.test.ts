@@ -13,7 +13,7 @@ describe('readBoundedAttachmentFile', () => {
     });
 
     async function createTemporaryDirectory(): Promise<string> {
-        const directory = await mkdtemp(join(tmpdir(), 'hapi-attachment-file-'));
+        const directory = await mkdtemp(join(tmpdir(), 'hamlet-attachment-file-'));
         directories.push(directory);
         return directory;
     }

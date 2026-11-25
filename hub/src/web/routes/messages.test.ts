@@ -347,7 +347,7 @@ describe('POST /api/sessions/:id/messages — #4 Zod error issues in response', 
 })
 
 // ---------------------------------------------------------------------------
-// HAPI Bot R3 finding 3: scheduledAt + attachments rejected
+// HAMLET Bot R3 finding 3: scheduledAt + attachments rejected
 // ---------------------------------------------------------------------------
 
 describe('POST /api/sessions/:id/messages — scheduledAt + attachments rejected', () => {

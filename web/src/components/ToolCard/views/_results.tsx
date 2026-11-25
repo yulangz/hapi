@@ -1,6 +1,6 @@
 import type { ToolViewComponent, ToolViewProps } from '@/components/ToolCard/views/_all'
 import type { ReactNode } from 'react'
-import { isObject, safeStringify } from '@hapi/protocol'
+import { isObject, safeStringify } from '@hamlet/protocol'
 import { CodeBlock } from '@/components/CodeBlock'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { ChecklistList, extractTodoChecklist } from '@/components/ToolCard/checklist'

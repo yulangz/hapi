@@ -9,7 +9,7 @@ import psList from 'ps-list';
 import { killProcess } from '@/utils/process';
 
 /**
- * Find all HAPI CLI processes (including current process)
+ * Find all HAMLET CLI processes (including current process)
  */
 export async function findAllHappyProcesses(): Promise<Array<{ pid: number, command: string, type: string }>> {
   try {
@@ -20,8 +20,8 @@ export async function findAllHappyProcesses(): Promise<Array<{ pid: number, comm
       const cmd = proc.cmd || '';
       const name = proc.name || '';
       
-      // Check if it's a HAPI process
-      const isHappyBinary = name === 'hapi' || name === 'hapi.exe' || /\bhapi(\.exe)?\b/.test(cmd);
+      // Check if it's a HAMLET process
+      const isHappyBinary = name === 'hamlet' || name === 'hamlet.exe' || /\bhamlet(\.exe)?\b/.test(cmd);
       // Dev mode: running via bun/node with src/index.ts (production uses compiled binary)
       const isDevMode = cmd.includes('src/index.ts');
       const isHappy = name.includes('happy') ||
@@ -60,7 +60,7 @@ export async function findAllHappyProcesses(): Promise<Array<{ pid: number, comm
 }
 
 /**
- * Find all runaway HAPI CLI processes that should be killed
+ * Find all runaway HAMLET CLI processes that should be killed
  */
 export async function findRunawayHappyProcesses(): Promise<Array<{ pid: number, command: string }>> {
   const allProcesses = await findAllHappyProcesses();
@@ -81,7 +81,7 @@ export async function findRunawayHappyProcesses(): Promise<Array<{ pid: number, 
 }
 
 /**
- * Kill all runaway HAPI CLI processes
+ * Kill all runaway HAMLET CLI processes
  */
 export async function killRunawayHappyProcesses(): Promise<{ killed: number, errors: Array<{ pid: number, error: string }> }> {
   const runawayProcesses = await findRunawayHappyProcesses();

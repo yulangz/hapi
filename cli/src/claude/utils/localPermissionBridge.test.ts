@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { AgentState } from '@hapi/protocol/schemas'
+import type { AgentState } from '@hamlet/protocol/schemas'
 import type { PermissionHandlerClient } from '@/modules/common/permission/BasePermissionHandler'
 import { LocalPermissionBridge } from './localPermissionBridge'
 import type { PermissionRequestHook } from './localPermissionProtocol'

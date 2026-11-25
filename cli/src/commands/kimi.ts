@@ -3,8 +3,8 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { KIMI_PERMISSION_MODES } from '@hapi/protocol/modes'
-import type { KimiPermissionMode } from '@hapi/protocol/types'
+import { KIMI_PERMISSION_MODES } from '@hamlet/protocol/modes'
+import type { KimiPermissionMode } from '@hamlet/protocol/types'
 
 export const kimiCommand: CommandDefinition = {
     name: 'kimi',
@@ -25,12 +25,12 @@ export const kimiCommand: CommandDefinition = {
                 const arg = commandArgs[i]
                 if (arg === '--started-by') {
                     options.startedBy = commandArgs[++i] as 'runner' | 'terminal'
-                } else if (arg === '--hapi-starting-mode') {
+                } else if (arg === '--hamlet-starting-mode') {
                     const value = commandArgs[++i]
                     if (value === 'local' || value === 'remote') {
                         options.startingMode = value
                     } else {
-                        throw new Error('Invalid --hapi-starting-mode (expected local or remote)')
+                        throw new Error('Invalid --hamlet-starting-mode (expected local or remote)')
                     }
                 } else if (arg === '--permission-mode') {
                     const mode = commandArgs[++i]

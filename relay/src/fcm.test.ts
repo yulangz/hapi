@@ -90,7 +90,7 @@ describe('relay to FCM integration', () => {
         const auth = await FcmAccessTokenProvider.create(account, { fetcher })
         const logs: string[] = []
         const app = createRelayApp({
-            fcm: new HttpFcmClient(account.project_id, 'run.hapi.companion', auth, fetcher), version: 'test',
+            fcm: new HttpFcmClient(account.project_id, 'run.hamlet.companion', auth, fetcher), version: 'test',
             ipLimiter: new TokenBucketLimiter(IP_RATE_LIMIT), tokenLimiter: new TokenBucketLimiter(TOKEN_RATE_LIMIT),
             log: line => logs.push(line)
         })
@@ -101,8 +101,8 @@ describe('relay to FCM integration', () => {
         }
         expect(requests).toEqual([10, 5].map(priority => ({
             url: 'https://fcm.googleapis.com/v1/projects/official-project/messages:send',
-            body: { message: { token, data: { hapi_v: '1', hapi_e: envelope }, android: {
-                priority: priority === 10 ? 'HIGH' : 'NORMAL', restricted_package_name: 'run.hapi.companion'
+            body: { message: { token, data: { hamlet_v: '1', hamlet_e: envelope }, android: {
+                priority: priority === 10 ? 'HIGH' : 'NORMAL', restricted_package_name: 'run.hamlet.companion'
             } } }
         })))
         expect(logs.join('\n')).toContain('platform=android')
@@ -118,7 +118,7 @@ describe('relay to FCM integration', () => {
         [503, {}, 502]
     ] as const)('maps FCM HTTP %i without losing registration on pipeline failures', async (status, body, expected) => {
         let invalidations = 0
-        const fcm = new HttpFcmClient('p', 'run.hapi.companion', {
+        const fcm = new HttpFcmClient('p', 'run.hamlet.companion', {
             async getAccessToken() { return 'access' }, invalidate() { invalidations += 1 }
         }, (async () => Response.json(body, { status })) as FcmFetch)
         const app = createRelayApp({ fcm, version: 'test', log: () => {},

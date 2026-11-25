@@ -1,13 +1,16 @@
-import type { AgentFlavor } from '@hapi/protocol'
-import type { CopilotAgentMode } from '@hapi/protocol'
+import type { AgentFlavor } from '@hamlet/protocol'
+import type { CopilotAgentMode } from '@hamlet/protocol'
 
 export interface SpawnSessionOptions {
+    hamletToken?: string
+    hamletMain?: boolean
+    hamletTimezone?: string
     machineId?: string
     directory: string
     sessionId?: string
     // Existing hub session id to reuse (reopen/resume). Distinct from the legacy
     // `sessionId` field above (reserved/unused by spawn): when set, the CLI boots
-    // with `--hapi-session-id` so the child reuses the existing hub row (stable
+    // with `--hamlet-session-id` so the child reuses the existing hub row (stable
     // id) instead of minting a new one. Set only by the hub reopen/resume path.
     existingSessionId?: string
     resumeSessionId?: string

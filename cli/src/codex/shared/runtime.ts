@@ -48,13 +48,19 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
     const home = await realpath(codexHome());
     await mkdir(runtimeDirectory(), { recursive: true, mode: 0o700 });
     // Unix sockaddr_un has a small path limit; don't nest sockets under CODEX_HOME.
-    const sockets = await mkdtemp(join(process.platform === 'win32' ? tmpdir() : '/tmp', 'hapi-cx-')); await chmod(sockets, 0o700);
+    const sockets = await mkdtemp(join(process.platform === 'win32' ? tmpdir() : '/tmp', 'hamlet-cx-')); await chmod(sockets, 0o700);
     const token = randomBytes(32).toString('hex');
-    const upstream = process.platform === 'win32' ? `ws://127.0.0.1:${await freePort()}` : `unix://${join(sockets, 'engine.sock')}`;
-    const upstreamToken = process.platform === 'win32' ? randomBytes(32).toString('hex') : undefined;
+    // Bun's built-in ws client cannot dial ws+unix. Reuse the token-authenticated loopback transport.
+    const tcp = process.platform === 'win32' || Boolean(process.versions.bun);
+    const upstream = tcp ? `ws://127.0.0.1:${await freePort()}` : `unix://${join(sockets, 'engine.sock')}`;
+    const upstreamToken = tcp ? randomBytes(32).toString('hex') : undefined;
     const env: NodeJS.ProcessEnv = { ...process.env, CODEX_HOME: home };
+    if (process.env.HAMLET_TOKEN) {
+        delete env.HAMLET_TOKEN;
+        delete env.CLI_API_TOKEN;
+    }
     // Every thread injects its own identity. A launch from another agent must not inherit that root's identity.
-    delete env.HAPI_SESSION_ID;
+    delete env.HAMLET_SESSION_ID;
     let server: ChildProcess | undefined;
     let gateway: Awaited<ReturnType<typeof startCodexGateway>> | undefined;
     let stopping = false;
@@ -217,7 +223,7 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         await persist();
     };
     const create = (method: 'thread/start' | 'thread/fork', params: Record<string, unknown>, parent?: SharedCodexRoot, initialOptions?: SharedLaunchOptions): Promise<SharedCodexRoot> => operation(async () => {
-        const root = await prepare(string(params.cwd) ?? launch.cwd, undefined, parent);
+        const root = await prepare(string(params.cwd) ?? launch.cwd, initialOptions?.existingSessionId, parent);
         let nativeSucceeded = false;
         try {
             runtime.pendingCreations = [...runtime.pendingCreations ?? [], root.session.sessionId]; await persist();
@@ -239,11 +245,11 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
     const before = (request: Envelope, connection: string): Promise<Envelope> => operation(async () => {
         const params = record(request.params);
         if (['thread/revert', 'thread/rollback'].includes(request.method ?? '')) {
-            throw new Error('In-place rewind is unavailable with concurrent HAPI clients. Use /fork or Fork at message instead.');
+            throw new Error('In-place rewind is unavailable with concurrent HAMLET clients. Use /fork or Fork at message instead.');
         }
         if (!['thread/start', 'thread/resume', 'thread/fork'].includes(request.method ?? '') || params.ephemeral === true) return request;
         if (request.id === undefined) throw new Error('Lifecycle operations require a JSON-RPC request ID');
-        if (params.history || params.path) throw new Error('Use a native thread ID to resume through HAPI');
+        if (params.history || params.path) throw new Error('Use a native thread ID to resume through HAMLET');
         const threadId = string(params.threadId);
         let existing = threadId ? roots.get(threadId) : undefined;
         if (threadId && !existing) {
@@ -258,9 +264,10 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
                 if (existing) break;
                 candidate = parent;
             }
-            if (candidate !== threadId && !existing) throw new Error('Resume the parent HAPI session before attaching a child agent');
+            if (candidate !== threadId && !existing) throw new Error('Resume the parent HAMLET session before attaching a child agent');
         }
         if (request.method === 'thread/resume' && existing) return { ...request, params: existing.config(params) };
+        if (process.env.HAMLET_AGENT_ID) throw new Error('Create managed agents through agent_create');
         if (threadId) await withThreadOwnership(home, threadId, id, async () => {});
         const cwd = string(params.cwd) ?? existing?.bootstrap.workingDirectory ?? launch.cwd;
         const root = request.method === 'thread/resume' && threadId
@@ -327,7 +334,7 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
         control.setTransportAbandonedHandler(reconnectControl);
         await checkSharedCapabilities(control);
         assertRunning();
-        gateway = await startCodexGateway({ upstream, upstreamToken, path: process.platform === 'win32' ? undefined : join(sockets, 'clients.sock'), token,
+        gateway = await startCodexGateway({ upstream, upstreamToken, path: tcp ? undefined : join(sockets, 'clients.sock'), token,
             hooks: { before, after, disconnected: connection => {
                 for (const [key, reservation] of reservations) {
                     if (!key.startsWith(`${connection}:`)) continue;
@@ -337,12 +344,12 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
             }, control: (method, params) => operation(async () => {
                 const sid = string(record(params).sessionId); const root = [...roots.values()].find(root => root.session.sessionId === sid);
                 if (!root) throw new Error('Shared session not found');
-                if (method === 'hapi/stopSession') { await end(root); return { stopped: true }; }
-                if (method === 'hapi/attach') return { threadId: root.threadId };
+                if (method === 'hamlet/stopSession') { await end(root); return { stopped: true }; }
+                if (method === 'hamlet/attach') return { threadId: root.threadId };
                 throw new Error('Unknown runtime control');
             }) } });
         if (stopping) { await gateway.close(); assertRunning(); }
-        runtime.endpoint = gateway.endpoint; if (process.platform === 'win32') runtime.token = token; await persist();
+        runtime.endpoint = gateway.endpoint; if (tcp) runtime.token = token; await persist();
         let root: SharedCodexRoot;
         if (options.resumeLast) {
             const response = record(await control.request('thread/list', { limit: 1, sortKey: 'updated_at', sortDirection: 'desc',
@@ -354,9 +361,9 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
             const threadId = options.resumeSessionId;
             const thread = record(record(await control.request('thread/read', { threadId, includeTurns: false })).thread);
             if (string(thread.parentThreadId)) {
-                throw new Error('Cannot cold-resume a child agent independently. Resume its parent HAPI session instead.');
+                throw new Error('Cannot cold-resume a child agent independently. Resume its parent HAMLET session instead.');
             }
-            // Prove ownership before bootstrap can alter an existing HAPI
+            // Prove ownership before bootstrap can alter an existing HAMLET
             // row's hostPid/metadata. Hold the lock until the reservation is durable.
             root = await withThreadOwnership(home, threadId, id, async () => {
                 const existing = options.existingSessionId ?? await findColdBinding(home, threadId);
@@ -368,7 +375,7 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
             try {
                 response = record(await root.client.request('thread/resume', params));
             } catch (error) {
-                // Reopening a HAPI binding also restores its native archive.
+                // Reopening a HAMLET binding also restores its native archive.
                 // Only retry an explicit archived rejection, never a transport
                 // failure whose resume outcome may be unknown.
                 if (!options.existingSessionId || !(error instanceof Error)

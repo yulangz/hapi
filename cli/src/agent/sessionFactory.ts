@@ -12,11 +12,11 @@ import { logger } from '@/ui/logger'
 import { runtimePath } from '@/projectPath'
 import { getInvokedCwd } from '@/utils/invokedCwd'
 import { readWorktreeEnv } from '@/utils/worktreeEnv'
-import { CURRENT_MACHINE_CAPABILITIES } from '@hapi/protocol/runnerCapabilities'
-import { exportHapiSessionEnv } from '@/agent/hapiSessionEnv'
+import { CURRENT_MACHINE_CAPABILITIES } from '@hamlet/protocol/runnerCapabilities'
+import { exportHamletSessionEnv } from '@/agent/hamletSessionEnv'
 import packageJson from '../../package.json'
 
-export { HAPI_SESSION_ID_ENV, exportHapiSessionEnv, exportHapiHubAuthEnv } from '@/agent/hapiSessionEnv'
+export { HAMLET_SESSION_ID_ENV, exportHamletSessionEnv, exportHamletHubAuthEnv } from '@/agent/hamletSessionEnv'
 
 export type SessionStartedBy = 'runner' | 'terminal'
 
@@ -59,7 +59,7 @@ export function buildMachineMetadata(options?: {
     const installedCliMtimeMs = getInstalledCliMtimeMs()
     const startedCliMtimeMs = options?.startedCliMtimeMs ?? installedCliMtimeMs
     const base: MachineMetadata = {
-        host: process.env.HAPI_HOSTNAME || os.hostname(),
+        host: process.env.HAMLET_HOSTNAME || os.hostname(),
         platform: os.platform(),
         happyCliVersion: packageJson.version,
         homeDir: os.homedir(),
@@ -76,7 +76,7 @@ export function buildMachineMetadata(options?: {
         ...(typeof startedCliMtimeMs === 'number' ? { startedCliMtimeMs } : {}),
         ...(typeof installedCliMtimeMs === 'number' ? { installedCliMtimeMs } : {}),
         // Always boolean so hub merge can clear a prior true on unsupervised restart.
-        supervisedRestart: process.env.HAPI_RUNNER_SUPERVISED === '1',
+        supervisedRestart: process.env.HAMLET_RUNNER_SUPERVISED === '1',
     }
 }
 
@@ -94,7 +94,7 @@ export function buildSessionMetadata(options: {
 
     return {
         path: options.workingDirectory,
-        host: process.env.HAPI_HOSTNAME || os.hostname(),
+        host: process.env.HAMLET_HOSTNAME || os.hostname(),
         version: packageJson.version,
         os: os.platform(),
         machineId: options.machineId,
@@ -122,6 +122,7 @@ function pickExistingSessionMetadata(metadata: Metadata | null | undefined): Par
     const preserved: Partial<Metadata> = {}
 
     if (metadata.name !== undefined) preserved.name = metadata.name
+    if (metadata.hamletAgent) preserved.hamletAgent = true
     if (metadata.summary !== undefined) preserved.summary = metadata.summary
     if (metadata.claudeSessionId !== undefined) preserved.claudeSessionId = metadata.claudeSessionId
     if (metadata.codexSessionId !== undefined) preserved.codexSessionId = metadata.codexSessionId
@@ -232,7 +233,7 @@ export async function bootstrapSession(options: SessionBootstrapOptions): Promis
 
     const session = api.sessionSyncClient(sessionInfo)
 
-    if (options.exportSessionEnv !== false) exportHapiSessionEnv(sessionInfo.id)
+    if (options.exportSessionEnv !== false) exportHamletSessionEnv(sessionInfo.id)
 
     if (options.reportStarted !== false) await reportSessionStarted(sessionInfo.id, metadata)
 
@@ -315,9 +316,9 @@ export async function bootstrapLazySession(options: SessionBootstrapOptions): Pr
         },
         onMaterialized: (materialized, snapshot) => {
             // Export only after the hub row exists. Exporting the provisional id at
-            // bootstrap lets agents inherit HAPI_SESSION_ID before GET /api/sessions/:id
-            // can resolve (and before hapiMcpUrl is persisted) — #1119 / PR #1121 Major.
-            if (options.exportSessionEnv !== false) exportHapiSessionEnv(materialized.id)
+            // bootstrap lets agents inherit HAMLET_SESSION_ID before GET /api/sessions/:id
+            // can resolve (and before hamletMcpUrl is persisted) — #1119 / PR #1121 Major.
+            if (options.exportSessionEnv !== false) exportHamletSessionEnv(materialized.id)
             void reportSessionStarted(materialized.id, snapshot.metadata ?? metadata)
         }
     })
@@ -376,7 +377,7 @@ export async function bootstrapExistingSession(options: {
     const session = api.sessionSyncClient(sessionInfo)
     session.updateMetadata(buildUpdatedMetadata)
 
-    if (options.exportSessionEnv !== false) exportHapiSessionEnv(sessionInfo.id)
+    if (options.exportSessionEnv !== false) exportHamletSessionEnv(sessionInfo.id)
 
     if (options.reportStarted !== false) await reportSessionStarted(sessionInfo.id, metadata)
 

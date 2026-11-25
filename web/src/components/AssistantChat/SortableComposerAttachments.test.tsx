@@ -98,7 +98,7 @@ afterEach(() => {
 describe('SortableComposerAttachments', () => {
     it('reorders an image or file when its drag handle crosses another attachment', () => {
         const elementsFromPoint = vi.fn(() => [
-            document.querySelector('[data-hapi-composer-attachment-id="c"]')!,
+            document.querySelector('[data-hamlet-composer-attachment-id="c"]')!,
         ])
         Object.defineProperty(document, 'elementsFromPoint', {
             configurable: true,
@@ -107,7 +107,7 @@ describe('SortableComposerAttachments', () => {
 
         const { container } = render(<Harness />)
         vi.spyOn(
-            container.querySelector('[data-hapi-composer-attachment-id="c"]')!,
+            container.querySelector('[data-hamlet-composer-attachment-id="c"]')!,
             'getBoundingClientRect',
         ).mockReturnValue({ left: 100, width: 100, right: 200, top: 0, bottom: 50, height: 50 } as DOMRect)
         const handle = screen.getByRole('button', { name: 'Reorder attachment a.png' })
@@ -120,13 +120,13 @@ describe('SortableComposerAttachments', () => {
 
         expect(elementsFromPoint).toHaveBeenCalled()
         expect(Array.from(
-            container.querySelectorAll<HTMLElement>('[data-hapi-composer-attachment-id]'),
-        ).map((element) => element.dataset.hapiComposerAttachmentId)).toEqual(['b', 'a', 'c'])
+            container.querySelectorAll<HTMLElement>('[data-hamlet-composer-attachment-id]'),
+        ).map((element) => element.dataset.hamletComposerAttachmentId)).toEqual(['b', 'a', 'c'])
     })
 
     it('moves the first attachment after the second when dragged across its midpoint', () => {
         const elementsFromPoint = vi.fn(() => [
-            document.querySelector('[data-hapi-composer-attachment-id="b"]')!,
+            document.querySelector('[data-hamlet-composer-attachment-id="b"]')!,
         ])
         Object.defineProperty(document, 'elementsFromPoint', {
             configurable: true,
@@ -135,7 +135,7 @@ describe('SortableComposerAttachments', () => {
 
         const { container } = render(<Harness />)
         vi.spyOn(
-            container.querySelector('[data-hapi-composer-attachment-id="b"]')!,
+            container.querySelector('[data-hamlet-composer-attachment-id="b"]')!,
             'getBoundingClientRect',
         ).mockReturnValue({ left: 0, width: 100, right: 100, top: 0, bottom: 50, height: 50 } as DOMRect)
         const handle = screen.getByRole('button', { name: 'Reorder attachment a.png' })
@@ -147,8 +147,8 @@ describe('SortableComposerAttachments', () => {
         })
 
         expect(Array.from(
-            container.querySelectorAll<HTMLElement>('[data-hapi-composer-attachment-id]'),
-        ).map((element) => element.dataset.hapiComposerAttachmentId)).toEqual(['b', 'a', 'c'])
+            container.querySelectorAll<HTMLElement>('[data-hamlet-composer-attachment-id]'),
+        ).map((element) => element.dataset.hamletComposerAttachmentId)).toEqual(['b', 'a', 'c'])
     })
 
     it('supports keyboard movement through the same ordering path', () => {
@@ -156,8 +156,8 @@ describe('SortableComposerAttachments', () => {
         fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder attachment b.txt' }), { key: 'ArrowLeft' })
 
         expect(Array.from(
-            container.querySelectorAll<HTMLElement>('[data-hapi-composer-attachment-id]'),
-        ).map((element) => element.dataset.hapiComposerAttachmentId)).toEqual(['b', 'a', 'c'])
+            container.querySelectorAll<HTMLElement>('[data-hamlet-composer-attachment-id]'),
+        ).map((element) => element.dataset.hamletComposerAttachmentId)).toEqual(['b', 'a', 'c'])
     })
 
     it('moves an attachment right with the keyboard', () => {
@@ -165,13 +165,13 @@ describe('SortableComposerAttachments', () => {
         fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder attachment b.txt' }), { key: 'ArrowRight' })
 
         expect(Array.from(
-            container.querySelectorAll<HTMLElement>('[data-hapi-composer-attachment-id]'),
-        ).map((element) => element.dataset.hapiComposerAttachmentId)).toEqual(['a', 'c', 'b'])
+            container.querySelectorAll<HTMLElement>('[data-hamlet-composer-attachment-id]'),
+        ).map((element) => element.dataset.hamletComposerAttachmentId)).toEqual(['a', 'c', 'b'])
     })
 
     it('starts a drag from an image surface and suppresses its long-press menu', () => {
         const elementsFromPoint = vi.fn(() => [
-            document.querySelector('[data-hapi-composer-attachment-id="c"]')!,
+            document.querySelector('[data-hamlet-composer-attachment-id="c"]')!,
         ])
         Object.defineProperty(document, 'elementsFromPoint', {
             configurable: true,
@@ -180,7 +180,7 @@ describe('SortableComposerAttachments', () => {
 
         const { container } = render(<Harness />)
         vi.spyOn(
-            container.querySelector('[data-hapi-composer-attachment-id="c"]')!,
+            container.querySelector('[data-hamlet-composer-attachment-id="c"]')!,
             'getBoundingClientRect',
         ).mockReturnValue({ left: 100, width: 100, right: 200, top: 0, bottom: 50, height: 50 } as DOMRect)
         const surface = screen.getAllByTestId('attachment-surface')[0]!
@@ -198,7 +198,7 @@ describe('SortableComposerAttachments', () => {
         })
 
         expect(Array.from(
-            container.querySelectorAll<HTMLElement>('[data-hapi-composer-attachment-id]'),
-        ).map((element) => element.dataset.hapiComposerAttachmentId)).toEqual(['b', 'a', 'c'])
+            container.querySelectorAll<HTMLElement>('[data-hamlet-composer-attachment-id]'),
+        ).map((element) => element.dataset.hamletComposerAttachmentId)).toEqual(['b', 'a', 'c'])
     })
 })

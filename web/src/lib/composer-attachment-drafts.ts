@@ -1,4 +1,4 @@
-const DB_NAME = 'hapi-composer-drafts'
+const DB_NAME = 'hamlet-composer-drafts'
 const DB_VERSION = 1
 const STORE = 'attachments'
 const MAX_DRAFTS = 50

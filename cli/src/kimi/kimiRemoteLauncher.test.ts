@@ -25,8 +25,8 @@ vi.mock('./utils/kimiBackend', () => ({
     }))
 }))
 
-vi.mock('@/codex/utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async () => ({
+vi.mock('@/codex/utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async () => ({
         server: { stop: () => {} },
         mcpServers: {}
     })

@@ -16,7 +16,7 @@ describe('file RPC handlers', () => {
     let rpc: RpcHandlerManager
 
     beforeEach(async () => {
-        rootDir = await createTempDir('hapi-file-handler')
+        rootDir = await createTempDir('hamlet-file-handler')
         rpc = new RpcHandlerManager({ scopePrefix: 'session-test' })
         registerFileHandlers(rpc, rootDir)
     })

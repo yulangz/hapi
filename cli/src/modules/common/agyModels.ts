@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { getAgentLaunchCommand } from '@/agent/agentLaunchCommand'
-import { AGY_MODEL_LABELS, AGY_MODEL_PRESETS } from '@hapi/protocol'
-import type { AgyModelsResponse } from '@hapi/protocol/apiTypes'
+import { AGY_MODEL_LABELS, AGY_MODEL_PRESETS } from '@hamlet/protocol'
+import type { AgyModelsResponse } from '@hamlet/protocol/apiTypes'
 
 export type ListAgyModelsResponse = AgyModelsResponse
 

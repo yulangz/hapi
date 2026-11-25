@@ -26,7 +26,7 @@ const MANAGED_KEYS = [
 ] as const
 
 function makeTempDir(): string {
-    return mkdtempSync(join(tmpdir(), 'hapi-provider-creds-'))
+    return mkdtempSync(join(tmpdir(), 'hamlet-provider-creds-'))
 }
 
 describe('providerCredentials', () => {
@@ -373,7 +373,7 @@ describe('providerCredentials', () => {
         writeFileSync(join(dir, 'settings.json'), JSON.stringify({ machineId: 'keep-me' }))
         await applyProviderCredentialsFromSettings(dir)
         const { updateSettings, getSettingsFile, readSettings } = await import('./settings')
-        const { withSettingsFileLock } = await import('@hapi/protocol/settingsFileLock')
+        const { withSettingsFileLock } = await import('@hamlet/protocol/settingsFileLock')
         const { writeFile, chmod, rename, stat } = await import('node:fs/promises')
         const settingsFile = getSettingsFile(dir)
 

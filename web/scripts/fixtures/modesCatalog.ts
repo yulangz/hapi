@@ -4,7 +4,7 @@ import {
     getPermissionModeOptionsForFlavor,
     type CodexCollaborationModeOption,
     type PermissionModeOption
-} from '@hapi/protocol/modes'
+} from '@hamlet/protocol/modes'
 
 export type ModesCatalog = {
     /** Codex-only collaboration axis (independent of the permission mode). */

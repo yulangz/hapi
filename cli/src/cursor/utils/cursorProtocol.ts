@@ -1,4 +1,4 @@
-import type { Metadata } from '@hapi/protocol/schemas';
+import type { Metadata } from '@hamlet/protocol/schemas';
 
 export type CursorSessionProtocol = 'acp' | 'stream-json';
 

@@ -14,7 +14,7 @@
         <!-- iOS PWA Meta Tags -->
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="HAPI" />
+        <meta name="apple-mobile-web-app-title" content="Hamlet" />
         <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 
         <!-- Favicon -->
@@ -27,7 +27,7 @@
         <script>
             (function () {
                 try {
-                    var raw = localStorage.getItem('hapi-font-scale')
+                    var raw = localStorage.getItem('hamlet-font-scale')
                     var scale = Number(raw)
                     if (scale === 0.8 || scale === 0.9 || scale === 1 || scale === 1.1 || scale === 1.2) {
                         document.documentElement.style.setProperty('--app-font-scale', String(scale))
@@ -63,7 +63,7 @@
 
                 function getInitialScheme() {
                     try {
-                        var appearance = localStorage.getItem('hapi-appearance')
+                        var appearance = localStorage.getItem('hamlet-appearance')
                         if (appearance === 'dark' || appearance === 'light' || appearance === 'oled') return appearance
                     } catch (error) {
                         // Ignore storage errors.
@@ -77,7 +77,7 @@
                 var scheme = getInitialScheme()
                 var colorTheme = 'default'
                 try {
-                    var storedColorTheme = localStorage.getItem('hapi-color-theme')
+                    var storedColorTheme = localStorage.getItem('hamlet-color-theme')
                     if (storedColorTheme && themeBackgrounds[storedColorTheme]) colorTheme = storedColorTheme
                 } catch (error) {
                     // Ignore storage errors.
@@ -100,7 +100,7 @@
             html[data-color-theme]:not([data-color-theme="default"]) { background: inherit }
         </style>
 
-        <title>HAPI</title>
+        <title>Hamlet</title>
     </head>
     <body>
         <div id="root"></div>

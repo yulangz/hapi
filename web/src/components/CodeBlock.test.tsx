@@ -90,7 +90,7 @@ describe('CodeBlock', () => {
     })
 
     it('reads the persisted wrap preference on mount and still keeps line numbers', () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>
@@ -111,12 +111,12 @@ describe('CodeBlock', () => {
             </I18nProvider>
         )
 
-        const grid = container.querySelector('[data-hapi-code-grid="true"]') as HTMLElement
+        const grid = container.querySelector('[data-hamlet-code-grid="true"]') as HTMLElement
         expect(grid.style.gridTemplateColumns).toBe('calc(3ch + 1.5rem) max-content')
     })
 
     it('uses the natural pre-wrap layout without hiding or shifting leading whitespace', () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
         const source = ' \t  --format a-deliberately-long-terminal-argument'
         const { container } = render(<I18nProvider><CodeBlock code={source} language="shellscript" /></I18nProvider>)
         const codeCell = container.querySelector('[data-code-cell]') as HTMLElement

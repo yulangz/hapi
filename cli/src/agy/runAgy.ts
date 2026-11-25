@@ -51,7 +51,7 @@ export async function runAgy(opts: {
             flavor: 'agy',
             startedBy,
             workingDirectory,
-            tag: `__hapi_agy_${randomUUID()}`,
+            tag: `__hamlet_agy_${randomUUID()}`,
             agentState: initialState,
             model: initialModel ?? undefined,
             effort: opts.effort ?? undefined

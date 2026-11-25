@@ -1,6 +1,6 @@
-# hapi-web
+# hamlet-web
 
-React Mini App / PWA for monitoring and controlling hapi sessions.
+React Mini App / PWA for monitoring and controlling hamlet sessions.
 
 ## What it does
 
@@ -117,7 +117,7 @@ For a new, non-essential feature whose affordance would otherwise be hard to
 discover, consider the existing FUE primitive rather than a permanent UI block.
 Optional, not a requirement for every feature or a reason to expand a bug fix.
 
-- `src/lib/use-fue.ts`: `useFue(featureId)` returns `{ status, engage, dismiss }`; acknowledgement is isolated per feature in `hapi.fue.v1.<featureId>` localStorage keys.
+- `src/lib/use-fue.ts`: `useFue(featureId)` returns `{ status, engage, dismiss }`; acknowledgement is isolated per feature in `hamlet.fue.v1.<featureId>` localStorage keys.
 - `src/components/Fue.tsx`: `FueDot` marks the affordance; `FueCallout` explains it while `status === 'engaging'`.
 - Dismissal requires an affirmative user action ("Got it"), never an auto-timeout.
 - The FUE dot and feature-specific badges/counters are mutually exclusive; onboarding wins until acknowledged.
@@ -172,7 +172,7 @@ bun run dev:web
 
 If testing in Telegram, set:
 
-- `HAPI_PUBLIC_URL` to the public HTTPS URL of the dev server.
+- `HAMLET_PUBLIC_URL` to the public HTTPS URL of the dev server.
 - `CORS_ORIGINS` to include the dev server origin.
 
 ## Tests
@@ -202,11 +202,11 @@ auth / socket setup is required.
 bun run build:web
 ```
 
-The built assets land in `web/dist` and are served by hapi-hub. The single executable can embed these assets.
+The built assets land in `web/dist` and are served by hamlet-hub. The single executable can embed these assets.
 
 ## Standalone hosting
 
-You can host `web/dist` on a static host (GitHub Pages, Cloudflare Pages) and point it at any hapi hub:
+You can host `web/dist` on a static host (GitHub Pages, Cloudflare Pages) and point it at any hamlet hub:
 
 1. Build the web app. If your static host uses a subpath, set the Vite base:
 
@@ -215,7 +215,7 @@ bun run build:web -- --base /<repo>/
 ```
 
 2. Deploy `web/dist` to your static host.
-3. Set hub CORS to allow the static origin (`HAPI_PUBLIC_URL` or `CORS_ORIGINS`).
-4. Open the static site, click the top-right Hub button on the login screen, and enter the hapi hub origin.
+3. Set hub CORS to allow the static origin (`HAMLET_PUBLIC_URL` or `CORS_ORIGINS`).
+4. Open the static site, click the top-right Hub button on the login screen, and enter the hamlet hub origin.
 
 Clear the hub override in the same dialog to return to same-origin behavior.

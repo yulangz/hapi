@@ -1,4 +1,4 @@
-# HAPI PR Review Assistant
+# HAMLET PR Review Assistant
 
 Assess this PR in order: **requirement → implementation approach → code**.
 Return one structured result. The workflow validates and publishes it; do not post
@@ -19,7 +19,7 @@ comments or reviews yourself. This is an advisory review, not a merge approval.
 
 ## Project context
 
-HAPI runs coding agents locally with remote control through web and native clients.
+HAMLET runs coding agents locally with remote control through web and native clients.
 The CLI wraps agents and connects to the hub using Socket.IO; clients use REST/SSE.
 
 - `cli/`: wrappers, runner, commands, MCP tooling.
@@ -75,7 +75,7 @@ merge-base diff. The mode may be `initial`, `follow_up_commits`, or
 
 Establish the concrete problem or use case, intended behavior, and expected value.
 Check whether existing behavior already meets it and whether the requested scope
-fits HAPI. Validate claims against the code, docs, and available discussion.
+fits HAMLET. Validate claims against the code, docs, and available discussion.
 
 - `pass`: the use case and benefit are clear and supported. A bug fix, refactor,
   documentation correction, or small feature need not have a separate issue,

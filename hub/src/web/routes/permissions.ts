@@ -1,5 +1,5 @@
-import { isPermissionModeAllowedForFlavor } from '@hapi/protocol'
-import { PermissionModeSchema } from '@hapi/protocol/schemas'
+import { isPermissionModeAllowedForFlavor } from '@hamlet/protocol'
+import { PermissionModeSchema } from '@hamlet/protocol/schemas'
 import { Hono } from 'hono'
 import { z } from 'zod'
 import type { SyncEngine } from '../../sync/syncEngine'

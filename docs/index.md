@@ -1,6 +1,6 @@
 ---
 layout: home
-title: HAPI Documentation
+title: HAMLET Documentation
 ---
 
 <script setup>

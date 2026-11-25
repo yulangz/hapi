@@ -6,7 +6,7 @@ import {
     ClearOpencodeSessionCallbackRequestSchema,
     CursorMigrateToAcpRequestSchema,
     PROTOCOL_VERSION
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import { getConfiguration } from '../../configuration'
 import { readSessionSummaryContractEnabled } from '../../config/sessionSummaryContract'
 import { constantTimeEquals } from '../../utils/crypto'
@@ -69,7 +69,7 @@ export function createCliRoutes(getSyncEngine: () => SyncEngine | null): Hono<Cl
     const app = new Hono<CliEnv>()
 
     app.use('*', async (c, next) => {
-        c.header('X-Hapi-Protocol-Version', String(PROTOCOL_VERSION))
+        c.header('X-Hamlet-Protocol-Version', String(PROTOCOL_VERSION))
 
         const raw = c.req.header('authorization')
         if (!raw) {

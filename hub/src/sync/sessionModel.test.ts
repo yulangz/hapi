@@ -1,6 +1,6 @@
 import { describe, expect, it, spyOn } from 'bun:test'
-import { toSessionSummary } from '@hapi/protocol'
-import type { SyncEvent } from '@hapi/protocol/types'
+import { toSessionSummary } from '@hamlet/protocol'
+import type { SyncEvent } from '@hamlet/protocol/types'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { registerSessionHandlers } from '../socket/handlers/cli/sessionHandlers'
@@ -1671,7 +1671,7 @@ describe('session model', () => {
                 content: {
                     type: 'output',
                     data: {
-                        sessionId: 'hapi-session-id-not-claude-uuid'
+                        sessionId: 'hamlet-session-id-not-claude-uuid'
                     }
                 }
             })

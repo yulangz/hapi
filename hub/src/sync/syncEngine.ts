@@ -1,26 +1,27 @@
 /**
- * Sync Engine for HAPI Telegram Bot (Direct Connect)
+ * Sync Engine for HAMLET Telegram Bot (Direct Connect)
  *
  * In the direct-connect architecture:
- * - hapi-hub is the hub (Socket.IO + REST)
- * - hapi CLI connects directly to the hub (no relay)
+ * - hamlet-hub is the hub (Socket.IO + REST)
+ * - hamlet CLI connects directly to the hub (no relay)
  * - No E2E encryption; data is stored as JSON in SQLite
  */
 
-import { isKnownFlavor, isSteeringSupportedForSession, type LocalResumeTarget, type ResumableSession, type SessionEndReason } from '@hapi/protocol'
+import { HamletService } from '../hamlet/service'
+import { isKnownFlavor, isSteeringSupportedForSession, type LocalResumeTarget, type ResumableSession, type SessionEndReason } from '@hamlet/protocol'
 import {
     cliBinaryUpdatedOnDisk,
     isMachineCapabilitySkewed,
-} from '@hapi/protocol/runnerCapabilities'
-import type { CursorChatStoreStatus, CursorMigrateOutcome, CursorMigrateToAcpRequest, MessageDeliveryMode, MessagesResponse, QueuedStateResponse, RewindConversationErrorCode, SlashCommandsResponse } from '@hapi/protocol/apiTypes'
-import type { SteerQueuedMessageResponse } from '@hapi/protocol/schemas'
-import type { ImplementCodexPlanResult } from '@hapi/protocol/apiTypes'
-import type { AgentFlavor, CodexCollaborationMode, CopilotAgentMode, DecryptedMessage, PermissionMode, Session, SyncEvent } from '@hapi/protocol/types'
-import { hasConversationMessageContent, unwrapRoleWrappedRecordEnvelope } from '@hapi/protocol/messages'
+} from '@hamlet/protocol/runnerCapabilities'
+import type { CursorChatStoreStatus, CursorMigrateOutcome, CursorMigrateToAcpRequest, MessageDeliveryMode, MessagesResponse, QueuedStateResponse, RewindConversationErrorCode, SlashCommandsResponse } from '@hamlet/protocol/apiTypes'
+import type { SteerQueuedMessageResponse } from '@hamlet/protocol/schemas'
+import type { ImplementCodexPlanResult } from '@hamlet/protocol/apiTypes'
+import type { AgentFlavor, CodexCollaborationMode, CopilotAgentMode, DecryptedMessage, PermissionMode, Session, SyncEvent } from '@hamlet/protocol/types'
+import { hasConversationMessageContent, unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
 import type { Server } from 'socket.io'
 import { randomUUID } from 'node:crypto'
 import type { Store, CancelQueuedMessageResult } from '../store'
-import type { HapiSessionExportResult } from '@hapi/protocol/sessionExport'
+import type { HamletSessionExportResult } from '@hamlet/protocol/sessionExport'
 import type { RpcRegistry } from '../socket/rpcRegistry'
 import { clearAgentTerminalBuffer } from '../socket/agentTerminalBuffer'
 import type { SSEManager } from '../sse/sseManager'
@@ -67,7 +68,7 @@ import { ingestNotifySummaryFromMessage } from './workGraphNotifyIngest'
 type PiResumeAttempt = NonNullable<NonNullable<Session['metadata']>['piResumeAttempt']>
 type PtyResumeAttempt = NonNullable<NonNullable<Session['metadata']>['ptyResumeAttempt']>
 
-export type { Session, SyncEvent } from '@hapi/protocol/types'
+export type { Session, SyncEvent } from '@hamlet/protocol/types'
 export type { Machine } from './machineCache'
 export type { SyncEventListener } from './eventPublisher'
 export type {
@@ -175,6 +176,7 @@ function extractClaudeUserMessageTextFromAgentOutput(content: unknown): string |
 }
 
 export class SyncEngine {
+    readonly hamlet: HamletService
     private readonly eventPublisher: EventPublisher
     private readonly sessionCache: SessionCache
     private readonly machineCache: MachineCache
@@ -232,7 +234,11 @@ export class SyncEngine {
             (sessionId, updatedAt) => this.recordSessionActivity(sessionId, updatedAt)
         )
         this.titleSuggestionService = createTitleSuggestionService(store)
-        this.rpcGateway = new RpcGateway(io, rpcRegistry)
+        this.rpcGateway = new RpcGateway(io, rpcRegistry, id => {
+            const agent = store.hamlet?.agent(id)
+            return agent && { ...agent, timezone: store.hamlet.userTimezone(agent.namespace) }
+        })
+        this.hamlet = new HamletService(store.hamlet, this, this.rpcGateway)
         this.reloadAll()
         this.inactivityTimer = setInterval(() => this.expireInactive(), 5_000)
     }
@@ -242,6 +248,7 @@ export class SyncEngine {
     }
 
     stop(): void {
+        this.hamlet.stop()
         if (this.inactivityTimer) {
             clearInterval(this.inactivityTimer)
             this.inactivityTimer = null
@@ -426,7 +433,7 @@ export class SyncEngine {
         return this.messageService.getQueuedState(sessionId, localIds)
     }
 
-    getSessionExport(sessionId: string, session: Session, options?: { force?: boolean }): HapiSessionExportResult {
+    getSessionExport(sessionId: string, session: Session, options?: { force?: boolean }): HamletSessionExportResult {
         return this.messageService.getSessionExport(sessionId, session, options)
     }
 
@@ -635,7 +642,7 @@ export class SyncEngine {
         text: string
         createdAt: number
         updatedAt: number
-        attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+        attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
     }> {
         return this.store.scratchlist.list(sessionId).map((row) => ({
             entryId: row.entryId,
@@ -669,7 +676,7 @@ export class SyncEngine {
         text: string
         createdAt: number
         updatedAt: number
-        attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+        attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
     } | null {
         const row = this.store.scratchlist.get(sessionId, entryId)
         if (!row) return null
@@ -700,7 +707,7 @@ export class SyncEngine {
         options?: {
             entryId?: string
             createdAt?: number
-            attachments?: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments?: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     ): {
         outcome: 'created' | 'duplicate'
@@ -709,7 +716,7 @@ export class SyncEngine {
             text: string
             createdAt: number
             updatedAt: number
-            attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     } | { outcome: 'session-not-found' } {
         const result = this.store.scratchlist.create(sessionId, text, options)
@@ -736,14 +743,14 @@ export class SyncEngine {
         entryId: string,
         patch: {
             text?: string
-            attachments?: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments?: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     ): {
         entryId: string
         text: string
         createdAt: number
         updatedAt: number
-        attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+        attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
     } | null {
         const updated = this.store.scratchlist.update(sessionId, entryId, patch)
         if (!updated) return null
@@ -770,8 +777,8 @@ export class SyncEngine {
             )
             const orphaned = existing.attachments.filter((att) => !remainingIds.has(att.id))
             if (orphaned.length > 0) {
-                void import('../scratchlistAttachments/storage').then(({ deleteScratchlistAttachmentFiles, getHapiHomeDir }) =>
-                    deleteScratchlistAttachmentFiles(getHapiHomeDir(), orphaned)
+                void import('../scratchlistAttachments/storage').then(({ deleteScratchlistAttachmentFiles, getHamletHomeDir }) =>
+                    deleteScratchlistAttachmentFiles(getHamletHomeDir(), orphaned)
                 )
             }
             this.sessionCache.emitScratchlistChanged(sessionId, Date.now())
@@ -809,12 +816,12 @@ export class SyncEngine {
         filename: string,
         contentBase64: string,
         mimeType: string
-    ): Promise<{ success: true; attachment: import('@hapi/protocol').ScratchlistAttachmentMetadata } | { success: false; error: string; code?: string }> {
+    ): Promise<{ success: true; attachment: import('@hamlet/protocol').ScratchlistAttachmentMetadata } | { success: false; error: string; code?: string }> {
         const { loadScratchlistAttachmentLimitsFromEnv, isAllowedScratchlistMime } = await import('../config/scratchlistAttachmentLimits')
         const {
             estimateBase64Bytes,
             writeScratchlistAttachmentFile,
-            getHapiHomeDir,
+            getHamletHomeDir,
             sumScratchlistAttachmentBytesOnDisk,
         } = await import('../scratchlistAttachments/storage')
         const { validateScratchlistAttachmentsForWrite } = await import('../scratchlistAttachments/validate')
@@ -828,10 +835,10 @@ export class SyncEngine {
             return { success: false, error: 'Mime type not allowed', code: 'scratchlist_attachment_mime' }
         }
 
-        const hapiHome = getHapiHomeDir()
+        const hamletHome = getHamletHomeDir()
         const buffer = Buffer.from(contentBase64, 'base64')
         return await this.withScratchlistUploadLock(namespace, sessionId, async () => {
-            const sessionBytes = await sumScratchlistAttachmentBytesOnDisk(hapiHome, namespace, sessionId)
+            const sessionBytes = await sumScratchlistAttachmentBytesOnDisk(hamletHome, namespace, sessionId)
             const provisional = {
                 id: 'pending',
                 filename,
@@ -845,7 +852,7 @@ export class SyncEngine {
             }
 
             const attachment = await writeScratchlistAttachmentFile(
-                hapiHome,
+                hamletHome,
                 namespace,
                 sessionId,
                 filename,
@@ -859,24 +866,24 @@ export class SyncEngine {
     async resolveScratchlistAttachmentsForSession(
         sessionId: string,
         namespace: string,
-        claimed: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+        claimed: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
     ): Promise<
-        | { ok: true; attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[] }
+        | { ok: true; attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[] }
         | { ok: false; error: string }
     > {
         const {
             resolveScratchlistAttachmentsForSession: resolveAttachments,
-            getHapiHomeDir,
+            getHamletHomeDir,
         } = await import('../scratchlistAttachments/storage')
-        return resolveAttachments(getHapiHomeDir(), namespace, sessionId, claimed)
+        return resolveAttachments(getHamletHomeDir(), namespace, sessionId, claimed)
     }
 
     async sumScratchlistAttachmentBytesOnDisk(sessionId: string, namespace: string): Promise<number> {
         const {
             sumScratchlistAttachmentBytesOnDisk: sumOnDisk,
-            getHapiHomeDir,
+            getHamletHomeDir,
         } = await import('../scratchlistAttachments/storage')
-        return sumOnDisk(getHapiHomeDir(), namespace, sessionId)
+        return sumOnDisk(getHamletHomeDir(), namespace, sessionId)
     }
 
     async deleteScratchlistAttachmentById(
@@ -886,16 +893,16 @@ export class SyncEngine {
     ): Promise<boolean> {
         const {
             deleteScratchlistAttachmentById: deleteById,
-            getHapiHomeDir,
+            getHamletHomeDir,
         } = await import('../scratchlistAttachments/storage')
-        return deleteById(getHapiHomeDir(), namespace, sessionId, attachmentId)
+        return deleteById(getHamletHomeDir(), namespace, sessionId, attachmentId)
     }
 
     async readScratchlistAttachment(
         hubPath: string
     ): Promise<{ buffer: Buffer; mimeType: string; filename: string } | null> {
-        const { readScratchlistAttachmentFile, getHapiHomeDir } = await import('../scratchlistAttachments/storage')
-        const read = await readScratchlistAttachmentFile(getHapiHomeDir(), hubPath)
+        const { readScratchlistAttachmentFile, getHamletHomeDir } = await import('../scratchlistAttachments/storage')
+        const read = await readScratchlistAttachmentFile(getHamletHomeDir(), hubPath)
         if (!read) return null
         return { buffer: read.buffer, mimeType: 'application/octet-stream', filename: 'attachment' }
     }
@@ -906,8 +913,8 @@ export class SyncEngine {
 
     /**
      * Manual stop-runner for supervised hosts only (banner Restart).
-     * Detached `hapi runner start` has no supervisor — stop would leave the
-     * host offline. Require `metadata.supervisedRestart` (HAPI_RUNNER_SUPERVISED=1).
+     * Detached `hamlet runner start` has no supervisor — stop would leave the
+     * host offline. Require `metadata.supervisedRestart` (HAMLET_RUNNER_SUPERVISED=1).
      */
     async restartMachineRunner(machineId: string, namespace: string): Promise<
         | { type: 'success'; message: string }
@@ -924,7 +931,7 @@ export class SyncEngine {
         if (machine.metadata?.supervisedRestart !== true) {
             return {
                 type: 'error',
-                message: 'Restart requires a supervised runner (HAPI_RUNNER_SUPERVISED=1); unsupervised stop would leave the host offline',
+                message: 'Restart requires a supervised runner (HAMLET_RUNNER_SUPERVISED=1); unsupervised stop would leave the host offline',
                 code: 'restart_unsupported',
             }
         }
@@ -1376,6 +1383,9 @@ export class SyncEngine {
         if (!access.ok) {
             return { type: 'error', message: access.reason === 'not-found' ? 'Session not found' : 'Access denied' }
         }
+        if (access.session.metadata?.hamletAgent) {
+            return { type: 'error', message: 'Create Hamlet agents through agent_create' }
+        }
         let source = access.session
         try {
             this.assertConversationHistoryIdle(source)
@@ -1500,7 +1510,7 @@ export class SyncEngine {
             )
             childCreated = true
 
-            // Native fork keeps agent context, but the new HAPI row starts empty.
+            // Native fork keeps agent context, but the new HAMLET row starts empty.
             // Hydrate the transcript prefix so web navigation is not a blank thread.
             this.store.messages.copyMessagesToSession(
                 childId,
@@ -1585,7 +1595,7 @@ export class SyncEngine {
         }
     }
 
-    /** Kill an active fork child (if any) then delete the HAPI row. */
+    /** Kill an active fork child (if any) then delete the HAMLET row. */
     private async cleanupFailedForkChild(
         childId: string,
         machineId: string,
@@ -1718,7 +1728,7 @@ export class SyncEngine {
     }
 
     /**
-     * Apply the post-migration metadata flip in hapi.db:
+     * Apply the post-migration metadata flip in hamlet.db:
      *   - metadata.cursorSessionProtocol = 'acp'
      *   - session.model = lastUsedModel (if provided)
      *
@@ -1727,7 +1737,7 @@ export class SyncEngine {
      * is gone.
      *
      * Used by CursorLegacyMigrator after the on-disk transplant + verify
-     * succeeds. Kept on the engine (not on the migrator) so that all hapi.db
+     * succeeds. Kept on the engine (not on the migrator) so that all hamlet.db
      * writes funnel through the existing cache-refresh path.
      */
     flipCursorSessionProtocolToAcp(
@@ -1862,12 +1872,12 @@ export class SyncEngine {
                 if (result.result === 'session-active') return { ok: false, reason: 'session_active' as const }
                 return { ok: false, reason: 'version_mismatch_or_missing' as const }
             },
-            // tiann/hapi#872: size sanity check needs to compare HAPI's known
+            // tiann/hapi#872: size sanity check needs to compare HAMLET's known
             // message history against the candidate legacy store's blob
             // count. The store-handle stays on the engine; we only thread
             // the count through so the migrator stays free of a direct
             // hub.Store dependency.
-            getHapiMessageCount: (sessionId, _namespace) => {
+            getHamletMessageCount: (sessionId, _namespace) => {
                 try {
                     return this.store.messages.countMessages(sessionId)
                 } catch (err) {
@@ -1945,6 +1955,7 @@ export class SyncEngine {
     }
 
     async deleteSession(sessionId: string): Promise<void> {
+        if (this.store.hamlet?.agent(sessionId)) throw new Error('Delete Hamlet agents through the direct parent with agent_delete')
         await this.sessionCache.deleteSession(sessionId)
     }
 
@@ -1960,6 +1971,7 @@ export class SyncEngine {
             copilotAgentMode?: CopilotAgentMode
         }
     ): Promise<void> {
+        if (config.permissionMode && config.permissionMode !== 'yolo' && this.store.hamlet?.agent(sessionId)) throw new Error('Hamlet sessions use YOLO permissions')
         const session = this.sessionCache.getSession(sessionId)
         if (!session?.active) {
             // For inactive sessions, update the in-memory cache directly without
@@ -2042,7 +2054,7 @@ export class SyncEngine {
     }
 
     /**
-     * Spawn a fresh OpenCode HAPI session from a source that its own CLI has
+     * Spawn a fresh OpenCode HAMLET session from a source that its own CLI has
      * already archived with the `cleared` lifecycle. Deliberately accepts only
      * that post-cleanup state: a target must never become active while the
      * source still owns an in-flight OpenCode turn or native compaction.
@@ -2208,7 +2220,7 @@ export class SyncEngine {
 
         // Persist the replacement identity *before* asking a runner to create
         // a process. A retry after a lost RPC response therefore uses this same
-        // HAPI id rather than accidentally spawning a second fresh session.
+        // HAMLET id rather than accidentally spawning a second fresh session.
         let operation = metadata.opencodeClearOperation
         if (!operation) {
             operation = {
@@ -2276,7 +2288,7 @@ export class SyncEngine {
         }
 
         // Do not supply a native OpenCode resume id. existingSessionId is only
-        // the preallocated HAPI row; OpenCode starts a brand-new native thread.
+        // the preallocated HAMLET row; OpenCode starts a brand-new native thread.
         const spawned = await this.spawnSession(
             metadata.machineId,
             metadata.path,
@@ -2589,7 +2601,7 @@ export class SyncEngine {
      * Cursor session AND the env flag is on, attempts a transplant migration
      * synchronously before the caller spawns the runner.
      *
-     * The migrator's verify probe runs in an isolated HAPI_HOME (see
+     * The migrator's verify probe runs in an isolated HAMLET_HOME (see
      * verifyInTempHome), so this method is safe to call even when other ACP
      * transports are alive on the host: per tiann/hapi#832, two `agent acp`
      * processes coexist on the same host without conflict, and swear01's
@@ -2603,7 +2615,7 @@ export class SyncEngine {
      */
     private async maybeAutoMigrateLegacyCursorSession(session: Session, namespace: string): Promise<Session> {
         const md = session.metadata
-        const flagRaw = process.env.HAPI_CURSOR_LEGACY_AUTO_MIGRATE?.trim().toLowerCase() ?? ''
+        const flagRaw = process.env.HAMLET_CURSOR_LEGACY_AUTO_MIGRATE?.trim().toLowerCase() ?? ''
         console.info('[auto-migrate] considering', {
             sessionId: session.id,
             flavor: md?.flavor ?? null,
@@ -3377,7 +3389,7 @@ export class SyncEngine {
             }
 
             let applied: { cursorSessionProtocol?: 'acp' | 'stream-json' } = {}
-            // Pi and PTY resumes both reuse the original HAPI row. Keep the archive
+            // Pi and PTY resumes both reuse the original HAMLET row. Keep the archive
             // snapshot persisted until the CLI successfully bootstraps that row as
             // running; this avoids an inactive, non-archived gap if the Hub restarts
             // before spawn — the in-memory snapshot below cannot survive that, and

@@ -11,9 +11,9 @@ import { AsyncLock } from '@/utils/lock'
 import type { RawJSONLines } from '@/claude/types'
 import { configuration } from '@/configuration'
 import { extractUserRequest } from '@/agy/utils/agyMessageText'
-import { AGENT_MESSAGE_PAYLOAD_TYPE } from "@hapi/protocol"
-import type { SessionEndReason } from '@hapi/protocol'
-import type { ClientToServerEvents, ServerToClientEvents, TerminalOutputPayload, Update } from '@hapi/protocol'
+import { AGENT_MESSAGE_PAYLOAD_TYPE } from "@hamlet/protocol"
+import type { SessionEndReason } from '@hamlet/protocol'
+import type { ClientToServerEvents, ServerToClientEvents, TerminalOutputPayload, Update } from '@hamlet/protocol'
 import {
     AgentTerminalInputPayloadSchema,
     AgentTerminalRefreshPayloadSchema,
@@ -22,7 +22,7 @@ import {
     TerminalOpenPayloadSchema,
     TerminalResizePayloadSchema,
     TerminalWritePayloadSchema
-} from '@hapi/protocol'
+} from '@hamlet/protocol'
 import type {
     AgentState,
     MessageContent,
@@ -115,7 +115,7 @@ export function isExternalUserMessage(body: RawJSONLines): body is Extract<RawJS
  * Why id-first: scheduled messages keep the seq assigned at insertion time, so
  * a row scheduled for T+1h (seq=10) can be released after a later immediate
  * message (seq=11) has already advanced the cursor.  A pure seq <= cursor
- * filter would silently drop the mature emit.  See HAPI Bot R3 finding #1.
+ * filter would silently drop the mature emit.  See HAMLET Bot R3 finding #1.
  */
 export class IncomingMessageFilter {
     private readonly seenIds = new Set<string>()
@@ -1210,7 +1210,7 @@ export class ApiSessionClient extends EventEmitter {
             effort?: string | null
             serviceTier?: string | null
             collaborationMode?: SessionCollaborationMode
-            copilotAgentMode?: import('@hapi/protocol').CopilotAgentMode
+            copilotAgentMode?: import('@hamlet/protocol').CopilotAgentMode
         }
     ): void {
         if (this.state !== 'active') {

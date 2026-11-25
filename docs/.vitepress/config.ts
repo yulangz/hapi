@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'HAPI',
+  title: 'HAMLET',
   description: 'Control your AI agents from anywhere',
   base: '/docs/',
 
@@ -32,7 +32,7 @@ export default defineConfig({
         items: [
           { text: 'How it Works', link: '/guide/how-it-works' },
           { text: 'Voice Assistant', link: '/guide/voice-assistant' },
-          { text: 'Why HAPI', link: '/guide/why-hapi' },
+          { text: 'Why HAMLET', link: '/guide/why-hamlet' },
           { text: 'FAQ', link: '/guide/faq' }
         ]
       },

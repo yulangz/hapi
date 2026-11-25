@@ -54,7 +54,7 @@ describe('CLI entrypoint', () => {
         await runCli()
 
         const output = vi.mocked(console.log).mock.calls.flat().join('\n')
-        expect(output).toContain(arg === '-v' || arg === '--version' ? 'hapi version:' : 'HAPI - Coding agents')
+        expect(output).toContain(arg === '-v' || arg === '--version' ? 'hamlet version:' : 'HAMLET - Coding agents')
         expect(output).not.toContain('Claude Code Options')
         expect(resolveCommandMock).not.toHaveBeenCalled()
         expect(selectAgentMock).not.toHaveBeenCalled()
@@ -89,7 +89,7 @@ describe('CLI entrypoint', () => {
         await runCli()
 
         expect(process.exitCode).toBe(1)
-        expect(console.error).toHaveBeenCalledWith(expect.stringContaining('hapi <agent>'))
+        expect(console.error).toHaveBeenCalledWith(expect.stringContaining('hamlet <agent>'))
         expect(selectAgentMock).not.toHaveBeenCalled()
         expect(runMock).not.toHaveBeenCalled()
         expect(ensureRuntimeAssetsMock).not.toHaveBeenCalled()

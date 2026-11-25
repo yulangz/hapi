@@ -24,9 +24,9 @@ describe('GET /api/storage/sqlite', () => {
     }
 
     it('returns the database and existing sidecar sizes', async () => {
-        const directory = await mkdtemp(join(tmpdir(), 'hapi-storage-'))
+        const directory = await mkdtemp(join(tmpdir(), 'hamlet-storage-'))
         directories.push(directory)
-        const dbPath = join(directory, 'hapi.db')
+        const dbPath = join(directory, 'hamlet.db')
         await Promise.all([
             writeFile(dbPath, Buffer.alloc(10)),
             writeFile(`${dbPath}-wal`, Buffer.alloc(20)),
@@ -47,7 +47,7 @@ describe('GET /api/storage/sqlite', () => {
     })
 
     it('rejects non-default namespaces', async () => {
-        const response = await createApp('/unused/hapi.db', 'tenant').request('/api/storage/sqlite')
+        const response = await createApp('/unused/hamlet.db', 'tenant').request('/api/storage/sqlite')
 
         expect(response.status).toBe(403)
         expect(await response.json()).toEqual({ error: 'Storage usage is only available to the hub owner' })

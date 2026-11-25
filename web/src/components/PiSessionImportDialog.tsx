@@ -102,7 +102,7 @@ export function PiSessionImportDialog(props: {
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex items-center gap-2 text-sm font-medium text-[var(--app-fg)]">
                                                     <span className="truncate">{session.title}</span>
-                                                    {session.hapiSessionId ? <span className="rounded bg-[var(--app-subtle-bg)] px-1.5 py-0.5 text-[10px] text-[var(--app-hint)]">{t('piImport.imported')}</span> : null}
+                                                    {session.hamletSessionId ? <span className="rounded bg-[var(--app-subtle-bg)] px-1.5 py-0.5 text-[10px] text-[var(--app-hint)]">{t('piImport.imported')}</span> : null}
                                                     {session.importState === 'diverged' || session.importState === 'failed' ? <span className="text-[10px] text-red-600">{t('piImport.needsAttention')}</span> : null}
                                                 </span>
                                                 <span className="mt-0.5 block truncate text-xs text-[var(--app-hint)]">{session.lastUserMessage ?? session.cwd ?? session.id}</span>

@@ -9,7 +9,7 @@ const sourceRoot = fileURLToPath(new URL('../..', import.meta.url));
 const paths = {
     cli: 'cli/package.json',
     shared: 'shared/src/buildInfo.ts',
-    ios: 'ios/Hapi.xcodeproj/project.pbxproj',
+    ios: 'ios/Hamlet.xcodeproj/project.pbxproj',
     android: 'android/app/build.gradle.kts',
 };
 
@@ -29,7 +29,7 @@ describe('updateReleaseVersions', () => {
     }
 
     beforeEach(() => {
-        repoRoot = mkdtempSync(join(tmpdir(), 'hapi-release-version-'));
+        repoRoot = mkdtempSync(join(tmpdir(), 'hamlet-release-version-'));
         // Exercise the real project formats without ever modifying the checkout.
         for (const path of Object.values(paths)) {
             mkdirSync(dirname(join(repoRoot, path)), { recursive: true });
@@ -57,7 +57,7 @@ describe('updateReleaseVersions', () => {
             .toEqual(['1.2.3', '1.2.3', '1.2.3', '1.2.3']);
         expect(read(paths.android)).toBe(android.replace(
             /versionName = .*/,
-            'versionName = providers.gradleProperty("hapiVersionName").orElse("1.2.3").get()'
+            'versionName = providers.gradleProperty("hamletVersionName").orElse("1.2.3").get()'
         ));
     });
 
@@ -93,7 +93,7 @@ describe('updateReleaseVersions', () => {
         it.each([
             [paths.shared, 'APP_VERSION'],
             [paths.ios, 'MARKETING_VERSION'],
-            [paths.android, 'hapiVersionName'],
+            [paths.android, 'hamletVersionName'],
         ])('rejects a missing version field in %s before writing any files', (path, field) => {
             write(path, read(path).replaceAll(field, 'REMOVED_VERSION_FIELD'));
             const before = snapshot();

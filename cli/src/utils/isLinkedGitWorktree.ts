@@ -7,7 +7,7 @@ import { isAbsolute, resolve } from 'node:path';
  * the common object store), not the repository's primary working tree.
  *
  * Cursor `agent --worktree` nested inside an existing linked worktree hangs ACP
- * initialize (see tiann/hapi#1085). HAPI skips `--cursor-worktree` in that case
+ * initialize (see tiann/hapi#1085). HAMLET skips `--cursor-worktree` in that case
  * and runs in the given directory instead.
  */
 export function isLinkedGitWorktree(directory: string): boolean {

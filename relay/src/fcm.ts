@@ -131,7 +131,7 @@ export class HttpFcmClient implements FcmClient {
                 headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
                 body: JSON.stringify({ message: {
                     token: request.token,
-                    data: { hapi_v: '1', hapi_e: request.envelope },
+                    data: { hamlet_v: '1', hamlet_e: request.envelope },
                     android: {
                         priority: request.priority === 5 ? 'NORMAL' : 'HIGH',
                         restricted_package_name: this.packageName

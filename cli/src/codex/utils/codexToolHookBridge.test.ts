@@ -80,18 +80,18 @@ describe('CodexToolHookBridge', () => {
         const bridge = new CodexToolHookBridge();
 
         expect(bridge.handle(hook({
-            tool_name: 'mcp__hapi__change_title',
+            tool_name: 'mcp__hamlet__change_title',
             tool_input: { title: 'New title' },
             tool_use_id: 'exec-mcp-1'
         }))).toEqual([expect.objectContaining({
             type: 'tool-call',
-            name: 'mcp__hapi__change_title',
+            name: 'mcp__hamlet__change_title',
             input: { title: 'New title' }
         })]);
 
         expect(bridge.handle(hook({
             hook_event_name: 'PostToolUse',
-            tool_name: 'mcp__hapi__change_title',
+            tool_name: 'mcp__hamlet__change_title',
             tool_input: { title: 'New title' },
             tool_response: { content: [{ type: 'text', text: 'done' }] },
             tool_use_id: 'exec-mcp-1'

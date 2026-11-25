@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 
-const STORAGE_KEY = 'hapi:recentPaths'
+const STORAGE_KEY = 'hamlet:recentPaths'
 const MAX_PATHS_PER_MACHINE = 5
 
 type RecentPathsData = Record<string, string[]>
@@ -48,7 +48,7 @@ export function useRecentPaths() {
 
     const getLastUsedMachineId = useCallback((): string | null => {
         try {
-            return localStorage.getItem('hapi:lastMachineId')
+            return localStorage.getItem('hamlet:lastMachineId')
         } catch {
             return null
         }
@@ -56,7 +56,7 @@ export function useRecentPaths() {
 
     const setLastUsedMachineId = useCallback((machineId: string): void => {
         try {
-            localStorage.setItem('hapi:lastMachineId', machineId)
+            localStorage.setItem('hamlet:lastMachineId', machineId)
         } catch {
             // Ignore storage errors
         }

@@ -8,7 +8,7 @@ import {
     parseSessionPathHref,
 } from './sessionReference'
 import { getSessionTitle } from './sessionTitle'
-import { SESSION_REFERENCE_STEER_SUFFIX } from '@hapi/protocol/sessionCitation'
+import { SESSION_REFERENCE_STEER_SUFFIX } from '@hamlet/protocol/sessionCitation'
 
 function makeSession(overrides: Partial<SessionSummary> & { id: string }): SessionSummary {
     return {
@@ -63,7 +63,7 @@ describe('buildSessionReferenceText', () => {
 
     it('omits title when empty after normalization', () => {
         expect(buildSessionReferenceText('   \n\t  ', 'abc-def')).toBe(
-            `See HAPI session /sessions/abc-def for context.${SESSION_REFERENCE_STEER_SUFFIX}`
+            `See HAMLET session /sessions/abc-def for context.${SESSION_REFERENCE_STEER_SUFFIX}`
         )
     })
 
@@ -241,7 +241,7 @@ describe('matchSessionsForMention', () => {
             hasConversationContent: false,
             updatedAt: 999,
             metadata: {
-                path: '/home/me/coding/hapi/worktrees/session-attached-jobs',
+                path: '/home/me/coding/hamlet/worktrees/session-attached-jobs',
                 lifecycleState: 'archived',
             },
         })
@@ -250,7 +250,7 @@ describe('matchSessionsForMention', () => {
             active: true,
             updatedAt: 100,
             metadata: {
-                path: '/home/me/coding/hapi/worktrees/session-attached-jobs',
+                path: '/home/me/coding/hamlet/worktrees/session-attached-jobs',
                 name: 'Peer: session-attached jobs',
                 lifecycleState: 'running',
             },
@@ -267,7 +267,7 @@ describe('matchSessionsForMention', () => {
             hasConversationContent: false,
             updatedAt: 999,
             metadata: {
-                path: '/home/me/coding/hapi/worktrees/session-attached-jobs',
+                path: '/home/me/coding/hamlet/worktrees/session-attached-jobs',
                 agentSessionId: 'agent-thread-1',
                 lifecycleState: 'archived',
             },
@@ -277,7 +277,7 @@ describe('matchSessionsForMention', () => {
             active: true,
             updatedAt: 100,
             metadata: {
-                path: '/home/me/coding/hapi/worktrees/session-attached-jobs',
+                path: '/home/me/coding/hamlet/worktrees/session-attached-jobs',
                 name: 'Peer: session-attached jobs',
                 lifecycleState: 'running',
             },
@@ -389,8 +389,8 @@ describe('formatSessionMentionTooltip', () => {
                 id: 'abcdef12-3456',
                 title: 'Peer #1215: a very long session title for chip truncation',
                 active: true,
-                path: '/home/me/coding/hapi',
-                worktreePath: '/home/me/coding/hapi/worktrees/session-mention-rich-composer',
+                path: '/home/me/coding/hamlet',
+                worktreePath: '/home/me/coding/hamlet/worktrees/session-mention-rich-composer',
                 relativeTime: '5m ago',
             },
             'fallback',
@@ -399,7 +399,7 @@ describe('formatSessionMentionTooltip', () => {
         expect(tip.title).toBe('Peer #1215: a very long session title for chip truncation')
         expect(tip.lines[0]).toBe('Session · abcdef12 · Active')
         expect(tip.lines[1]).toBe('5m ago')
-        expect(tip.lines[2]).toBe('/home/me/coding/hapi/worktrees/session-mention-rich-composer')
+        expect(tip.lines[2]).toBe('/home/me/coding/hamlet/worktrees/session-mention-rich-composer')
         expect(tip.ariaLabel).toContain('5m ago')
     })
 

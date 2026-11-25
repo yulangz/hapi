@@ -3,9 +3,9 @@ import { authAndSetupMachineIfNeeded } from '@/ui/auth'
 import { initializeToken } from '@/ui/tokenInit'
 import { maybeAutoStartServer } from '@/utils/autoStartServer'
 import type { CommandDefinition } from './types'
-import { COPILOT_PERMISSION_MODES } from '@hapi/protocol/modes'
-import type { CopilotPermissionMode } from '@hapi/protocol/types'
-import { isCopilotAgentMode, type CopilotAgentMode } from '@hapi/protocol'
+import { COPILOT_PERMISSION_MODES } from '@hamlet/protocol/modes'
+import type { CopilotPermissionMode } from '@hamlet/protocol/types'
+import { isCopilotAgentMode, type CopilotAgentMode } from '@hamlet/protocol'
 
 export const copilotCommand: CommandDefinition = {
     name: 'copilot',
@@ -27,12 +27,12 @@ export const copilotCommand: CommandDefinition = {
                 const arg = commandArgs[i]
                 if (arg === '--started-by') {
                     options.startedBy = commandArgs[++i] as 'runner' | 'terminal'
-                } else if (arg === '--hapi-starting-mode') {
+                } else if (arg === '--hamlet-starting-mode') {
                     const value = commandArgs[++i]
                     if (value === 'local' || value === 'remote') {
                         options.startingMode = value
                     } else {
-                        throw new Error('Invalid --hapi-starting-mode (expected local or remote)')
+                        throw new Error('Invalid --hamlet-starting-mode (expected local or remote)')
                     }
                 } else if (arg === '--permission-mode') {
                     const mode = commandArgs[++i]

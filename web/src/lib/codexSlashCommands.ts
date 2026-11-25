@@ -1,8 +1,8 @@
 import {
     getBuiltinSlashCommands,
     mergeSlashCommands
-} from '@hapi/protocol/slashCommands'
-import type { SlashCommand } from '@hapi/protocol/apiTypes'
+} from '@hamlet/protocol/slashCommands'
+import type { SlashCommand } from '@hamlet/protocol/apiTypes'
 
 const UNSUPPORTED_CODEX_BUILTIN_COMMANDS = new Set([
     'review',

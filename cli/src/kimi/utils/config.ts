@@ -77,10 +77,10 @@ export function readKimiLocalConfig(): KimiLocalConfig {
 }
 
 /**
- * Resolves which model alias hapi should ask kimi-code to use. Returns
+ * Resolves which model alias hamlet should ask kimi-code to use. Returns
  * `model: undefined` when nothing is configured — callers must then omit
  * `--model` entirely so kimi-code falls back to its own `default_model`
- * (there is no valid built-in alias hapi could hardcode; model aliases are
+ * (there is no valid built-in alias hamlet could hardcode; model aliases are
  * user-defined `[models."<alias>"]` entries in kimi-code's config.toml).
  */
 export function resolveKimiRuntimeConfig(opts: {

@@ -32,7 +32,7 @@ export async function withSettingsFileLock<T>(
     const stale = staleMsForTests ?? STALE_MS
     // Distinct from earlier file-shaped `*.lock` sidecars in this PR so a
     // leftover empty file cannot block mkdir-based acquisition.
-    const lockfilePath = `${settingsFile}.hapi.lock`
+    const lockfilePath = `${settingsFile}.hamlet.lock`
 
     const release = await lockfile.lock(settingsFile, {
         realpath: false,

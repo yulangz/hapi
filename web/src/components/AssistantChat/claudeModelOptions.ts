@@ -1,4 +1,4 @@
-import { CLAUDE_MODEL_PRESETS, getClaudeModelLabel } from '@hapi/protocol'
+import { CLAUDE_MODEL_PRESETS, getClaudeModelLabel } from '@hamlet/protocol'
 
 export type ClaudeComposerModelOption = {
     value: string | null

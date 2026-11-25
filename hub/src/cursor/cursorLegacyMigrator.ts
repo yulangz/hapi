@@ -11,7 +11,7 @@
  *   3. The on-disk SQLite schema is byte-identical between the two stores
  *      (blobs content-addressed Merkle tree + meta key-value).
  *   4. Therefore: cp legacy store.db into the ACP location, synthesize the
- *      meta.json sidecar, verify session/load works, then flip HAPI's
+ *      meta.json sidecar, verify session/load works, then flip HAMLET's
  *      cursorSessionProtocol = 'acp' so the existing cursorAcpRemoteLauncher
  *      (already in #799) picks the session up on next resume.
  *
@@ -21,7 +21,7 @@
  *   c) verify by spawning `agent acp` in a temp $HOME pointing at a *copy*
  *      of the transplanted store, doing initialize + session/load + (optional)
  *      a trivial session/prompt
- *   d) ONLY if verify passes: flip cursorSessionProtocol in hapi.db, set
+ *   d) ONLY if verify passes: flip cursorSessionProtocol in hamlet.db, set
  *      session.model from legacy meta record's lastUsedModel, and rm the
  *      legacy source.
  *   e) If verify fails: rm the new ~/.cursor/acp-sessions/<uuid>/ entry,
@@ -47,9 +47,9 @@ import { mkdtempSync, copyFileSync, writeFileSync, existsSync, mkdirSync, rmSync
 import { createHash } from 'node:crypto'
 import { Database } from 'bun:sqlite'
 
-import type { CursorMigrateOutcome, CursorMigrateRefusalReason } from '@hapi/protocol/apiTypes'
-import type { Metadata } from '@hapi/protocol/schemas'
-import type { Session } from '@hapi/protocol/types'
+import type { CursorMigrateOutcome, CursorMigrateRefusalReason } from '@hamlet/protocol/apiTypes'
+import type { Metadata } from '@hamlet/protocol/schemas'
+import type { Session } from '@hamlet/protocol/types'
 import { AcpVerifyProbe, tryAcquireAcpActiveLock, type AcpActiveLockHandle } from './acpVerifyProbe'
 
 /* ---------- types ---------- */
@@ -74,7 +74,7 @@ export interface CursorLegacyMigratorDeps {
      * (where the recorded `metadata.host` does not match the machine the
      * hub is running on) — those sessions cannot be migrated because the
      * legacy ~/.cursor/chats files exist on a different machine.
-     * Default: `process.env.HAPI_HOSTNAME || os.hostname()`. Codex
+     * Default: `process.env.HAMLET_HOSTNAME || os.hostname()`. Codex
      * review #34 P2.
      */
     hostName?: () => string
@@ -94,7 +94,7 @@ export interface CursorLegacyMigratorDeps {
      * refuses with `acp_transport_active`.
      *
      * **Default in production: a no-op grant that never refuses.** The
-     * verify probe's child agent CLI now runs with an isolated HAPI_HOME
+     * verify probe's child agent CLI now runs with an isolated HAMLET_HOME
      * (see verifyInTempHome), so the verify spawn does not race against any
      * live ACP transport on the host. Refusing migration up-front when the
      * host has other live transports — which is the common case on machines
@@ -134,12 +134,12 @@ export interface CursorLegacyMigratorDeps {
     awaitLockRelease?: (storePath: string, timeoutMs: number) => Promise<boolean>
     /**
      * Check whether ANY `agent acp` transport is registered as active in
-     * $HAPI_HOME/locks/agent-acp-active. Cursor's `agent` binary enforces
+     * $HAMLET_HOME/locks/agent-acp-active. Cursor's `agent` binary enforces
      * single-instance semantics: spawning a second `agent acp` while one
      * is live can SIGTERM the live one. Refuse the migration in that case
      * because the verify-in-temp-HOME step would otherwise crash the
      * operator's active Cursor ACP session. Codex review #34 P1.
-     * Default: read the lock dir under $HAPI_HOME (or tmpdir/hapi).
+     * Default: read the lock dir under $HAMLET_HOME (or tmpdir/hamlet).
      */
     isAgentAcpTransportActive?: () => { active: boolean; holderPid: number | null }
     /**
@@ -152,13 +152,13 @@ export interface CursorLegacyMigratorDeps {
     getCurrentSession?: (sessionId: string, namespace: string) => { active: boolean; lifecycleState?: string; cursorSessionProtocol?: string } | null
     /** Logger sink. Default: silent. */
     logger?: { debug: (msg: string, ctx?: unknown) => void; info: (msg: string, ctx?: unknown) => void; warn: (msg: string, ctx?: unknown) => void; error: (msg: string, ctx?: unknown) => void }
-    /** Used to update hapi.db sessions.metadata.cursorSessionProtocol = 'acp' and session.model. */
+    /** Used to update hamlet.db sessions.metadata.cursorSessionProtocol = 'acp' and session.model. */
     updateSessionAfterMigrate?: (sessionId: string, namespace: string, lastUsedModel: string | null) => UpdateAfterMigrateResult
     /**
-     * Best-effort count of messages HAPI has already synced for this session
-     * (read from hapi.db, see hub/src/store/messages.ts). Used to refuse a
+     * Best-effort count of messages HAMLET has already synced for this session
+     * (read from hamlet.db, see hub/src/store/messages.ts). Used to refuse a
      * transplant when the candidate legacy store contains an order-of-
-     * magnitude fewer blobs than HAPI's known history - the canonical
+     * magnitude fewer blobs than HAMLET's known history - the canonical
      * symptom of the #844 ambiguous-source regression where a sibling
      * workspace-hash drawer with stale or unrelated content gets picked
      * up by the readdir scan. Return 0 (or omit the dep) to disable the
@@ -167,7 +167,7 @@ export interface CursorLegacyMigratorDeps {
      * Hub injects an implementation that calls
      * `store.messages.countMessages(sessionId)`. tiann/hapi#872.
      */
-    getHapiMessageCount?: (sessionId: string, namespace: string) => number
+    getHamletMessageCount?: (sessionId: string, namespace: string) => number
 }
 
 export type UpdateAfterMigrateResult =
@@ -477,7 +477,7 @@ export function preflightSession(session: Session | undefined, now: () => number
 export class CursorLegacyMigrator {
     private readonly opts: Required<Pick<CursorLegacyMigratorOptions, 'lockReleaseTimeoutMs' | 'verifyTimeoutMs' | 'verifyPromptText'>>
     private readonly deps: Required<Pick<CursorLegacyMigratorDeps, 'homeDir' | 'hostName' | 'createProbe' | 'tmpDir' | 'now' | 'awaitLockRelease' | 'isAgentAcpTransportActive' | 'getCurrentSession' | 'logger' | 'acquireAcpActiveLock' | 'checkpointLegacyStore' | 'removeSourceFile'>>
-        & Pick<CursorLegacyMigratorDeps, 'archiveSession' | 'updateSessionAfterMigrate' | 'getHapiMessageCount'>
+        & Pick<CursorLegacyMigratorDeps, 'archiveSession' | 'updateSessionAfterMigrate' | 'getHamletMessageCount'>
 
     constructor(opts: CursorLegacyMigratorOptions, deps: CursorLegacyMigratorDeps) {
         this.opts = {
@@ -487,7 +487,7 @@ export class CursorLegacyMigrator {
         }
         this.deps = {
             homeDir: deps.homeDir ?? (() => homedir()),
-            hostName: deps.hostName ?? (() => process.env.HAPI_HOSTNAME?.trim() || hostname()),
+            hostName: deps.hostName ?? (() => process.env.HAMLET_HOSTNAME?.trim() || hostname()),
             createProbe: deps.createProbe ?? ((env, agentLookupHome) => new AcpVerifyProbe({
                 env,
                 skipLockAcquire: true,
@@ -504,7 +504,7 @@ export class CursorLegacyMigrator {
                 agentLookupHome
             })),
             // Default: never refuse based on the global lock. The verify probe
-            // is isolated via HAPI_HOME override in verifyInTempHome, so the
+            // is isolated via HAMLET_HOME override in verifyInTempHome, so the
             // host's live ACP transports cannot block migration. Operator
             // CLI/REST callers that want the pre-isolation conservative
             // behavior can inject `() => tryAcquireAcpActiveLock(home)`.
@@ -522,13 +522,13 @@ export class CursorLegacyMigrator {
             logger: deps.logger ?? noopLogger(),
             archiveSession: deps.archiveSession,
             updateSessionAfterMigrate: deps.updateSessionAfterMigrate,
-            getHapiMessageCount: deps.getHapiMessageCount
+            getHamletMessageCount: deps.getHamletMessageCount
         }
     }
 
     /**
      * Migrate a single legacy cursor session in place. Side-effecting: writes
-     * to ~/.cursor/acp-sessions/, conditionally writes hapi.db (via injected
+     * to ~/.cursor/acp-sessions/, conditionally writes hamlet.db (via injected
      * updateSessionAfterMigrate), conditionally removes the legacy source.
      */
     async migrateOne(session: Session, opts: CursorLegacyMigratorOptions): Promise<CursorMigrateOutcome> {
@@ -687,11 +687,11 @@ export class CursorLegacyMigrator {
         // picked legacy store may be a stale sibling that happens to be
         // the only on-disk artifact for this session id (e.g. operator
         // deleted the canonical workspace and a diagnostic location is
-        // all that's left). If HAPI already synced a meaningful history
+        // all that's left). If HAMLET already synced a meaningful history
         // for the session and the candidate store has wildly fewer blobs
         // than that history, refuse rather than transplant a shrunken
         // alien snapshot over the live ACP target. Skips entirely when
-        // HAPI message count is 0 (brand-new / never-synced session).
+        // HAMLET message count is 0 (brand-new / never-synced session).
         // tiann/hapi#872.
         const sizeMismatch = this.checkSizeSanity(session, cursorSessionId, legacy.storeDbPath, log)
         if (sizeMismatch) {
@@ -910,7 +910,7 @@ export class CursorLegacyMigrator {
         // (especially if --force-archive-running was used: archive returns
         // immediately, so a quick automation could un-archive). The
         // resume path reads cursorSessionProtocol === 'legacy' from
-        // hapi.db and spawns a stream-json runner against the legacy
+        // hamlet.db and spawns a stream-json runner against the legacy
         // store.db — which we are about to remove. Refuse the flip in
         // that case so the running session is not amputated mid-write.
         // Codex review #34 P1.
@@ -986,7 +986,7 @@ export class CursorLegacyMigrator {
             if (updateResult.reason === 'session_active') {
                 return refusal(session.id, 'session_resumed_during_migrate', 'session became active inside the metadata flip (atomic check); rolled back ACP placement', start, this.deps.now)
             }
-            return refusal(session.id, 'metadata_write_failed', `hapi.db write failed: ${updateResult.reason}`, start, this.deps.now)
+            return refusal(session.id, 'metadata_write_failed', `hamlet.db write failed: ${updateResult.reason}`, start, this.deps.now)
         }
 
         // Remove source unless --keep-source. The cleanup is the LAST step;
@@ -1000,7 +1000,7 @@ export class CursorLegacyMigrator {
         // Uses pre-rm snapshots captured at discovery time so the count
         // and source measurements reflect what was actually on disk, not
         // what's left after the cleanup rm. Future regression of the #844
-        // ambiguous-source bug is diagnosable from `journalctl -u hapi-hub`
+        // ambiguous-source bug is diagnosable from `journalctl -u hamlet-hub`
         // alone, without blob-overlap forensics on the destination store.
         log.info('[migrator] transplanted', {
             sessionId: session.id,
@@ -1029,16 +1029,16 @@ export class CursorLegacyMigrator {
 
     /**
      * Refuse a transplant when the candidate legacy store carries
-     * dramatically fewer blobs than HAPI's known message history for
+     * dramatically fewer blobs than HAMLET's known message history for
      * the session - the canonical symptom of the #844 ambiguous-source
      * regression where a stale sibling drawer gets picked up by the
      * readdir scan even when no explicit ambiguity exists (e.g. the
      * canonical drawer was deleted off disk leaving only a diagnostic
      * sibling). Returns null when the check passes; returns a refusal
      * payload otherwise. Skipped entirely when:
-     *   - no `getHapiMessageCount` dep is wired (e.g. unit tests, CLI
+     *   - no `getHamletMessageCount` dep is wired (e.g. unit tests, CLI
      *     callers that don't have a store handle)
-     *   - HAPI message count is 0 (brand-new / never-synced session)
+     *   - HAMLET message count is 0 (brand-new / never-synced session)
      *   - candidate blob count cannot be read (treated as fail-open
      *     so a corrupted store still goes through the normal verify path
      *     and surfaces verify_load_failed there)
@@ -1051,12 +1051,12 @@ export class CursorLegacyMigrator {
         legacyStoreDbPath: string,
         log: NonNullable<CursorLegacyMigratorDeps['logger']>
     ): { message: string; context: Record<string, unknown> } | null {
-        if (!this.deps.getHapiMessageCount) return null
+        if (!this.deps.getHamletMessageCount) return null
         let messageCount: number
         try {
-            messageCount = this.deps.getHapiMessageCount(session.id, session.namespace)
+            messageCount = this.deps.getHamletMessageCount(session.id, session.namespace)
         } catch (err) {
-            log.warn('[migrator] getHapiMessageCount threw; skipping size sanity', {
+            log.warn('[migrator] getHamletMessageCount threw; skipping size sanity', {
                 sessionId: session.id,
                 err: err instanceof Error ? err.message : String(err)
             })
@@ -1068,7 +1068,7 @@ export class CursorLegacyMigrator {
         const minExpectedBlobs = Math.floor(messageCount / 4)
         if (blobCount >= minExpectedBlobs) return null
         return {
-            message: `legacy store size mismatch: HAPI tracks ${messageCount} message(s) for session ${cursorSessionId} but candidate store has only ${blobCount} blob(s) (< messageCount/4 = ${minExpectedBlobs}). Refusing to transplant likely-alien content; resolve manually.`,
+            message: `legacy store size mismatch: HAMLET tracks ${messageCount} message(s) for session ${cursorSessionId} but candidate store has only ${blobCount} blob(s) (< messageCount/4 = ${minExpectedBlobs}). Refusing to transplant likely-alien content; resolve manually.`,
             context: { messageCount, blobCount, minExpectedBlobs, legacyStoreDbPath }
         }
     }
@@ -1085,7 +1085,7 @@ export class CursorLegacyMigrator {
         cwd: string,
         opts: { runPrompt: boolean; sourceHome: string }
     ): Promise<{ kind: 'ok'; replayNotifications: number } | { kind: 'load_failed'; message: string } | { kind: 'prompt_failed'; message: string } | { kind: 'transport_lock_held'; message: string }> {
-        const tmpRoot = mkdtempSync(join(this.deps.tmpDir(), 'hapi-acp-verify-'))
+        const tmpRoot = mkdtempSync(join(this.deps.tmpDir(), 'hamlet-acp-verify-'))
         const fakeHome = tmpRoot
         const fakeAcpSessionDir = join(fakeHome, '.cursor', 'acp-sessions', cursorSessionId)
         try {
@@ -1108,7 +1108,7 @@ export class CursorLegacyMigrator {
             }
 
             // Isolate the verify spawn from the operator's real ~/.cursor
-            // tree AND from the host's HAPI_HOME lock space. On POSIX, HOME
+            // tree AND from the host's HAMLET_HOME lock space. On POSIX, HOME
             // is the only relevant variable for the ~/.cursor lookup. On
             // Windows, `agent` may resolve the user profile from
             // USERPROFILE, HOMEDRIVE+HOMEPATH instead — so override all
@@ -1116,18 +1116,18 @@ export class CursorLegacyMigrator {
             // without HOME override the verify could touch the real .cursor
             // tree.
             //
-            // HAPI_HOME override (added for the auto-migration flow): the
+            // HAMLET_HOME override (added for the auto-migration flow): the
             // verify probe's child agent-cli registers an `agent-acp-active`
-            // lock at `<HAPI_HOME>/locks/agent-acp-active/`. The host's real
-            // HAPI_HOME is shared with every other live ACP transport on the
+            // lock at `<HAMLET_HOME>/locks/agent-acp-active/`. The host's real
+            // HAMLET_HOME is shared with every other live ACP transport on the
             // machine (peer agents, IDE chats), so the verify probe would
-            // collide with them. Pointing the child's HAPI_HOME at the same
+            // collide with them. Pointing the child's HAMLET_HOME at the same
             // per-verify temp dir as HOME gives the probe its own private
             // lock space, completely isolated from anything else running.
             const env: NodeJS.ProcessEnv = {
                 ...process.env,
                 HOME: fakeHome,
-                HAPI_HOME: fakeHome,
+                HAMLET_HOME: fakeHome,
                 NO_COLOR: '1'
             }
             if (process.platform === 'win32') {
@@ -1339,14 +1339,14 @@ async function defaultAwaitLockRelease(storePath: string, timeoutMs: number, min
 }
 
 /**
- * Read the agent acp single-instance lock under $HAPI_HOME (or the same
- * tmpdir/hapi fallback the CLI guard uses) and report whether a live PID
+ * Read the agent acp single-instance lock under $HAMLET_HOME (or the same
+ * tmpdir/hamlet fallback the CLI guard uses) and report whether a live PID
  * holds it. Mirrors `cli/src/agent/backends/acp/agentCliGuard.ts`
  * (intentionally duplicated — the hub does not depend on the CLI module).
  * Codex review #34 P1.
  */
 function defaultIsAgentAcpTransportActive(): { active: boolean; holderPid: number | null } {
-    const home = process.env.HAPI_HOME?.trim() || join(tmpdir(), 'hapi')
+    const home = process.env.HAMLET_HOME?.trim() || join(tmpdir(), 'hamlet')
     const lockDir = join(home, 'locks', 'agent-acp-active')
     const pidPath = join(lockDir, 'pid')
     // Codex review #34 P2 v5: the CLI agent guard creates the lock dir

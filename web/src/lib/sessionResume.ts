@@ -1,4 +1,4 @@
-import { isKnownFlavor } from '@hapi/protocol'
+import { isKnownFlavor } from '@hamlet/protocol'
 import type { Session } from '@/types/api'
 
 /** Agent thread id used by hub `resolveAgentResumeId`, flavor-specific.

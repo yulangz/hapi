@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { UsageSummaryBucket } from '@hapi/protocol/apiTypes'
+import type { UsageSummaryBucket } from '@hamlet/protocol/apiTypes'
 import { SettingsPageContent, SettingsRow, SettingsSection } from '@/components/settings/SettingsPrimitives'
 import { useAppContext } from '@/lib/app-context'
 import { queryKeys } from '@/lib/query-keys'

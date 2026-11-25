@@ -186,16 +186,16 @@ describe('toSessionSummary', () => {
         expect(summary.metadata?.lifecycleState).toBe('archived')
     })
 
-    it('includes hapiMcpUrl in summary metadata when session bridge is live', () => {
+    it('includes hamletMcpUrl in summary metadata when session bridge is live', () => {
         const summary = toSessionSummary(makeSession({
             metadata: {
                 path: '/proj',
                 host: 'local',
-                hapiMcpUrl: 'http://127.0.0.1:42133/'
+                hamletMcpUrl: 'http://127.0.0.1:42133/'
             }
         }))
 
-        expect(summary.metadata?.hapiMcpUrl).toBe('http://127.0.0.1:42133/')
+        expect(summary.metadata?.hamletMcpUrl).toBe('http://127.0.0.1:42133/')
     })
 
     it('includes structured pendingRequests for hover-tooltip copy', () => {

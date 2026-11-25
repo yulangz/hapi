@@ -37,7 +37,7 @@ function isNotBoundError(error: unknown): boolean {
     return error instanceof ApiError && error.status === 401 && error.code === 'not_bound'
 }
 
-const ACCESS_TOKEN_PREFIX = 'hapi_access_token::'
+const ACCESS_TOKEN_PREFIX = 'hamlet_access_token::'
 
 function rememberAccessToken(baseUrl: string, accessToken: string): void {
     try {

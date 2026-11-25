@@ -1,6 +1,7 @@
+import { codexPatchFiles } from './codexPatch'
 import type { ReactNode } from 'react'
 import type { SessionMetadataSummary } from '@/types/api'
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 import { AlertTriangleIcon, BulbIcon, ClipboardIcon, EyeIcon, FileDiffIcon, GlobeIcon, MessageSquareIcon, PuzzleIcon, QuestionIcon, RocketIcon, SearchIcon, TerminalIcon, UsersIcon, WrenchIcon } from '@/components/ToolCard/icons'
 import type { ChecklistItem } from '@/components/ToolCard/checklist'
 import { extractTodoChecklist, extractUpdatePlanChecklist } from '@/components/ToolCard/checklist'
@@ -17,7 +18,7 @@ import {
 } from '@/components/ToolCard/codexAgents'
 
 const DEFAULT_ICON_CLASS = 'h-3.5 w-3.5'
-// Tool presentation registry for `hapi/web` (aligned with `hapi-app`).
+// Tool presentation registry for `hamlet/web` (aligned with `hamlet-app`).
 
 const COMMANDS_WITH_SUBCOMMAND = new Set(['git', 'bun', 'npm', 'pnpm', 'yarn', 'docker', 'systemctl', 'cargo', 'go'])
 const COMMAND_ASSIGNMENT_RE = /^[A-Za-z_][A-Za-z0-9_]*=/
@@ -97,6 +98,10 @@ function snakeToTitleWithSpaces(value: string): string {
         .filter((part) => part.length > 0)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
         .join(' ')
+}
+
+export function hamletToolName(name: string): string | undefined {
+    return /^(?:functions\.)?(?:mcp__)?(?:hapi|hamlet)__(.+)$/i.exec(name)?.[1]
 }
 
 function formatMCPTitle(toolName: string): string {
@@ -514,15 +519,10 @@ export const knownTools: Record<string, {
         icon: () => <FileDiffIcon className={DEFAULT_ICON_CLASS} />,
         title: () => 'Apply changes',
         subtitle: (opts) => {
-            if (isObject(opts.input) && isObject(opts.input.changes)) {
-                const files = Object.keys(opts.input.changes)
-                if (files.length === 0) return null
-                const first = files[0]
-                const display = resolveDisplayPath(first, opts.metadata)
-                const name = basename(display)
-                return files.length > 1 ? `${name} (+${files.length - 1})` : name
-            }
-            return null
+            const files = codexPatchFiles(opts.input)
+            if (!files.length) return null
+            const name = basename(resolveDisplayPath(files[0].path, opts.metadata))
+            return files.length > 1 ? `${name} (+${files.length - 1})` : name
         },
         minimal: true
     },
@@ -655,6 +655,12 @@ export function getToolPresentation(
     opts: Omit<ToolOpts, 'metadata'> & { metadata: SessionMetadataSummary | null },
     t?: Translator
 ): ToolPresentation {
+    const hamletTool = hamletToolName(opts.toolName)
+    if (hamletTool) return {
+        icon: <PuzzleIcon className={DEFAULT_ICON_CLASS} />,
+        title: 'Hamlet · ' + snakeToTitleWithSpaces(hamletTool),
+        subtitle: null, minimal: true
+    }
     if (opts.toolName.startsWith('mcp__')) {
         return {
             icon: <PuzzleIcon className={DEFAULT_ICON_CLASS} />,

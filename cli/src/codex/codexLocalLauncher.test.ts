@@ -16,8 +16,8 @@ vi.mock('./codexLocal', () => ({
     }
 }));
 
-vi.mock('./utils/buildHapiMcpBridge', () => ({
-    buildHapiMcpBridge: async () => ({
+vi.mock('./utils/buildHamletMcpBridge', () => ({
+    buildHamletMcpBridge: async () => ({
         server: {
             url: 'http://localhost:0',
             stop: () => {}
@@ -494,7 +494,7 @@ describe('codexLocalLauncher', () => {
             type: 'token_count',
             flavor: 'codex',
             model: 'gpt-5.4',
-            usageSchema: 'hapi.usage.v1',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache'
         }));
     });
@@ -820,8 +820,8 @@ describe('codexLocalLauncher', () => {
         ).type === 'token_count') as Array<Record<string, unknown>>;
         expect(tokenMessages).toHaveLength(2);
         expect(tokenMessages[0]).toMatchObject({
-            hapiUsageScope: 'imported-history',
-            usageSchema: 'hapi.usage.v1',
+            hamletUsageScope: 'imported-history',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache'
         });
         expect(tokenMessages[0]).not.toHaveProperty('flavor');
@@ -830,8 +830,8 @@ describe('codexLocalLauncher', () => {
             flavor: 'codex',
             threadId: 'codex-thread-import',
             thread_id: 'codex-thread-import',
-            hapiUsageScope: 'managed',
-            usageSchema: 'hapi.usage.v1',
+            hamletUsageScope: 'managed',
+            usageSchema: 'hamlet.usage.v1',
             inputTokenSemantics: 'includes-cache'
         });
     });
@@ -932,7 +932,7 @@ describe('codexLocalLauncher', () => {
                     payload: {
                         type: 'tool_search_call',
                         call_id: 'call-tool-search',
-                        arguments: { query: 'hapi change title', limit: 5 }
+                        arguments: { query: 'hamlet change title', limit: 5 }
                     }
                 }),
                 JSON.stringify({
@@ -942,7 +942,7 @@ describe('codexLocalLauncher', () => {
                         call_id: 'call-tool-search',
                         execution: 'client',
                         status: 'completed',
-                        tools: [{ name: 'mcp__hapi', description: 'Hapi tools' }]
+                        tools: [{ name: 'mcp__hamlet', description: 'Hamlet tools' }]
                     }
                 }),
                 JSON.stringify({
@@ -1064,14 +1064,14 @@ describe('codexLocalLauncher', () => {
             type: 'tool-call',
             name: 'ToolSearch',
             callId: 'call-tool-search',
-            input: { query: 'hapi change title', limit: 5 },
+            input: { query: 'hamlet change title', limit: 5 },
             id: expect.any(String)
         }, {
             type: 'tool-call-result',
             callId: 'call-tool-search',
             output: {
                 execution: 'client',
-                tools: [{ name: 'mcp__hapi', description: 'Hapi tools' }]
+                tools: [{ name: 'mcp__hamlet', description: 'Hamlet tools' }]
             },
             id: expect.any(String)
         }, {

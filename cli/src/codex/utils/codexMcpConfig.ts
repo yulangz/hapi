@@ -10,7 +10,7 @@
 import { createHash } from 'node:crypto';
 import { CODEX_TOOL_HOOK_MATCHER } from './codexToolHookNames';
 import { getHappyCliCommand } from '@/utils/spawnHappyCLI';
-import type { McpServersConfig } from './buildHapiMcpBridge';
+import type { McpServersConfig } from './buildHamletMcpBridge';
 
 /**
  * Escape a string value for use in a TOML string literal.
@@ -138,8 +138,8 @@ export function buildCodexHookConfigArgs(port: number, token: string): string[] 
  * Build -c arguments for MCP server configuration.
  *
  * Generates arguments like:
- *   -c 'mcp_servers.hapi.command="hapi"'
- *   -c 'mcp_servers.hapi.args=['mcp', '--url', 'http://...']'
+ *   -c 'mcp_servers.hamlet.command="hamlet"'
+ *   -c 'mcp_servers.hamlet.args=['mcp', '--url', 'http://...']'
  *
  * @param mcpServers - Map of server name to server config
  * @returns Array of CLI arguments to pass to codex

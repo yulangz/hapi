@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import React from 'react'
 import { render } from 'ink'
 import { existsSync } from 'node:fs'
-import type { LocalResumeTarget, ResumableSession } from '@hapi/protocol'
+import type { LocalResumeTarget, ResumableSession } from '@hamlet/protocol'
 import type {
     AgyPermissionMode,
     ClaudePermissionMode,
@@ -12,7 +12,7 @@ import type {
     KimiPermissionMode,
     CopilotPermissionMode,
     OpencodePermissionMode
-} from '@hapi/protocol/types'
+} from '@hamlet/protocol/types'
 import { ApiClient } from '@/api/api'
 import type { ReasoningEffort } from '@/codex/appServerTypes'
 import { authAndSetupMachineIfNeeded } from '@/ui/auth'
@@ -223,7 +223,7 @@ async function resolveSessionId(api: ApiClient, machineId: string, args: string[
         for (const [index, session] of sessions.entries()) {
             console.log(formatSessionLine(session, index))
         }
-        throw new Error('Run: hapi resume <session-id>')
+        throw new Error('Run: hamlet resume <session-id>')
     }
 
     return await selectSession(sessions)

@@ -24,7 +24,7 @@ import { MAX_UPLOAD_BYTES } from './attachmentAdapter'
  *    without spinning up a real ServiceWorkerGlobalScope.
  */
 
-const DB_NAME = 'hapi-share-transfers'
+const DB_NAME = 'hamlet-share-transfers'
 const DB_VERSION = 1
 const STORE = 'transfers'
 export const SHARE_TRANSFER_TTL_MS = 60 * 60 * 1000
@@ -157,7 +157,7 @@ export function buildSharePayloadFromSearchFields(
 /**
  * Native companion ingest: text fields plus optional `fileUrl` fetch into
  * `files[]` (same shape as Web Share Target POST). `fileUrl` must be
- * CORS-readable from the HAPI origin (companions send ACAO *).
+ * CORS-readable from the HAMLET origin (companions send ACAO *).
  * Enforces {@link MAX_UPLOAD_BYTES} while streaming so a crafted link cannot
  * buffer an unbounded response into IndexedDB before the composer rejects it.
  */

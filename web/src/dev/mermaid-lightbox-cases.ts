@@ -73,7 +73,7 @@ export const MERMAID_LIGHTBOX_CASES = {
   Rel(user, app, "Uses")`,
 
     mindmap: `mindmap
-  root((HAPI))
+  root((HAMLET))
     Chat
     Hub
     Web`,

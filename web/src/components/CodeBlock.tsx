@@ -95,7 +95,7 @@ export function CodeBlock(props: {
             : { overflowY: 'hidden' as const }
 
     return (
-        <div data-hapi-code-block="true" className="aui-code-surface relative min-w-0 max-w-full overflow-hidden rounded-xl bg-[var(--app-code-bg)] shadow-none">
+        <div data-hamlet-code-block="true" className="aui-code-surface relative min-w-0 max-w-full overflow-hidden rounded-xl bg-[var(--app-code-bg)] shadow-none">
             <div className="aui-code-surface-header flex items-center justify-between gap-3 bg-[var(--app-code-header-bg)] px-3 py-2">
                 <div className="min-w-0 flex-1 truncate font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--app-code-header-fg)]">
                     {label}
@@ -104,10 +104,10 @@ export function CodeBlock(props: {
                     {showWrapToggle ? (
                         <button
                             type="button"
-                            data-hapi-code-wrap-toggle="true"
-                            data-hapi-wrap-enable-label={t('code.wrap.enable')}
-                            data-hapi-wrap-disable-label={t('code.wrap.disable')}
-                            data-hapi-share-export-exclude="true"
+                            data-hamlet-code-wrap-toggle="true"
+                            data-hamlet-wrap-enable-label={t('code.wrap.enable')}
+                            data-hamlet-wrap-disable-label={t('code.wrap.disable')}
+                            data-hamlet-share-export-exclude="true"
                             onClick={(event) => {
                                 event.stopPropagation()
                                 setCodeWrap(!codeWrap)
@@ -122,10 +122,10 @@ export function CodeBlock(props: {
                     {showCopyButton ? (
                         <button
                             type="button"
-                            data-hapi-code-copy="true"
-                            data-hapi-copy-label={t('code.copy')}
-                            data-hapi-copied-label={t('message.copied')}
-                            data-hapi-share-export-exclude="true"
+                            data-hamlet-code-copy="true"
+                            data-hamlet-copy-label={t('code.copy')}
+                            data-hamlet-copied-label={t('message.copied')}
+                            data-hamlet-share-export-exclude="true"
                             onClick={(event) => {
                                 event.stopPropagation()
                                 copy(props.code)
@@ -133,10 +133,10 @@ export function CodeBlock(props: {
                             className="rounded-md p-1 text-[var(--app-code-header-fg)] transition-colors hover:bg-[var(--app-code-copy-hover-bg)] hover:text-[var(--app-fg)]"
                             title={t('code.copy')}
                         >
-                            <span data-hapi-copy-default="true" className={copied ? 'hidden' : ''}>
+                            <span data-hamlet-copy-default="true" className={copied ? 'hidden' : ''}>
                                 <CopyIcon className="h-3.5 w-3.5" />
                             </span>
-                            <span data-hapi-copy-success="true" className={copied ? '' : 'hidden'}>
+                            <span data-hamlet-copy-success="true" className={copied ? '' : 'hidden'}>
                                 <CheckIcon className="h-3.5 w-3.5" />
                             </span>
                         </button>
@@ -145,12 +145,12 @@ export function CodeBlock(props: {
             </div>
 
             <div
-                data-hapi-code-body="true"
+                data-hamlet-code-body="true"
                 className={`min-w-0 w-full max-w-full ${codeWrap ? '' : 'overflow-x-auto'}`}
                 style={bodyStyle}
             >
                 <pre
-                    data-hapi-code-grid="true"
+                    data-hamlet-code-grid="true"
                     className={`shiki m-0 grid ${codeWrap ? 'w-full' : 'w-max min-w-full'} font-mono ${codeTextClass}`}
                     style={codeGridStyle}
                 >

@@ -3,7 +3,7 @@ import { MessageQueue2 } from '@/utils/MessageQueue2'
 import { AgentSessionBase } from '@/agent/sessionBase'
 import type { DshMode } from './types'
 
-/** Remote-only HAPI session wrapper for the fresh-session DSH ACP server. */
+/** Remote-only HAMLET session wrapper for the fresh-session DSH ACP server. */
 export class DshSession extends AgentSessionBase<DshMode> {
     readonly startedBy: 'runner' | 'terminal'
 
@@ -28,7 +28,7 @@ export class DshSession extends AgentSessionBase<DshMode> {
             sessionLabel: 'DshSession',
             sessionIdLabel: 'DeepSeek Harness ACP',
             // The official ACP server supports fresh sessions only. Keep its
-            // process-local id out of HAPI metadata so inactive rows cannot
+            // process-local id out of HAMLET metadata so inactive rows cannot
             // advertise a resume path the server does not implement.
             applySessionIdToMetadata: (metadata) => metadata
         })

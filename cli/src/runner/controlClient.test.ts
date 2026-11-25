@@ -15,7 +15,7 @@ vi.mock('@/persistence', () => ({
 
 vi.mock('@/utils/process', () => ({
     isProcessAlive: isProcessAliveMock,
-    getHapiRunnerProcessIdentity: identityMock,
+    getHamletRunnerProcessIdentity: identityMock,
     killProcess: killProcessMock,
 }))
 

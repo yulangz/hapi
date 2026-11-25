@@ -14,8 +14,8 @@ import {
     ELEVENLABS_API_BASE,
     VOICE_AGENT_NAME,
     buildVoiceAgentConfig
-} from '@hapi/protocol/voice'
-import type { VoiceBackendType } from '@hapi/protocol/voice'
+} from '@hamlet/protocol/voice'
+import type { VoiceBackendType } from '@hamlet/protocol/voice'
 
 export interface VoiceTokenResponse {
     allowed: boolean
@@ -89,9 +89,9 @@ export interface CreateAgentResult {
 }
 
 /**
- * Find an existing "Hapi Voice Assistant" agent using the provided API key.
+ * Find an existing "Hamlet Voice Assistant" agent using the provided API key.
  */
-export async function findHapiAgent(apiKey: string): Promise<FindAgentResult> {
+export async function findHamletAgent(apiKey: string): Promise<FindAgentResult> {
     try {
         const response = await fetch(`${ELEVENLABS_API_BASE}/convai/agents`, {
             method: 'GET',
@@ -112,10 +112,10 @@ export async function findHapiAgent(apiKey: string): Promise<FindAgentResult> {
         const data = await response.json() as { agents?: ElevenLabsAgent[] }
         const agents: ElevenLabsAgent[] = data.agents || []
 
-        const hapiAgent = agents.find(agent => agent.name === VOICE_AGENT_NAME)
+        const hamletAgent = agents.find(agent => agent.name === VOICE_AGENT_NAME)
 
-        if (hapiAgent) {
-            return { success: true, agentId: hapiAgent.agent_id }
+        if (hamletAgent) {
+            return { success: true, agentId: hamletAgent.agent_id }
         } else {
             return { success: false, error: `No agent named "${VOICE_AGENT_NAME}" found` }
         }
@@ -125,11 +125,11 @@ export async function findHapiAgent(apiKey: string): Promise<FindAgentResult> {
 }
 
 /**
- * Create or update the "Hapi Voice Assistant" agent with our default configuration.
+ * Create or update the "Hamlet Voice Assistant" agent with our default configuration.
  */
-export async function createOrUpdateHapiAgent(apiKey: string): Promise<CreateAgentResult> {
+export async function createOrUpdateHamletAgent(apiKey: string): Promise<CreateAgentResult> {
     try {
-        const findResult = await findHapiAgent(apiKey)
+        const findResult = await findHamletAgent(apiKey)
         const existingAgentId = findResult.success ? findResult.agentId : null
 
         const agentConfig = buildVoiceAgentConfig()

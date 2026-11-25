@@ -9,7 +9,7 @@ import { configuration } from '@/configuration'
 import { buildHubRequestHeaders } from '@/api/hubExtraHeaders'
 import { readSettings } from '@/persistence'
 import { projectPath } from '@/projectPath'
-import { cursorHapiMcpServerId } from '@/cursor/utils/cursorMcpOverlay'
+import { cursorHamletMcpServerId } from '@/cursor/utils/cursorMcpOverlay'
 
 export type InlineMediaDoctorCheck = {
     ok: boolean
@@ -21,7 +21,7 @@ export type InlineMediaSessionBridge = {
     id: string
     prefix: string
     flavor: string | null
-    hapiMcpUrl: string | null
+    hamletMcpUrl: string | null
     listShowsMcpUrl: boolean
     path: string | null
     name: string | null
@@ -32,7 +32,7 @@ function repoRootFromCli(): string {
 }
 
 export function inlineMediaHelperScriptPath(): string {
-    return join(repoRootFromCli(), 'scripts/tooling/hapi-display-image.mjs')
+    return join(repoRootFromCli(), 'scripts/tooling/hamlet-display-image.mjs')
 }
 
 function mcpSdkResolvable(): boolean {
@@ -83,7 +83,7 @@ export function formatInlineMediaCommand(
 ): string {
     const scriptDir = resolve(scriptPath, '..', '..', '..')
     const q = shellSingleQuote
-    return `cd ${q(scriptDir)} && bun scripts/tooling/hapi-display-image.mjs ${q(sessionPrefix)} ${q(samplePath)} "title"`
+    return `cd ${q(scriptDir)} && bun scripts/tooling/hamlet-display-image.mjs ${q(sessionPrefix)} ${q(samplePath)} "title"`
 }
 
 export async function collectInlineMediaSessionBridges(jwt: string): Promise<InlineMediaSessionBridge[]> {
@@ -102,7 +102,7 @@ export async function collectInlineMediaSessionBridges(jwt: string): Promise<Inl
         const summary = asRecord(row)
         if (!summary || typeof summary.id !== 'string') continue
         const listMeta = asRecord(summary.metadata)
-        const listMcp = listMeta && typeof listMeta.hapiMcpUrl === 'string' ? listMeta.hapiMcpUrl : null
+        const listMcp = listMeta && typeof listMeta.hamletMcpUrl === 'string' ? listMeta.hamletMcpUrl : null
 
         const detailRes = await fetch(
             `${configuration.apiUrl}/api/sessions/${encodeURIComponent(summary.id)}`,
@@ -112,7 +112,7 @@ export async function collectInlineMediaSessionBridges(jwt: string): Promise<Inl
         const detailBody = (await detailRes.json()) as { session?: unknown }
         const detailRow = asRecord(detailBody.session) ?? asRecord(detailBody)
         const detailMeta = asRecord(detailRow?.metadata)
-        const detailMcp = detailMeta && typeof detailMeta.hapiMcpUrl === 'string' ? detailMeta.hapiMcpUrl : null
+        const detailMcp = detailMeta && typeof detailMeta.hamletMcpUrl === 'string' ? detailMeta.hamletMcpUrl : null
         const flavor = detailMeta && typeof detailMeta.flavor === 'string' ? detailMeta.flavor : null
         const path = detailMeta && typeof detailMeta.path === 'string' ? detailMeta.path : null
 
@@ -120,7 +120,7 @@ export async function collectInlineMediaSessionBridges(jwt: string): Promise<Inl
             id: summary.id,
             prefix: summary.id.slice(0, 8),
             flavor,
-            hapiMcpUrl: detailMcp,
+            hamletMcpUrl: detailMcp,
             listShowsMcpUrl: listMcp !== null,
             path,
             name: sessionDisplayName(detailMeta),
@@ -130,7 +130,7 @@ export async function collectInlineMediaSessionBridges(jwt: string): Promise<Inl
 }
 
 export async function runDoctorInlineMedia(): Promise<number> {
-    console.log(chalk.bold.cyan('\n🖼️  hapi inline media doctor\n'))
+    console.log(chalk.bold.cyan('\n🖼️  hamlet inline media doctor\n'))
 
     const checks: InlineMediaDoctorCheck[] = []
     const scriptPath = inlineMediaHelperScriptPath()
@@ -148,11 +148,11 @@ export async function runDoctorInlineMedia(): Promise<number> {
         detail: sdkOk ? 'resolvable from cli or repo root' : 'not found — optional outside source checkout',
     })
 
-    const envSessionId = process.env.HAPI_SESSION_ID
+    const envSessionId = process.env.HAMLET_SESSION_ID
     if (envSessionId) {
         checks.push({
             ok: true,
-            label: 'HAPI_SESSION_ID',
+            label: 'HAMLET_SESSION_ID',
             detail: envSessionId,
         })
     }
@@ -190,8 +190,8 @@ export async function runDoctorInlineMedia(): Promise<number> {
         return 1
     }
 
-    const withBridge = bridges.filter((b) => b.hapiMcpUrl)
-    const listOmitsMcp = bridges.some((b) => b.hapiMcpUrl && !b.listShowsMcpUrl)
+    const withBridge = bridges.filter((b) => b.hamletMcpUrl)
+    const listOmitsMcp = bridges.some((b) => b.hamletMcpUrl && !b.listShowsMcpUrl)
     const shellFallbackAvailable = scriptExists && sdkOk
 
     console.log(chalk.bold('\nActive sessions'))
@@ -199,14 +199,14 @@ export async function runDoctorInlineMedia(): Promise<number> {
         console.log(chalk.yellow('  No active sessions on hub.'))
     } else {
         for (const b of bridges) {
-            const bridgeMark = b.hapiMcpUrl ? chalk.green('bridge') : chalk.yellow('no bridge')
+            const bridgeMark = b.hamletMcpUrl ? chalk.green('bridge') : chalk.yellow('no bridge')
             const title = b.name ?? b.path ?? b.id
             console.log(
                 `  ${chalk.blue(b.prefix)} ${bridgeMark} ${chalk.gray(title)}`
                 + (b.flavor ? chalk.gray(` (${b.flavor})`) : '')
             )
-            if (b.hapiMcpUrl) {
-                console.log(chalk.gray(`    mcp: ${b.hapiMcpUrl}`))
+            if (b.hamletMcpUrl) {
+                console.log(chalk.gray(`    mcp: ${b.hamletMcpUrl}`))
                 if (shellFallbackAvailable) {
                     console.log(chalk.gray(`    ${formatInlineMediaCommand(scriptPath, b.prefix)}`))
                 }
@@ -216,31 +216,31 @@ export async function runDoctorInlineMedia(): Promise<number> {
 
     if (listOmitsMcp) {
         console.log(chalk.yellow(
-            '\n⚠ Some active sessions have hapiMcpUrl on detail GET but not on list — upgrade hub or use per-session GET.'
+            '\n⚠ Some active sessions have hamletMcpUrl on detail GET but not on list — upgrade hub or use per-session GET.'
         ))
     }
 
     const cursorSessions = withBridge.filter((b) => b.flavor === 'cursor')
     if (cursorSessions.length > 0) {
         console.log(chalk.bold('\nCursor ACP'))
-        console.log(chalk.gray('  Cursor ignores session/new mcpServers. Remote sessions use ~/.cursor/mcp.json + `agent mcp enable hapi-<sessionId>`.'))
-        console.log(chalk.gray('  Tool names are bare: display_image, display_video, display_media, change_title (not hapi_display_image).'))
+        console.log(chalk.gray('  Cursor ignores session/new mcpServers. Remote sessions use ~/.cursor/mcp.json + `agent mcp enable hamlet-<sessionId>`.'))
+        console.log(chalk.gray('  Tool names are bare: display_image, display_video, display_media, change_title (not hamlet_display_image).'))
         for (const session of cursorSessions) {
-            const serverId = cursorHapiMcpServerId(session.id)
+            const serverId = cursorHamletMcpServerId(session.id)
             console.log(chalk.gray(`  Verify (${session.prefix}): agent mcp list-tools ${serverId}`))
         }
     }
 
     console.log(chalk.bold('\nAgent inline path'))
-    console.log(chalk.gray('  1. MCP tool display_image / display_video / display_media in the running session (ACP flavors via hapi bridge)'))
+    console.log(chalk.gray('  1. MCP tool display_image / display_video / display_media in the running session (ACP flavors via hamlet bridge)'))
     if (shellFallbackAvailable) {
-        console.log(chalk.gray('  2. Shell fallback (HAPI session id prefix, not cursorSessionId):'))
+        console.log(chalk.gray('  2. Shell fallback (HAMLET session id prefix, not cursorSessionId):'))
         if (withBridge.length > 0) {
             console.log(chalk.green(`    ${formatInlineMediaCommand(scriptPath, withBridge[0].prefix)}`))
         } else if (envSessionId) {
             console.log(chalk.green(`    ${formatInlineMediaCommand(scriptPath, envSessionId.slice(0, 8))}`))
         } else {
-            console.log(chalk.gray(`    ${formatInlineMediaCommand(scriptPath, '<hapi-session-prefix>')}`))
+            console.log(chalk.gray(`    ${formatInlineMediaCommand(scriptPath, '<hamlet-session-prefix>')}`))
         }
     } else {
         console.log(chalk.gray('  2. Shell fallback unavailable (packaged install / no repo checkout) — use MCP tools only'))
@@ -255,7 +255,7 @@ export async function runDoctorInlineMedia(): Promise<number> {
     }
 
     if (withBridge.length === 0 && !envSessionId) {
-        console.log(chalk.yellow('\n⚠ No active session with hapiMcpUrl — start or resume a remote session first.\n'))
+        console.log(chalk.yellow('\n⚠ No active session with hamletMcpUrl — start or resume a remote session first.\n'))
     } else {
         console.log(chalk.red('\n✗ Inline media checks failed — fix items marked ✗ above.\n'))
     }

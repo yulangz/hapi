@@ -55,8 +55,8 @@ import {
     resolveMessageDeliveryMode,
     type ComposerSendIntent,
 } from '@/lib/messageDelivery'
-import type { MessageDeliveryMode } from '@hapi/protocol'
-import { isSteeringSupportedForSession } from '@hapi/protocol'
+import type { MessageDeliveryMode } from '@hamlet/protocol'
+import { isSteeringSupportedForSession } from '@hamlet/protocol'
 import { createAttachmentAdapter } from '@/lib/attachmentAdapter'
 import { rewindMessageWindow, type OlderLoadOutcome } from '@/lib/message-window-store'
 import { ShareSeedConsumer } from '@/components/ShareSeedConsumer'
@@ -74,7 +74,7 @@ import {
     type ScratchlistParkResult,
 } from '@/lib/scratchlistAttachmentFlow'
 import type { ScratchlistEntry } from '@/lib/scratchlist'
-import { isHubScratchlistAttachmentPath } from '@hapi/protocol'
+import { isHubScratchlistAttachmentPath } from '@hamlet/protocol'
 import {
     type AttachmentDraftInput,
 } from '@/lib/composer-attachment-drafts'
@@ -1704,7 +1704,7 @@ function SessionChatInner(props: SessionChatProps) {
         if (restoredSendErrorIdRef.current === error.id) return
         // A retry cannot carry the original Pi streaming generation. Preserve
         // queue, but deliberately downgrade a failed turn-scoped steer to the
-        // HAPI queue so a later active turn is never steered by stale text.
+        // HAMLET queue so a later active turn is never steered by stale text.
         pendingSendIntentRef.current = getRestoredComposerSendIntent(error.deliveryMode)
         restoredSendErrorIdRef.current = error.id
     }, [props.sendError])

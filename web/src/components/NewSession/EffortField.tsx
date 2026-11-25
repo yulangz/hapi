@@ -1,4 +1,4 @@
-import { getAgentConfigDescriptor, type PiThinkingLevelMap } from '@hapi/protocol'
+import { getAgentConfigDescriptor, type PiThinkingLevelMap } from '@hamlet/protocol'
 import { getPiThinkingLevelOptions } from '@/components/AssistantChat/piThinkingLevelOptions'
 import { getCodexComposerReasoningEffortOptions } from '@/components/AssistantChat/codexReasoningEffortOptions'
 import { useTranslation } from '@/lib/use-translation'

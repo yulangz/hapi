@@ -11,7 +11,7 @@ export function getTerminalFontSizeOptions(): ReadonlyArray<{ value: TerminalFon
 }
 
 function getTerminalFontSizeStorageKey(): string {
-    return 'hapi-terminal-font-size'
+    return 'hamlet-terminal-font-size'
 }
 
 function isBrowser(): boolean {

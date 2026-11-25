@@ -52,7 +52,7 @@ function chatContext(overrides: Partial<HappyChatContextValue> = {}): HappyChatC
     return {
         api: {} as ApiClient,
         sessionId: 'session-1',
-        metadata: { path: '/home/ada/coding/hapi', host: 'local' },
+        metadata: { path: '/home/ada/coding/hamlet', host: 'local' },
         terminalToolDisplayMode: 'compact',
         disabled: false,
         onRefresh: () => {},
@@ -65,7 +65,7 @@ function chatContext(overrides: Partial<HappyChatContextValue> = {}): HappyChatC
     }
 }
 
-const STORAGE_KEY = 'hapi-allowed-schemes'
+const STORAGE_KEY = 'hamlet-allowed-schemes'
 
 describe('visible local file references', () => {
     it('shows and copies the complete path even when the file is outside the workspace', async () => {
@@ -81,7 +81,7 @@ describe('visible local file references', () => {
     })
 
     it('keeps in-workspace files clickable while displaying their full path', () => {
-        const path = '/home/ada/coding/hapi/runs/transcript.json'
+        const path = '/home/ada/coding/hamlet/runs/transcript.json'
         renderA({ href: path, children: '完整交互 transcript.json' }, chatContext())
         expect(screen.getByText(path)).toBeInTheDocument()
         fireEvent.click(screen.getByRole('link', { name: '完整交互 transcript.json' }))
@@ -340,7 +340,7 @@ describe('markdown <A> component — fail-closed path-like hrefs (#1452)', () =>
 
     it('routes in-workspace absolute file href to FilePathAnchor when chat is present', () => {
         renderA(
-            { href: '/home/ada/coding/hapi/docs/a.md', children: 'abs' },
+            { href: '/home/ada/coding/hamlet/docs/a.md', children: 'abs' },
             chatContext()
         )
         const link = document.querySelector('a')
@@ -367,15 +367,15 @@ describe('markdown <A> component — fail-closed path-like hrefs (#1452)', () =>
         expect(document.querySelector('.aui-md-a-inert')?.textContent).toBe('win')
     })
 
-    it('routes hapi-file-candidate Windows href through containment to FilePathAnchor', () => {
-        const path = 'C:\\Users\\ada\\coding\\hapi\\docs\\a.md'
+    it('routes hamlet-file-candidate Windows href through containment to FilePathAnchor', () => {
+        const path = 'C:\\Users\\ada\\coding\\hamlet\\docs\\a.md'
         renderA(
             {
-                href: 'hapi-file-candidate:' + encodeURIComponent(path),
+                href: 'hamlet-file-candidate:' + encodeURIComponent(path),
                 children: 'win',
             },
             chatContext({
-                metadata: { path: 'C:\\Users\\ada\\coding\\hapi', host: 'local' },
+                metadata: { path: 'C:\\Users\\ada\\coding\\hamlet', host: 'local' },
             })
         )
         const link = document.querySelector('a')
@@ -383,10 +383,10 @@ describe('markdown <A> component — fail-closed path-like hrefs (#1452)', () =>
         expect(link!.getAttribute('href')).toContain('/sessions/session-1/file?')
     })
 
-    it('renders non-Windows hapi-file-candidate payloads as inert (no SPA navigate bypass)', () => {
+    it('renders non-Windows hamlet-file-candidate payloads as inert (no SPA navigate bypass)', () => {
         renderA(
             {
-                href: 'hapi-file-candidate:' + encodeURIComponent('/settings'),
+                href: 'hamlet-file-candidate:' + encodeURIComponent('/settings'),
                 children: 'spoof',
             },
             chatContext()
@@ -395,20 +395,20 @@ describe('markdown <A> component — fail-closed path-like hrefs (#1452)', () =>
         expect(document.querySelector('.aui-md-a-inert')?.textContent).toBe('spoof')
     })
 
-    it('renders empty hapi-file-candidate payload as inert (no custom-scheme confirm)', () => {
-        renderA({ href: 'hapi-file-candidate:', children: 'empty' }, chatContext())
+    it('renders empty hamlet-file-candidate payload as inert (no custom-scheme confirm)', () => {
+        renderA({ href: 'hamlet-file-candidate:', children: 'empty' }, chatContext())
         expect(document.querySelector('a')).toBeNull()
         expect(document.querySelector('.aui-md-a-inert')?.textContent).toBe('empty')
     })
 
-    it('renders uppercase hapi-file-candidate scheme as inert when payload is empty', () => {
-        renderA({ href: 'HAPI-FILE-CANDIDATE:', children: 'upper' }, chatContext())
+    it('renders uppercase hamlet-file-candidate scheme as inert when payload is empty', () => {
+        renderA({ href: 'HAMLET-FILE-CANDIDATE:', children: 'upper' }, chatContext())
         expect(document.querySelector('a')).toBeNull()
         expect(document.querySelector('.aui-md-a-inert')?.textContent).toBe('upper')
     })
 
-    it('renders percent-encoded hapi-file-candidate scheme as inert when payload is empty', () => {
-        renderA({ href: 'hapi%2Dfile%2Dcandidate:', children: 'enc' }, chatContext())
+    it('renders percent-encoded hamlet-file-candidate scheme as inert when payload is empty', () => {
+        renderA({ href: 'hamlet%2Dfile%2Dcandidate:', children: 'enc' }, chatContext())
         expect(document.querySelector('a')).toBeNull()
         expect(document.querySelector('.aui-md-a-inert')?.textContent).toBe('enc')
     })
@@ -424,7 +424,7 @@ describe('markdown <A> component — fail-closed path-like hrefs (#1452)', () =>
 
     it('expands ~/ and routes to FilePathAnchor when workspace metadata is present', () => {
         renderA(
-            { href: '~/coding/hapi/docs/a.md', children: 'tilde' },
+            { href: '~/coding/hamlet/docs/a.md', children: 'tilde' },
             chatContext()
         )
         const link = document.querySelector('a')

@@ -9,7 +9,7 @@ describe('cursorLegacyEventConverter', () => {
     describe('parseCursorEvent', () => {
         it('parses system init event', () => {
             const line =
-                '{"type":"system","subtype":"init","apiKeySource":"login","cwd":"D:\\\\projects\\\\hapi","session_id":"cec26d70-d2d5-48ac-a88b-9e820eb201cf","timestamp_ms":1772422778942}';
+                '{"type":"system","subtype":"init","apiKeySource":"login","cwd":"D:\\\\projects\\\\hamlet","session_id":"cec26d70-d2d5-48ac-a88b-9e820eb201cf","timestamp_ms":1772422778942}';
             const event = parseCursorEvent(line);
             expect(event).not.toBeNull();
             expect(event?.type).toBe('system');
@@ -241,7 +241,7 @@ describe('cursorLegacyEventConverter', () => {
             });
         });
 
-        // Regression for the second Major finding from the HAPI bot on
+        // Regression for the second Major finding from the HAMLET bot on
         // PR #801: a legitimate AskQuestion whose prompt text (carried
         // in `function.arguments`) quotes the synthetic-skip marker -
         // e.g. an agent debugging this exact bug - must NOT be rewritten
@@ -326,7 +326,7 @@ describe('cursorLegacyEventConverter', () => {
         });
 
         // Regression for the Codex P2 finding on the fork-stage review
-        // of this PR (heavygee/hapi#35): an Anthropic tool_use shape
+        // of this PR (heavygee/hamlet#35): an Anthropic tool_use shape
         // `{id, name, input, ...}` with a recognizable top-level `name`
         // must be gate-rejected by the AskQuestion-name set, AND its
         // agent-controlled `input` field must be excluded from the

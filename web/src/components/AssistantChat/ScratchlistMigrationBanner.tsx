@@ -6,11 +6,11 @@ import { useTranslation } from '@/lib/use-translation'
  *
  * Visibility contract:
  *   - Renders whenever `migrationStatus === 'completed'`, which is
- *     sticky across reloads until the operator clicks dismiss (HAPI
+ *     sticky across reloads until the operator clicks dismiss (HAMLET
  *     Bot, PR #896 follow-up - the previous behavior swallowed the
  *     banner if the user reloaded before clicking).
  *   - Operator-affirmative dismissal: clicking the dismiss button writes
- *     the per-session `hapi.scratchlist.v2.banner-dismissed.${id}` flag
+ *     the per-session `hamlet.scratchlist.v2.banner-dismissed.${id}` flag
  *     so the banner does not reappear on reload.
  *   - Mirrors the dismissal pattern of `CursorMigrationBanner.tsx` so
  *     the surface is familiar to operators.

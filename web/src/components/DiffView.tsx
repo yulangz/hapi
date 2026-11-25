@@ -50,10 +50,10 @@ function DiffWrapToggle() {
     return (
         <button
             type="button"
-            data-hapi-code-wrap-toggle="true"
-            data-hapi-wrap-enable-label={t('code.wrap.enable')}
-            data-hapi-wrap-disable-label={t('code.wrap.disable')}
-            data-hapi-share-export-exclude="true"
+            data-hamlet-code-wrap-toggle="true"
+            data-hamlet-wrap-enable-label={t('code.wrap.enable')}
+            data-hamlet-wrap-disable-label={t('code.wrap.disable')}
+            data-hamlet-share-export-exclude="true"
             onClick={(event) => {
                 event.stopPropagation()
                 setCodeWrap(!codeWrap)

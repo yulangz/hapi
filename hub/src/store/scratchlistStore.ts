@@ -38,7 +38,7 @@ export class ScratchlistStore {
         options?: {
             entryId?: string
             createdAt?: number
-            attachments?: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments?: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     ): CreateScratchlistResult {
         return createScratchlistEntry(this.db, sessionId, text, options)
@@ -49,7 +49,7 @@ export class ScratchlistStore {
         entryId: string,
         patch: {
             text?: string
-            attachments?: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments?: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     ): StoredScratchlistEntry | null {
         return updateScratchlistEntry(this.db, sessionId, entryId, patch)

@@ -1,6 +1,6 @@
 import type { ApiSessionClient } from '@/api/apiSession'
 import type { AgentBackend, PermissionRequest, PermissionResponse } from '@/agent/types'
-import type { GrokPermissionMode } from '@hapi/protocol/types'
+import type { GrokPermissionMode } from '@hamlet/protocol/types'
 import { deriveToolInput, deriveToolName } from '@/agent/utils'
 import { logger } from '@/ui/logger'
 import {

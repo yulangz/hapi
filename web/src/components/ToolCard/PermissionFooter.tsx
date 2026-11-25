@@ -4,7 +4,7 @@ import type { SessionMetadataSummary } from '@/types/api'
 import type { ChatToolCall, ToolPermission } from '@/chat/types'
 import { usePlatform } from '@/hooks/usePlatform'
 import { Spinner } from '@/components/Spinner'
-import { isCodexFamilyFlavor } from '@hapi/protocol'
+import { isCodexFamilyFlavor } from '@hamlet/protocol'
 import { getInputStringAny } from '@/lib/toolInputUtils'
 import { useTranslation } from '@/lib/use-translation'
 

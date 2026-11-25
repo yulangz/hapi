@@ -6,8 +6,8 @@ import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import { serveStatic } from 'hono/bun'
 import { getConfiguration } from '../configuration'
-import { PROTOCOL_VERSION } from '@hapi/protocol'
-import { buildGeminiLiveSetupMessage, QWEN_REALTIME_MODEL } from '@hapi/protocol/voice'
+import { PROTOCOL_VERSION } from '@hamlet/protocol'
+import { buildGeminiLiveSetupMessage, QWEN_REALTIME_MODEL } from '@hamlet/protocol/voice'
 import { getProviderEnvironment } from '../config/providerCredentials'
 import { readTitleProviderConfig } from '../sync/titleSuggestion'
 import { createQwenProxyWebSocketHandler } from './qwenProxyHandler'
@@ -20,6 +20,8 @@ import { createEventsRoutes } from './routes/events'
 import { createSessionsRoutes } from './routes/sessions'
 import { createMessagesRoutes } from './routes/messages'
 import { createPermissionsRoutes } from './routes/permissions'
+import { hamletRoutes, hamletOwnerRoutes } from '../hamlet/routes'
+import { createRunnerInstallRoutes } from './routes/runnerInstall'
 import { createMachinesRoutes } from './routes/machines'
 import { createStorageRoutes } from './routes/storage'
 import { createUsageRoutes } from './routes/usage'
@@ -247,6 +249,7 @@ function createWebApp(options: {
     app.use('/health', corsMiddleware)
     app.use('/api/*', corsMiddleware)
     app.use('/cli/*', corsMiddleware)
+    app.use('/runner/*', corsMiddleware)
 
     // Health check endpoint (no auth required).
     // Capabilities are additive so older clients can ignore unknown fields.
@@ -280,6 +283,8 @@ function createWebApp(options: {
         return next()
     })
 
+    app.route('/runner', createRunnerInstallRoutes(process.env.HAMLET_RUNNER_DIST || join(configuration.dataDir, 'runner-dist'), configuration.cliApiToken, options.jwtSecret))
+    app.route('/hamlet', hamletRoutes(options.getSyncEngine))
     app.route('/cli', createCliRoutes(options.getSyncEngine))
 
     app.route('/api', createAuthRoutes(options.jwtSecret, options.store))
@@ -290,12 +295,14 @@ function createWebApp(options: {
     app.route('/api', createSessionsRoutes(options.getSyncEngine))
     app.route('/api', createMessagesRoutes(options.getSyncEngine))
     app.route('/api', createPermissionsRoutes(options.getSyncEngine))
+    app.route('/api', hamletOwnerRoutes(options.getSyncEngine))
+    app.get('/api/runner-install', c => c.json({ hubUrl: configuration.publicUrl }))
     app.route('/api', createMachinesRoutes(options.getSyncEngine))
     app.route('/api', createStorageRoutes(configuration.dbPath))
     app.route('/api', createHubSettingsRoutes(configuration.dataDir))
     app.route('/api', createUsageRoutes(options.store))
     app.route('/api', createGitRoutes(options.getSyncEngine))
-    // 中文注释：这里提供两类 Codex 辅助能力：扫描本地 transcript 以导入到 Hapi，以及按需重启 Codex Desktop 客户端。
+    // 中文注释：这里提供两类 Codex 辅助能力：扫描本地 transcript 以导入到 Hamlet，以及按需重启 Codex Desktop 客户端。
     app.route('/api', createCodexDesktopRoutes({
         store: options.store,
         getSyncEngine: options.getSyncEngine
@@ -316,9 +323,9 @@ function createWebApp(options: {
         app.get('/', (c) => {
             return c.html(`<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>HAPI Hub</title></head>
+<head><meta charset="utf-8"><title>HAMLET Hub</title></head>
 <body style="font-family: system-ui; padding: 2rem; max-width: 600px;">
-<h1>HAPI Hub</h1>
+<h1>HAMLET Hub</h1>
 <p>This hub is running in relay mode. Please use the official web app:</p>
 <p><a href="${officialUrl}">${officialUrl}</a></p>
 <details>

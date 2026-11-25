@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "app.hapi.data"
+    namespace = "app.hamlet.data"
     compileSdk = 36
 
     defaultConfig {
@@ -26,7 +26,7 @@ android {
             // dir); the pagination conformance suite replays them against the
             // real MessageWindowStore (same wiring as :core:protocol).
             test.systemProperty(
-                "hapi.fixtures.dir",
+                "hamlet.fixtures.dir",
                 rootDir.parentFile.resolve("shared/fixtures").absolutePath,
             )
         }

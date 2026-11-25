@@ -2,7 +2,7 @@ import type { Session } from '../sync/syncEngine'
 import type { TaskNotification } from './notificationTypes'
 import { getAgentName, getSessionName } from './sessionInfo'
 import { formatToolArgumentsCompact, formatToolArgumentsDetailed } from './toolArgs'
-import { extractAssistantPlainText, extractNotifySummary, unwrapRoleWrappedRecordEnvelope } from '@hapi/protocol/messages'
+import { extractAssistantPlainText, extractNotifySummary, unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
 import type { Store } from '../store'
 import { composeInputRequestNotification, getFirstPendingRequest } from './inputRequest'
 

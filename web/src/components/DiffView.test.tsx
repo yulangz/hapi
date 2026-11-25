@@ -99,14 +99,14 @@ describe('DiffView', () => {
             </I18nProvider>
         )
 
-        expect(container.querySelectorAll('[data-hapi-code-wrap-toggle="true"]')).toHaveLength(1)
+        expect(container.querySelectorAll('[data-hamlet-code-wrap-toggle="true"]')).toHaveLength(1)
         expect(container.querySelectorAll('button button')).toHaveLength(0)
         expect(container.querySelectorAll('button[aria-haspopup="dialog"]')).toHaveLength(1)
         expect(screen.getByRole('button', { name: 'Open diff for example.ts' })).toContainElement(screen.getByText('View'))
-        const wrapToggle = container.querySelector('[data-hapi-code-wrap-toggle="true"]')!
-        expect(wrapToggle).toHaveAttribute('data-hapi-share-export-exclude', 'true')
-        expect(wrapToggle).toHaveAttribute('data-hapi-wrap-enable-label')
-        expect(wrapToggle).toHaveAttribute('data-hapi-wrap-disable-label')
+        const wrapToggle = container.querySelector('[data-hamlet-code-wrap-toggle="true"]')!
+        expect(wrapToggle).toHaveAttribute('data-hamlet-share-export-exclude', 'true')
+        expect(wrapToggle).toHaveAttribute('data-hamlet-wrap-enable-label')
+        expect(wrapToggle).toHaveAttribute('data-hamlet-wrap-disable-label')
     })
 
     it('renders the same toggle in the opened preview dialog and restores focus to its header trigger', async () => {
@@ -140,14 +140,14 @@ describe('DiffView', () => {
         off.unmount()
 
         // wrap on: compact rows wrap and drop the horizontal-scroll container
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
         const on = render(<I18nProvider><DiffView {...props} /></I18nProvider>)
         expect(on.container.querySelector('.whitespace-pre-wrap')).not.toBeNull()
         expect(on.container.querySelector('.overflow-x-auto')).toBeNull()
     })
 
     it('comfortable rows consume the global wrap preference from localStorage', () => {
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>
@@ -169,7 +169,7 @@ describe('DiffView', () => {
         // does nothing if the row's grid track is `max-content` and an
         // ancestor is `w-max` inside `overflow-x-auto` — the row still
         // claims full content width before wrapping is ever evaluated.
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>
@@ -189,7 +189,7 @@ describe('DiffView', () => {
     it('wrap on keeps line-number columns aligned across all rows (grid-per-line structure)', () => {
         const oldString = Array.from({ length: 12 }, (_, index) => `old ${index + 1}`).join('\n')
         const newString = `${oldString}\na very long new line that would need to wrap to avoid horizontal scroll on narrow screens`
-        window.localStorage.setItem('hapi-code-wrap', '1')
+        window.localStorage.setItem('hamlet-code-wrap', '1')
 
         const { container } = render(
             <I18nProvider>

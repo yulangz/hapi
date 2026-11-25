@@ -41,7 +41,7 @@ import type { Suggestion } from '@/hooks/useActiveSuggestions'
 import { useSendMessage, type SendErrorInfo } from '@/hooks/mutations/useSendMessage'
 import type { ComposerSendError } from '@/components/AssistantChat/HappyComposer'
 import { ApiError } from '@/api/client'
-import type { MessageDeliveryMode } from '@hapi/protocol'
+import type { MessageDeliveryMode } from '@hamlet/protocol'
 import { queryKeys } from '@/lib/query-keys'
 import { useToast } from '@/lib/toast-context'
 import { useTranslation } from '@/lib/use-translation'
@@ -586,7 +586,7 @@ function SessionPage() {
         isSessionThinking: session?.thinking ?? false,
         onSuccess: (sentSessionId) => {
             clearDraftsAfterSend(sentSessionId, sessionId)
-            // 中文注释：一旦用户已经在 Hapi 内继续这个 Codex 会话，就清除"刚从 Codex 导入"的标记。
+            // 中文注释：一旦用户已经在 Hamlet 内继续这个 Codex 会话，就清除"刚从 Codex 导入"的标记。
             clearCodexImportedSession(session?.metadata?.codexSessionId)
             // A successful send supersedes any previously-rendered error
             // for that session.  Other sessions' errors stay put.
@@ -937,7 +937,7 @@ function NewSessionPage() {
 
     const handleChooseFolder = useCallback((args: { machineId: string | null; directory: string }) => {
         // Forward the currently-selected machine so /browse opens scoped to
-        // it rather than falling back to `hapi:lastMachineId`, which can
+        // it rather than falling back to `hamlet:lastMachineId`, which can
         // disagree if the user changed machines without yet creating a
         // session. Preserve shareTransferId so a share-target spawn that
         // detours through /browse still seeds the composer after success.

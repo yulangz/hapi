@@ -1,4 +1,4 @@
-import type { KimiPermissionMode } from '@hapi/protocol/types';
+import type { KimiPermissionMode } from '@hamlet/protocol/types';
 
 export type PermissionMode = KimiPermissionMode;
 

@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol';
+import { isObject } from '@hamlet/protocol';
 
 export type ParsedToolCall = {
     callId: string;

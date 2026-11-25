@@ -12,7 +12,7 @@ export function getSessionListStatusModeOptions(): ReadonlyArray<{ value: Sessio
 }
 
 function getSessionListStatusModeStorageKey(): string {
-    return 'hapi-session-list-status-mode'
+    return 'hamlet-session-list-status-mode'
 }
 
 function isBrowser(): boolean {

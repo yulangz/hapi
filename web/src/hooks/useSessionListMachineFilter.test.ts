@@ -13,15 +13,15 @@ describe('useSessionListMachineFilter helpers', () => {
         expect(getInitialSessionListMachineFilter()).toBe(DEFAULT_SESSION_LIST_MACHINE_FILTER)
         expect(getInitialSessionListMachineFilter()).toBeNull()
 
-        window.localStorage.setItem('hapi-session-list-machine-filter', '')
+        window.localStorage.setItem('hamlet-session-list-machine-filter', '')
         expect(getInitialSessionListMachineFilter()).toBeNull()
 
-        window.localStorage.setItem('hapi-session-list-machine-filter', '   ')
+        window.localStorage.setItem('hamlet-session-list-machine-filter', '   ')
         expect(getInitialSessionListMachineFilter()).toBeNull()
     })
 
     it('reads a stored machine id', () => {
-        window.localStorage.setItem('hapi-session-list-machine-filter', 'machine-1')
+        window.localStorage.setItem('hamlet-session-list-machine-filter', 'machine-1')
 
         expect(getInitialSessionListMachineFilter()).toBe('machine-1')
     })

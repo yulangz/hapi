@@ -324,7 +324,7 @@ export async function runOpencode(opts: {
                         }
                         session.sendAgentMessage({
                             type: 'message',
-                            message: '/compact is not yet supported in HAPI OpenCode sessions.',
+                            message: '/compact is not yet supported in HAMLET OpenCode sessions.',
                             id: randomUUID()
                         });
                         sessionWrapperRef.current?.onThinkingChange(false);

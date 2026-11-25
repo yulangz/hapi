@@ -10,7 +10,7 @@ import {
 import { codexSystemPrompt } from './systemPrompt';
 
 describe('appServerConfig', () => {
-    const mcpServers = { hapi: { command: 'node', args: ['mcp'] } };
+    const mcpServers = { hamlet: { command: 'node', args: ['mcp'] } };
     const withCollaborationInstructions = (developerInstructions: string): string => {
         return `${developerInstructions}\n\n${codexCollaborationSpawnAgentInstructions}`;
     };
@@ -26,7 +26,7 @@ describe('appServerConfig', () => {
         expect(params.developerInstructions).toBe(codexSystemPrompt);
     });
 
-    it('keeps an explicit base instruction override separate from HAPI developer instructions', () => {
+    it('keeps an explicit base instruction override separate from HAMLET developer instructions', () => {
         const params = buildThreadStartParams({
             cwd: '/workspace/project',
             mode: { permissionMode: 'default', collaborationMode: 'default' },
@@ -52,7 +52,7 @@ describe('appServerConfig', () => {
         expect(params.baseInstructions).toBeUndefined();
         expect(params.developerInstructions).toBe(codexSystemPrompt);
         expect(params.config).toEqual({
-            'mcp_servers.hapi': {
+            'mcp_servers.hamlet': {
                 command: 'node',
                 args: ['mcp']
             },
@@ -76,7 +76,7 @@ describe('appServerConfig', () => {
             cwd: '/workspace/project',
             mode: { permissionMode: 'default', collaborationMode: 'default' },
             mcpServers: {
-                hapi: {
+                hamlet: {
                     command: 'node',
                     args: ['mcp'],
                     tools: {
@@ -89,7 +89,7 @@ describe('appServerConfig', () => {
         });
 
         expect(params.config).toEqual({
-            'mcp_servers.hapi': {
+            'mcp_servers.hamlet': {
                 command: 'node',
                 args: ['mcp'],
                 tools: {
@@ -116,7 +116,7 @@ describe('appServerConfig', () => {
                     url: 'https://example.test/mcp',
                     bearer_token_env_var: 'REMOTE_MCP_TOKEN'
                 },
-                hapi: {
+                hamlet: {
                     command: 'node',
                     args: ['mcp']
                 }
@@ -186,7 +186,7 @@ describe('appServerConfig', () => {
         });
     });
 
-    it('concatenates custom developer instructions after HAPI instructions without overriding base instructions', () => {
+    it('concatenates custom developer instructions after HAMLET instructions without overriding base instructions', () => {
         const params = buildThreadStartParams({
             cwd: '/workspace/project',
             mode: { permissionMode: 'default', collaborationMode: 'default' },
@@ -197,7 +197,7 @@ describe('appServerConfig', () => {
         expect(params.baseInstructions).toBeUndefined();
         expect(params.developerInstructions).toBe(`${codexSystemPrompt}\n\nOnly respond in Chinese.`);
         expect(params.config).toEqual({
-            'mcp_servers.hapi': {
+            'mcp_servers.hamlet': {
                 command: 'node',
                 args: ['mcp']
             },
@@ -213,7 +213,7 @@ describe('appServerConfig', () => {
         });
 
         expect(params.config).toEqual({
-            'mcp_servers.hapi': {
+            'mcp_servers.hamlet': {
                 command: 'node',
                 args: ['mcp']
             },
@@ -640,14 +640,14 @@ describe('appServerConfig', () => {
     });
 
     it('builds a structured leading skill input from the native catalog', () => {
-        expect(buildUserInputFromMessage('$hapi inspect @"README.md"', [{
-            name: 'hapi',
-            path: '/home/user/.agents/skills/hapi/SKILL.md',
-            description: 'Manage HAPI',
+        expect(buildUserInputFromMessage('$hamlet inspect @"README.md"', [{
+            name: 'hamlet',
+            path: '/home/user/.agents/skills/hamlet/SKILL.md',
+            description: 'Manage HAMLET',
             scope: 'user',
             enabled: true
         }])).toEqual([
-            { type: 'skill', name: 'hapi', path: '/home/user/.agents/skills/hapi/SKILL.md' },
+            { type: 'skill', name: 'hamlet', path: '/home/user/.agents/skills/hamlet/SKILL.md' },
             { type: 'text', text: ' inspect ' },
             { type: 'mention', name: 'README.md', path: 'README.md' }
         ]);

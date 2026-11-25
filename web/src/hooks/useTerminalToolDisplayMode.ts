@@ -12,7 +12,7 @@ export function getTerminalToolDisplayModeOptions(): ReadonlyArray<{ value: Term
 }
 
 function getTerminalToolDisplayModeStorageKey(): string {
-    return 'hapi-terminal-tool-display-mode'
+    return 'hamlet-terminal-tool-display-mode'
 }
 
 function isBrowser(): boolean {

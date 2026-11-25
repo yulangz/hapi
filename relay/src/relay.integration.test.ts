@@ -24,7 +24,7 @@ describe('relay end to end (mock APNs)', () => {
         const keys = await makeTestKeys()
         client = new Http2ApnsClient({
             baseUrl: mock.url,
-            topic: 'app.hapi.ios',
+            topic: 'app.hamlet.ios',
             jwtProvider: new ApnsJwtProvider({
                 privateKeyPem: keys.privateKeyPem,
                 keyId: 'ABC123DEF4',
@@ -72,9 +72,9 @@ describe('relay end to end (mock APNs)', () => {
         const seen = mock.requests[0]!
         expect(seen.headers[':path']).toBe(`/3/device/${TOKEN}`) // lowercased
         expect(seen.headers['apns-collapse-id']).toBe('sess-1')
-        const body = JSON.parse(seen.body) as { hapi: { v: number; e: string } }
-        expect(body.hapi.v).toBe(1)
-        expect(body.hapi.e).toBe(ENVELOPE)
+        const body = JSON.parse(seen.body) as { hamlet: { v: number; e: string } }
+        expect(body.hamlet.v).toBe(1)
+        expect(body.hamlet.e).toBe(ENVELOPE)
     })
 
     test('an APNs Unregistered answer surfaces as 410 unregistered', async () => {
@@ -89,7 +89,7 @@ describe('relay end to end (mock APNs)', () => {
         expect(res.status).toBe(200)
         expect(await res.json()).toEqual({
             status: 'ok',
-            service: 'hapi-push-relay',
+            service: 'hamlet-push-relay',
             version: 'it-test'
         })
     })

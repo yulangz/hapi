@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
-import { CREATABLE_AGENT_FLAVORS } from '@hapi/protocol'
+import { CREATABLE_AGENT_FLAVORS } from '@hamlet/protocol'
 
 vi.mock('@/lib/use-translation', () => ({
     useTranslation: () => ({ t: (key: string) => key }),

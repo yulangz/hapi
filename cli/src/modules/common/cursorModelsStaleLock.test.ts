@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { _resetAgentCliGuardForTests } from '@/agent/backends/acp/agentCliGuard';
 
-const testHome = join(tmpdir(), `hapi-cursor-models-lock-${process.pid}`);
+const testHome = join(tmpdir(), `hamlet-cursor-models-lock-${process.pid}`);
 
 const { spawnMock } = vi.hoisted(() => ({
     spawnMock: vi.fn()
@@ -33,7 +33,7 @@ import {
 import { _resetSharedCursorModelsCacheForTests } from './cursorModelsSharedCache';
 
 describe('listCursorModels stale ACP lock', () => {
-    const previousHome = process.env.HAPI_HOME;
+    const previousHome = process.env.HAMLET_HOME;
 
     afterEach(() => {
         _resetAgentCliGuardForTests();
@@ -42,9 +42,9 @@ describe('listCursorModels stale ACP lock', () => {
         spawnMock.mockReset();
         acpProbeMock.runCursorAcpModelProbe.mockReset();
         if (previousHome === undefined) {
-            delete process.env.HAPI_HOME;
+            delete process.env.HAMLET_HOME;
         } else {
-            process.env.HAPI_HOME = previousHome;
+            process.env.HAMLET_HOME = previousHome;
         }
         // Remove the per-file temp home so runs don't leak dirs into the system
         // temp dir (the test creates it under tmpdir() but never cleaned it up).
@@ -52,7 +52,7 @@ describe('listCursorModels stale ACP lock', () => {
     });
 
     test('runs cold ACP probe after clearing a stale cross-process lock', async () => {
-        process.env.HAPI_HOME = testHome;
+        process.env.HAMLET_HOME = testHome;
         const dir = join(testHome, 'locks', 'agent-acp-active');
         mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, 'pid'), '99999999');

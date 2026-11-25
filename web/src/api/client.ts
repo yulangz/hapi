@@ -24,7 +24,7 @@ import type {
     SkillsResponse,
     SpawnResponse,
     VisibilityPayload,
-    HapiSessionExportResponse,
+    HamletSessionExportResponse,
     HubHealthResponse,
     SessionResponse,
     SessionTitleSuggestionResponse,
@@ -58,10 +58,10 @@ import type {
     UpdateHubSettingsRequest,
     UsageSummaryResponse,
     UploadFileResponse
-} from '@hapi/protocol/apiTypes'
-import type { AgentFlavor, MessageDeliveryMode } from '@hapi/protocol'
-import type { CancelMessageResponse, SteerQueuedMessageResponse } from '@hapi/protocol/schemas'
-import type { TranscriptionMode, TranscriptionProvider, TranscriptionProviderInfo } from '@hapi/protocol/voice'
+} from '@hamlet/protocol/apiTypes'
+import type { AgentFlavor, MessageDeliveryMode } from '@hamlet/protocol'
+import type { CancelMessageResponse, SteerQueuedMessageResponse } from '@hamlet/protocol/schemas'
+import type { TranscriptionMode, TranscriptionProvider, TranscriptionProviderInfo } from '@hamlet/protocol/voice'
 
 export type RetryIndeterminateMessageResponse =
     | { status: 'retried' | 'already-queued' | 'retry-unavailable'; localId: string | null }
@@ -274,7 +274,7 @@ export class ApiClient {
     }
 
     async syncCodexSession(payload?: CodexDesktopSyncRequest): Promise<CodexDesktopScriptResponse> {
-        // 中文注释：当前按钮语义已改为“从 Codex 导入到 Hapi”；这里提交的是本地 transcript 对应的 Codex thread ID 列表。
+        // 中文注释：当前按钮语义已改为“从 Codex 导入到 Hamlet”；这里提交的是本地 transcript 对应的 Codex thread ID 列表。
         return await this.request<CodexDesktopScriptResponse>('/api/codex/sync-session', {
             method: 'POST',
             ...(payload ? { body: JSON.stringify(payload) } : {})
@@ -358,9 +358,9 @@ export class ApiClient {
     async getSessionExport(
         sessionId: string,
         options?: { force?: boolean; signal?: AbortSignal }
-    ): Promise<HapiSessionExportResponse> {
+    ): Promise<HamletSessionExportResponse> {
         const query = options?.force ? '?force=true' : ''
-        return await this.request<HapiSessionExportResponse>(
+        return await this.request<HamletSessionExportResponse>(
             `/api/sessions/${encodeURIComponent(sessionId)}/export${query}`,
             { signal: options?.signal }
         )
@@ -754,6 +754,10 @@ export class ApiClient {
         })
     }
 
+    async getRunnerInstall(): Promise<{ hubUrl: string }> {
+        return this.request('/api/runner-install')
+    }
+
     async getMachines(): Promise<MachinesResponse> {
         return await this.request<MachinesResponse>('/api/machines')
     }
@@ -830,6 +834,10 @@ export class ApiClient {
                 body: JSON.stringify({ paths })
             }
         )
+    }
+
+    async openHamletMain(): Promise<{ agent_id: string }> {
+        return this.request('/api/hamlet/main', { method: 'POST', body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) })
     }
 
     async spawnSession(
@@ -1038,7 +1046,7 @@ export class ApiClient {
             text: string
             createdAt: number
             updatedAt: number
-            attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }>
     }> {
         return await this.request(
@@ -1053,7 +1061,7 @@ export class ApiClient {
         mimeType: string
     ): Promise<{
         success: boolean
-        attachment?: import('@hapi/protocol').ScratchlistAttachmentMetadata
+        attachment?: import('@hamlet/protocol').ScratchlistAttachmentMetadata
         error?: string
         code?: string
     }> {
@@ -1098,7 +1106,7 @@ export class ApiClient {
             text: string
             entryId?: string
             createdAt?: number
-            attachments?: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments?: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     ): Promise<{
         entry: {
@@ -1106,7 +1114,7 @@ export class ApiClient {
             text: string
             createdAt: number
             updatedAt: number
-            attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     }> {
         return await this.request(
@@ -1128,7 +1136,7 @@ export class ApiClient {
             text: string
             createdAt: number
             updatedAt: number
-            attachments: import('@hapi/protocol').ScratchlistAttachmentMetadata[]
+            attachments: import('@hamlet/protocol').ScratchlistAttachmentMetadata[]
         }
     }> {
         return await this.request(

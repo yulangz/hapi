@@ -46,21 +46,21 @@ describe('OpenCode local tool part parsing', () => {
         const messages = collectMessages([
             {
                 type: 'tool',
-                tool: 'hapi_change_title',
+                tool: 'hamlet_change_title',
                 callID: callId,
                 id: 'prt_pending',
                 state: { status: 'pending', input: {}, raw: '' }
             },
             {
                 type: 'tool',
-                tool: 'hapi_change_title',
+                tool: 'hamlet_change_title',
                 callID: callId,
                 id: 'prt_pending',
                 state: { status: 'running', input: { title: 'New chat' } }
             },
             {
                 type: 'tool',
-                tool: 'hapi_change_title',
+                tool: 'hamlet_change_title',
                 callID: callId,
                 id: 'prt_pending',
                 state: {
@@ -76,7 +76,7 @@ describe('OpenCode local tool part parsing', () => {
         expect(messages).toEqual([
             {
                 type: 'tool-call',
-                name: 'hapi_change_title',
+                name: 'hamlet_change_title',
                 callId,
                 input: { title: 'New chat' }
             },

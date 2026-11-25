@@ -4,7 +4,7 @@
  * Exclude interactive TUI / IDE-only commands (`/config`, `/mcp`, `/sandbox`, `/btw`,
  * `/rewind`, …) — those need a real terminal surface and will not work over remote ACP.
  *
- * Mode switches (`/ask`, `/plan`, `/debug`) are handled by HAPI permission-mode UI via ACP
+ * Mode switches (`/ask`, `/plan`, `/debug`) are handled by HAMLET permission-mode UI via ACP
  * `session/set_config_option`, not by pass-through.
  */
 export const CURSOR_PASS_THROUGH_COMMANDS_WITH_ARGS = [

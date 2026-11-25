@@ -1,4 +1,4 @@
-import { isObject } from '@hapi/protocol'
+import { isObject } from '@hamlet/protocol'
 import type { AskUserQuestionQuestion } from '@/components/ToolCard/askUserQuestion'
 
 export function isCursorAskQuestionToolName(toolName: string): boolean {

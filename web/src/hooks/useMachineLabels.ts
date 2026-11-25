@@ -7,7 +7,7 @@ export function getMachineTitle(machine: Machine): string {
     return machine.id.slice(0, 8)
 }
 
-const STORAGE_KEY = 'hapi-machine-labels'
+const STORAGE_KEY = 'hamlet-machine-labels'
 
 function isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof document !== 'undefined'

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { DEFAULT_VOICE_PERSONALITY } from '@hapi/protocol/voice-personality'
+import { DEFAULT_VOICE_PERSONALITY } from '@hamlet/protocol/voice-personality'
 import {
     buildElevenLabsSessionOverridesFromPrefs,
     capElevenLabsInitialContext

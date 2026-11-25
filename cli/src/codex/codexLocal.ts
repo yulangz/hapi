@@ -9,7 +9,7 @@ import {
 import { getCodexSystemPrompt } from './utils/systemPrompt';
 import type { ReasoningEffort } from './appServerTypes';
 import { resolveCodexCommand } from './utils/codexExecutable';
-import type { McpServersConfig } from './utils/buildHapiMcpBridge';
+import type { McpServersConfig } from './utils/buildHamletMcpBridge';
 
 const CODEX_OPTIONS_WITH_VALUE = new Set([
     '-a',
@@ -73,7 +73,7 @@ function findResumeSessionIdIndex(args: string[], resumeIndex: number): number {
 }
 
 /**
- * Filter out the Codex resume selector which is managed internally by hapi.
+ * Filter out the Codex resume selector which is managed internally by hamlet.
  * Codex accepts global options before the subcommand, for example
  * `codex --sandbox danger-full-access resume --last`.
  */
@@ -99,11 +99,11 @@ export function filterResumeSubcommand(args: string[]): string[] {
     ));
 
     if (lastIndex !== -1) {
-        logger.debug("[CodexLocal] Filtered 'resume --last' - session managed by hapi");
+        logger.debug("[CodexLocal] Filtered 'resume --last' - session managed by hamlet");
     } else if (sessionIdIndex !== -1) {
-        logger.debug(`[CodexLocal] Filtered 'resume ${args[sessionIdIndex]}' - session managed by hapi`);
+        logger.debug(`[CodexLocal] Filtered 'resume ${args[sessionIdIndex]}' - session managed by hamlet`);
     } else {
-        logger.debug("[CodexLocal] Filtered 'resume' - session managed by hapi");
+        logger.debug("[CodexLocal] Filtered 'resume' - session managed by hamlet");
     }
 
     return filtered;
@@ -153,11 +153,12 @@ export async function codexLocal(opts: {
     }
 
     // Add developer instructions (system prompt)
-    args.push(...buildDeveloperInstructionsArg(getCodexSystemPrompt()));
+    const developerInstructions = getCodexSystemPrompt();
+    if (developerInstructions) args.push(...buildDeveloperInstructionsArg(developerInstructions));
 
     if (opts.codexArgs) {
         // Before the first launch, Codex still needs the user's selector (for
-        // example `resume --last`). Once hapi has the concrete session ID, it
+        // example `resume --last`). Once hamlet has the concrete session ID, it
         // prepends that ID above and removes the original selector here.
         const safeArgs = opts.sessionId
             ? filterResumeSubcommand(opts.codexArgs)

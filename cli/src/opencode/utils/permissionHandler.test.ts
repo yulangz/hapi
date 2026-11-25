@@ -152,13 +152,13 @@ describe('OpencodePermissionHandler plan mode', () => {
         });
     });
 
-    it('still auto-approves hapi title updates in plan mode', async () => {
+    it('still auto-approves hamlet title updates in plan mode', async () => {
         const harness = createHarness(() => 'plan');
 
         harness.emitPermissionRequest(buildRequest({
             id: 'perm-title',
             toolCallId: 'perm-title',
-            title: 'hapi_change_title',
+            title: 'hamlet_change_title',
             rawInput: { title: 'Planning' }
         }));
         await flushAsyncWork();
@@ -166,14 +166,14 @@ describe('OpencodePermissionHandler plan mode', () => {
         expect(harness.respondCalls).toEqual([
             {
                 sessionId: 'session-1',
-                request: expect.objectContaining({ id: 'perm-title', title: 'hapi_change_title' }),
+                request: expect.objectContaining({ id: 'perm-title', title: 'hamlet_change_title' }),
                 response: { outcome: 'selected', optionId: 'allow-once' }
             }
         ]);
         expect(harness.getAgentState().requests).toEqual({});
         expect(harness.getAgentState().completedRequests).toMatchObject({
             'perm-title': {
-                tool: 'hapi_change_title',
+                tool: 'hamlet_change_title',
                 status: 'approved',
                 decision: 'approved'
             }

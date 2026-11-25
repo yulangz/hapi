@@ -1,4 +1,4 @@
-import type { ScratchlistAttachmentLimits, ScratchlistAttachmentMetadata } from '@hapi/protocol'
+import type { ScratchlistAttachmentLimits, ScratchlistAttachmentMetadata } from '@hamlet/protocol'
 
 export type ScratchlistAttachmentValidationResult =
     | { ok: true }

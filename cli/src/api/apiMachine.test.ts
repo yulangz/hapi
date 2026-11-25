@@ -234,7 +234,7 @@ describe('ApiMachineClient listOpencodeModelsForCwd handler', () => {
         ioMock.mockReset()
         listOpencodeModelsForCwdMock.mockReset()
         listGrokModelsForCwdMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-machine-ws-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-machine-ws-'))
     })
 
     afterEach(() => {
@@ -245,7 +245,7 @@ describe('ApiMachineClient listOpencodeModelsForCwd handler', () => {
         const machine = makeMachine('machine-1')
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot])
 
-        const outsideCwd = mkdtempSync(join(tmpdir(), 'hapi-outside-'))
+        const outsideCwd = mkdtempSync(join(tmpdir(), 'hamlet-outside-'))
         try {
             const result = await callListOpencodeModels(client, machine.id, outsideCwd)
             expect(result).toEqual({ success: false, error: 'Path is outside workspace roots' })
@@ -299,7 +299,7 @@ describe('ApiMachineClient listOpencodeModelsForCwd handler', () => {
 
     it('accepts cwd inside any configured workspace root', async () => {
         const machine = makeMachine('machine-4')
-        const secondWorkspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-machine-ws-2-'))
+        const secondWorkspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-machine-ws-2-'))
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot, secondWorkspaceRoot])
 
         listOpencodeModelsForCwdMock.mockResolvedValueOnce({
@@ -331,7 +331,7 @@ describe('ApiMachineClient listOpencodeModelVariants handler', () => {
     beforeEach(() => {
         ioMock.mockReset()
         listOpencodeModelVariantsMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-opencode-variants-ws-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-opencode-variants-ws-'))
     })
 
     afterEach(() => {
@@ -341,7 +341,7 @@ describe('ApiMachineClient listOpencodeModelVariants handler', () => {
     it('rejects cwd outside workspace roots before running the variant probe', async () => {
         const machine = makeMachine('opencode-variants-machine-1')
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot])
-        const outsideCwd = mkdtempSync(join(tmpdir(), 'hapi-opencode-variants-outside-'))
+        const outsideCwd = mkdtempSync(join(tmpdir(), 'hamlet-opencode-variants-outside-'))
 
         try {
             expect(await callListOpencodeModelVariants(client, machine.id, outsideCwd)).toEqual({
@@ -358,7 +358,7 @@ describe('ApiMachineClient listOpencodeModelVariants handler', () => {
     it('rejects a workspace symlink that escapes the configured roots', async () => {
         const machine = makeMachine('opencode-variants-machine-2')
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot])
-        const outsideCwd = mkdtempSync(join(tmpdir(), 'hapi-opencode-variants-symlink-outside-'))
+        const outsideCwd = mkdtempSync(join(tmpdir(), 'hamlet-opencode-variants-symlink-outside-'))
         const escape = join(workspaceRoot, 'escape')
         symlinkSync(outsideCwd, escape, 'dir')
 
@@ -381,7 +381,7 @@ describe('ApiMachineClient listCopilotModelsForCwd handler', () => {
     beforeEach(() => {
         ioMock.mockReset()
         listCopilotModelsForCwdMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-copilot-machine-ws-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-copilot-machine-ws-'))
     })
 
     afterEach(() => {
@@ -391,7 +391,7 @@ describe('ApiMachineClient listCopilotModelsForCwd handler', () => {
     it('rejects cwd outside workspace roots before running the Copilot model probe', async () => {
         const machine = makeMachine('copilot-machine-1')
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot])
-        const outsideCwd = mkdtempSync(join(tmpdir(), 'hapi-copilot-outside-'))
+        const outsideCwd = mkdtempSync(join(tmpdir(), 'hamlet-copilot-outside-'))
 
         try {
             expect(await callListCopilotModels(client, machine.id, outsideCwd)).toEqual({
@@ -433,7 +433,7 @@ describe('ApiMachineClient listGrokModelsForCwd handler', () => {
     beforeEach(() => {
         ioMock.mockReset()
         listGrokModelsForCwdMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-grok-machine-ws-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-grok-machine-ws-'))
     })
 
     afterEach(() => {
@@ -443,7 +443,7 @@ describe('ApiMachineClient listGrokModelsForCwd handler', () => {
     it('rejects cwd outside workspace roots before running grok models', async () => {
         const machine = makeMachine('grok-machine-1')
         const client = new ApiMachineClient('cli-token', machine, [workspaceRoot])
-        const outsideCwd = mkdtempSync(join(tmpdir(), 'hapi-grok-outside-'))
+        const outsideCwd = mkdtempSync(join(tmpdir(), 'hamlet-grok-outside-'))
 
         try {
             expect(await callListGrokModels(client, machine.id, outsideCwd)).toEqual({
@@ -488,9 +488,9 @@ describe('ApiMachineClient Codex transcript handlers', () => {
     beforeEach(() => {
         ioMock.mockReset()
         listOpencodeModelsForCwdMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-codex-allowed-'))
-        outsideRoot = mkdtempSync(join(tmpdir(), 'hapi-codex-outside-'))
-        codexHome = mkdtempSync(join(tmpdir(), 'hapi-codex-home-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-codex-allowed-'))
+        outsideRoot = mkdtempSync(join(tmpdir(), 'hamlet-codex-outside-'))
+        codexHome = mkdtempSync(join(tmpdir(), 'hamlet-codex-home-'))
         process.env.CODEX_HOME = codexHome
     })
 
@@ -582,9 +582,9 @@ describe('ApiMachineClient Pi transcript handlers', () => {
 
     beforeEach(() => {
         ioMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-pi-allowed-'))
-        outsideRoot = mkdtempSync(join(tmpdir(), 'hapi-pi-outside-'))
-        piSessions = mkdtempSync(join(tmpdir(), 'hapi-pi-sessions-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-pi-allowed-'))
+        outsideRoot = mkdtempSync(join(tmpdir(), 'hamlet-pi-outside-'))
+        piSessions = mkdtempSync(join(tmpdir(), 'hamlet-pi-sessions-'))
         process.env.PI_CODING_AGENT_SESSION_DIR = piSessions
     })
 
@@ -622,7 +622,7 @@ describe('ApiMachineClient SpawnHappySession handler', () => {
 
     beforeEach(() => {
         ioMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-machine-spawn-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-machine-spawn-'))
     })
 
     afterEach(() => {
@@ -740,7 +740,7 @@ describe('ApiMachineClient list-directory handler', () => {
 
     beforeEach(() => {
         ioMock.mockReset()
-        workspaceRoot = mkdtempSync(join(tmpdir(), 'hapi-machine-ls-'))
+        workspaceRoot = mkdtempSync(join(tmpdir(), 'hamlet-machine-ls-'))
         mkdirSync(join(workspaceRoot, 'visible-dir'))
         mkdirSync(join(workspaceRoot, '.hidden-dir'))
         writeFileSync(join(workspaceRoot, 'plain.txt'), 'x')
@@ -778,7 +778,7 @@ describe('ApiMachineClient list-directory handler', () => {
     })
 
     it('lists in-root directory links and rejects links escaping explicit workspace roots', async () => {
-        const outside = mkdtempSync(join(tmpdir(), 'hapi-machine-ls-outside-'))
+        const outside = mkdtempSync(join(tmpdir(), 'hamlet-machine-ls-outside-'))
         mkdirSync(join(workspaceRoot, 'visible-dir', '.git'))
         symlinkSync(join(workspaceRoot, 'visible-dir'), join(workspaceRoot, 'linked-repo'), 'dir')
         symlinkSync(outside, join(workspaceRoot, 'escape'), 'dir')
