@@ -10,10 +10,14 @@ concurrency:
   group: codex-mention-${{ github.event.comment.id }}
   cancel-in-progress: false
 
+env:
+  HAMLET_BOT_MENTION: ${{ vars.HAMLET_BOT_MENTION }}
+
 jobs:
   mention-response:
     if: |
-      contains(github.event.comment.body, '@tiann') &&
+      vars.HAMLET_BOT_MENTION != '' &&
+      contains(github.event.comment.body, vars.HAMLET_BOT_MENTION) &&
       !endsWith(github.event.comment.user.login, '[bot]')
     runs-on: ubuntu-latest
     permissions:
@@ -27,7 +31,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const marker = "*HAMLET Bot*";
+            const markers = ["*HAMLET Bot*", "*HAPI Bot*"];
             const triggeringCommentId = context.payload.comment.id;
             const replyMarker = `<!-- reply-to:${triggeringCommentId} -->`;
             const allowedLogins = (process.env.HAMLET_BOT_LOGINS || "github-actions[bot]")
@@ -84,7 +88,7 @@ jobs:
 
             const hasReply = comments.some(comment => {
               const body = comment?.body || "";
-              if (!body.includes(marker) || !body.includes(replyMarker)) return false;
+              if (!markers.some(marker => body.includes(marker)) || !body.includes(replyMarker)) return false;
               const user = comment.user;
               return user?.type === "Bot" && allowedLogins.includes(user.login);
             });

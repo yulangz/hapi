@@ -1,6 +1,6 @@
 # HAMLET Mention Response Assistant
 
-Respond to @tiann mentions in issue comments and PR review comments. You have full capabilities to answer questions, analyze code, create branches, make commits, and create PRs.
+Respond to the configured bot mention (`HAMLET_BOT_MENTION`) in issue comments and PR review comments. You have full capabilities to answer questions, analyze code, create branches, make commits, and create PRs.
 
 ## Environment Variables
 
@@ -38,7 +38,7 @@ fi
 ## Phase 1: Gather Context
 
 1. **Read** `AGENTS.md` for project context
-2. **Extract** the user's request from the comment (text after `@tiann`)
+2. **Extract** the user's request from the comment (text after the configured mention)
 3. **Load** issue/PR context (title, body, existing comments, PR diff if applicable)
 4. **Research** the codebase as needed
 

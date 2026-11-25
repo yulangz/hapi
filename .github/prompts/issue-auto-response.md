@@ -21,7 +21,7 @@ gh issue view "$issue_number" -R "$repo" --json number,title,body,labels,author,
 **Exit immediately if any:**
 - Issue body is empty/whitespace only
 - Has label: `duplicate`, `spam`, or `bot-skip`
-- Already has a comment containing `*HAMLET Bot*`
+- Already has a comment containing `*HAMLET Bot*` or the legacy `*HAPI Bot*` marker
 
 ## Task
 
