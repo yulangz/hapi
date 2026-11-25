@@ -993,7 +993,11 @@ export class AppServerEventConverter {
                     }
                     const text = extractItemText(item) ?? this.agentMessageBuffers.get(itemId);
                     if (text) {
-                        events.push(scoped({ type: 'agent_message', message: text }));
+                        events.push(scoped({
+                            type: 'agent_message',
+                            message: text,
+                            ...(typeof item.phase === 'string' ? { phase: item.phase } : {})
+                        }));
                         this.completedAgentMessageItems.add(itemId);
                         this.agentMessageBuffers.delete(itemId);
                     }

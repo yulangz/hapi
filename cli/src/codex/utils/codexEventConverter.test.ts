@@ -102,6 +102,7 @@ describe('convertCodexEvent', () => {
             messages: [{
                 type: 'message',
                 message: 'visible commentary',
+                phase: 'commentary',
                 id: 'agent-147'
             }]
         });
@@ -227,6 +228,7 @@ describe('convertCodexEvent', () => {
             messages: [{
                 type: 'message',
                 message: 'complete final answer',
+                phase: 'final_answer',
                 id: 'final-1'
             }]
         });
@@ -263,7 +265,7 @@ describe('convertCodexEvent', () => {
         expect(getAgentMessages(convert({
             type: 'event_msg',
             payload: { type: 'agent_message', phase: 'commentary', message: 'legacy commentary' }
-        }))[0]).toMatchObject({ message: 'legacy commentary' });
+        }))[0]).toMatchObject({ message: 'legacy commentary', phase: 'commentary' });
         expect(convert({
             type: 'response_item',
             payload: {
@@ -368,10 +370,12 @@ describe('convertCodexEvent', () => {
         expect(getAgentMessages(mirrored)).toEqual([{
             type: 'message',
             message: 'visible final A',
+            phase: 'final_answer',
             id: 'final-a'
         }, {
             type: 'message',
             message: 'visible final B',
+            phase: 'final_answer',
             id: 'final-b'
         }]);
         expect(convert({
@@ -403,13 +407,13 @@ describe('convertCodexEvent', () => {
                 item: {
                     type: 'AgentMessage',
                     id: 'paired-final',
-                    phase: 'final_answer',
                     content: [{ type: 'Text', text: 'same visible text' }]
                 }
             }
         }))).toEqual([{
             type: 'message',
             message: 'same visible text',
+            phase: 'final_answer',
             id: 'paired-final'
         }]);
 
@@ -430,8 +434,134 @@ describe('convertCodexEvent', () => {
         }))).toEqual([{
             type: 'message',
             message: 'same visible text',
+            phase: 'final_answer',
             id: 'response-only-final'
         }]);
+    });
+
+    it.each(['task_complete', 'turn_aborted'])('keeps progress and final phases distinct at %s', (type) => {
+        const convert = createCodexEventConverter();
+        expect(convert({ type: 'response_item', payload: {
+            type: 'message', role: 'assistant',
+            content: [{ type: 'output_text', text: 'I have the result. I will verify it.' }]
+        } })).toEqual([]);
+        const progress = convert({ type: 'event_msg', payload: {
+            type: 'agent_message', phase: 'commentary', message: 'I have the result. I will verify it.'
+        } });
+        convert({ type: 'response_item', payload: {
+            type: 'message', role: 'assistant', phase: 'final_answer',
+            content: [{ type: 'output_text', text: 'Verified **result**.' }]
+        } });
+        const terminal = convert({ type: 'event_msg', payload: { type, turn_id: 'turn-1' } });
+
+        expect(getAgentMessages(progress)).toEqual([
+            expect.objectContaining({ phase: 'commentary', message: 'I have the result. I will verify it.' })
+        ]);
+        expect(getAgentMessages(terminal)).toEqual(type === 'task_complete' ? [
+            expect.objectContaining({ phase: 'final_answer', message: 'Verified **result**.' })
+        ] : []);
+    });
+
+    it('still emits unphased response-only text when the turn ends', () => {
+        const convert = createCodexEventConverter();
+        convert({ type: 'response_item', payload: {
+            id: 'legacy-answer', type: 'message', role: 'assistant',
+            content: [{ type: 'output_text', text: 'Legacy answer.' }]
+        } });
+        expect(getAgentMessages(convert({
+            type: 'event_msg', payload: { type: 'task_complete', turn_id: 'turn-1' }
+        }))).toEqual([{ type: 'message', id: 'legacy-answer', message: 'Legacy answer.' }]);
+    });
+
+    it.each(['semantic-first', 'response-first'])('keeps late commentary phase and emits once (%s)', (order) => {
+        const convert = createCodexEventConverter();
+        const text = 'I have the result. I will verify it.';
+        const semantic = { type: 'event_msg', payload: {
+            type: 'agent_message', message: text, ...(order === 'response-first' ? { phase: 'commentary' } : {})
+        } };
+        const response = { type: 'response_item', payload: {
+            type: 'message', role: 'assistant', content: [{ type: 'output_text', text }],
+            ...(order === 'semantic-first' ? { phase: 'commentary' } : {})
+        } };
+        convert({ type: 'response_item', payload: {
+            type: 'function_call_output', call_id: 'tool-1', output: 'tool output'
+        } });
+        const [first, second] = order === 'semantic-first' ? [semantic, response] : [response, semantic];
+        const initial = getAgentMessages(convert(first));
+        const mirrored = getAgentMessages(convert(second));
+        if (order === 'response-first') {
+            expect(initial).toEqual([]);
+            expect(mirrored).toEqual([expect.objectContaining({ type: 'message', message: text, phase: 'commentary' })]);
+        } else {
+            expect(initial).toEqual([expect.objectContaining({ type: 'message', message: text })]);
+            expect(mirrored).toEqual([{ type: 'message-phase', id: expect.any(String), phase: 'commentary' }]);
+        }
+        expect(getAgentMessages(convert({ type: 'event_msg', payload: { type: 'turn_aborted', turn_id: 'turn-1' } }))).toEqual([]);
+        expect(convert.finalize()).toEqual([]);
+    });
+
+    it('keeps both final blocks when the first semantic message gains its phase from a response', () => {
+        const convert = createCodexEventConverter();
+        const first = 'First **final** block.';
+        const [original] = getAgentMessages(convert({ type: 'event_msg', payload: { type: 'agent_message', message: first } }));
+        expect(original).toMatchObject({ type: 'message', message: first });
+        if (original.type !== 'message') throw new Error('Expected assistant text');
+        const firstActions = convert({ type: 'response_item', payload: {
+            type: 'message', role: 'assistant', phase: 'final_answer', content: [{ type: 'output_text', text: first }]
+        } });
+        const secondActions = convert({ type: 'event_msg', payload: {
+            type: 'agent_message', message: 'Second final block.', phase: 'final_answer'
+        } });
+        expect(getAgentMessages([...firstActions, ...secondActions, ...convert.finalize()])).toEqual([
+            { type: 'message-phase', id: original.id, phase: 'final_answer' },
+            expect.objectContaining({ message: 'Second final block.', phase: 'final_answer' })
+        ]);
+    });
+
+    it('emits unphased legacy text immediately and deduplicates a later unphased mirror', () => {
+        const convert = createCodexEventConverter();
+        expect(getAgentMessages(convert({ type: 'event_msg', payload: {
+            type: 'agent_message', message: 'Old text.'
+        } }))).toEqual([expect.objectContaining({ type: 'message', message: 'Old text.' })]);
+        expect(getAgentMessages(convert({ type: 'response_item', payload: {
+            type: 'function_call', name: 'ReadFile', call_id: 'tool-1', arguments: '{}'
+        } }))).toEqual([expect.objectContaining({ type: 'tool-call', callId: 'tool-1' })]);
+        expect(convert({ type: 'response_item', payload: {
+            type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'Old text.' }]
+        } })).toEqual([]);
+        expect(convert.finalize()).toEqual([]);
+    });
+
+    it('uses the original response ID for a semantic phase received after replay flush', () => {
+        const convert = createCodexEventConverter();
+        const response = { type: 'response_item', payload: {
+            id: 'response-1', type: 'message', role: 'assistant',
+            content: [{ type: 'output_text', text: 'Finished.' }]
+        } };
+        const semantic = { type: 'event_msg', payload: { type: 'item_completed', item: {
+            id: 'response-1', type: 'AgentMessage', phase: 'final_answer', content: [{ type: 'Text', text: 'Finished.' }]
+        } } };
+        expect(convert(response)).toEqual([]);
+        expect(getAgentMessages(convert.finalize())).toEqual([{ type: 'message', id: 'response-1', message: 'Finished.' }]);
+        expect(getAgentMessages(convert(semantic))).toEqual([{ type: 'message-phase', id: 'response-1', phase: 'final_answer' }]);
+        expect(convert(semantic)).toEqual([]);
+    });
+
+    it('keeps identically worded messages with distinct item IDs', () => {
+        const convert = createCodexEventConverter();
+        const text = 'Same text.';
+        const semantic = { type: 'event_msg', payload: { type: 'item_completed', item: {
+            id: 'semantic-item', type: 'AgentMessage', content: [{ type: 'Text', text }]
+        } } };
+        const response = { type: 'response_item', payload: {
+            id: 'response-item', type: 'message', role: 'assistant', phase: 'final_answer',
+            content: [{ type: 'output_text', text }]
+        } };
+        expect(getAgentMessages(convert(semantic))).toEqual([{ type: 'message', id: 'semantic-item', message: text }]);
+        expect(convert(response)).toEqual([]);
+        expect(getAgentMessages(convert.finalize())).toEqual([
+            { type: 'message', id: 'response-item', message: text, phase: 'final_answer' }
+        ]);
     });
 
     it('finalizes a response-only answer when the event stream ends', () => {
@@ -453,6 +583,7 @@ describe('convertCodexEvent', () => {
         expect(getAgentMessages(convert.finalize())).toEqual([{
             type: 'message',
             message: 'visible answer at EOF',
+            phase: 'final_answer',
             id: 'final-at-eof'
         }]);
         expect(convert.finalize()).toEqual([]);
@@ -483,6 +614,7 @@ describe('convertCodexEvent', () => {
             message: {
                 type: 'message',
                 message: 'visible final answer',
+                phase: 'final_answer',
                 id: 'visible-final'
             }
         }, {
@@ -518,6 +650,7 @@ describe('convertCodexEvent', () => {
         }))).toEqual([{
             type: 'message',
             message: 'visible final answer',
+            phase: 'final_answer',
             id: 'visible-final'
         }, expect.objectContaining({
             type: 'tool-call',
@@ -561,6 +694,7 @@ describe('convertCodexEvent', () => {
         }))).toEqual([{
             type: 'message',
             message: 'earlier visible final answer',
+            phase: 'final_answer',
             id: 'earlier-visible-final'
         }]);
         expect(convert({
@@ -626,6 +760,7 @@ describe('convertCodexEvent', () => {
         expect(getAgentMessages(completed)).toEqual([{
             type: 'message',
             message: 'visible final answer',
+            phase: 'final_answer',
             id: 'visible-final'
         }]);
     });
@@ -666,6 +801,7 @@ describe('convertCodexEvent', () => {
         expect(getAgentMessages(completed)).toEqual([{
             type: 'message',
             message: 'visible before remote compaction',
+            phase: 'final_answer',
             id: 'visible-before-remote-compaction'
         }]);
         expect(completed.at(-1)).toEqual({ type: 'turn-finished', turnId: 'turn-1' });

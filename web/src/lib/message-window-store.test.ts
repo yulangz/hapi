@@ -94,6 +94,13 @@ function makeHiddenAgentMessage(props: { id: string; seq: number; at: number }):
     } as DecryptedMessage
 }
 
+function makeCodexRow(id: string, seq: number, data: Record<string, unknown>): DecryptedMessage {
+    return {
+        ...makeAgentMessage({ id, seq, at: seq }),
+        content: { role: 'agent', content: { type: 'codex', data } }
+    }
+}
+
 function makeReasoningMessage(id: string, streamId: string, seq: number, at: number, live = true): DecryptedMessage {
     return {
         id,
@@ -1570,5 +1577,71 @@ describe('reasoning snapshot compaction', () => {
         const state = getMessageWindowState(id)
         expect(state.oldestSeq).toBe(2)
         expect(state.newestSeq).toBe(3)
+    })
+})
+
+describe('Codex phase corrections', () => {
+    it.each([['tail', VISIBLE_WINDOW_SIZE], ['history', HISTORY_WINDOW_SIZE]] as const)(
+        'retains the original row and leaves all regular slots available in %s mode',
+        (mode, size) => {
+            const id = sessionId('phase-full-' + mode)
+            setMessageViewMode(id, mode)
+            const original = makeCodexRow('original', 1, { type: 'message', id: 'reply', message: 'Original text.' })
+            const rows = [original, ...Array.from({ length: size - 1 }, (_, index) =>
+                makeAgentMessage({ id: `reply-${index}`, seq: index + 2, at: index + 2 }))]
+            ingestIncomingMessages(id, rows)
+            const oldCorrection = makeCodexRow('old-phase', size + 1, { type: 'message-phase', id: 'reply', phase: 'commentary' })
+            const newCorrection = makeCodexRow('new-phase', size + 2, { type: 'message-phase', id: 'reply', phase: 'final_answer' })
+            ingestIncomingMessages(id, [newCorrection])
+            ingestIncomingMessages(id, [oldCorrection])
+
+            const state = getMessageWindowState(id)
+            expect(state.messages).toEqual([...rows, newCorrection])
+            expect(state.messages[0]).toBe(original)
+            expect(state.oldestSeq).toBe(1)
+            expect(state.newestSeq).toBe(size)
+            expect(state.hasMore).toBe(false)
+        }
+    )
+
+    it('uses server cursors and retains an orphan until an older page supplies its original', async () => {
+        const id = sessionId('phase-older')
+        const recent = makeAgentMessage({ id: 'recent', seq: 10, at: 10 })
+        const correction = makeCodexRow('phase', 9, { type: 'message-phase', id: 'reply', phase: 'final_answer' })
+        const original = makeCodexRow('original', 8, { type: 'message', id: 'reply', message: 'Older text.' })
+        const liveCorrection = makeCodexRow('phase-live', 11, { type: 'message-phase', id: 'reply', phase: 'commentary' })
+        const getMessages = vi.fn()
+            .mockResolvedValueOnce(latestResponse([recent], { hasMore: true, nextBeforeAt: 10, nextBeforeSeq: 10 }))
+            .mockResolvedValueOnce(beforeResponse([correction], { hasMore: true, nextBeforeAt: 9, nextBeforeSeq: 9 }))
+            .mockResolvedValueOnce(beforeResponse([original], { nextBeforeAt: 8, nextBeforeSeq: 8 }))
+            .mockResolvedValueOnce(afterResponse([], {
+                nextAfterAt: 11, nextAfterSeq: 11, snapshotHeadAt: 11, snapshotHeadSeq: 11
+            }))
+        const api = createApi(getMessages)
+        await syncTailMessages(api, id)
+        expect(await fetchOlderMessages(api, id)).toMatchObject({ kind: 'applied', addedRenderableCount: 0 })
+        expect(getMessageWindowState(id).messages.map(row => row.id)).toEqual(['phase', 'recent'])
+        expect(await fetchOlderMessages(api, id)).toMatchObject({ kind: 'applied', addedRenderableCount: 1 })
+        expect(getMessages.mock.calls[2][1]).toMatchObject({ beforeAt: 9, beforeSeq: 9 })
+        ingestIncomingMessages(id, [liveCorrection])
+        expect(getMessageWindowState(id).messages).toEqual([original, recent, liveCorrection])
+        setMessageViewMode(id, 'tail')
+        await syncTailMessages(api, id)
+        expect(getMessages.mock.calls[3][1]).toMatchObject({ afterAt: 11, afterSeq: 11 })
+        expect(getMessageWindowState(id).messages).toEqual([original, recent, liveCorrection])
+    })
+
+    it('bounds unmatched updates without evicting attached corrections', () => {
+        const id = sessionId('phase-orphan-budget')
+        const original = makeCodexRow('original', 1, { type: 'message', id: 'reply', message: 'Original text.' })
+        const attached = makeCodexRow('phase', 2, { type: 'message-phase', id: 'reply', phase: 'final_answer' })
+        const orphans = Array.from({ length: VISIBLE_WINDOW_SIZE }, (_, index) =>
+            makeCodexRow(`orphan-${index}`, index + 3, { type: 'message-phase', id: `missing-${index}`, phase: 'final_answer' }))
+        ingestIncomingMessages(id, [original, attached, ...orphans])
+
+        const state = getMessageWindowState(id)
+        expect(state.messages).toEqual([original, attached, ...orphans.slice(-200)])
+        expect(state.oldestSeq).toBe(1)
+        expect(state.newestSeq).toBe(1)
     })
 })

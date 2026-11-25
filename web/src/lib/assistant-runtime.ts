@@ -523,7 +523,11 @@ function toThreadMessageLike(
             role: 'assistant',
             id: threadMessageId,
             createdAt: new Date(timestamp),
-            content: [{ type: 'text', text: block.text }],
+            content: [{
+                type: 'text',
+                text: block.text,
+                ...(block.phase !== undefined ? { providerMetadata: { codex: { phase: block.phase } } } : {})
+            }],
             metadata: {
                 custom: {
                     kind: 'assistant',

@@ -53,6 +53,32 @@ function reasoningTextOf(message: { content: unknown }): string {
 }
 
 describe('cli session handlers', () => {
+    it('stores and broadcasts a late Codex phase under a new row with the same data ID', () => {
+        const store = new Store(':memory:')
+        try {
+            const session = store.sessions.getOrCreateSession('phase', {}, null, 'default')
+            const socket = new FakeSocket(), events: SyncEvent[] = []
+            registerSessionHandlers(socket as unknown as CliSocketWithData, { store,
+                resolveSessionAccess: () => ({ ok: true, value: session as StoredSession }),
+                emitAccessError: () => {}, onWebappEvent: event => { events.push(event) } })
+            const send = (data: Record<string, unknown>) => socket.trigger('message', {
+                sid: session.id, message: { role: 'agent', content: { type: AGENT_MESSAGE_PAYLOAD_TYPE, data } }
+            })
+            const text = { type: 'message', id: 'reply-1', message: 'Plain text' }
+            const correction = { type: 'message-phase', id: 'reply-1', phase: 'final_answer' }
+            send(text)
+            send(correction)
+            const rows = store.messages.getAllMessages(session.id)
+            expect(rows).toHaveLength(2)
+            expect(rows[0].id).not.toBe(rows[1].id)
+            expect(rows).toMatchObject([
+                { localId: null, content: { content: { data: text } } },
+                { localId: null, content: { content: { data: correction } } }
+            ])
+            expect(events.filter(event => event.type === 'message-received')).toHaveLength(2)
+        } finally { store.close() }
+    })
+
     it('does not rebroadcast stored agent replay, while preserving ACKs and new messages', () => {
         const store = new Store(':memory:')
         try {

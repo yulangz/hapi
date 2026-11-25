@@ -299,6 +299,22 @@ describe('MessageActions', () => {
         })
     })
 
+    it('keeps the share fallback when there is no final reply to copy', () => {
+        renderActions({
+            align: 'start',
+            shareFallbackText: 'Tool-loop progress text',
+            messageElementId: 'message-without-final'
+        })
+
+        expect(screen.queryByRole('button', { name: 'Copy' })).toBeNull()
+        fireEvent.click(screen.getByRole('button', { name: 'Share turn as image' }))
+        expect(onShareTurn).toHaveBeenCalledWith('message-without-final', 0, {
+            html: '',
+            text: 'Tool-loop progress text',
+            role: 'assistant'
+        })
+    })
+
     it('hides Fork and Rewind while a history action is pending', () => {
         renderActions({
             align: 'end',
