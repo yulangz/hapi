@@ -4,7 +4,8 @@ import { renderHook } from '@testing-library/react'
 import { DecryptedMessageSchema } from '@hamlet/protocol/schemas'
 import { normalizeDecryptedMessage } from '@/chat/normalize'
 import { reduceChatBlocks } from '@/chat/reducer'
-import { buildVisibleChatBlocks } from '@/chat/toolGroups'
+import { reconcileChatBlocks } from '@/chat/reconcile'
+import { buildVisibleChatBlocks, type VisibleChatBlock } from '@/chat/toolGroups'
 import { useHappyRuntime } from '@/lib/assistant-runtime'
 import { getAssistantCopyText } from '@/components/AssistantChat/messages/assistantCopyText'
 
@@ -58,7 +59,7 @@ describe('getAssistantCopyText', () => {
 })
 
 describe('copying stored Codex replies', () => {
-    function copyStoredMessages(data: Record<string, unknown>[]): string {
+    function reduceStoredMessages(data: Record<string, unknown>[]) {
         const messages = data.flatMap((record, index) => normalizeDecryptedMessage(DecryptedMessageSchema.parse({
             id: `message-${index}`,
             seq: index + 1,
@@ -66,8 +67,11 @@ describe('copying stored Codex replies', () => {
             createdAt: index,
             content: { role: 'agent', content: { type: 'codex', data: record } }
         })) ?? [])
-        const blocks = buildVisibleChatBlocks(reduceChatBlocks(messages, null).blocks, { hasMoreMessages: false })
-        const { result } = renderHook(() => useHappyRuntime({
+        return reduceChatBlocks(messages, null).blocks
+    }
+
+    function useStoredRuntime({ blocks }: { blocks: VisibleChatBlock[] }) {
+        return useHappyRuntime({
             session: { active: true, thinking: false } as Parameters<typeof useHappyRuntime>[0]['session'],
             blocks,
             messagesVersion: 1,
@@ -76,15 +80,46 @@ describe('copying stored Codex replies', () => {
             isSending: false,
             onSendMessage: () => {},
             onAbort: async () => {}
-        }))
-        const [assistant] = result.current.thread.getState().messages
+        })
+    }
+
+    function readCopyText(runtime: ReturnType<typeof useStoredRuntime>) {
+        const [assistant] = runtime.thread.getState().messages
         if (assistant?.role !== 'assistant') throw new Error('Expected a joined assistant message')
         return getAssistantCopyText(assistant.content)
+    }
+
+    function copyStoredMessages(data: Record<string, unknown>[]): string {
+        const blocks = buildVisibleChatBlocks(reduceStoredMessages(data), { hasMoreMessages: false })
+        const { result } = renderHook(useStoredRuntime, { initialProps: { blocks } })
+        return readCopyText(result.current)
     }
 
     const tool = { type: 'tool-call', callId: 'call-1', name: 'CodexBash', input: { command: 'test' } }
     const result = { type: 'tool-call-result', callId: 'call-1', output: 'tool output' }
     const commentary = { type: 'message', phase: 'commentary', message: 'I have the result. I will verify it.' }
+
+    it.each([
+        { phase: 'commentary', following: [], before: 'Original **text**.', after: '' },
+        { phase: 'final_answer', following: [{ type: 'message', phase: 'final_answer', message: 'Second block.' }],
+            before: 'Second block.', after: 'Original **text**.\n\nSecond block.' }
+    ])('updates the existing reply when $phase arrives after first render', ({ phase, following, before, after }) => {
+        const rows = [tool, result, { type: 'message', id: 'original', message: 'Original **text**.' }, ...following]
+        const first = reconcileChatBlocks(reduceStoredMessages(rows), new Map())
+        const visible = (blocks: typeof first.blocks) => buildVisibleChatBlocks(blocks, { hasMoreMessages: false })
+        const rendered = renderHook(useStoredRuntime, { initialProps: { blocks: visible(first.blocks) } })
+        expect(readCopyText(rendered.result.current)).toBe(before)
+
+        const corrected = reconcileChatBlocks(reduceStoredMessages([
+            ...rows, { type: 'message-phase', id: 'original', phase }
+        ]), first.byId)
+        expect(corrected.blocks.map(block => block.id)).toEqual(first.blocks.map(block => block.id))
+        expect(corrected.blocks.filter(block => block.id === 'original')).toEqual([
+            expect.objectContaining({ kind: 'agent-text', phase, text: 'Original **text**.' })
+        ])
+        rendered.rerender({ blocks: visible(corrected.blocks) })
+        expect(readCopyText(rendered.result.current)).toBe(after)
+    })
 
     it('copies all final blocks and excludes progress after a tool result', () => {
         expect(copyStoredMessages([

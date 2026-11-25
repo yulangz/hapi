@@ -1,4 +1,5 @@
-import { getReasoningStreamId } from '@hamlet/protocol/messages'
+import { getReasoningStreamId, unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
+import { isObject } from '@hamlet/protocol'
 import type { ApiClient } from '@/api/client'
 import { normalizeDecryptedMessage } from '@/chat/normalize'
 import type { DecryptedMessage, MessageStatus, MessagesResponse } from '@/types/api'
@@ -345,7 +346,7 @@ function deriveSeqBounds(messages: DecryptedMessage[]): { oldestSeq: number | nu
     let oldestSeq: number | null = null
     let newestSeq: number | null = null
     for (const message of messages) {
-        if (typeof message.seq !== 'number') continue
+        if (typeof message.seq !== 'number' || getPhaseCorrectionStreamId(message) !== null) continue
         oldestSeq = oldestSeq === null ? message.seq : Math.min(oldestSeq, message.seq)
         newestSeq = newestSeq === null ? message.seq : Math.max(newestSeq, message.seq)
     }
@@ -364,10 +365,14 @@ function comparePosition(left: MessagePosition, right: MessagePosition): number 
 
 function derivePosition(
     messages: DecryptedMessage[],
-    direction: 'oldest' | 'newest'
+    direction: 'oldest' | 'newest',
+    includePhaseCorrections = true
 ): MessagePosition | null {
+    // Server cursors cross all stored rows. A trim boundary instead follows
+    // the retained conversation so an orphan correction cannot skip an older page.
     let selected: MessagePosition | null = null
     for (const message of messages) {
+        if (!includePhaseCorrections && getPhaseCorrectionStreamId(message) !== null) continue
         const candidate = messagePosition(message)
         if (!candidate) continue
         if (!selected) {
@@ -453,6 +458,41 @@ function isCodexAgentRunMessage(message: DecryptedMessage): boolean {
     return type === 'agent-run-start' || type === 'agent-run-update' || type === 'agent-run-trace'
 }
 
+function getCodexMessageData(message: DecryptedMessage): Record<string, unknown> | null {
+    const outer = unwrapRoleWrappedRecordEnvelope(message.content)
+    if (outer?.role !== 'agent') return null
+    const content = outer.content
+    return isObject(content) && content.type === 'codex' && isObject(content.data) ? content.data : null
+}
+
+function getPhaseCorrectionStreamId(message: DecryptedMessage): string | null {
+    const data = getCodexMessageData(message)
+    return data?.type === 'message-phase' && typeof data.id === 'string' && data.id.trim() && typeof data.phase === 'string'
+        ? data.id
+        : null
+}
+
+function retainPhaseCorrections(
+    messages: DecryptedMessage[],
+    latestCorrections: Map<string, DecryptedMessage>,
+    mode: 'append' | 'prepend'
+): DecryptedMessage[] {
+    if (latestCorrections.size === 0) return messages
+    const attached: DecryptedMessage[] = []
+    for (const message of messages) {
+        const data = getCodexMessageData(message)
+        if (data?.type !== 'message' || typeof data.id !== 'string') continue
+        const correction = latestCorrections.get(data.id)
+        if (!correction) continue
+        attached.push(correction)
+        latestCorrections.delete(data.id)
+    }
+    // Keep a page of unmatched corrections until their original rows load.
+    // Attached corrections already have a bound from their retained text rows.
+    const orphans = sliceForTrim([...latestCorrections.values()], PAGE_SIZE, mode).kept
+    return mergeMessages(messages, [...attached, ...orphans])
+}
+
 /** Collapse a reasoning stream down to the one snapshot that still says
  *  something.
  *
@@ -494,7 +534,17 @@ function trimPreservingQueued(
     regularLimit: number,
     mode: 'append' | 'prepend'
 ): { kept: DecryptedMessage[]; dropped: DecryptedMessage[] } {
-    const messages = dropSupersededReasoningSnapshots(incoming)
+    const latestCorrections = new Map<string, DecryptedMessage>()
+    const conversation = incoming.filter((message) => {
+        const streamId = getPhaseCorrectionStreamId(message)
+        if (streamId === null) return true
+        // Input is in server position order. Reinsert to keep the order of the
+        // latest corrections when a stream has more than one update.
+        latestCorrections.delete(streamId)
+        latestCorrections.set(streamId, message)
+        return false
+    })
+    const messages = dropSupersededReasoningSnapshots(conversation)
     const queued = messages.filter(isQueuedForInvocation)
     const queuedIds = new Set(queued.map((message) => message.id))
     const nonQueued = messages.filter((message) => !queuedIds.has(message.id))
@@ -503,7 +553,7 @@ function trimPreservingQueued(
     const regularTrim = sliceForTrim(regular, Math.max(0, regularLimit - queued.length), mode)
     const agentRunTrim = sliceForTrim(agentRuns, AGENT_RUN_WINDOW_SIZE, mode)
     return {
-        kept: mergeMessages([...regularTrim.kept, ...agentRunTrim.kept], queued),
+        kept: retainPhaseCorrections(mergeMessages([...regularTrim.kept, ...agentRunTrim.kept], queued), latestCorrections, mode),
         dropped: [...regularTrim.dropped, ...agentRunTrim.dropped]
     }
 }
@@ -526,6 +576,7 @@ function countNewRenderableMessages(
     )
     let count = 0
     for (const message of incoming) {
+        if (getPhaseCorrectionStreamId(message) !== null) continue
         if (!shouldRetainWindowMessage(message)) continue
         if (representedIds.has(message.id)) continue
         if (message.localId && representedLocalIds.has(message.localId)) continue
@@ -564,14 +615,14 @@ function mergeIntoWindow(
         return next
     }
     if (mode === 'append') {
-        const oldest = derivePosition(kept, 'oldest')
+        const oldest = derivePosition(kept, 'oldest', false)
         return buildState(next, {
             hasMore: true,
             oldestPositionAt: oldest?.at ?? next.oldestPositionAt,
             oldestPositionSeq: oldest?.seq ?? next.oldestPositionSeq
         })
     }
-    const newest = derivePosition(kept, 'newest')
+    const newest = derivePosition(kept, 'newest', false)
     next = buildState(next, {
         requiresLatestReset: true,
         newestPositionAt: newest?.at ?? null,
@@ -628,7 +679,7 @@ function applyLatestResponse(
     const responseOldest = pagePosition(response.page.nextBeforeAt, response.page.nextBeforeSeq)
     const previousOldest = readPosition(previous.oldestPositionAt, previous.oldestPositionSeq)
     const oldest = dropped.length > 0
-        ? derivePosition(kept, 'oldest')
+        ? derivePosition(kept, 'oldest', false)
         : options.replaceServerRows
             ? responseOldest
             : responseOldest ?? previousOldest
@@ -837,7 +888,7 @@ function enterTailMode(previous: InternalState): InternalState {
     const { kept, dropped } = trimPreservingQueued(previous.messages, VISIBLE_WINDOW_SIZE, 'append')
     const forceLatest = previous.requiresLatestReset
     const oldest = dropped.length > 0
-        ? derivePosition(kept, 'oldest')
+        ? derivePosition(kept, 'oldest', false)
         : readPosition(previous.oldestPositionAt, previous.oldestPositionSeq)
     return buildState(previous, {
         messages: kept,
