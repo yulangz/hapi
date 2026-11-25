@@ -3,7 +3,7 @@ import { Reasoning, ReasoningGroup } from '@/components/assistant-ui/reasoning'
 import { HappyToolMessage } from '@/components/AssistantChat/messages/ToolMessage'
 import { CliOutputBlock } from '@/components/CliOutputBlock'
 import type { HappyChatMessageMetadata } from '@/lib/assistant-runtime'
-import { getAssistantCopyText } from '@/components/AssistantChat/messages/assistantCopyText'
+import { getAssistantCopyText, getAssistantMessageText } from '@/components/AssistantChat/messages/assistantCopyText'
 import { getConversationMessageAnchorId } from '@/chat/outline'
 import { CodexReviewCard } from '@/components/AssistantChat/messages/CodexReviewCard'
 import { MessageActions } from '@/components/AssistantChat/messages/MessageActions'
@@ -46,8 +46,14 @@ export function HappyAssistantMessage() {
         return parts.length > 0 && parts.every((part) => part.type === 'tool-call')
     })
     const copyText = useAuiState((s) => {
-        if (s.message.role !== 'assistant') return ''
+        if (s.message.role !== 'assistant' || s.message.status.type === 'running') return ''
         return getAssistantCopyText(s.message.content, {
+            stripNotifySummary: !showSessionSummaryInChat
+        })
+    })
+    const shareFallbackText = useAuiState((s) => {
+        if (s.message.role !== 'assistant') return ''
+        return getAssistantMessageText(s.message.content, {
             stripNotifySummary: !showSessionSummaryInChat
         })
     })
@@ -86,6 +92,7 @@ export function HappyAssistantMessage() {
             <MessageActions
                 align="start"
                 copyText={copyText || undefined}
+                shareFallbackText={shareFallbackText}
                 metadata={metadata}
                 messageElementId={elementId}
                 showFork={showForkCurrent}

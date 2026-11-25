@@ -19,6 +19,7 @@ export type MessageHistoryAction = {
 type MessageActionsProps = {
     align: 'start' | 'end'
     copyText?: string
+    shareFallbackText?: string
     metadata?: Omit<MessageMetadataProps, 'className'>
     messageElementId?: string
     showFork?: boolean
@@ -48,6 +49,7 @@ export function selectThreadIsRunning(state: MessageActionsAuiState): boolean {
 export function MessageActions({
     align,
     copyText,
+    shareFallbackText = copyText,
     metadata,
     messageElementId,
     showFork = false,
@@ -70,7 +72,7 @@ export function MessageActions({
     const shareButton = messageElementId ? (
         <ShareTurnButton
             messageElementId={messageElementId}
-            fallbackText={copyText}
+            fallbackText={shareFallbackText}
         />
     ) : null
 

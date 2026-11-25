@@ -3,21 +3,36 @@ import type { ThreadAssistantMessagePart } from '@assistant-ui/react'
 import { getAssistantCopyText } from '@/components/AssistantChat/messages/assistantCopyText'
 
 describe('getAssistantCopyText', () => {
-    it('joins assistant text parts and ignores non-text parts', () => {
+    it('keeps all text blocks in a tool-free reply and skips reasoning', () => {
         const parts = [
             { type: 'text', text: 'First paragraph.' },
             { type: 'reasoning', text: 'Hidden chain of thought' },
-            { type: 'tool-call', toolCallId: 'tool-1', toolName: 'search', args: {}, argsText: '{}' },
             { type: 'text', text: 'Second paragraph.' }
         ] satisfies ThreadAssistantMessagePart[]
 
         expect(getAssistantCopyText(parts)).toBe('First paragraph.\n\nSecond paragraph.')
     })
 
-    it('returns empty string when no assistant text exists', () => {
+    it('copies every final text block after the last tool, preserving Markdown and paragraphs', () => {
         const parts = [
+            { type: 'text', text: 'I will inspect.' },
+            { type: 'tool-call', toolCallId: 'tool-1', toolName: 'search', args: {}, argsText: '{}', result: 'First result' },
+            { type: 'text', text: 'I found a lead.' },
+            { type: 'tool-call', toolCallId: 'tool-2', toolName: 'ToolGroup', args: {}, argsText: '{}', result: 'Second result' },
+            { type: 'text', text: '**Final** answer.\n\n- First bullet' },
+            { type: 'reasoning', text: 'Hidden chain of thought' },
+            { type: 'text', text: '    indented code\n    next line\n' }
+        ] satisfies ThreadAssistantMessagePart[]
+
+        expect(getAssistantCopyText(parts)).toBe('**Final** answer.\n\n- First bullet\n\n    indented code\n    next line\n')
+    })
+
+    it('returns empty string when the tool loop has no final answer', () => {
+        const parts = [
+            { type: 'text', text: 'I will inspect.' },
+            { type: 'tool-call', toolCallId: 'tool-1', toolName: 'search', args: {}, argsText: '{}' },
             { type: 'reasoning', text: 'Thinking' },
-            { type: 'tool-call', toolCallId: 'tool-1', toolName: 'search', args: {}, argsText: '{}' }
+            { type: 'text', text: '\n  ' }
         ] satisfies ThreadAssistantMessagePart[]
 
         expect(getAssistantCopyText(parts)).toBe('')
