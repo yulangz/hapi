@@ -67,23 +67,23 @@ function chatContext(overrides: Partial<HappyChatContextValue> = {}): HappyChatC
 
 const STORAGE_KEY = 'hamlet-allowed-schemes'
 
-describe('visible local file references', () => {
-    it('shows and copies the complete path even when the file is outside the workspace', async () => {
+describe('inline local file references', () => {
+    it('copies the complete outside-workspace path using the existing line-suffix handling', async () => {
         const path = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-35b-to-8b-middle-resumable/trajectories/630/transcript.json'
         const writeText = vi.fn().mockResolvedValue(undefined)
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
-        renderA({ href: path, children: '完整交互 transcript.json' }, chatContext())
-        expect(screen.getByText(path)).toBeInTheDocument()
+        renderA({ href: `${path}#L42`, children: '完整交互 transcript.json' }, chatContext())
+        expect(screen.queryByText(path)).not.toBeInTheDocument()
         expect(screen.queryByRole('link')).toBeNull()
         fireEvent.click(screen.getByRole('button', { name: /copy path/i }))
         await waitFor(() => expect(writeText).toHaveBeenCalledWith(path))
         expect(navigate).not.toHaveBeenCalled()
     })
 
-    it('keeps in-workspace files clickable while displaying their full path', () => {
+    it('keeps in-workspace file links clickable without a second path label', () => {
         const path = '/home/ada/coding/hamlet/runs/transcript.json'
         renderA({ href: path, children: '完整交互 transcript.json' }, chatContext())
-        expect(screen.getByText(path)).toBeInTheDocument()
+        expect(screen.queryByText(path)).not.toBeInTheDocument()
         fireEvent.click(screen.getByRole('link', { name: '完整交互 transcript.json' }))
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ to: '/sessions/$sessionId/file' }))
     })

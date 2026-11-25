@@ -1,23 +1,32 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { I18nProvider } from '@/lib/i18n-context'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 describe('MarkdownRenderer', () => {
-    it('shows full paths and copy controls for extensionless directory citations in historical markdown', () => {
+    it('keeps extensionless directory citations and copy controls inline', () => {
         const first = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-eval-25'
         const second = `${first}-50/`
         render(<I18nProvider><MarkdownRenderer standalone content={`- [25% 评测目录](${first})\n- [50% 评测目录](${second})`} /></I18nProvider>)
-        expect(screen.getByText(first)).toBeInTheDocument()
-        expect(screen.getByText(second)).toBeInTheDocument()
+        expect(screen.queryByText(first)).not.toBeInTheDocument()
+        expect(screen.queryByText(second)).not.toBeInTheDocument()
         expect(screen.getAllByRole('button', { name: /copy path/i })).toHaveLength(2)
         expect(screen.getByRole('button', { name: '25% 评测目录' })).toBeInTheDocument()
     })
-    it('keeps the path and copy control visible for a labeled absolute file link', () => {
-        const path = '/storage/openpsi/users/wanghaitao.wht/project/rsi/BCPlus/runs/20261105-35b-to-8b-middle-resumable/trajectories/630/transcript.json'
-        render(<I18nProvider><MarkdownRenderer standalone content={`[完整交互 transcript.json](${path})`} /></I18nProvider>)
-        expect(screen.getByText(path)).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: /copy path/i })).toBeInTheDocument()
+    it.each([true, false])('renders labeled file citations inline (standalone: %s)', (standalone) => {
+        const patch = '/storage/project/sglang_gdn_decode_padding.py'
+        const server = '/storage/project/sglang_server.py'
+        const content = `- 见[补丁实现](${patch})，继续检查。\n- 见[AReaL 启动入口](${server})。`
+        render(<I18nProvider><MarkdownRenderer standalone={standalone} content={content} /></I18nProvider>)
+
+        const [first, second] = screen.getAllByRole('listitem')
+        expect(first.textContent).toBe('见补丁实现，继续检查。')
+        expect(second.textContent).toBe('见AReaL 启动入口。')
+        for (const [item, label] of [[first, '补丁实现'], [second, 'AReaL 启动入口']] as const) {
+            const citation = within(item).getByRole('button', { name: label })
+            expect(citation).toHaveClass('underline')
+            expect(citation.nextElementSibling).toBe(within(item).getByRole('button', { name: /copy path/i }))
+        }
     })
     afterEach(() => {
         cleanup()

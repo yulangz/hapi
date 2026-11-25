@@ -507,11 +507,11 @@ function Code(props: ComponentPropsWithoutRef<'code'>) {
     )
 }
 
-function FilePathDetails(props: { path: string; label?: ReactNode; children?: ReactNode; copyLabel?: boolean }) {
+function FilePathDetails(props: { path: string; children?: ReactNode; copyLabel?: boolean }) {
     const { copied, copy } = useCopyToClipboard()
     const { t } = useTranslation()
     return (
-        <span className="aui-md-file-reference inline-flex max-w-full flex-wrap items-center gap-x-1.5 align-baseline">
+        <span className="aui-md-file-reference">
             {props.copyLabel ? (
                 <button
                     type="button"
@@ -526,14 +526,11 @@ function FilePathDetails(props: { path: string; label?: ReactNode; children?: Re
                 type="button"
                 aria-label={t('file.page.copyPath')}
                 title={t('file.page.copyPath')}
-                className="inline-flex shrink-0 rounded p-1 text-[var(--app-hint)] hover:bg-[var(--app-secondary-bg)] hover:text-[var(--app-text)]"
+                className="ml-0.5 inline-flex rounded p-1 align-middle text-[var(--app-hint)] hover:bg-[var(--app-secondary-bg)] hover:text-[var(--app-text)]"
                 onClick={(event) => { event.stopPropagation(); void copy(props.path) }}
             >
-                {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
+                {copied ? <CheckIcon aria-hidden="true" className="h-3.5 w-3.5" /> : <CopyIcon aria-hidden="true" className="h-3.5 w-3.5" />}
             </button>
-            {props.label !== props.path && (
-                <span className="w-full select-text break-all font-mono text-xs text-[var(--app-hint)]">{props.path}</span>
-            )}
         </span>
     )
 }
@@ -563,7 +560,7 @@ function FilePathAnchor(props: ComponentPropsWithoutRef<'a'> & { filePath: strin
     }
 
     return (
-        <FilePathDetails path={filePath} label={anchorProps.children}>
+        <FilePathDetails path={filePath}>
             <a
                 {...anchorProps}
                 href={href}
@@ -640,7 +637,7 @@ function InertMarkdownHref(props: { href: string; children?: ReactNode; classNam
     try { path = decodeURIComponent(splitHrefMeta(props.href).path) } catch { return label }
     const looksLikeLocalPath = hasKnownFileExtension(path) || /[\\/]/.test(path)
     if (!path.startsWith('//') && (!hasScheme(path) || /^[A-Za-z]:[\\/]/.test(path)) && looksLikeLocalPath) {
-        return <FilePathDetails path={path} label={props.children} copyLabel><span className="aui-md-a-inert" title={props.href}>{props.children}</span></FilePathDetails>
+        return <FilePathDetails path={path} copyLabel><span className="aui-md-a-inert" title={props.href}>{props.children}</span></FilePathDetails>
     }
     return label
 }
@@ -666,7 +663,11 @@ function A(props: ComponentPropsWithoutRef<'a'>) {
 
     if (filePath) {
         if (!chat) {
-            return <FilePathDetails path={filePath} label={props.children}>{props.children}</FilePathDetails>
+            return (
+                <FilePathDetails path={filePath}>
+                    <span className="underline decoration-dotted underline-offset-3">{props.children}</span>
+                </FilePathDetails>
+            )
         }
         return <FilePathAnchor {...props} filePath={filePath} sessionId={chat.sessionId} />
     }
