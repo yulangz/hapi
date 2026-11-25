@@ -1055,6 +1055,15 @@ export function normalizeAgentRecord(
             }
         }
 
+        if (data.type === 'message-phase' && typeof data.phase === 'string') {
+            const streamId = asString(data.id)
+            if (!streamId) return null
+            return {
+                id: messageId, localId, createdAt, role: 'agent', isSidechain: false, meta,
+                content: [{ type: 'message-phase', streamId, phase: data.phase }]
+            }
+        }
+
         if (data.type === 'message' && typeof data.message === 'string') {
             const streamId = asString(data.id)
             const isPiStreamSnapshot = data.streamSnapshot === true

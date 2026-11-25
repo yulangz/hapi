@@ -112,6 +112,7 @@ export type CodexReview = {
 }
 
 export type NormalizedAgentContent =
+    | { type: 'message-phase'; streamId: string; phase: string }
     | {
         type: 'text'
         text: string

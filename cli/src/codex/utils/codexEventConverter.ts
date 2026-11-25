@@ -17,6 +17,10 @@ export type CodexMessage = {
     id: string;
     phase?: string;
 } | {
+    type: 'message-phase';
+    id: string;
+    phase: string;
+} | {
     type: 'proposed_plan';
     plan: string;
     id: string;
@@ -77,8 +81,6 @@ export type CodexConversionAction = {
 export interface CodexEventConverter {
     (rawEvent: unknown): CodexConversionAction[];
     finalize: () => CodexConversionAction[];
-    hasPendingSemantic: () => boolean;
-    flushPendingSemantic: () => CodexConversionAction[];
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -240,21 +242,32 @@ function extractAssistantMessageProjection(
     return null;
 }
 
-function consumeProjection(matches: Map<string, (string | null)[]>, key: string, itemId: string | null): boolean {
+type VisibleProjection = {
+    itemId: string | null;
+    message?: Extract<CodexMessage, { type: 'message' }>;
+};
+
+function takeProjection(matches: Map<string, VisibleProjection[]>, key: string, itemId: string | null): VisibleProjection | undefined {
     const entries = matches.get(key);
-    if (!entries) return false;
-    const exact = itemId === null ? 0 : entries.indexOf(itemId);
-    const index = exact >= 0 ? exact : entries.indexOf(null);
-    if (index < 0) return false;
-    entries.splice(index, 1);
+    if (!entries) return;
+    const exact = itemId === null ? 0 : entries.findIndex((entry) => entry.itemId === itemId);
+    const index = exact >= 0 ? exact : entries.findIndex((entry) => entry.itemId === null);
+    if (index < 0) return;
+    const [matched] = entries.splice(index, 1);
     if (entries.length === 0) matches.delete(key);
-    return true;
+    return matched;
 }
 
-function rememberProjection(matches: Map<string, (string | null)[]>, key: string, itemId: string | null): void {
+function rememberProjection(
+    matches: Map<string, VisibleProjection[]>,
+    key: string,
+    itemId: string | null,
+    messages: CodexMessage[]
+): void {
+    const entry = { itemId, message: messages.find((message) => message.type === 'message') };
     const entries = matches.get(key);
-    if (entries) entries.push(itemId);
-    else matches.set(key, [itemId]);
+    if (entries) entries.push(entry);
+    else matches.set(key, [entry]);
 }
 
 function isFinalAnswerResponse(event: CodexSessionEvent): boolean {
@@ -349,32 +362,20 @@ function confirmsPendingResponseVisibility(actions: CodexConversionAction[]): bo
  * Project transcript records into one ordered action stream. Raw final-answer
  * response items are ambiguous: they can be visible fallback messages or
  * internal compaction summaries. Unphased assistant text can acquire its
- * phase from either mirror order. Resolve it before the next visible action,
- * or let the live caller flush an unmatched semantic message after a brief wait.
+ * phase from either mirror order. If the original text is already stored,
+ * publish only a phase correction under its existing message ID.
  */
 export function createCodexEventConverter(): CodexEventConverter {
     let currentTurnId: string | null = null;
-    const unmatchedSemanticMessages = new Map<string, (string | null)[]>();
-    const unmatchedResponseMessages = new Map<string, (string | null)[]>();
+    const unmatchedSemanticMessages = new Map<string, VisibleProjection[]>();
+    const unmatchedResponseMessages = new Map<string, VisibleProjection[]>();
     const pendingResponses: PendingAssistantResponse[] = [];
-    let pendingSemantic: {
-        key: string;
-        itemId: string | null;
-        actions: CodexConversionAction[];
-    } | undefined;
-
-    const flushPendingSemantic = (): CodexConversionAction[] => {
-        if (!pendingSemantic) return [];
-        const { key, itemId, actions } = pendingSemantic;
-        pendingSemantic = undefined;
-        rememberProjection(unmatchedSemanticMessages, key, itemId);
-        return actions;
-    };
+    const seenItems = new Set<string>();
 
     const emitPendingResponses = (entries: PendingAssistantResponse[]): CodexConversionAction[] => {
         const actions: CodexConversionAction[] = [];
         for (const entry of entries) {
-            rememberProjection(unmatchedResponseMessages, entry.key, entry.itemId);
+            rememberProjection(unmatchedResponseMessages, entry.key, entry.itemId, entry.messages);
             for (const message of entry.messages) {
                 actions.push({
                     type: 'agent-message',
@@ -405,6 +406,7 @@ export function createCodexEventConverter(): CodexEventConverter {
             unmatchedSemanticMessages.clear();
             unmatchedResponseMessages.clear();
             pendingResponses.length = 0;
+            seenItems.clear();
         }
 
         if (event.type === 'compacted') {
@@ -451,11 +453,22 @@ export function createCodexEventConverter(): CodexEventConverter {
             )];
         }
 
+        const opposite = projection.source === 'semantic'
+            ? unmatchedResponseMessages
+            : unmatchedSemanticMessages;
+        const matched = takeProjection(opposite, key, projection.itemId);
+        const message = converted.messages?.find((entry) => entry.type === 'message');
+        if (matched) {
+            if (!matched.message || matched.message.phase !== undefined || message?.phase === undefined) return [];
+            return [{
+                type: 'agent-message',
+                message: { type: 'message-phase', id: matched.message.id, phase: message.phase },
+                ...(projection.turnId ? { turnId: projection.turnId } : {})
+            }];
+        }
+
         const finalAnswer = isFinalAnswerResponse(event);
         if (projection.source === 'response' && (finalAnswer || typeof payload?.phase !== 'string')) {
-            if (consumeProjection(unmatchedSemanticMessages, key, projection.itemId)) {
-                return [];
-            }
             // Wait for the semantic mirror's phase or a visibility boundary
             // before committing this record to storage.
             pendingResponses.push({
@@ -469,23 +482,12 @@ export function createCodexEventConverter(): CodexEventConverter {
             return [];
         }
 
-        const opposite = projection.source === 'semantic'
-            ? unmatchedResponseMessages
-            : unmatchedSemanticMessages;
-        if (consumeProjection(opposite, key, projection.itemId)) {
-            return [];
-        }
-
         const earlierVisibleResponses = drainAllPendingResponses();
-        const message = converted.messages?.find((entry) => entry.type === 'message');
-        if (projection.source === 'semantic' && message?.phase === undefined) {
-            pendingSemantic = { key, itemId: projection.itemId, actions: convertedActions };
-            return earlierVisibleResponses;
-        }
         rememberProjection(
             projection.source === 'semantic' ? unmatchedSemanticMessages : unmatchedResponseMessages,
             key,
-            projection.itemId
+            projection.itemId,
+            converted.messages ?? []
         );
         return [...earlierVisibleResponses, ...convertedActions];
     };
@@ -500,43 +502,15 @@ export function createCodexEventConverter(): CodexEventConverter {
         const actions = convertProjectionToActions(converted, projection?.turnId ?? null);
         const payload = asRecord(event.payload);
 
-        if (pendingSemantic && projection?.source === 'response') {
-            const key = `${projection.turnId ?? ''}\u0000${projection.text}`;
-            const { itemId } = pendingSemantic;
-            const sameItem = itemId !== null && itemId === projection.itemId;
-            // An older occurrence can already be visible. Match that instance
-            // first when neither record provides an exact ID for the pending one.
-            if (!sameItem && consumeProjection(unmatchedSemanticMessages, key, projection.itemId)) return [];
-            if (key === pendingSemantic.key && (sameItem || !itemId || !projection.itemId)) {
-                const { actions: semanticActions } = pendingSemantic;
-                pendingSemantic = undefined;
-                const phase = payload?.phase;
-                return typeof phase === 'string' ? semanticActions.map((action) =>
-                    action.type === 'agent-message' && action.message.type === 'message'
-                        ? { ...action, message: { ...action.message, phase } }
-                        : action
-                ) : semanticActions;
-            }
+        if (projection?.itemId) {
+            const key = JSON.stringify([projection.turnId, projection.source, projection.itemId]);
+            if (seenItems.has(key)) return [];
+            seenItems.add(key);
         }
-        if (pendingSemantic && pendingSemantic.actions.length < 8 && actions.length && actions.every((action) =>
-            action.type === 'agent-message' && action.message.type === 'token_count'
-        )) {
-            pendingSemantic.actions.push(...actions);
-            return [];
-        }
-        const eventType = event.type === 'event_msg' ? payload?.type : null;
-        const terminal = eventType === 'turn_aborted' || eventType === 'task_failed' || eventType === 'task_complete';
-        const earlier = projection || actions.length || terminal || event.type === 'session_meta'
-            ? flushPendingSemantic()
-            : [];
-        return [...earlier, ...convertEvent(event, projection, converted, actions, payload)];
+        return convertEvent(event, projection, converted, actions, payload);
     };
 
-    return Object.assign(convert, {
-        finalize: () => [...flushPendingSemantic(), ...drainAllPendingResponses()],
-        hasPendingSemantic: () => pendingSemantic !== undefined,
-        flushPendingSemantic
-    });
+    return Object.assign(convert, { finalize: drainAllPendingResponses });
 }
 
 export function convertCodexEvent(rawEvent: unknown): CodexEventProjection | null {

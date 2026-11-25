@@ -98,6 +98,7 @@ function formatAgentContentBlock(block: NormalizedAgentContent): string | null {
         case 'summary':
             return `> Summary: ${block.summary}`
         case 'sidechain':
+        case 'message-phase':
             return null
         default: {
             const _exhaustive: never = block

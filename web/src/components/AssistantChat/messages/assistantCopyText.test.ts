@@ -89,13 +89,27 @@ describe('copying stored Codex replies', () => {
     it('copies all final blocks and excludes progress after a tool result', () => {
         expect(copyStoredMessages([
             tool, result, commentary,
-            { type: 'message', phase: 'final_answer', message: 'Verified **result**.' },
-            { type: 'message', phase: 'finalAnswer', message: '    indented code\n' }
+            { type: 'message', id: 'first-final', message: 'Verified **result**.' },
+            { type: 'message', phase: 'finalAnswer', message: '    indented code\n' },
+            { type: 'message-phase', id: 'first-final', phase: 'final_answer' }
         ])).toBe('Verified **result**.\n\n    indented code\n')
     })
 
     it('does not copy commentary when the turn ends without a final answer', () => {
-        expect(copyStoredMessages([tool, result, commentary])).toBe('')
+        expect(copyStoredMessages([
+            tool, result,
+            { type: 'message', id: 'late-commentary', message: commentary.message },
+            { type: 'message-phase', id: 'late-commentary', phase: 'commentary' }
+        ])).toBe('')
+    })
+
+    it('applies phase corrections on the original side of a later tool boundary', () => {
+        expect(copyStoredMessages([
+            { type: 'message', id: 'before-tool', message: 'Older text.' },
+            tool, result,
+            { type: 'message-phase', id: 'before-tool', phase: 'final_answer' },
+            { type: 'message-phase', id: 'outside-history-window', phase: 'final_answer' }
+        ])).toBe('')
     })
 
     it.each([undefined, 'final_answer', 'futurePhase'])('copies a plan preface followed by its synthetic plan card (%s)', (phase) => {

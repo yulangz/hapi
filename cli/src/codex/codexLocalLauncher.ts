@@ -72,7 +72,6 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
     let scannerReplayedExistingHistory = false;
     let transcriptModel: string | null = null;
     let convertTranscriptEvent = createCodexEventConverter();
-    let semanticMirrorTimer: ReturnType<typeof setTimeout> | undefined;
     const pendingPlansByTurnId = new Map<string, ProposedPlanMessage>();
     const pendingExecWrappers = new Map<string, PendingExecWrapper>();
     const toolHookBridge = new CodexToolHookBridge();
@@ -243,8 +242,6 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
     };
 
     const finalizeTranscriptConversion = (replayedExistingHistory: boolean): void => {
-        clearTimeout(semanticMirrorTimer);
-        semanticMirrorTimer = undefined;
         dispatchTranscriptActions(convertTranscriptEvent.finalize(), {
             replayedHistory: replayedExistingHistory
         });
@@ -326,17 +323,6 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
                     session.setModelReasoningEffort(observedReasoningEffort);
                 }
                 dispatchTranscriptActions(convertTranscriptEvent(event), context);
-                if (!convertTranscriptEvent.hasPendingSemantic()) {
-                    clearTimeout(semanticMirrorTimer);
-                    semanticMirrorTimer = undefined;
-                } else if (!context.replayedHistory && !shuttingDown && semanticMirrorTimer === undefined) {
-                    // Allow a mirror from the next watcher tick without holding
-                    // legacy semantic-only text until another visible event.
-                    semanticMirrorTimer = setTimeout(() => {
-                        semanticMirrorTimer = undefined;
-                        dispatchTranscriptActions(convertTranscriptEvent.flushPendingSemantic(), context);
-                    }, 100);
-                }
                 if (event.type === 'event_msg' && event.payload && typeof event.payload === 'object') {
                     const payload = event.payload as Record<string, unknown>;
                     if (payload.type === 'task_started' || payload.type === 'user_message'
@@ -417,13 +403,7 @@ export async function codexLocalLauncher(session: CodexSession): Promise<'switch
                 if (primarySessionId && primarySessionId !== sessionId) {
                     return;
                 }
-                const messages = toolHookBridge.handle(data);
-                if (messages.length && convertTranscriptEvent.hasPendingSemantic()) {
-                    clearTimeout(semanticMirrorTimer);
-                    semanticMirrorTimer = undefined;
-                    dispatchTranscriptActions(convertTranscriptEvent.flushPendingSemantic(), { replayedHistory: false });
-                }
-                for (const message of messages) {
+                for (const message of toolHookBridge.handle(data)) {
                     session.sendAgentMessage(message);
                 }
                 return;

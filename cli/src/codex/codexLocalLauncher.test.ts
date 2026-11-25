@@ -244,6 +244,44 @@ describe('codexLocalLauncher', () => {
         }
     });
 
+    it.each(['turn_aborted', 'task_complete'])('enriches already-forwarded transcript text across scans at %s', async (terminal) => {
+        const transcriptPath = await writeTranscriptMeta('late-phase.jsonl', 'late-phase');
+        const { session, agentMessages } = createSessionStub('default');
+        const line = (type: string, payload: Record<string, unknown>) => JSON.stringify({ type, payload }) + '\n';
+        let release!: () => void;
+        harness.runBarrier = new Promise<void>((resolve) => { release = resolve; });
+        const running = codexLocalLauncher(session as never);
+        try {
+            await vi.waitFor(() => expect(harness.sessionHookHandlers).toHaveLength(1));
+            harness.sessionHookHandlers[0]('late-phase', { transcript_path: transcriptPath });
+            await wait(300);
+            const text = terminal === 'turn_aborted' ? 'I have the result. I will verify it.' : 'First **final** block.';
+            await appendFile(transcriptPath,
+                line('event_msg', { type: 'task_started', turn_id: 'turn-1' })
+                + line('response_item', { type: 'function_call', name: 'ReadFile', call_id: 'tool-1', arguments: '{}' })
+                + line('response_item', { type: 'function_call_output', call_id: 'tool-1', output: 'tool result' })
+                + line('event_msg', { type: 'agent_message', message: text }));
+            await vi.waitFor(() => expect(agentMessages).toContainEqual(expect.objectContaining({ type: 'message', message: text })), { timeout: 3000 });
+            const original = agentMessages.find((message) => (message as { message?: string }).message === text) as { id: string; phase?: string };
+            expect(original.phase).toBeUndefined();
+            await wait(175);
+            const phase = terminal === 'turn_aborted' ? 'commentary' : 'final_answer';
+            const mirror = line('response_item', { type: 'message', role: 'assistant', id: 'mirror', phase,
+                content: [{ type: 'output_text', text }] });
+            await appendFile(transcriptPath, (terminal === 'task_complete'
+                ? line('event_msg', { type: 'agent_message', message: 'Second final block.', phase: 'final_answer' })
+                : '') + line('event_msg', { type: terminal, turn_id: 'turn-1' }) + mirror + mirror);
+            await vi.waitFor(() => expect(agentMessages).toContainEqual({ type: 'message-phase', id: original.id, phase }), { timeout: 3000 });
+            expect(agentMessages.filter((message) => (message as { id?: string }).id === original.id)).toEqual([
+                { type: 'message', id: original.id, message: text },
+                { type: 'message-phase', id: original.id, phase }
+            ]);
+        } finally {
+            release();
+            await running;
+        }
+    });
+
     it.each(['next-turn', 'queued', 'aborted', 'failed', 'shutdown'] as const)(
         'does not notify while %s prevents an idle completion', async (scenario) => {
             const transcriptPath = await writeTranscriptMeta('suppressed.jsonl', 'ready-session');

@@ -811,6 +811,11 @@ export function reduceTimeline(
 
             for (let idx = 0; idx < msg.content.length; idx += 1) {
                 const c = msg.content[idx]
+                if (c.type === 'message-phase') {
+                    const existing = textBlocksByStreamId.get(c.streamId)
+                    if (existing) existing.phase = c.phase
+                    continue
+                }
                 if (c.type === 'text') {
                     // Skip "No response requested." — Claude's sentinel auto-response
                     // to system-injected messages (task notifications, system reminders).
