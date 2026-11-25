@@ -25,7 +25,7 @@ describe('MarkdownRenderer', () => {
         for (const [item, label] of [[first, '补丁实现'], [second, 'AReaL 启动入口']] as const) {
             const citation = within(item).getByRole('button', { name: label })
             expect(citation).toHaveClass('underline')
-            expect(citation.nextElementSibling).toBe(within(item).getByRole('button', { name: /copy path/i }))
+            expect(citation.nextElementSibling).toContainElement(within(item).getByRole('button', { name: /copy path/i }))
         }
     })
     afterEach(() => {

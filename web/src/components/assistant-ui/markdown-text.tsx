@@ -510,27 +510,50 @@ function Code(props: ComponentPropsWithoutRef<'code'>) {
 function FilePathDetails(props: { path: string; children?: ReactNode; copyLabel?: boolean }) {
     const { copied, copy } = useCopyToClipboard()
     const { t } = useTranslation()
+    const handleCopy = (event: MouseEvent<HTMLElement>) => {
+        event.stopPropagation()
+        void copy(props.path)
+    }
+
     return (
-        <span className="aui-md-file-reference">
+        <span className="aui-md-file-reference break-all">
             {props.copyLabel ? (
-                <button
-                    type="button"
+                // An inline element lets the label's last character share a line with the copy button.
+                <span
+                    role="button"
+                    tabIndex={0}
                     title={t('file.page.copyPath')}
-                    className="text-left text-[var(--app-text)] underline decoration-dotted underline-offset-3"
-                    onClick={(event) => { event.stopPropagation(); void copy(props.path) }}
+                    className="cursor-pointer text-[var(--app-text)] underline decoration-dotted underline-offset-3"
+                    onClick={handleCopy}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            if (event.key === 'Enter' && !event.repeat) event.currentTarget.click()
+                        }
+                    }}
+                    onKeyUp={(event) => {
+                        if (event.key === ' ') {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            event.currentTarget.click()
+                        }
+                    }}
                 >
                     {props.children}
-                </button>
+                </span>
             ) : props.children}
-            <button
-                type="button"
-                aria-label={t('file.page.copyPath')}
-                title={t('file.page.copyPath')}
-                className="ml-0.5 inline-flex rounded p-1 align-middle text-[var(--app-hint)] hover:bg-[var(--app-secondary-bg)] hover:text-[var(--app-text)]"
-                onClick={(event) => { event.stopPropagation(); void copy(props.path) }}
-            >
-                {copied ? <CheckIcon aria-hidden="true" className="h-3.5 w-3.5" /> : <CopyIcon aria-hidden="true" className="h-3.5 w-3.5" />}
-            </button>
+            <span className="aui-md-file-copy whitespace-nowrap">
+                <button
+                    type="button"
+                    aria-label={t('file.page.copyPath')}
+                    title={t('file.page.copyPath')}
+                    className="ml-0.5 inline-flex rounded p-1 align-middle text-[var(--app-hint)] hover:bg-[var(--app-secondary-bg)] hover:text-[var(--app-text)]"
+                    onClick={handleCopy}
+                >
+                    {copied ? <CheckIcon aria-hidden="true" className="h-3.5 w-3.5" /> : <CopyIcon aria-hidden="true" className="h-3.5 w-3.5" />}
+                </button>
+            </span>
         </span>
     )
 }

@@ -87,6 +87,20 @@ describe('inline local file references', () => {
         fireEvent.click(screen.getByRole('link', { name: '完整交互 transcript.json' }))
         expect(navigate).toHaveBeenCalledWith(expect.objectContaining({ to: '/sessions/$sessionId/file' }))
     })
+
+    it.each(['Enter', ' '])('copies from the inline label with the %j key', async (key) => {
+        const path = '/storage/project/sglang_server.py'
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+        renderA({ href: `${path}#L42`, children: 'AReaL 启动入口' })
+        const label = screen.getByRole('button', { name: 'AReaL 启动入口' })
+
+        label.focus()
+        expect(label).toHaveFocus()
+        expect(fireEvent.keyDown(label, { key })).toBe(false)
+        fireEvent.keyUp(label, { key })
+        await waitFor(() => expect(writeText).toHaveBeenCalledExactlyOnceWith(path))
+    })
 })
 
 beforeEach(() => {

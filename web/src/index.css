@@ -454,6 +454,11 @@ html:has(.chat-scroll-y) #root {
     line-height: var(--app-chat-line-height);
 }
 
+/* Keep the copy button with the end of the label while letting the label wrap. */
+.aui-md-file-copy::before {
+    content: "\2060";
+}
+
 .happy-chat-text {
     font-size: var(--app-chat-font-size);
     line-height: var(--app-chat-line-height);
