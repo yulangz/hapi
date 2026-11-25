@@ -1,5 +1,6 @@
 import { feature } from 'bun:bundle';
 
+import hamletAgentSkill from '../../skills/hamlet-agent/SKILL.md' assert { type: 'file' };
 import difftasticArchiveLicense from '../../tools/archives/difftastic-LICENSE' assert { type: 'file' };
 import ripgrepArchiveLicense from '../../tools/archives/ripgrep-LICENSE' assert { type: 'file' };
 import difftasticLicense from '../../tools/licenses/difftastic-LICENSE' assert { type: 'file' };
@@ -19,6 +20,7 @@ function asset(relativePath: string, sourcePath: string): EmbeddedAsset {
 }
 
 const COMMON_ASSETS: EmbeddedAsset[] = [
+    asset('skills/hamlet-agent/SKILL.md', hamletAgentSkill),
     asset('tools/archives/difftastic-LICENSE', difftasticArchiveLicense),
     asset('tools/archives/ripgrep-LICENSE', ripgrepArchiveLicense),
     asset('tools/licenses/difftastic-LICENSE', difftasticLicense),

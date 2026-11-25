@@ -4,6 +4,7 @@ import type { CopilotAgentMode } from '@hamlet/protocol'
 export interface SpawnSessionOptions {
     hamletToken?: string
     hamletMain?: boolean
+    hamletTimezone?: string
     machineId?: string
     directory: string
     sessionId?: string

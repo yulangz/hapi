@@ -403,7 +403,7 @@ export class ApiMachineClient {
             }
 
             const result = await spawnSession({
-                hamletToken: params.hamletToken, hamletMain: params.hamletMain,
+                hamletToken: params.hamletToken, hamletMain: params.hamletMain, hamletTimezone: params.hamletTimezone,
                 directory,
                 sessionId,
                 existingSessionId,

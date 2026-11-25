@@ -60,7 +60,7 @@ export async function runSharedCodex(raw: SharedLaunchOptions): Promise<void> {
         }
         if (session.active) throw new Error('Existing session is active in another or legacy runtime. Stop it explicitly before cold resume; no hot migration.');
         if (session.metadata?.hamletAgent && (process.env.HAMLET_AGENT_ID !== session.id || !process.env.HAMLET_TOKEN)) {
-            throw new Error('Resume this Hamlet agent through its HAMLET Hub');
+            throw new Error('Resume this agent through its Hamlet Hub');
         }
         options.resumeSessionId ??= session.metadata?.codexSessionId;
         if (!options.resumeSessionId && process.env.HAMLET_AGENT_ID !== session.id) throw new Error('Existing HAMLET session has no Codex thread binding');

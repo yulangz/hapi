@@ -29,6 +29,11 @@ export class HamletStore {
     agent(id: string) {
         return this.db.query<Agent, [string]>('SELECT * FROM hamlet_agents WHERE id=?').get(id)
     }
+    userTimezone(namespace: string) {
+        return this.db.query<{ timezone: string | null }, [string]>(
+            "SELECT json_extract(launch_config,'$.timezone') AS timezone FROM hamlet_agents WHERE namespace=? AND parent_id IS NULL",
+        ).get(namespace)?.timezone ?? undefined
+    }
     authenticate(token: string) {
         return this.db.query<Agent, [string]>('SELECT * FROM hamlet_agents WHERE token=?').get(token)
     }
@@ -41,7 +46,7 @@ export class HamletStore {
             .get(id)
     }
 
-    register(namespace: string, parent: string | null, key: string, config: AgentConfig): Agent {
+    register(namespace: string, parent: string | null, key: string, config: AgentConfig, timezone?: string): Agent {
         return this.db
             .transaction(() => {
                 const existing = this.db
@@ -50,13 +55,16 @@ export class HamletStore {
                         [string, string | null, string]
                     >('SELECT * FROM hamlet_agents WHERE namespace=? AND parent_id IS ? AND request_id=?')
                     .get(namespace, parent, key)
-                if (existing) return existing
+                if (existing) {
+                    if (timezone) this.db.run("UPDATE hamlet_agents SET launch_config=json_set(launch_config,'$.timezone',?) WHERE id=?", [timezone, existing.id])
+                    return existing
+                }
                 const { machine_id, name, description, prompt, ...launch } = config
                 const id = randomUUID()
                 this.db.run(
                     `INSERT INTO hamlet_agents(id,namespace,parent_id,machine_id,request_id,name,description,launch_config,token)
                 VALUES(?,?,?,?,?,?,?,?,?)`,
-                    [id, namespace, parent, machine_id, key, name, description, JSON.stringify(launch), randomUUID()],
+                    [id, namespace, parent, machine_id, key, name, description, JSON.stringify({ ...launch, timezone }), randomUUID()],
                 )
                 this.enqueue(id, 'initial', id, prompt, [], [id])
                 return this.agent(id)!
@@ -231,27 +239,33 @@ export class HamletStore {
             .immediate()
     }
     batchEvents(agent: string, id: string): HamletBatch['events'] {
-        const delivery = id.startsWith('hamlet:steer:')
-            ? 'hamlet_steers JOIN hamlet_events ON seq=event WHERE agent=? AND event=?'
-            : 'hamlet_inbox JOIN hamlet_events ON seq=event WHERE agent=? AND batch=?'
-        const rows = this.db
-            .query<
-                {
-                    seq: number
-                    sender: string
-                    kind: HamletChatSource['kind']
-                    text: string
-                    images: string
-                    group_id: string | null
-                    created_at: number
-                    due_at: number | null
-                },
-                [string, string]
-            >(
-                `SELECT seq,source AS sender,kind,text,images,group_id,created_at, CASE WHEN kind='timer' THEN CAST(event_key AS INTEGER) END AS due_at FROM ${delivery} ORDER BY seq`,
+        const steer = id.startsWith('hamlet:steer:')
+        const delivery = steer ? 'hamlet_steers' : 'hamlet_inbox'
+        type Event = HamletBatch['events'][number]
+        const rows = this.db.query<Omit<Event, 'images'> & { images: string }, [string, string]>(`
+            WITH delivered AS (
+                SELECT e.*, recipient.parent_id,
+                    CASE WHEN e.kind='initial' THEN COALESCE(recipient.parent_id, 'system') ELSE e.source END AS sender
+                FROM ${delivery} d JOIN hamlet_events e ON e.seq=d.event
+                JOIN hamlet_agents recipient ON recipient.id=d.agent
+                WHERE d.agent=?1 AND ${steer ? 'd.event' : 'd.batch'}=?2
             )
-            .all(agent, id.startsWith('hamlet:steer:') ? id.slice('hamlet:steer:'.length) : id)
-        return rows.map(r => ({ ...r, images: JSON.parse(r.images) as Image[] }))
+            SELECT e.seq, e.kind, e.sender, e.text, e.images, e.created_at, e.group_id, g.name AS group_name,
+                COALESCE(a.name, b.name) AS sender_name,
+                CASE
+                    WHEN e.kind='initial' AND e.parent_id IS NULL THEN '系统'
+                    WHEN e.sender=e.parent_id THEN '父节点'
+                    WHEN a.parent_id=?1 THEN '直属子节点'
+                    WHEN a.id IS NOT NULL THEN '同群成员'
+                END AS relation,
+                CASE WHEN e.kind='timer' THEN CAST(e.event_key AS INTEGER) END AS due_at
+            FROM delivered e
+            LEFT JOIN hamlet_agents a ON e.kind IN ('initial','message') AND a.id=e.sender
+            LEFT JOIN hamlet_doorbells b ON e.kind='doorbell' AND b.id=e.sender
+            LEFT JOIN hamlet_groups g ON g.id=e.group_id
+            ORDER BY e.seq
+        `).all(agent, steer ? id.slice('hamlet:steer:'.length) : id)
+        return rows.map(row => ({ ...row, images: JSON.parse(row.images) as Image[] }))
     }
     received(agent: string, seq: number) {
         return !!this.db.query(`SELECT 1 FROM hamlet_inbox WHERE agent=?1 AND event=?2
@@ -264,12 +278,11 @@ export class HamletStore {
             for (const event of events) {
                 const localId = 'hamlet-event:' + event.seq
                 if (this.db.query('SELECT 1 FROM messages WHERE session_id=? AND local_id=?').get(agent, localId)) continue
-                const { kind, sender, group_id } = event
+                const { kind } = event
                 const source: HamletChatSource = {
                     kind,
-                    sender: kind === 'message' ? this.agent(sender)?.name ?? sender :
-                        kind === 'doorbell' ? this.db.query<{name: string}, [string]>('SELECT name FROM hamlet_doorbells WHERE id=?').get(sender)?.name ?? sender : null,
-                    group: group_id ? this.db.query<{name: string}, [string]>('SELECT name FROM hamlet_groups WHERE id=?').get(group_id)?.name ?? group_id : null,
+                    sender: event.sender_name ?? (kind === 'message' || kind === 'doorbell' ? event.sender : null),
+                    group: event.group_name ?? event.group_id,
                     images: event.images.map(({ attachment_id, caption }) => {
                         const file = this.attachment(attachment_id, agent)!
                         return { id: file.id, name: file.name, mime: file.mime, caption }

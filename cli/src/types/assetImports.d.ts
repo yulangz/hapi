@@ -42,3 +42,8 @@ declare module '*/tunwg/tunwg-x64-win32.exe' {
     const path: string;
     export default path;
 }
+
+declare module '*/SKILL.md' {
+    const path: string
+    export default path
+}

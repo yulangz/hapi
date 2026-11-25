@@ -132,7 +132,8 @@ function unpackTools(runtimeRoot: string): void {
 }
 
 function runtimeAssetsReady(runtimeRoot: string): boolean {
-    return areToolsUnpacked(join(runtimeRoot, 'tools', 'unpacked')) && isTunwgReady(runtimeRoot);
+    return areToolsUnpacked(join(runtimeRoot, 'tools', 'unpacked')) && isTunwgReady(runtimeRoot)
+        && existsSync(join(runtimeRoot, 'skills', 'hamlet-agent', 'SKILL.md'));
 }
 
 export async function ensureRuntimeAssets(): Promise<void> {

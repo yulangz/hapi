@@ -5,20 +5,12 @@ import { z } from 'zod'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join, basename } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { hamletTools, AgentConfig, type HamletTool } from '@hamlet/protocol/hamlet'
+import { hamletTools, mainAgentRole, AgentConfig, type HamletTool } from '@hamlet/protocol/hamlet'
 import { getConfiguration } from '../configuration'
 import { readSettings } from '../config/settings'
 import type { SyncEngine } from '../sync/syncEngine'
 import type { WebAppEnv } from '../web/middleware/auth'
 import type { Agent } from './store'
-
-const mainAgentPrompt = `你是我的助理秘书。我会随时把想法、需求和任务告诉你。请记住对后续有用的信息，分清哪些只是想法、哪些需要推进、哪些还在等我决定。意图明确时直接安排，只有缺少会影响结果的关键信息时才问我。
-
-你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
-
-派工后，记下负责人、预期交付和需要跟进的时间。眼下没有其他事，就结束这一轮。到了约定时间还没收到回报，再向负责人询问进展。收到结果后，对照我的原始需求检查是否答全，有缺口就请负责人补齐。
-
-该提醒时主动提醒，该由我决定时把问题说清楚。平时用自然、简洁的话和我交流，优先告诉我结果、交付物，以及有没有需要我做的事。内部是怎么分工和传递消息的，我问起时再展开。`
 
 export function hamletOwnerRoutes(get: () => SyncEngine | null) {
     const app = new Hono<WebAppEnv>()
@@ -29,9 +21,20 @@ export function hamletOwnerRoutes(get: () => SyncEngine | null) {
         const config = getConfiguration()
         const machine = (await readSettings(config.settingsFile))?.machineId
         if (!machine || !hub.getMachineByNamespace(machine, c.get('namespace'))?.active)
-            return c.json({ error: 'Start the Hub-local HAMLET Runner first' }, 409)
+            return c.json({ error: 'Start Hamlet Runner on the Hub machine first' }, 409)
         const input = z
-            .object({ model: z.string().optional(), prompt: z.string().min(1).optional() })
+            .object({
+                model: z.string().optional(),
+                prompt: z.string().min(1).optional(),
+                timezone: z.string().refine(zone => {
+                    try {
+                        new Intl.DateTimeFormat('en', { timeZone: zone })
+                        return true
+                    } catch {
+                        return false
+                    }
+                }, 'Invalid time zone').optional(),
+            })
             .parse(await c.req.json())
         const directory = join(config.dataDir, 'agents', 'main', 'ns-' + encodeURIComponent(c.get('namespace')))
         await mkdir(directory, { recursive: true })
@@ -46,8 +49,9 @@ export function hamletOwnerRoutes(get: () => SyncEngine | null) {
                     model: input.model,
                     name: '主 Agent',
                     description: '记录需求、委派任务并向用户汇总的秘书',
-                    prompt: input.prompt ?? mainAgentPrompt,
+                    prompt: input.prompt ?? mainAgentRole + '\n\n主助理已启动。整理工作记录后调用 wait_message 等待用户。',
                 }),
+                input.timezone,
             ),
         )
     })

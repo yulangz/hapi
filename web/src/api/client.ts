@@ -837,7 +837,7 @@ export class ApiClient {
     }
 
     async openHamletMain(): Promise<{ agent_id: string }> {
-        return this.request('/api/hamlet/main', { method: 'POST', body: '{}' })
+        return this.request('/api/hamlet/main', { method: 'POST', body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) })
     }
 
     async spawnSession(

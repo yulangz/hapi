@@ -47,6 +47,7 @@ test('cross-machine group, direct parent exceptions, idempotent retry and batch 
     const a = child(main, 'a'),
         b = child(main, 'b', 'remote'),
         c = child(a, 'c')
+    expect(hub.hamlet.claim(c.id)?.events[0]).toMatchObject({ kind: 'initial', sender: a.id, sender_name: 'a', relation: '父节点' })
     for (const agent of [a, b, c]) ready(agent)
     expect(child(main, 'b', 'remote').id).toBe(b.id)
     const store = hub.hamlet
@@ -130,6 +131,11 @@ test('restores an acknowledged prompt at its original position and mirrors each 
     db.addDoorbell(main.id, 'watcher', 'script')
     db.ring(db.manifest('hub')[0].token, 'change detected', 'once')
     const batch = db.claim(main.id)!
+    expect(batch.events).toMatchObject([
+        { sender: sender.id, sender_name: 'worker', group_name: 'project', relation: '直属子节点' },
+        { kind: 'timer', due_at: 1 },
+        { kind: 'doorbell', sender_name: 'watcher' },
+    ])
     const rows = db.recordInputs(main.id, batch.events)
     expect(rows.map(row => row.content)).toMatchObject([
         { meta: { sentFrom: 'cli', hamlet: { kind: 'message', sender: 'worker', group: 'project', images: [{ id: 'pic', caption: 'sample' }] } } },

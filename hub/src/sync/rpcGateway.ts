@@ -112,7 +112,7 @@ export class RpcGateway {
     constructor(
         private readonly io: Server,
         private readonly rpcRegistry: RpcRegistry,
-        private readonly managedAgent?: (id: string) => { token: string; parent_id: string | null; machine_id: string } | null | undefined
+        private readonly managedAgent?: (id: string) => { token: string; parent_id: string | null; machine_id: string; timezone?: string } | null | undefined
     ) {
     }
 
@@ -235,7 +235,7 @@ export class RpcGateway {
                 RPC_METHODS.SpawnHappySession,
                 {
                     type: 'spawn-in-directory',
-                    ...(managed ? { hamletToken: managed.token, hamletMain: managed.parent_id === null } : {}),
+                    ...(managed ? { hamletToken: managed.token, hamletMain: managed.parent_id === null, hamletTimezone: managed.timezone } : {}),
                     directory,
                     agent,
                     model,

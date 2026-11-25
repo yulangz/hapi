@@ -8,7 +8,7 @@ import {
 /** Shell fallback for `hamlet doctor inline-media` only — not injected into agent prompts. */
 export const INLINE_MEDIA_SHELL_FALLBACK = trimIdent(`
     If display_image / display_video / display_media tools are not in your tool list, inline media via shell from the HAMLET repo (needs bun + @modelcontextprotocol/sdk):
-    cd <hamlet-repo-root> && bun scripts/tooling/hamlet-display-image.mjs <HAMLET-session-id-prefix> <absolute-file-path> "title"
+    cd <hamlet-repo-root> && bun scripts/tooling/hamlet-display-image.mjs <session-id-prefix> <absolute-file-path> "title"
     Use the HAMLET session uuid prefix from the web URL /sessions/<uuid> (first 8 chars), not cursorSessionId or other agent-native ids.
     Run hamlet doctor inline-media to list active bridges and copy the exact command.
 `);

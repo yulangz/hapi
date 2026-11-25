@@ -234,7 +234,10 @@ export class SyncEngine {
             (sessionId, updatedAt) => this.recordSessionActivity(sessionId, updatedAt)
         )
         this.titleSuggestionService = createTitleSuggestionService(store)
-        this.rpcGateway = new RpcGateway(io, rpcRegistry, id => store.hamlet?.agent(id))
+        this.rpcGateway = new RpcGateway(io, rpcRegistry, id => {
+            const agent = store.hamlet?.agent(id)
+            return agent && { ...agent, timezone: store.hamlet.userTimezone(agent.namespace) }
+        })
         this.hamlet = new HamletService(store.hamlet, this, this.rpcGateway)
         this.reloadAll()
         this.inactivityTimer = setInterval(() => this.expireInactive(), 5_000)

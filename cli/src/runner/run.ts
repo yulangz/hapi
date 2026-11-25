@@ -32,6 +32,7 @@ import { readRuntimes, runtimeMayBeAlive, runtimeAuthHash } from '@/codex/shared
 import { scheduleCursorModelsPrewarm } from '@/modules/common/cursorModelsPrewarm';
 import { isLinkedGitWorktree } from '@/utils/isLinkedGitWorktree';
 import { agentUnavailableMessage, getAgentAvailability } from '@/agent/agentAvailability';
+import { installManagedSkill } from '@/hamlet/installManagedSkill';
 import { copyCodexConfigFile, resolveCodexHome } from '@/codex/utils/codexHome';
 
 /**
@@ -713,6 +714,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           };
         }
 
+        if (options.hamletToken) await installManagedSkill(extraEnv.CODEX_HOME || resolveCodexHome());
         const args = buildCliArgs(agent, options, yolo);
 
         // sessionId reserved for future use
@@ -741,7 +743,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           env: {
             ...process.env,
             ...extraEnv,
-            ...(options.hamletToken ? { HAMLET_TOKEN: options.hamletToken, HAMLET_AGENT_ID: options.existingSessionId, HAMLET_MAIN: options.hamletMain ? "1" : "0" } : {})
+            ...(options.hamletToken ? { HAMLET_TOKEN: options.hamletToken, HAMLET_AGENT_ID: options.existingSessionId, HAMLET_MAIN: options.hamletMain ? "1" : "0", HAMLET_USER_TIMEZONE: options.hamletTimezone } : {})
           }
         });
         happyProcess.once('exit', () => {

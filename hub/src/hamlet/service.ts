@@ -22,12 +22,12 @@ export class HamletService {
         clearInterval(this.interval)
     }
 
-    async create(namespace: string, parent: string | null, key: string, config: AgentConfig) {
+    async create(namespace: string, parent: string | null, key: string, config: AgentConfig, timezone?: string) {
         const machine = this.engine.getMachineByNamespace(config.machine_id, namespace)
         if (!machine) throw new Error('Machine unavailable')
         if (!machine.metadata?.capabilities?.includes('hamlet'))
-            throw new Error('Upgrade the target HAMLET Runner to the Hamlet build')
-        const agent = this.store.register(namespace, parent, key, config)
+            throw new Error('目标机器的 Runner 不支持托管 Agent。请从 Hub 的「设置 → 设备 → 安装 Hamlet Runner」获取新版并在目标机器安装。')
+        const agent = this.store.register(namespace, parent, key, config, timezone)
         await this.wake(agent)
         return this.store.card(agent.id)
     }

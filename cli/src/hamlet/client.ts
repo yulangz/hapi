@@ -5,7 +5,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { configuration } from '@/configuration'
 import type { ApiSessionClient } from '@/api/apiSession'
-import { hamletTools, type HamletBatch } from '@hamlet/protocol/hamlet'
+import { hamletToolDescriptions, hasMessageContent, hamletTools, steerInput, type HamletBatch } from '@hamlet/protocol/hamlet'
 import {
     detectImageMimeType,
     detectDisplayMediaMimeType,
@@ -21,19 +21,32 @@ const image = z.union([
 export const managedTools = {
     ...hamletTools,
     wait_message: z.object({}),
-    agent_steer: hamletTools.agent_steer.extend({ images: z.array(image).default([]) }),
+    agent_steer: steerInput.extend({ images: z.array(image).default([]) }).refine(hasMessageContent, 'Provide text or images'),
     message_to: z.object({
         target: z.union([z.object({ agent_id: z.string() }), z.object({ group_id: z.string() })]),
         text: z.string().optional(),
         images: z.array(image).optional(),
         request_id: z.string().optional(),
-    }),
+    }).refine(hasMessageContent, 'Provide text or images'),
     display_media: z.object({
         source: file,
         kind: z.enum(['auto', 'image', 'video', 'audio', 'file']).default('auto'),
         title: z.string().optional(),
     }),
 }
+function eventHeader(e: HamletBatch['events'][number], steer: boolean, timezone?: string) {
+    const kind = { initial: '首轮任务', message: steer ? '纠正' : '消息', timer: '提醒', doorbell: 'doorbell' }[e.kind]
+    const at = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone || 'UTC', timeZoneName: 'longOffset', hourCycle: 'h23', year: 'numeric', month: '2-digit',
+        day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+    }).format(e.due_at ?? e.created_at)
+    const source = e.kind === 'timer' ? 'timer_id=' + e.sender :
+        e.kind === 'doorbell' ? [e.sender_name, 'doorbell_id=' + e.sender].filter(Boolean).join(' · ') :
+        e.relation === '系统' ? '系统' :
+        [e.sender_name, e.relation, 'agent_id=' + e.sender].filter(Boolean).join(' · ')
+    return '[' + [kind, source, e.group_name, e.group_id && 'group_id=' + e.group_id, at].filter(Boolean).join(' · ') + ']'
+}
+
 export function forSession(id: string) {
     return process.env.HAMLET_AGENT_ID === id && process.env.HAMLET_TOKEN
         ? new HamletClient(process.env.HAMLET_TOKEN)
@@ -74,20 +87,7 @@ export class HamletClient {
         for (const e of batch.events) {
             parts.push({
                 type: 'text',
-                text:
-                    e.kind === 'initial'
-                        ? e.text
-                        : '[' +
-                          [
-                              e.kind,
-                              'from=' + e.sender,
-                              e.group_id && 'group=' + e.group_id,
-                              new Date(e.due_at ?? e.created_at).toISOString(),
-                          ]
-                              .filter(Boolean)
-                              .join(' · ') +
-                          ']\n' +
-                          e.text,
+                text: eventHeader(e, batch.id.startsWith('hamlet:steer:'), process.env.HAMLET_USER_TIMEZONE) + '\n' + e.text,
             })
             for (const img of e.images) {
                 const res = await this.fetch('attachments/' + img.attachment_id)
@@ -100,7 +100,7 @@ export class HamletClient {
                 parts.push(
                     {
                         type: 'text',
-                        text: [img.caption, 'attachment_id=' + img.attachment_id].filter(Boolean).join(' '),
+                        text: ['图片', img.caption, '可转发或展示：attachment_id=' + img.attachment_id].filter(Boolean).join(' '),
                     },
                     { type: 'localImage', path },
                 )
@@ -115,10 +115,8 @@ export class HamletClient {
             server.registerTool<any, any>(
                 name,
                 {
-                    ...(name === 'agent_interrupt' ? { description: 'Request interruption of the named current turn of a direct child. Its session and inbox survive.' } : {}),
-                    ...(name === 'agent_steer' ? { description: 'Submit text or images directly to the named running turn of a direct child. Use message_to for normal inbox delivery.' } : {}),
+                    description: hamletToolDescriptions[name],
                     inputSchema: managedTools[name] as z.ZodTypeAny,
-                    ...(name === 'wait_message' ? { description: 'End this turn and yield until new input. Call alone as your last action after delegating or reporting progress. User messages, agent replies, timers and doorbells can wake this session.' } : {}),
                 },
                 async (raw: Record<string, unknown>) => {
                     try {

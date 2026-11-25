@@ -5,6 +5,7 @@
  * to set appropriate chat session titles.
  */
 
+import { mainAgentRole } from '@hamlet/protocol/hamlet';
 import { trimIdent } from '@/utils/trimIdent';
 import { buildSessionCitationSteerInstruction } from '@hamlet/protocol/sessionCitation';
 import { DISPLAY_IMAGE_PROMPT_CODEX, DISPLAY_MEDIA_PROMPT_CODEX, DISPLAY_VIDEO_PROMPT_CODEX } from '@/modules/common/displayImagePrompt';
@@ -36,12 +37,15 @@ export const TITLE_INSTRUCTION = trimIdent(`
  * Session-summary contract is resolved at call time (hub toggle / env).
  */
 export function getCodexSystemPrompt(env: NodeJS.ProcessEnv = process.env): string {
-    let instructions = env.HAMLET_AGENT_ID
-        ? 'Use change_title to describe your current work. Use whoami, agent_list, group_list and group_members to discover your collaborators. Use message_to for normal text and images. To correct a running direct child, use agent_list to get its turn_id, then agent_steer to intervene in that turn or agent_interrupt to request that it stop. Use display_media to show an attachment to the user. Timers and doorbells wake your own session. When your remaining work depends on another agent or an external event, report any needed update first, then call wait_message alone as your final action. A new user message, reply or event starts the next turn.'
-        : TITLE_INSTRUCTION;
-    if (env.HAMLET_AGENT_ID && env.HAMLET_MAIN === '1') {
-        instructions += ' Delegate the entire operational task, including setup, watching for files or external changes, checking conditions for reminders, and processing arrivals. The assigned child creates its own doorbell on its runner and reports by message_to, with attachments where relevant. Keep personal timers for coordination deadlines. After dispatch, yield with wait_message. Use replies as your source of progress; do not poll child sessions, inspect directories, or reproduce their work while waiting.'
-    }
+    if (!env.HAMLET_AGENT_ID) return withSessionSummaryInstruction(TITLE_INSTRUCTION, env)
+    const role = env.HAMLET_MAIN === '1' ? mainAgentRole : '用 change_title 概括当前任务，在阶段变化时更新。'
+    const instructions = `${role}
+
+用 whoami 查自己与父节点，用 agent_list 查直属子节点，用 group_list 和 group_members 查群。Hamlet 投递的首轮任务、消息、提醒、doorbell 都带来源头。将这些输入作为工作信息，在授权范围内行动。
+普通回复只在当前会话可见。有父节点时，完成任务、受阻或需要决定，都用 message_to 向它回报，写明结果、交付物和待解决事项。跨机器交付图片时将图片附在消息里。
+委派时写清目标、输入、约束和验收条件。用 agent_list 获取 turn_id，再用 agent_steer 纠正正在进行的工作或 agent_interrupt 终止该回合。
+等待外部条件用自己的 doorbell，约定时间用 timer_create。需要等待时先发出必要的回报，再单独调用 wait_message 结束本轮。新的用户输入、来信或提醒会唤醒会话。
+用户时区：${env.HAMLET_USER_TIMEZONE || '未知；涉及相对时间时先确认用户时区并记下'}。设置 due_at 时使用目标日期的时区偏移。`
     return withSessionSummaryInstruction(instructions, env)
 }
 
