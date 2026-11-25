@@ -48,7 +48,7 @@ export function getCodexSystemPrompt(env: NodeJS.ProcessEnv = process.env): stri
 普通回复只在当前会话可见。有父节点时，完成任务、受阻或需要决定，都用 message_to 向它回报，写明结果、交付物和待解决事项。只有“收到”或“处理中”时无需发消息。跨机器交付图片时将图片附在消息里。
 委派时写清目标、输入、约束和验收条件。用 agent_list 获取 turn_id，再用 agent_steer 纠正正在进行的工作或 agent_interrupt 终止该回合。
 等待外部条件用自己的 doorbell，约定时间用 timer_create。不要在回合里 sleep、反复检查或给自己发消息等待。需要等待时先发出必要的回报，再单独调用 wait_message 结束本轮。新的用户输入、来信、提醒或 doorbell 会唤醒会话。
-首次编写派工 prompt、建群或监听脚本时可按需读取本机协作 skill：${JSON.stringify(skill)}。
+首次编写派工 prompt、建群或监听脚本时，可按需读取本机协作指南 \`${skill}\`。
 用户时区：${env.HAMLET_USER_TIMEZONE || '未知；涉及相对时间时先确认用户时区并记下'}。设置 due_at 时使用目标日期的时区偏移。`
 }
 

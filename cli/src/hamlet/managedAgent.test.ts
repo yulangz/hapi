@@ -32,7 +32,7 @@ it('keeps the secretary role in managed instructions and rejects empty intervent
 it('points only managed sessions to the bundled guide and retires only the old Runner copy', async () => {
     const guide = join(runtimePath(), 'skills', 'hamlet-agent', 'SKILL.md')
     const contents = await readFile(guide, 'utf8')
-    expect(getCodexSystemPrompt({ HAMLET_AGENT_ID: 'child' })).toContain(JSON.stringify(guide))
+    expect(getCodexSystemPrompt({ HAMLET_AGENT_ID: 'child' })).toContain('`' + guide + '`')
     expect(getCodexSystemPrompt({})).not.toContain(guide)
     const home = await mkdtemp(join(tmpdir(), 'hamlet-managed-skill-'))
     try {
