@@ -44,7 +44,7 @@ function eventHeader(e: HamletBatch['events'][number], steer: boolean, timezone?
         e.kind === 'doorbell' ? [e.sender_name, 'doorbell_id=' + e.sender].filter(Boolean).join(' · ') :
         e.relation === '系统' ? '系统' :
         [e.sender_name, e.relation, 'agent_id=' + e.sender].filter(Boolean).join(' · ')
-    return '[' + [kind, source, e.group_name, e.group_id && 'group_id=' + e.group_id, at].filter(Boolean).join(' · ') + ']'
+    return '[' + [kind, source, e.group_name && `群「${e.group_name}」`, e.group_id && 'group_id=' + e.group_id, at].filter(Boolean).join(' · ') + ']'
 }
 
 export function forSession(id: string) {

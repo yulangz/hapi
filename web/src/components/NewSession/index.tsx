@@ -1726,7 +1726,10 @@ export function NewSession(props: {
                 try { props.onSuccess((await props.api.openHamletMain()).agent_id) }
                 catch (err) { setError(err instanceof Error ? err.message : String(err)) }
                 finally { setOpeningMain(false) }
-            }}>{t('newSession.hamletMain')}</button>
+            }}>
+                {t('newSession.hamletMain')}
+                <span className="block text-xs text-[var(--app-hint)]">{t('newSession.hamletTimezoneHint')}</span>
+            </button>
             <MachineSelector
                 machines={props.machines}
                 machineId={machineId}

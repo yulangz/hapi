@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AgentConfig } from '@hamlet/protocol/hamlet'
+import { AgentConfig, mainAgentRole } from '@hamlet/protocol/hamlet'
 import { Store } from '../store'
 import { HamletService } from './service'
 import type { SyncEngine } from '../sync/syncEngine'
@@ -41,6 +41,20 @@ beforeEach(() => {
 afterEach(() => {
     hub.close()
     rmSync(dir, { recursive: true, force: true })
+})
+
+test('keeps the role in the main transcript and the owner task in the model inbox', () => {
+    const db = hub.hamlet
+    const config = AgentConfig.parse({ machine_id: 'hub', directory: '/work', name: 'main', description: 'main', prompt: '记录会议结论' })
+    const agent = db.register('another-owner', null, 'main', config, 'Asia/Shanghai')
+    db.register('another-owner', null, 'main', config)
+    expect(db.userTimezone('another-owner')).toBe('Asia/Shanghai')
+    hub.sessions.getOrCreateSession('owner-main', {}, null, 'another-owner', undefined, undefined, undefined, agent.id)
+    const batch = db.claim(agent.id)!
+    expect(batch.events[0].text).toBe(config.prompt)
+    expect(db.recordInputs(agent.id, batch.events)[0].content).toMatchObject({
+        content: { text: mainAgentRole + '\n\n' + config.prompt },
+    })
 })
 
 test('cross-machine group, direct parent exceptions, idempotent retry and batch boundary', () => {

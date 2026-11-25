@@ -32,7 +32,7 @@ import { readRuntimes, runtimeMayBeAlive, runtimeAuthHash } from '@/codex/shared
 import { scheduleCursorModelsPrewarm } from '@/modules/common/cursorModelsPrewarm';
 import { isLinkedGitWorktree } from '@/utils/isLinkedGitWorktree';
 import { agentUnavailableMessage, getAgentAvailability } from '@/agent/agentAvailability';
-import { installManagedSkill } from '@/hamlet/installManagedSkill';
+import { removeLegacyManagedSkill } from '@/hamlet/legacySkill';
 import { copyCodexConfigFile, resolveCodexHome } from '@/codex/utils/codexHome';
 
 /**
@@ -714,7 +714,7 @@ export async function startRunner(options: { workspaceRoots?: string[] } = {}): 
           };
         }
 
-        if (options.hamletToken) await installManagedSkill(extraEnv.CODEX_HOME || resolveCodexHome());
+        if (options.hamletToken) await removeLegacyManagedSkill(resolveCodexHome());
         const args = buildCliArgs(agent, options, yolo);
 
         // sessionId reserved for future use

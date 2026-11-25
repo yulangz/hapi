@@ -4,7 +4,7 @@ import type { AgentConfig, HamletBatch, ImageRef, OutgoingMessage } from '@hamle
 import type { z } from 'zod'
 import { addImportedMessage } from '../store/messages'
 import type { StoredMessage } from '../store/types'
-import type { HamletChatSource } from '@hamlet/protocol/hamlet'
+import { mainAgentRole, type HamletChatSource } from '@hamlet/protocol/hamlet'
 
 export type Agent = {
     id: string
@@ -289,7 +289,10 @@ export class HamletStore {
                     }),
                 }
                 // HAMLET's CLI recognizes this as transcript history during reconnect, never as another prompt.
-                const content = { role: 'user', content: { type: 'text', text: event.text }, meta: { sentFrom: 'cli', hamlet: source } }
+                const text = event.relation === '系统' && kind === 'initial' && !event.text.startsWith(mainAgentRole)
+                    ? mainAgentRole + '\n\n' + event.text
+                    : event.text
+                const content = { role: 'user', content: { type: 'text', text }, meta: { sentFrom: 'cli', hamlet: source } }
                 const at = kind === 'initial' ? event.created_at : now
                 added.push(addImportedMessage(this.db, agent, content, localId, at).message)
             }

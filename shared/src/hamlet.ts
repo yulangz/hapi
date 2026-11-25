@@ -32,12 +32,12 @@ export function hasMessageContent(input: { text?: string; images?: unknown[] }) 
     return Boolean(input.text?.trim() || input.images?.length)
 }
 
-const childTurn = z.object({ agent_id: id, turn_id: id.describe('Current turn_id returned by agent_list') })
+const childTurn = z.object({ agent_id: id, turn_id: id.describe('agent_list 返回的当前 turn_id') })
 export const steerInput = childTurn.extend({ request_id: id.describe('同一次纠正重试时沿用'), text: z.string().default(''), images: z.array(ImageRef).default([]) })
 export const hamletTools = {
     whoami: z.object({}),
     machine_list: z.object({}),
-    agent_create: AgentConfig.extend({ request_id: id.describe('Stable key for retries of this creation') }),
+    agent_create: AgentConfig.extend({ request_id: id.describe('重试同一次创建时沿用此键') }),
     agent_list: z.object({ ids: z.array(id).optional() }),
     agent_interrupt: childTurn,
     agent_steer: steerInput.refine(hasMessageContent, 'Provide text or images'),
@@ -127,7 +127,7 @@ export const hamletToolDescriptions: Record<HamletTool | 'wait_message' | 'displ
     doorbell_logs: '查看自己监听脚本最近 64 KiB 的输出和错误。',
     doorbell_delete: '删除自己的监听并停止脚本。',
     machine_exec: '主 Agent 可在指定在线机器执行短命令，查看环境或确认路径。超时 60 秒，输出缓冲上限 1 MiB；离线直接返回。项目工作交给该机器的子节点。',
-    wait_message: '等待新的用户输入、Agent 消息、提醒或 doorbell。先用 message_to 发出需要的回报，再单独调用本工具作为本轮最后一个动作。已有积压会在下一轮投递。',
+    wait_message: '等待新的用户输入、Agent 消息、提醒或 doorbell。有父节点时先用 message_to 回报；主 Agent 有结果要告知用户时直接回复用户。最后单独调用本工具结束本轮。已有积压会在下一轮投递。',
     display_media: '在当前会话向用户展示文件。source 接受本机路径或收到的 attachment_id。向其他 Agent 交付图片请用 message_to。',
 }
 

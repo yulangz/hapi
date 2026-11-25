@@ -37,7 +37,7 @@ flowchart TB
 
 ## MCP 工具范围
 
-共有能力覆盖身份和机器查询、直属子节点管理、群管理与成员查询、消息投递、自己的 timer 和 doorbell 管理。主 Agent 另有按机器执行命令的工具。保留动态标题和一个统一的媒体展示入口。托管会话关闭三个 peer 工具，收紧其底层 API 访问，技能加载使用 Codex 原生机制。工具名称见下方运行入口，参数定义在 shared/src/hamlet.ts。
+共有能力覆盖身份和机器查询、直属子节点管理、群管理与成员查询、消息投递、自己的 timer 和 doorbell 管理。主 Agent 另有按机器执行命令的工具。保留动态标题和一个统一的媒体展示入口。托管会话关闭三个 peer 工具，收紧其底层 API 访问，Runner 只在托管会话的 developer instructions 中提供协作 skill 的本机路径，Agent 可按需读取。工具名称见下方运行入口，参数定义在 shared/src/hamlet.ts。
 
 ## 模块与验收场景
 
@@ -51,7 +51,7 @@ flowchart TB
 
 ## 运行入口
 
-使用同一分支构建的 Hub 和 Runner。Hub 主机上使用同一个 HAMLET_HOME 启动 Hub 和本机 Runner；远端 Runner 的 HAMLET_API_URL 指向此 Hub，使用同一 namespace。Web 和 Owner CLI 打开主助理时向 Hub 提供用户时区。Runner 在启动和恢复时读取该时区，按事件发生日期显示本地时间与偏移。
+使用同一分支构建的 Hub 和 Runner。Hub 主机上使用同一个 HAMLET_HOME 启动 Hub 和本机 Runner；远端 Runner 的 HAMLET_API_URL 指向此 Hub，使用同一 namespace。Web 打开主助理时提供浏览器时区。Owner CLI 默认保留 Hub 已记录的时区，仅在显式设置 HAMLET_USER_TIMEZONE 时更新。时区变更在各 Agent 下次启动或恢复时生效。Runner 在启动和恢复时读取该时区，按事件发生日期显示本地时间与偏移。
 
 每台执行机器都需要 Codex，使用脚本监听的机器还需要 Python 3。打开 Hamlet Web「创建会话」中的「打开 Hamlet 主助理」。重复打开返回同一会话。原 Hamlet 的 `node bin/hamlet.js start` 也连接这个入口。
 

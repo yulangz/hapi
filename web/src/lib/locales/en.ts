@@ -344,6 +344,7 @@ export default {
   'hamlet.input.doorbell': 'Doorbell',
   'hamlet.input.timer': 'Timer',
   'newSession.hamletMain': 'Open Hamlet assistant',
+  'newSession.hamletTimezoneHint': 'Opening the assistant saves your browser time zone. Running agents use it on their next launch.',
   'newSession.title': 'Create Session',
   'newSession.machine': 'Machine',
   'newSession.directory': 'Directory',
