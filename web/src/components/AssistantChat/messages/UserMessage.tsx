@@ -15,6 +15,7 @@ const inputAccents = {
     message: 'border-sky-500 bg-sky-500/10',
     doorbell: 'border-emerald-500 bg-emerald-500/10',
     timer: 'border-amber-500 bg-amber-500/10',
+    dream: 'border-indigo-500 bg-indigo-500/10',
 }
 
 export function HappyUserMessage() {

@@ -146,7 +146,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
             ...(autoReview ? { approvalPolicy: 'on-request', approvalsReviewer: 'auto_review', sandbox: 'workspace-write' } : {}),
             ...(permission ? { approvalPolicy: permission.approvalPolicy, approvalsReviewer: 'user', sandbox: permission.sandbox } : {}),
             config: { ...config, ...(options.modelReasoningEffort ? { model_reasoning_effort: options.modelReasoningEffort } : {}) },
-            developerInstructions: getCodexSystemPrompt()
+            developerInstructions: getCodexSystemPrompt() || undefined
         }
     };
 }

@@ -2,12 +2,13 @@ import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AgentConfig, mainAgentRole } from '@hamlet/protocol/hamlet'
+import { AgentConfig, mainAgentDreamPrompt, mainAgentDreamSchedule, mainAgentPrompt } from '@hamlet/protocol/hamlet'
 import { Store } from '../store'
 import { HamletService } from './service'
 import type { SyncEngine } from '../sync/syncEngine'
 import type { RpcGateway } from '../sync/rpcGateway'
-import type { Agent } from './store'
+import { HamletStore, type Agent } from './store'
+import type { Database } from 'bun:sqlite'
 
 let dir: string
 let hub: Store
@@ -43,18 +44,66 @@ afterEach(() => {
     rmSync(dir, { recursive: true, force: true })
 })
 
-test('keeps the role in the main transcript and the owner task in the model inbox', () => {
+test('the main agent starts from the owner brief, and a later open keeps the recorded time zone', () => {
     const db = hub.hamlet
-    const config = AgentConfig.parse({ machine_id: 'hub', directory: '/work', name: 'main', description: 'main', prompt: '记录会议结论' })
+    const config = AgentConfig.parse({ machine_id: 'hub', directory: '/work', name: 'main', description: 'main', prompt: mainAgentPrompt })
     const agent = db.register('another-owner', null, 'main', config, 'Asia/Shanghai')
     db.register('another-owner', null, 'main', config)
     expect(db.userTimezone('another-owner')).toBe('Asia/Shanghai')
     hub.sessions.getOrCreateSession('owner-main', {}, null, 'another-owner', undefined, undefined, undefined, agent.id)
     const batch = db.claim(agent.id)!
-    expect(batch.events[0].text).toBe(config.prompt)
-    expect(db.recordInputs(agent.id, batch.events)[0].content).toMatchObject({
-        content: { text: mainAgentRole + '\n\n' + config.prompt },
-    })
+    expect(batch.events[0]).toMatchObject({ kind: 'initial', relation: '系统', text: mainAgentPrompt })
+    expect(db.recordInputs(agent.id, batch.events)[0].content).toMatchObject({ content: { text: mainAgentPrompt } })
+})
+
+test('the main agent is reminded to consolidate its notes once a day at 04:00 Beijing time', () => {
+    const db = hub.hamlet
+    const worker = child(main, 'worker')
+    ready(worker)
+    const before = Date.UTC(2026, 10, 24, 19, 59) // 03:59 in Beijing
+    const at = Date.UTC(2026, 10, 24, 20, 0)
+    db.remindDream(before, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    expect(db.claim(main.id)).toBeNull()
+    db.remindDream(at + 60_000, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    db.remindDream(at + 120_000, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    const batch = db.claim(main.id)!
+    expect(batch.events).toMatchObject([{ kind: 'dream', text: mainAgentDreamPrompt }])
+    hub.sessions.getOrCreateSession('main-session', {}, null, 'default', undefined, undefined, undefined, main.id)
+    expect(db.recordInputs(main.id, batch.events)[0].content).toMatchObject({ meta: { hamlet: { kind: 'dream', sender: null } } })
+    db.ack(main.id, batch.id)
+    expect(db.claim(worker.id)).toBeNull()
+    // A Hub restarted later the same morning does not remind again; one down past the grace period skips the day.
+    const restarted = new HamletStore((db as unknown as { db: Database }).db)
+    restarted.remindDream(at + 3_600_000, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    expect(db.claim(main.id)).toBeNull()
+    // The next day: still sent just inside the 2-hour window, never once it has passed.
+    const late = new HamletStore((db as unknown as { db: Database }).db)
+    late.remindDream(at + 86_400_000 + 2 * 3_600_000, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    expect(db.claim(main.id)).toBeNull()
+    late.remindDream(at + 2 * 86_400_000 + 2 * 3_600_000 - 60_000, mainAgentDreamSchedule, mainAgentDreamPrompt)
+    expect(db.claim(main.id)?.events).toMatchObject([{ kind: 'dream' }])
+})
+
+test('a doorbell with a ring limit stops itself, says so in its last event, and can be re-armed', () => {
+    const a = child(main, 'watcher-owner')
+    ready(a)
+    const db = hub.hamlet
+    const { id } = db.addDoorbell(a.id, 'ci', 'print(1)', 2)
+    const token = db.manifest('hub').find((b) => b.id === id)!.token
+    expect(db.ring(token, 'first', 'k1')).toMatchObject({ event_id: expect.any(Number) })
+    expect(db.ring(token, 'first again', 'k1')).toEqual({ duplicate: true })
+    expect(db.ring(token, 'second', 'k2')).toMatchObject({ completed: true })
+    expect(db.ring(token, 'late', 'k3')).toEqual({ completed: true })
+    expect(db.manifest('hub').some((b) => b.id === id)).toBe(false)
+    expect(db.doorbells(a.id)).toMatchObject([{ id, status: 'completed', enabled: 0, rings: 2, max_rings: 2 }])
+    const texts = db.claim(a.id)!.events.map((e) => e.text)
+    expect(texts[0]).toBe('first')
+    expect(texts[1]).toMatch(/^second\n\n.*2 次.*已自动停止/)
+    db.setDoorbell(a.id, id, true)
+    expect(db.doorbells(a.id)).toMatchObject([{ status: 'pending', enabled: 1, rings: 0 }])
+    const unlimited = db.addDoorbell(a.id, 'feed', 'print(1)')
+    const feed = db.manifest('hub').find((b) => b.id === unlimited.id)!.token
+    for (const key of ['a', 'b', 'c']) expect(db.ring(feed, key, key)).not.toHaveProperty('completed')
 })
 
 test('cross-machine group, direct parent exceptions, idempotent retry and batch boundary', () => {
@@ -207,10 +256,9 @@ test('only direct parents may intervene, and immediate messages never enter the 
     hub.hamlet.addAttachment('ref', main.id, 'ref.png', 'image/png', 12)
     const input = { agent_id: a.id, turn_id: 'one', request_id: 'fix', text: 'correct', images: [{ attachment_id: 'ref' }] }
     for (const caller of [peer, grandchild, a]) {
-        await expect(service.tool(caller, 'agent_interrupt', input)).rejects.toThrow('Direct child required')
         await expect(service.tool(caller, 'agent_steer', input)).rejects.toThrow('Direct child required')
     }
-    await expect(service.tool(main, 'agent_interrupt', { ...input, agent_id: grandchild.id })).rejects.toThrow('Direct child required')
+    await expect(service.tool(main, 'agent_steer', { ...input, agent_id: grandchild.id })).rejects.toThrow('Direct child required')
     const batch = await service.tool(main, 'agent_steer', input)
     expect(batch).toMatchObject({ events: [{ kind: 'message', sender: main.id, text: 'correct', images: input.images }] })
     expect(await service.tool(main, 'agent_steer', input)).toEqual(batch)

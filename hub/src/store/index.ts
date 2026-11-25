@@ -1,5 +1,5 @@
 import { HamletStore } from '../hamlet/store'
-import { hamletSchema } from '../hamlet/schema'
+import { hamletColumnMigrations, hamletSchema } from '../hamlet/schema'
 import { Database } from 'bun:sqlite'
 import { chmodSync, closeSync, existsSync, mkdirSync, openSync } from 'node:fs'
 import { dirname } from 'node:path'
@@ -44,7 +44,7 @@ export {
     WorkGraphValidationError
 } from './workGraph'
 
-const SCHEMA_VERSION: number = 28
+const SCHEMA_VERSION: number = 29
 const REQUIRED_TABLES = [
     'sessions',
     'machines',
@@ -361,6 +361,7 @@ export class Store {
             25: () => this.migrateFromV25ToV26(),
             26: () => this.db.exec(hamletSchema),
             27: () => this.db.exec(hamletSchema),
+            28: () => this.migrateHamletColumns(),
         })
 
         if (currentVersion === 0) {
@@ -404,6 +405,14 @@ export class Store {
         }
 
         this.assertRequiredTablesPresent()
+    }
+
+    /** v28 -> v29: doorbell ring limits. Idempotent, since v26/v27 may already have created the newer table shape. */
+    private migrateHamletColumns(): void {
+        for (const { table, column, ddl } of hamletColumnMigrations) {
+            const columns = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
+            if (!columns.some((c) => c.name === column)) this.db.exec(ddl)
+        }
     }
 
     private createSchema(): void {

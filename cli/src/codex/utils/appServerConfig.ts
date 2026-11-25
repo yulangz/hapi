@@ -118,9 +118,9 @@ function resolveInstructions(args: {
 }): { baseInstructions: string | undefined; developerInstructions: string } {
     const baseInstructions = args.baseInstructions;
     const hamletDeveloperInstructions = getCodexSystemPrompt();
-    const developerInstructions = args.developerInstructions
-        ? `${hamletDeveloperInstructions}\n\n${args.developerInstructions}`
-        : hamletDeveloperInstructions;
+    const developerInstructions = [hamletDeveloperInstructions, args.developerInstructions]
+        .filter(Boolean)
+        .join('\n\n');
     return {
         baseInstructions,
         developerInstructions
@@ -129,12 +129,14 @@ function resolveInstructions(args: {
 
 function appendCollaborationInstructions(developerInstructions: string, proactiveMultiAgent?: boolean): string {
     if (proactiveMultiAgent === undefined) {
-        return `${developerInstructions}\n\n${codexCollaborationSpawnAgentInstructions}`;
+        return [developerInstructions, codexCollaborationSpawnAgentInstructions].filter(Boolean).join('\n\n');
     }
     const multiAgentMode = proactiveMultiAgent
         ? 'Proactive multi-agent delegation is active. Any earlier instruction requiring an explicit user request before spawning sub-agents no longer applies. Use sub-agents when parallel work would materially improve speed or quality. This mode remains active until a later multi-agent mode developer message changes it.'
         : 'Any earlier instruction enabling proactive multi-agent delegation no longer applies. Do not spawn sub-agents unless the user or applicable AGENTS.md/skill instructions explicitly ask for sub-agents, delegation, or parallel agent work.';
-    return `${developerInstructions}\n\n${codexCollaborationSpawnAgentInstructions}\n\n<multi_agent_mode>${multiAgentMode}</multi_agent_mode>`;
+    return [developerInstructions, codexCollaborationSpawnAgentInstructions, `<multi_agent_mode>${multiAgentMode}</multi_agent_mode>`]
+        .filter(Boolean)
+        .join('\n\n');
 }
 
 function mentionNameFromPath(path: string): string {

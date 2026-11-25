@@ -343,6 +343,7 @@ export default {
   'hamlet.input.message': 'Agent message',
   'hamlet.input.doorbell': 'Doorbell',
   'hamlet.input.timer': 'Timer',
+  'hamlet.input.dream': 'Note consolidation',
   'newSession.hamletMain': 'Open Hamlet assistant',
   'newSession.hamletTimezoneHint': 'Opening the assistant saves your browser time zone. Running agents use it on their next launch.',
   'newSession.title': 'Create Session',

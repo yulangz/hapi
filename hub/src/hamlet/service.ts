@@ -1,4 +1,4 @@
-import { hamletTools, type HamletTool, type AgentConfig, type HamletBatch, type HamletTurn } from '@hamlet/protocol/hamlet'
+import { hamletTools, mainAgentDreamPrompt, mainAgentDreamSchedule, type HamletTool, type AgentConfig, type HamletBatch, type HamletTurn } from '@hamlet/protocol/hamlet'
 import type { SyncEngine } from '../sync/syncEngine'
 import { RpcTargetMissingError, type RpcGateway } from '../sync/rpcGateway'
 import type { HamletStore, Agent, AgentCard } from './store'
@@ -97,7 +97,9 @@ export class HamletService {
         if (result.sessionId !== agent.id) throw new Error('Runner returned a different session')
     }
     private tick() {
-        this.store.fire(Date.now())
+        const now = Date.now()
+        this.store.fire(now)
+        this.store.remindDream(now, mainAgentDreamSchedule, mainAgentDreamPrompt)
         for (const agent of this.store.pending()) {
             if (
                 !this.engine.getMachine(agent.machine_id)?.active ||
@@ -184,7 +186,7 @@ export class HamletService {
                     this.describe(actor, db.card(actor.id)!, true),
                     parent ? this.describe(actor, parent, false) : null,
                 ])
-                return { ...self, parent: parentCard }
+                return { ...self, parent: parentCard, user_timezone: db.userTimezone(actor.namespace) ?? null }
             }
             case 'machine_list':
                 return this.engine.getMachinesByNamespace(actor.namespace).map((m) => ({
@@ -198,17 +200,12 @@ export class HamletService {
             }
             case 'agent_list':
                 return Promise.all(db.children(actor, hamletTools.agent_list.parse(input).ids).map(card => this.describe(actor, card, true)))
-            case 'agent_interrupt':
             case 'agent_steer': {
-                const { agent_id, turn_id } = hamletTools.agent_interrupt.parse(input)
-                if (db.agent(agent_id)?.parent_id !== actor.id) throw new Error('Direct child required')
-                if (!this.engine.getSession(agent_id)?.active) return { status: 'inactive' }
-                let batch: HamletBatch | undefined
-                if (name === 'agent_steer') {
-                    const p = hamletTools.agent_steer.parse(input)
-                    batch = db.prepareSteer(actor, agent_id, turn_id, p.request_id, p.text, p.images)
-                }
-                return this.rpc.hamletControlTurn(agent_id, turn_id, batch)
+                const p = hamletTools.agent_steer.parse(input)
+                if (db.agent(p.agent_id)?.parent_id !== actor.id) throw new Error('Direct child required')
+                if (!this.engine.getSession(p.agent_id)?.active) return { status: 'inactive' }
+                const batch = db.prepareSteer(actor, p.agent_id, p.turn_id, p.request_id, p.text, p.images)
+                return this.rpc.hamletControlTurn(p.agent_id, p.turn_id, batch)
             }
             case 'agent_delete_status':
                 return db.pendingDeletions(actor.id)
@@ -258,7 +255,7 @@ export class HamletService {
                 break
             case 'doorbell_create': {
                 const p = hamletTools.doorbell_create.parse(input)
-                return db.addDoorbell(actor.id, p.name, p.script)
+                return db.addDoorbell(actor.id, p.name, p.script, p.max_rings ?? null)
             }
             case 'doorbell_logs': {
                 const { id } = hamletTools.doorbell_logs.parse(input)

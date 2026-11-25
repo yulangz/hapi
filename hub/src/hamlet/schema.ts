@@ -34,7 +34,8 @@ CREATE INDEX IF NOT EXISTS hamlet_due ON hamlet_timers(due);
 CREATE TABLE IF NOT EXISTS hamlet_doorbells (
     id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES hamlet_agents ON DELETE CASCADE,
     name TEXT NOT NULL, script TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 1,
-    token TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT 'pending', last_error TEXT
+    token TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT 'pending', last_error TEXT,
+    max_rings INTEGER, rings INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS hamlet_doorbells_by_owner ON hamlet_doorbells(owner);
 CREATE TABLE IF NOT EXISTS hamlet_attachments (
@@ -52,3 +53,10 @@ CREATE TABLE IF NOT EXISTS hamlet_steers (
 CREATE TABLE IF NOT EXISTS hamlet_cleanup (
     agent TEXT PRIMARY KEY, machine_id TEXT NOT NULL, requested_by TEXT NOT NULL
 );`
+
+
+/** Columns added after v27 shipped to testers; CREATE TABLE IF NOT EXISTS cannot add them. */
+export const hamletColumnMigrations: { table: string; column: string; ddl: string }[] = [
+    { table: 'hamlet_doorbells', column: 'max_rings', ddl: 'ALTER TABLE hamlet_doorbells ADD COLUMN max_rings INTEGER' },
+    { table: 'hamlet_doorbells', column: 'rings', ddl: 'ALTER TABLE hamlet_doorbells ADD COLUMN rings INTEGER NOT NULL DEFAULT 0' },
+]

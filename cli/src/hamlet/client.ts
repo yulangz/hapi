@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { configuration } from '@/configuration'
+import { runtimePath } from '@/projectPath'
 import type { ApiSessionClient } from '@/api/apiSession'
 import { hamletToolDescriptions, hasMessageContent, hamletTools, steerInput, type HamletBatch } from '@hamlet/protocol/hamlet'
 import {
@@ -34,17 +35,45 @@ export const managedTools = {
         title: z.string().optional(),
     }),
 }
-function eventHeader(e: HamletBatch['events'][number], steer: boolean, timezone?: string) {
-    const kind = { initial: '首轮任务', message: steer ? '纠正' : '消息', timer: '提醒', doorbell: 'doorbell' }[e.kind]
-    const at = new Intl.DateTimeFormat('en-CA', {
-        timeZone: timezone || 'UTC', timeZoneName: 'longOffset', hourCycle: 'h23', year: 'numeric', month: '2-digit',
+const relationLabel = { 父节点: '你的父节点', 直属子节点: '你的直属子节点', 同群成员: '同群成员', 系统: '系统' } as const
+
+function formatTime(at: number, timezone?: string) {
+    const zone = timezone || 'UTC'
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+        timeZone: zone, timeZoneName: 'longOffset', hourCycle: 'h23', year: 'numeric', month: '2-digit',
         day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
-    }).format(e.due_at ?? e.created_at)
-    const source = e.kind === 'timer' ? 'timer_id=' + e.sender :
-        e.kind === 'doorbell' ? [e.sender_name, 'doorbell_id=' + e.sender].filter(Boolean).join(' · ') :
-        e.relation === '系统' ? '系统' :
-        [e.sender_name, e.relation, 'agent_id=' + e.sender].filter(Boolean).join(' · ')
-    return '[' + [kind, source, e.group_name && `群「${e.group_name}」`, e.group_id && 'group_id=' + e.group_id, at].filter(Boolean).join(' · ') + ']'
+    }).formatToParts(at).map((p) => [p.type, p.value]))
+    const offset = parts.timeZoneName === 'GMT' ? 'UTC+00:00' : parts.timeZoneName.replace('GMT', 'UTC')
+    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}（${zone}，${offset}）`
+}
+
+/**
+ * Every field in the header carries its own label, so a model reading one cold
+ * can tell what each value is. The main agent's first input is the user's own
+ * brief, so it carries no header.
+ */
+export function eventHeader(e: HamletBatch['events'][number], steer: boolean, timezone?: string) {
+    if (e.kind === 'initial' && e.relation === '系统') return ''
+    const time = formatTime(e.due_at ?? e.created_at, timezone)
+    const fields: (string | false | null | undefined)[] = []
+    if (e.kind === 'dream') {
+        fields.push('类型：整理笔记（每日定时提醒）', '时间：' + time)
+    } else if (e.kind === 'timer') {
+        fields.push('类型：提醒（你自己设的 timer）', 'timer_id：' + e.sender, '计划时间：' + time)
+    } else if (e.kind === 'doorbell') {
+        fields.push('类型：doorbell 事件', e.sender_name && 'doorbell：' + e.sender_name, 'doorbell_id：' + e.sender, '时间：' + time)
+    } else {
+        const kind = e.kind === 'initial' ? '首轮任务' : steer ? '紧急纠正（追加到你正在进行的回合）' : '消息'
+        fields.push(
+            '类型：' + kind,
+            e.sender_name && '发送者：' + e.sender_name,
+            e.relation && '关系：' + relationLabel[e.relation],
+            '发送者 agent_id：' + e.sender,
+            e.group_id && '群：' + (e.group_name ? `${e.group_name}（group_id：${e.group_id}）` : 'group_id：' + e.group_id),
+            '时间：' + time,
+        )
+    }
+    return '[Hamlet · ' + fields.filter(Boolean).join(' · ') + ']'
 }
 
 export function forSession(id: string) {
@@ -87,7 +116,7 @@ export class HamletClient {
         for (const e of batch.events) {
             parts.push({
                 type: 'text',
-                text: eventHeader(e, batch.id.startsWith('hamlet:steer:'), process.env.HAMLET_USER_TIMEZONE) + '\n' + e.text,
+                text: [eventHeader(e, batch.id.startsWith('hamlet:steer:'), process.env.HAMLET_USER_TIMEZONE), e.text].filter(Boolean).join('\n'),
             })
             for (const img of e.images) {
                 const res = await this.fetch('attachments/' + img.attachment_id)
@@ -100,7 +129,7 @@ export class HamletClient {
                 parts.push(
                     {
                         type: 'text',
-                        text: ['图片', img.caption, '可转发或展示：attachment_id=' + img.attachment_id].filter(Boolean).join(' '),
+                        text: '[图片 · ' + [img.caption && '说明：' + img.caption, 'attachment_id：' + img.attachment_id + '（转发或展示时用它引用这张图）'].filter(Boolean).join(' · ') + ']',
                     },
                     { type: 'localImage', path },
                 )
@@ -110,12 +139,18 @@ export class HamletClient {
     }
     register(server: McpServer, session: ApiSessionClient, cwd: string) {
         const names = Object.keys(managedTools) as (keyof typeof managedTools)[]
+        const guide = join(runtimePath(), 'skills', 'hamlet-agent', 'SKILL.md')
+        const withGuide: Partial<Record<keyof typeof managedTools, string>> = {
+            whoami: ` The Hamlet guide (in Chinese: what the system offers, how to brief a child, keeping and consolidating notes, doorbell examples) is at \`${guide}\`; read it before you first create agents, groups or doorbells.`,
+            agent_create: ` See \`${guide}\` for how to write the first task.`,
+            doorbell_create: ` See \`${guide}\` for complete scripts.`,
+        }
         for (const name of names) {
             if (name === 'machine_exec' && process.env.HAMLET_MAIN !== '1') continue
             server.registerTool<any, any>(
                 name,
                 {
-                    description: hamletToolDescriptions[name],
+                    description: hamletToolDescriptions[name] + (withGuide[name] ?? ''),
                     inputSchema: managedTools[name] as z.ZodTypeAny,
                 },
                 async (raw: Record<string, unknown>) => {

@@ -153,7 +153,8 @@ export async function codexLocal(opts: {
     }
 
     // Add developer instructions (system prompt)
-    args.push(...buildDeveloperInstructionsArg(getCodexSystemPrompt()));
+    const developerInstructions = getCodexSystemPrompt();
+    if (developerInstructions) args.push(...buildDeveloperInstructionsArg(developerInstructions));
 
     if (opts.codexArgs) {
         // Before the first launch, Codex still needs the user's selector (for

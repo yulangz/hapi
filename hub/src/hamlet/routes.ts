@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join, basename } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { hamletTools, AgentConfig, type HamletTool } from '@hamlet/protocol/hamlet'
+import { hamletTools, mainAgentPrompt, AgentConfig, type HamletTool } from '@hamlet/protocol/hamlet'
 import { getConfiguration } from '../configuration'
 import { readSettings } from '../config/settings'
 import type { SyncEngine } from '../sync/syncEngine'
@@ -49,7 +49,7 @@ export function hamletOwnerRoutes(get: () => SyncEngine | null) {
                     model: input.model,
                     name: '主 Agent',
                     description: '记录需求、委派任务并向用户汇总的秘书',
-                    prompt: input.prompt ?? '主助理已启动。读取或创建工作目录的 notes.md，然后调用 wait_message 等待用户。',
+                    prompt: input.prompt ?? mainAgentPrompt,
                 }),
                 input.timezone,
             ),

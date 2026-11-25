@@ -347,6 +347,7 @@ export default {
   'hamlet.input.message': 'Agent 来信',
   'hamlet.input.doorbell': 'Doorbell 事件',
   'hamlet.input.timer': '定时提醒',
+  'hamlet.input.dream': '整理笔记',
   'newSession.hamletMain': '打开 Hamlet 主助理',
   'newSession.hamletTimezoneHint': '打开时保存浏览器时区。正在运行的 Agent 会在下次启动时采用新时区。',
   'newSession.title': '创建会话',

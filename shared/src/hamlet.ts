@@ -5,16 +5,16 @@ const nonEmpty = z.string().trim().min(1)
 export const AgentConfig = z.object({
     harness: z.literal('codex').default('codex'),
     permission_mode: z.literal('yolo').default('yolo'),
-    machine_id: id.describe('machine_list 返回的稳定 ID'),
-    directory: id.describe('目标机器上的绝对工作目录'),
-    session_type: z.enum(['simple', 'worktree']).default('simple').describe('simple 使用原目录；worktree 从 Git 仓库创建独立工作树'),
+    machine_id: id.describe('machine_id from machine_list'),
+    directory: id.describe('Absolute working directory on that machine'),
+    session_type: z.enum(['simple', 'worktree']).default('simple').describe('simple: work in `directory` itself. worktree: create a separate Git worktree from the repository at `directory`, so several agents can change one repository in parallel'),
     model: nonEmpty.optional(),
     reasoning_effort: z.enum(['minimal', 'low', 'medium', 'high', 'xhigh']).optional(),
     collaboration_mode: z.enum(['default', 'plan']).default('default'),
     service_tier: z.enum(['standard', 'fast']).default('standard'),
-    name: nonEmpty.describe('在会话和来信中展示的简短名字'),
-    description: nonEmpty.describe('一句话说明负责什么'),
-    prompt: nonEmpty.describe('子节点看不到父节点的聊天记录。写清目标、输入位置、约束、交付物和验收标准，约定完成、受阻时用 message_to 回报。'),
+    name: nonEmpty.describe('Short name shown in the UI and in the headers of its messages'),
+    description: nonEmpty.describe('One sentence on what this agent is responsible for'),
+    prompt: nonEmpty.describe('The first task, and everything the child knows: it cannot see your conversation. State the goal, where the inputs are, the constraints, the deliverable and how to tell it is done, and ask it to report back with message_to when it is done, blocked or needs a decision. If the work has to wait for something external, tell it to set up its own doorbell.'),
 })
 export type AgentConfig = z.output<typeof AgentConfig>
 
@@ -32,14 +32,18 @@ export function hasMessageContent(input: { text?: string; images?: unknown[] }) 
     return Boolean(input.text?.trim() || input.images?.length)
 }
 
-const childTurn = z.object({ agent_id: id, turn_id: id.describe('agent_list 返回的当前 turn_id') })
-export const steerInput = childTurn.extend({ request_id: id.describe('同一次纠正重试时沿用'), text: z.string().default(''), images: z.array(ImageRef).default([]) })
+export const steerInput = z.object({
+    agent_id: id.describe('A direct child'),
+    turn_id: id.describe('The turn the child is running now, from agent_list'),
+    request_id: id.describe('Reuse when retrying the same correction'),
+    text: z.string().default(''),
+    images: z.array(ImageRef).default([]),
+})
 export const hamletTools = {
     whoami: z.object({}),
     machine_list: z.object({}),
-    agent_create: AgentConfig.extend({ request_id: id.describe('重试同一次创建时沿用此键') }),
+    agent_create: AgentConfig.extend({ request_id: id.describe('Idempotency key: reuse it when retrying the same creation') }),
     agent_list: z.object({ ids: z.array(id).optional() }),
-    agent_interrupt: childTurn,
     agent_steer: steerInput.refine(hasMessageContent, 'Provide text or images'),
     agent_delete_status: z.object({}),
     agent_delete: z.object({ agent_id: id, force: z.boolean().default(false), subtree_version: id.optional() }),
@@ -50,16 +54,23 @@ export const hamletTools = {
     group_members: z.object({ group_id: id }),
     message_to: OutgoingMessage,
     timer_create: z.object({
-        due_at: z.iso.datetime({ offset: true }).describe('例如 2026-11-25T09:00:00+08:00 或 UTC 的 Z 后缀'),
-        interval_seconds: z.number().int().positive().optional(),
-        text: nonEmpty,
+        due_at: z.iso.datetime({ offset: true }).describe('ISO 8601 with an offset, e.g. 2026-11-25T09:00:00-07:00'),
+        interval_seconds: z.number().int().positive().optional().describe('Repeat every N seconds; omit for a one-off reminder'),
+        text: nonEmpty.describe('What to do when it fires; it is delivered to you as-is'),
     }),
     timer_list: z.object({}),
     timer_delete: z.object({ id }),
     doorbell_create: z.object({
-        name: nonEmpty,
+        name: nonEmpty.describe('Short name; shown in the header of each event'),
         script: nonEmpty.describe(
-            '传完整脚本源码。Python 用 #!/usr/bin/env python3 和 from doorbell import every, ring, state。用 @every(seconds=60) 注册检查，顶层返回后立即开始轮询。事件发生时用 ring(prompt="发生了什么、路径和下一步", dedup_key="稳定事件标识")，成功后用 state.set 保存游标。详见 hamlet-agent skill。',
+            'Full Python source, not a file path. Import the bundled SDK with `from doorbell import every, ring, state` and decorate a check function with `@every(seconds=N)`. ' +
+                'Polling starts once the module has loaded, with the first check immediately, so do not block or loop at top level. ' +
+                'When the event happens call `ring(prompt=..., dedup_key=...)`: the prompt is all you will see when woken, so say what happened, the relevant paths or IDs and what to do next; ' +
+                'a stable dedup_key (a job ID, a file path plus mtime) delivers each event once. Keep cursors with `state.get` / `state.set`, updating them after a successful ring. ' +
+                'Only PATH and HOME are inherited, so write paths and parameters into the script.',
+        ),
+        max_rings: z.number().int().positive().optional().describe(
+            'Stop after delivering this many events: 1 for a one-off wait, any N, or omit for no limit',
         ),
     }),
     doorbell_logs: z.object({ id }),
@@ -70,7 +81,7 @@ export const hamletTools = {
 }
 export type HamletTool = keyof typeof hamletTools
 export const HamletChatSource = z.object({
-    kind: z.enum(['initial', 'message', 'doorbell', 'timer']),
+    kind: z.enum(['initial', 'message', 'doorbell', 'timer', 'dream']),
     sender: z.string().nullable(),
     group: z.string().nullable(),
     images: z.array(z.object({ id: id, name: z.string(), mime: z.string(), caption: z.string().optional() })),
@@ -104,35 +115,93 @@ export type HamletBatch = {
 }
 
 export const hamletToolDescriptions: Record<HamletTool | 'wait_message' | 'display_media', string> = {
-    whoami: '查看自己与父节点的身份和运行状态。用 group_list 查看自己的群。',
-    machine_list: '列出机器的稳定 machine_id、可修改的显示名和在线状态。创建 Agent 时使用 machine_id。',
-    agent_create: '在指定机器创建直属子 Agent，提交首轮任务。重试同一次创建时沿用 request_id。',
-    agent_list: '按 ids 查询直属子节点，省略则列出全部。返回名字、职责、title、运行状态和当前回合正在处理的输入。运行中可获取 turn_id。',
-    agent_interrupt: '请求停止直属子节点指定的 turn_id，保留会话和收件箱。返回 turn_changed 时请重新确认状态。',
-    agent_steer: '将纠正文字或图片立即加入直属子节点指定的运行回合。用 agent_list 获取 turn_id，重试沿用 request_id。若回合已结束，可用 message_to 派后续任务。',
-    agent_delete: '删除直属子节点。有后代时先返回预览；确认级联删除后携带预览的 subtree_version 和 force=true 重试。子树变化时需重新确认。保留工作目录。',
-    agent_delete_status: '查询你发起的删除仍待 Runner 清理的节点。',
-    group_create: '用直属子节点组成跨机器群。创建者要发出或收到群广播时传 include_self=true。返回群的 id。',
-    group_update: '增减自己创建的群的成员，可加入自己和直属子节点。',
-    group_delete: '解散自己创建的群。',
-    group_list: '列出你创建或加入的群，joined 表示自己是否在群中。',
-    group_members: '查看群成员的身份、职责、title 和运行状态。',
-    message_to: '私信父节点、直属子节点或同群成员，或向已加入的群广播给其他成员。忙时排队，下个空闲回合批量送达。每张图片用本机路径或已有 attachment_id，可附说明。重试同一条消息时沿用 request_id 才会去重。',
-    timer_create: '给自己设提醒。due_at 用带时区的 ISO 8601 时间，text 写明到时该做什么。interval_seconds 可设置重复周期，错过的多个周期合并投递。',
-    timer_list: '列出自己的定时提醒。',
-    timer_delete: '取消自己的提醒。在收到所等回报或任务取消时清理后续提醒。',
-    doorbell_create: '让所在机器的 Runner 在你的工作目录运行监听脚本，ring 时才投递事件。脚本退出后退避重启。自定义路径和参数请写入源码，项目环境变量不会自动传入。用 doorbell_list 确认状态，出错用 doorbell_logs。',
-    doorbell_list: '查看自己的监听、运行状态和最近的错误。',
-    doorbell_enable: '暂停或启用自己的监听，保留脚本与持久状态。',
-    doorbell_logs: '查看自己监听脚本最近 64 KiB 的输出和错误。',
-    doorbell_delete: '删除自己的监听并停止脚本。',
-    machine_exec: '主 Agent 可在指定在线机器执行短命令，查看环境或确认路径。超时 60 秒，输出缓冲上限 1 MiB；离线直接返回。项目工作交给该机器的子节点。',
-    wait_message: '等待新的用户输入、Agent 消息、提醒或 doorbell。有父节点时先用 message_to 回报；主 Agent 有结果要告知用户时直接回复用户。最后单独调用本工具结束本轮。已有积压会在下一轮投递。',
-    display_media: '在当前会话向用户展示文件。source 接受本机路径或收到的 attachment_id。向其他 Agent 交付图片请用 message_to。',
+    whoami:
+        'Show who you are (agent_id, name, description, machine, status), your parent agent if you have one, and the user\'s time zone. ' +
+        'Inputs delivered by Hamlet start with a bracketed `[Hamlet · …]` header whose labelled fields give the input type, sender, your relationship to the sender, IDs and time; input without such a header was typed by the user in your session.',
+    machine_list:
+        'List the machines in this workspace: the stable machine_id, the display name (users may rename it) and whether its Runner is online. Always refer to machines by machine_id.',
+    agent_create:
+        'Create a child agent on a machine and submit `prompt` as its first task. The child is a full Codex session working in `directory`, and it reports to you. ' +
+        'Prefer reusing an existing child whose role fits (see agent_list) and send it the new task with message_to. ' +
+        'Retrying with the same request_id returns the same child instead of creating another. Returns the child\'s card, including its agent_id.',
+    agent_list:
+        'List your direct children, or the ones in `ids`. Each card shows name, description, current title, machine and status (working, idle or inactive); ' +
+        'a working child also shows its current turn_id and the inputs that turn is processing. Reading this does not consume or interrupt anything.',
+    agent_steer:
+        'Inject text or images into the turn a direct child is running right now, so it sees them before that turn ends. ' +
+        'Use it only when it is urgent: the child is clearly heading the wrong way, is about to do something harmful or irreversible, or must stop now. ' +
+        'For anything else use message_to, which reaches the child at its next turn. Take turn_id from agent_list; ' +
+        'a turn_changed result means that turn already ended, so check agent_list again or use message_to.',
+    agent_delete:
+        'Delete a direct child. A child without descendants is deleted at once. If it has descendants nothing is deleted: you get a preview of the whole subtree and a subtree_version, ' +
+        'and you confirm by calling again with force=true and that subtree_version. If the subtree changed in between you get a new preview. ' +
+        'Deleting stops the agents\' sessions, reminders and doorbells; their working directories and files are kept.',
+    agent_delete_status: 'List agents from deletions you started that are still waiting for an offline machine to finish cleaning up.',
+    group_create:
+        'Create a group from your direct children, on any machines, so they can message each other and receive broadcasts. ' +
+        'Only members send and receive group messages; set include_self=true if you need to as well. Returns the group id.',
+    group_update: 'Add or remove members of a group you created. Members can be yourself or your direct children.',
+    group_delete: 'Delete a group you created.',
+    group_list: 'List the groups you created or belong to; `joined` says whether you are a member.',
+    group_members: 'Show the members of a group: agent_id, name, description, title and status.',
+    message_to:
+        'Send a message to one agent (target.agent_id: your parent, a direct child, or a member of a group you are in), or to every other member of a group you belong to (target.group_id). ' +
+        'Your ordinary replies are only visible in your own session: your parent and other agents see nothing unless you message them, so report results, blockers and questions here. ' +
+        'If the recipient is busy the message waits and arrives with any others as one input at its next turn. ' +
+        'Attach images by local path or by an attachment_id you received, each with an optional caption. Reuse request_id when retrying so the message is not sent twice.',
+    timer_create:
+        'Schedule a reminder for yourself. At due_at, `text` is delivered to you as an input, so write what you should do then ' +
+        '(e.g. "Ask the parser agent for its report, which was due at 18:00"). Interpret times such as "tomorrow at 9" in the user\'s time zone (see whoami). ' +
+        'interval_seconds makes it repeat; missed occurrences are merged into one. Delete reminders you no longer need with timer_delete.',
+    timer_list: 'List your reminders.',
+    timer_delete: 'Delete one of your reminders, e.g. once the report you were waiting for has arrived or the task was cancelled.',
+    doorbell_create:
+        'Watch for an external event without spending your own turns on it. A doorbell is a Python script that the Runner on your machine keeps running in your working directory; ' +
+        'checking costs no model calls, and you are woken only when the script calls ring(). Use one whenever you would otherwise wait on something outside the conversation: ' +
+        'a file or report appearing, a job, build or CI run finishing, a web page, API, queue or inbox changing, a service going up or down. ' +
+        'A crashed script is restarted with backoff, and doorbells survive Runner restarts. max_rings limits how many events it delivers; ' +
+        'when the limit is reached it stops by itself and the last event says so. Check on it with doorbell_list and doorbell_logs.',
+    doorbell_list: 'List your doorbells with their status (pending, running, backoff, stopped or completed), how many times each has rung and its limit, and the last error.',
+    doorbell_enable: 'Pause or resume one of your doorbells; its script and saved state are kept. Resuming a completed doorbell starts its count again from zero.',
+    doorbell_logs: 'Show the last 64 KiB of a doorbell script\'s output and errors. Use it when the status is backoff or nothing rings.',
+    doorbell_delete: 'Delete one of your doorbells and stop its script. Remove watchers once what they watch no longer matters.',
+    machine_exec:
+        'Run one shell command on an online machine and get stdout, stderr and the exit code. Meant for quick checks, such as machine state or whether a path or tool exists. ' +
+        'Limited to 60 seconds and 1 MiB of output, and fails at once if the machine is offline. Project work belongs to a child agent on that machine.',
+    wait_message:
+        'End your turn and wait for the next input: a user message, a message from another agent, a reminder or a doorbell. Use this instead of sleeping or polling in your turn. ' +
+        'Before calling it, deliver whatever is due: with message_to if you have a parent, or in your reply if you are talking to the user directly. ' +
+        'Call it alone, as the last action of the turn. Inputs that queued up in the meantime arrive together at the next turn.',
+    display_media:
+        'Show a file (image, video, audio or other) to the user in your own session. `source` is a local path or an attachment_id you received. ' +
+        'To hand a file to another agent, attach it with message_to instead.',
 }
 
-export const mainAgentRole = `你是用户的助理秘书。用户在你的会话里提出想法、需求和任务，并在这里看你的回复。保持主会话标题稳定。
-每轮开始读工作目录的 notes.md，初次使用时创建。记录需要推进的事、想法和待决定的问题。意图明确就安排，只有缺少会改变结果的信息时才问用户。
-具体工作优先交给职责合适的已有子 Agent，否则创建。委派从准备到交付的完整任务，等待文件或外部事件也由负责人在自己的机器上建立 doorbell。machine_exec 仅用于必要的简短环境确认。
-派工后在 notes.md 记录负责人、预期交付和跟进时间，用 timer_create 设置到期提醒。剩下的事需要等待时调用 wait_message。等待期间以回报为准，到期再向负责人询问。
-收到回报后更新记录，清理对应提醒，对照需求验收。有缺口请负责人补齐。给用户的回复先说结果、交付物和待决定的事，图片可用 display_media 展示。用户问起时再介绍内部协作。`
+/** First input of the main agent, written in the user's own voice. */
+export const mainAgentPrompt = `你是我的助理秘书。我会随时把想法、需求和任务告诉你。请记住对后续有用的信息，分清哪些只是想法、哪些需要推进、哪些还在等我决定。意图明确时直接安排，只有缺少会影响结果的关键信息时才问我。
+
+善用文件系统来进行记录，好记性不如烂笔头。你的笔记应当简洁、工整、有层次，明确区分哪些是重要信息、哪些应该归档等等，我会定期提醒你整理笔记。
+
+你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
+
+派工后，记下负责人、预期交付和需要跟进的时间。眼下没有其他事，就结束这一轮。到了约定时间还没收到回报，再向负责人询问进展。收到结果后，对照我的原始需求检查是否答全，有缺口就请负责人补齐。
+
+该提醒时主动提醒，该由我决定时把问题说清楚。平时用自然、简洁的话和我交流，优先告诉我结果、交付物，以及有没有需要我做的事。内部是怎么分工和传递消息的，我问起时再展开。`
+
+/**
+ * When the main agent is reminded to consolidate its notes: daily at `time` in `timezone`.
+ * A Hub that was down then still sends it within `graceMinutes`; later, that day is skipped.
+ */
+export const mainAgentDreamSchedule = { time: '04:00', timezone: 'Asia/Shanghai', graceMinutes: 120 } as const
+
+/** The daily reminder, in the user's voice like the brief it follows up on. */
+export const mainAgentDreamPrompt = `到整理笔记的时间了。把上次整理以来的经历沉淀成以后用得上的笔记：你的会话很长，早期对话会被压缩，以后要靠这些笔记快速进入状态。
+
+如果这批输入里还有其他消息，先处理它们，再整理笔记。整理期间只动笔记文件，不推进其他任务，也不给子 Agent 发消息。
+
+1. 盘点：看一遍笔记的总览和各个文件，弄清现在记了什么、放在哪。
+2. 收集：回顾上次整理以来的对话、回报和事件，找出新的事实、决定和变化，以及和已有笔记对不上的地方。记不清的，先查原始回报或相关文件再下结论，不要凭印象改。
+3. 合并：新信息写进已有的主题文件，不要另开新文件；合并重复的条目。被后来的信息推翻的，在原处改正，并注明改自什么、何时改的；两种说法都有依据又判断不了的，两条都留下并标「待确认」。相对日期一律改成绝对日期。密钥和密码单独保存在一个文件里，笔记中只写它在哪里。
+4. 归档与总览：已完成或不再相关的内容移到归档；总览只保留当前要紧的事和其他文件的位置，控制在一两百行以内，删掉失效的指向。
+
+上次整理以来没有新内容时，不必改动笔记，回一句即可。整理完用两三句话告诉我改了什么，以及有没有需要我确认的事。`

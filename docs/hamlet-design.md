@@ -15,7 +15,7 @@ flowchart TB
     H <--> B
 ```
 
-用户默认在主 Agent 的 Hamlet 会话交互，所有 Agent 均在 Hamlet 可见。Hub 的本机 Runner 在 Hub 工作目录下的专属目录启动第一个 Agent。每次创建和恢复会话时，Runner 都将秘书职责作为 developer instructions 注入。`POST /api/hamlet/main` 的可选 `prompt` 仅指定新建时的首轮任务。主助理在专属目录记录想法、需求和委派进展，向已有或新建的 Agent 分派工作，并向用户汇总。仅主 Agent 可通过 Hamlet 终端能力在指定在线机器执行 shell 命令。机器离线即返回，命令由主 Agent 视需要重新发起。
+用户默认在主 Agent 的 Hamlet 会话交互，所有 Agent 均在 Hamlet 可见。Hub 的本机 Runner 在 Hub 工作目录下的专属目录启动第一个 Agent。主 Agent 的首轮输入是以用户口吻写的秘书职责说明，其中要求它用文件系统记笔记。Hub 每天北京时间 04:00 向主 Agent 投递一条「整理笔记」提醒（事件类型 dream），由主 Agent 在自己的会话里整理；Hub 在该时刻后 2 小时内恢复也会补发，超过则跳过当天，同一天只投递一次。`POST /api/hamlet/main` 的可选 `prompt` 可替换它。托管会话不额外设置 developer instructions，沿用 Codex 默认指令；Hamlet 的协作约定写在工具描述里，详细说明见 Runner 内置的协作指南。主助理在专属目录记录想法、需求和委派进展，向已有或新建的 Agent 分派工作，并向用户汇总。仅主 Agent 可通过 Hamlet 终端能力在指定在线机器执行 shell 命令。机器离线即返回，命令由主 Agent 视需要重新发起。
 
 ## 身份与权限
 
@@ -29,15 +29,15 @@ flowchart TB
 
 - Hub 复用 Hamlet 的 SQLite。私信、广播、doorbell 和到期提醒都写入每个接收者的持久收件箱。广播按发送时的成员名单分发。忙碌时只入队，空闲时把领取时已积压的全部消息作为一个批次提交到同一会话。随后新到的事件进入下一批。离线时保留事件。
 - 调度按 Agent 串行领取批次，使用批次 ID、Runner 接收回执和发起回合的关联记录处理重启与重试。跨机 RPC 位于数据库事务之外。聊天按时间显示初始提示词和每批领取的内部输入，用颜色和来源标签区分 Agent 来信、doorbell 和定时提醒。图文来信保留原图与说明。
-- 父节点从 agent_list 取得直属子节点的 turn_id，可用 agent_interrupt 请求停止该回合，或用 agent_steer 向该回合追加文字和图片。纠正重试复用 request_id。回合已切换时返回 turn_changed，普通来信继续走收件箱。
+- 父节点从 agent_list 取得直属子节点的 turn_id，紧急时可用 agent_steer 向该回合追加文字和图片，其余情况用 message_to。纠正重试复用 request_id。回合已切换时返回 turn_changed，普通来信继续走收件箱。
 - Timer 仅供 Agent 为自己登记，由 Hub 调度一次性跟进或周期任务。到期事件入箱与提醒状态更新在同一事务提交。一次性提醒逾期补投，周期任务错过多次默认合并。
-- 派工后若需要等待，Agent 可单独调用 `wait_message` 结束本轮。已有积压及后续用户输入、Agent 来信、timer 和 doorbell 都可启动下一轮。目录监听等执行任务由承担任务的子节点创建自己的监听、处理文件并回报父节点。
+- 派工后若需要等待，Agent 可单独调用 `wait_message` 结束本轮。已有积压及后续用户输入、Agent 来信、timer 和 doorbell 都可启动下一轮。等待外部事件（文件、作业、接口变化等）由承担任务的子节点创建自己的 doorbell，处理后回报父节点。doorbell 可设触发次数上限（max_rings），达到上限后自动停止，重新启用时从零计数。
 - Doorbell 仅供 Agent 为自己创建和管理，每个监听有独立 ID。Hub 保存归属、机器和期望状态，目标机器的 Runner 托管监听、日志、游标和退避重启。外部事件带去重键，只投给所属 Agent。
 - `message_to` 支持文字、纯图、图文、多图和逐图说明。发送方 Runner 上传本机文件到 Hub，或复用已有附件 ID。Hub 保存文件及访问关系，群广播复用同一份文件。接收端把图片和对应消息作为 Codex 原生图像输入。主 Agent 可在自己的会话用 `display_media` 引用同一附件向用户交付。
 
 ## MCP 工具范围
 
-共有能力覆盖身份和机器查询、直属子节点管理、群管理与成员查询、消息投递、自己的 timer 和 doorbell 管理。主 Agent 另有按机器执行命令的工具。保留动态标题和一个统一的媒体展示入口。托管会话关闭三个 peer 工具，收紧其底层 API 访问，Runner 只在托管会话的 developer instructions 中提供协作 skill 的本机路径，Agent 可按需读取。工具名称见下方运行入口，参数定义在 shared/src/hamlet.ts。
+共有能力覆盖身份和机器查询、直属子节点管理、群管理与成员查询、消息投递、自己的 timer 和 doorbell 管理。主 Agent 另有按机器执行命令的工具。保留动态标题和一个统一的媒体展示入口。托管会话关闭三个 peer 工具，收紧其底层 API 访问，whoami、agent_create 和 doorbell_create 的工具描述中给出 Runner 内置协作指南的本机路径，Agent 可按需读取。工具名称见下方运行入口，参数定义在 shared/src/hamlet.ts。
 
 ## 模块与验收场景
 
@@ -62,14 +62,14 @@ flowchart TB
 | 用途 | MCP 工具 |
 |---|---|
 | 身份与机器 | whoami、machine_list，主 Agent 另有 machine_exec |
-| 直属子节点 | agent_create、agent_list、agent_interrupt、agent_steer、agent_delete、agent_delete_status |
+| 直属子节点 | agent_create、agent_list、agent_steer、agent_delete、agent_delete_status |
 | 群 | group_create、group_update、group_delete、group_list、group_members |
 | 消息与交付 | message_to、wait_message、display_media、change_title |
 | 提醒与监听 | timer_create/list/delete、doorbell_create/list/enable/delete/logs |
 
 agent_create 以调用者和 request_id 去重。群发的收件人为当前群中其他成员。图片可传发送方路径或已有 attachment_id。display_media 的 source 同样接受路径或附件 ID。Hub 以本地文件保存附件，SQLite 保存分发权限，接收方的 Codex 可直接读取图片，用户在 Hamlet 会话里的展示也可从 Hub 取回。
 
-数据库从 v26 自动升级到 v27。会话和机器继续使用 Hamlet 原表，Hamlet Agent ID 与预留的会话 ID 一致。消息正文与收件记录分表，整批提交使用稳定 ID。Runner 在原生 Codex 队列确认消费后向 Hub 确认批次。旧 Hamlet 数据库留作历史归档。
+数据库从 v26 自动升级到 v29。会话和机器继续使用 Hamlet 原表，Hamlet Agent ID 与预留的会话 ID 一致。消息正文与收件记录分表，整批提交使用稳定 ID。Runner 在原生 Codex 队列确认消费后向 Hub 确认批次。旧 Hamlet 数据库留作历史归档。
 
 ### 从 Hub 安装 Runner
 

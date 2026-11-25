@@ -4,7 +4,8 @@ import type { AgentConfig, HamletBatch, ImageRef, OutgoingMessage } from '@hamle
 import type { z } from 'zod'
 import { addImportedMessage } from '../store/messages'
 import type { StoredMessage } from '../store/types'
-import { mainAgentRole, type HamletChatSource } from '@hamlet/protocol/hamlet'
+import type { HamletChatSource } from '@hamlet/protocol/hamlet'
+import { dailySlot } from './schedule'
 
 export type Agent = {
     id: string
@@ -289,10 +290,7 @@ export class HamletStore {
                     }),
                 }
                 // HAMLET's CLI recognizes this as transcript history during reconnect, never as another prompt.
-                const text = event.relation === '系统' && kind === 'initial' && !event.text.startsWith(mainAgentRole)
-                    ? mainAgentRole + '\n\n' + event.text
-                    : event.text
-                const content = { role: 'user', content: { type: 'text', text }, meta: { sentFrom: 'cli', hamlet: source } }
+                const content = { role: 'user', content: { type: 'text', text: event.text }, meta: { sentFrom: 'cli', hamlet: source } }
                 const at = kind === 'initial' ? event.created_at : now
                 added.push(addImportedMessage(this.db, agent, content, localId, at).message)
             }
@@ -342,27 +340,44 @@ export class HamletStore {
             })
             .immediate()
     }
-    addDoorbell(owner: string, name: string, script: string) {
+    /**
+     * Queue the daily note-consolidation reminder for every main agent once its
+     * local time has passed. A Hub that was down at that time catches up within
+     * `graceMinutes`; later than that, the day is skipped rather than interrupting the day.
+     */
+    remindDream(now: number, schedule: { time: string; timezone: string; graceMinutes: number }, text: string) {
+        const { day, at } = dailySlot(now, schedule.time, schedule.timezone)
+        if (now < at || now >= at + schedule.graceMinutes * 60_000 || this.dreamDay === day) return
+        this.db
+            .transaction(() => {
+                const roots = this.db.query<{ id: string }, []>('SELECT id FROM hamlet_agents WHERE parent_id IS NULL').all()
+                for (const root of roots) this.enqueue('hamlet-dream', 'dream', root.id + ':' + day, text, [], [root.id])
+            })
+            .immediate()
+        this.dreamDay = day
+    }
+    private dreamDay?: string
+    addDoorbell(owner: string, name: string, script: string, maxRings: number | null = null) {
         const id = randomUUID()
-        this.db.run('INSERT INTO hamlet_doorbells(id,owner,name,script,token) VALUES(?,?,?,?,?)', [
+        this.db.run('INSERT INTO hamlet_doorbells(id,owner,name,script,token,max_rings) VALUES(?,?,?,?,?,?)', [
             id,
             owner,
             name,
             script,
             randomUUID(),
+            maxRings,
         ])
         return { id }
     }
     doorbells(owner: string) {
-        return this.db.query('SELECT id,name,enabled,status,last_error FROM hamlet_doorbells WHERE owner=?').all(owner)
+        return this.db.query('SELECT id,name,enabled,status,rings,max_rings,last_error FROM hamlet_doorbells WHERE owner=?').all(owner)
     }
     setDoorbell(owner: string, id: string, enabled: boolean) {
-        this.db.run('UPDATE hamlet_doorbells SET enabled=?,status=?,last_error=NULL WHERE owner=? AND id=?', [
-            +enabled,
-            enabled ? 'pending' : 'stopped',
-            owner,
-            id,
-        ])
+        // Resuming restarts the count, so a completed one-shot doorbell can be armed again.
+        this.db.run(
+            'UPDATE hamlet_doorbells SET enabled=?,status=?,last_error=NULL,rings=CASE WHEN ? THEN 0 ELSE rings END WHERE owner=? AND id=?',
+            [+enabled, enabled ? 'pending' : 'stopped', +enabled, owner, id],
+        )
     }
     deleteDoorbell(owner: string, id: string) {
         this.db.run('DELETE FROM hamlet_doorbells WHERE owner=? AND id=?', [owner, id])
@@ -391,12 +406,22 @@ export class HamletStore {
             .transaction(() => {
                 const d = this.db
                     .query<
-                        { id: string; owner: string },
+                        { id: string; owner: string; enabled: number; status: string; rings: number; max_rings: number | null },
                         [string]
-                    >('SELECT id,owner FROM hamlet_doorbells WHERE token=? AND enabled=1')
+                    >('SELECT id,owner,enabled,status,rings,max_rings FROM hamlet_doorbells WHERE token=?')
                     .get(token)
-                if (!d) throw new Error('Doorbell unavailable')
-                return this.enqueue(d.id, 'doorbell', key, text, [], [d.owner])
+                // A script may still ring between reaching its limit and the Runner stopping it.
+                if (d?.status === 'completed') return { completed: true }
+                if (!d?.enabled) throw new Error('Doorbell unavailable')
+                const last = d.max_rings !== null && d.rings + 1 >= d.max_rings
+                const note = last ? `\n\n（这个 doorbell 已触发 ${d.max_rings} 次，达到上限，已自动停止。）` : ''
+                const result = this.enqueue(d.id, 'doorbell', key, text + note, [], [d.owner])
+                if ('duplicate' in result) return result
+                this.db.run(
+                    "UPDATE hamlet_doorbells SET rings=rings+1, enabled=CASE WHEN ?1 THEN 0 ELSE enabled END, status=CASE WHEN ?1 THEN 'completed' ELSE status END WHERE id=?2",
+                    [+last, d.id],
+                )
+                return last ? { ...result, completed: true } : result
             })
             .immediate()
     }

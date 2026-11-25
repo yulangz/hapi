@@ -169,8 +169,13 @@ function createHamletMcpServer(
         return media;
     }
     if (enableChangeTitle) {
+        const managedTitle = forSession(client.sessionId)
+            ? process.env.HAMLET_MAIN === '1'
+                ? 'Rename your session. The main assistant\'s session is long-lived, so leave its title as it is unless the user asks you to rename it.'
+                : 'Set your session title to the task you are working on. Your parent sees it in agent_list, so update it when the task moves to a new stage, not on every step.'
+            : undefined
         mcp.registerTool<any, any>('change_title', {
-            description: 'Change the title of the current HAMLET chat session. Call once when the user\'s primary objective is clear; use a concise task title.',
+            description: managedTitle ?? 'Change the title of the current HAMLET chat session. Call once when the user\'s primary objective is clear; use a concise task title.',
             title: 'Change Chat Title',
             inputSchema: changeTitleInputSchema,
         }, async (args: { title: string }) => {

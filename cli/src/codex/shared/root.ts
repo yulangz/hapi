@@ -213,7 +213,7 @@ export class SharedCodexRoot {
     }
     config(params: Record<string, unknown>): Record<string, unknown> {
         return { ...params, cwd: params.cwd ?? this.bootstrap.workingDirectory,
-            developerInstructions: params.developerInstructions ?? getCodexSystemPrompt(), config: {
+            developerInstructions: params.developerInstructions ?? (getCodexSystemPrompt() || undefined), config: {
             ...record(params.config), 'mcp_servers.hamlet': this.bridge.mcpServers.hamlet,
             'shell_environment_policy.set.HAMLET_SESSION_ID': this.session.sessionId
         } };
@@ -611,7 +611,7 @@ export class SharedCodexRoot {
         return { ...sandbox, cwd: this.settingsNative.cwd ?? this.bootstrap.workingDirectory, model: this.settingsNative.model, modelProvider: this.settingsNative.modelProvider,
             approvalPolicy: this.settingsNative.approvalPolicy, serviceTier: this.settingsNative.serviceTier,
             approvalsReviewer: this.settingsNative.approvalsReviewer, personality: this.settingsNative.personality,
-            developerInstructions: getCodexSystemPrompt(),
+            developerInstructions: getCodexSystemPrompt() || undefined,
             config: { ...record(sandbox.config), model_reasoning_effort: this.settings.modelReasoningEffort ?? undefined } };
     }
     private notice(message: string): void { this.session.sendSessionEvent({ type: 'message', message }); }
