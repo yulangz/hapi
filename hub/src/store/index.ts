@@ -44,7 +44,7 @@ export {
     WorkGraphValidationError
 } from './workGraph'
 
-const SCHEMA_VERSION: number = 29
+const SCHEMA_VERSION: number = 30
 const REQUIRED_TABLES = [
     'sessions',
     'machines',
@@ -57,7 +57,8 @@ const REQUIRED_TABLES = [
     'usage_events',
     'usage_scan_state',
     'events',
-    'event_links'
+    'event_links',
+    'hamlet_notification_requests'
 ] as const
 
 export class Store {
@@ -362,6 +363,7 @@ export class Store {
             26: () => this.db.exec(hamletSchema),
             27: () => this.db.exec(hamletSchema),
             28: () => this.migrateHamletColumns(),
+            29: () => this.db.exec(hamletSchema),
         })
 
         if (currentVersion === 0) {

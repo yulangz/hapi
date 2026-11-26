@@ -1,4 +1,4 @@
-export const MAIN_REPLY_TAG_PREFIX = 'hamlet-main-agent-'
+export const MAIN_AGENT_NOTIFICATION_TAG_PREFIX = 'hamlet-main-agent-'
 
 const DB_NAME = 'hamlet.replyNotifications'
 const STORE = 'receipts'
@@ -24,7 +24,7 @@ function changeReceipts(db: IDBDatabase, change: (store: IDBObjectStore) => void
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(STORE, 'readwrite')
         transaction.oncomplete = () => resolve()
-        transaction.onabort = () => reject(transaction.error ?? new Error('Reply receipt transaction aborted'))
+        transaction.onabort = () => reject(transaction.error ?? new Error('Notification receipt transaction aborted'))
         change(transaction.objectStore(STORE))
     })
 }
@@ -47,8 +47,8 @@ async function claimReceipt(db: IDBDatabase, id: string): Promise<boolean> {
     return claimed
 }
 
-/** Both the page and worker claim the server-assigned reply UUID before displaying. */
-export async function showReplyOnce(
+/** Both the page and worker claim the server-assigned notification UUID before displaying. */
+export async function showAgentNotificationOnce(
     id: string,
     canShow: () => boolean,
     show: () => void | Promise<void>
@@ -66,7 +66,7 @@ export async function showReplyOnce(
                 if (!claimed) return false
             } catch (error) {
                 // Storage can be blocked or unavailable. Still attempt the alert.
-                console.warn('[ReplyNotifications] Could not claim notification receipt:', error)
+                console.warn('[AgentNotifications] Could not claim notification receipt:', error)
             }
             if (!canShow()) return false
             await show()
@@ -75,7 +75,7 @@ export async function showReplyOnce(
         } finally {
             if (db && claimed && !displayed) {
                 await changeReceipts(db, store => { store.delete(id) }).catch(error => {
-                    console.warn('[ReplyNotifications] Could not release notification receipt:', error)
+                    console.warn('[AgentNotifications] Could not release notification receipt:', error)
                 })
             }
             db?.close()

@@ -50,7 +50,6 @@ const messageSchema = z.object({
     sid: z.string(),
     message: z.union([z.string(), z.unknown()]),
     localId: z.string().optional(),
-    liveAssistantReply: z.literal(true).optional(),
     // Client-provided origin timestamp (epoch ms) — e.g. a Claude transcript
     // entry's own `timestamp`. Only honored for agent messages (no localId);
     // see addMessage in messages.ts.
@@ -130,7 +129,7 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
             return
         }
 
-        const { sid, localId, createdAt, liveAssistantReply } = parsed.data
+        const { sid, localId, createdAt } = parsed.data
         const raw = parsed.data.message
 
         const content = typeof raw === 'string'
@@ -257,7 +256,6 @@ export function registerSessionHandlers(socket: CliSocketWithData, deps: Session
         onWebappEvent?.({
             type: 'message-received',
             sessionId: sid,
-            ...(liveAssistantReply ? { liveAssistantReply } : {}),
             message: {
                 id: msg.id,
                 seq: msg.seq,

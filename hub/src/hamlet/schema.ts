@@ -50,6 +50,12 @@ CREATE TABLE IF NOT EXISTS hamlet_steers (
     agent TEXT NOT NULL REFERENCES hamlet_agents ON DELETE CASCADE, turn_id TEXT NOT NULL, request_id TEXT NOT NULL,
     UNIQUE(agent,turn_id,request_id)
 );
+CREATE TABLE IF NOT EXISTS hamlet_notification_requests (
+    agent TEXT NOT NULL REFERENCES hamlet_agents ON DELETE CASCADE,
+    request_id TEXT NOT NULL, id TEXT NOT NULL, text_hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('dispatching', 'dispatched', 'failed')),
+    PRIMARY KEY(agent,request_id)
+);
 CREATE TABLE IF NOT EXISTS hamlet_cleanup (
     agent TEXT PRIMARY KEY, machine_id TEXT NOT NULL, requested_by TEXT NOT NULL
 );`

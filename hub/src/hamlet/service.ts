@@ -1,17 +1,22 @@
 import { hamletTools, mainAgentDreamPrompt, mainAgentDreamSchedule, type HamletTool, type AgentConfig, type HamletBatch, type HamletTurn } from '@hamlet/protocol/hamlet'
 import type { SyncEngine } from '../sync/syncEngine'
+import type { AgentNotificationSender } from '../notifications/notificationTypes'
 import { RpcTargetMissingError, type RpcGateway } from '../sync/rpcGateway'
 import type { HamletStore, Agent, AgentCard } from './store'
+
+type NotificationResult = { status: 'dispatched'; notification_id: string }
 
 export class HamletService {
     private readonly waking = new Map<string, Promise<void>>()
     private readonly retryAt = new Map<string, number>()
     private readonly machineJobs = new Set<string>()
+    private readonly pendingNotifications = new Map<string, Promise<NotificationResult>>()
     private interval?: ReturnType<typeof setInterval>
     constructor(
         readonly store: HamletStore,
         private readonly engine: SyncEngine,
         private readonly rpc: RpcGateway,
+        private readonly sendAgentNotification?: AgentNotificationSender,
     ) {}
     start() {
         this.store.restoreInitialInputs()
@@ -177,6 +182,35 @@ export class HamletService {
         }
         return { ...card, status: 'working', running: true, turn_id: turn.turn_id, processing, hidden_input_count: hidden }
     }
+    private async notifyUser(actor: Agent, input: unknown): Promise<NotificationResult> {
+        if (actor.parent_id !== null) throw new Error('Main agent required')
+        const { request_id, text } = hamletTools.notify.parse(input)
+        const session = this.engine.getSessionByNamespace(actor.id, actor.namespace)
+        if (!session?.hamletMain) throw new Error('Main agent session unavailable')
+        const send = this.sendAgentNotification
+        if (!send) throw new Error('Agent notification channel unavailable')
+        const request = this.store.reserveNotification(actor.id, request_id, text)
+        const result = { status: 'dispatched', notification_id: request.id } as const
+        if (request.status === 'dispatched') return result
+        if (request.status === 'failed') throw new Error('Agent notification dispatch failed')
+        const pending = this.pendingNotifications.get(request.id)
+        if (pending) return pending
+        // If a Hub dies after starting delivery, retrying the send can alert twice.
+        if (!request.created) throw new Error('Agent notification dispatch outcome is unknown')
+
+        const work = Promise.resolve().then(async () => {
+            try {
+                await send(session, { id: request.id, text })
+            } catch {
+                this.store.finishNotification(actor.id, request_id, 'failed')
+                throw new Error('Agent notification dispatch failed')
+            }
+            this.store.finishNotification(actor.id, request_id, 'dispatched')
+            return result
+        }).finally(() => this.pendingNotifications.delete(request.id))
+        this.pendingNotifications.set(request.id, work)
+        return work
+    }
     async tool(actor: Agent, name: HamletTool, input: unknown): Promise<unknown> {
         const db = this.store
         switch (name) {
@@ -239,6 +273,8 @@ export class HamletService {
                 break
             case 'message_to':
                 return db.send(actor, hamletTools.message_to.parse(input))
+            case 'notify':
+                return this.notifyUser(actor, input)
             case 'timer_create': {
                 const p = hamletTools.timer_create.parse(input)
                 return db.addTimer(

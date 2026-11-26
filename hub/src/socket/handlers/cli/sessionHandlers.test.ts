@@ -94,7 +94,7 @@ describe('cli session handlers', () => {
             for (let i = 0; i < 20; i++) socket.trigger('message', packet)
             socket.trigger('messages-consumed', { sid: session.id, localIds: [packet.localId] })
             expect(events.filter(event => event.type === 'message-received')).toHaveLength(1)
-            expect(events).toContainEqual(expect.objectContaining({ type: 'message-received', liveAssistantReply: true }))
+            expect(events.find(event => event.type === 'message-received')).not.toHaveProperty('liveAssistantReply')
             expect(socket.roomEvents.filter(event => event.event === 'update')).toHaveLength(1)
             expect(store.messages.getMessages(session.id)).toHaveLength(1)
             expect(store.messages.getMessages(session.id)[0].invokedAt).not.toBeNull()

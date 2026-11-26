@@ -18,6 +18,7 @@ export type Agent = {
     token: string
 }
 export type Doorbell = { id: string; owner: string; name: string; script: string; token: string; directory: string }
+type NotificationRequest = { id: string; text_hash: string; status: 'dispatching' | 'dispatched' | 'failed' }
 type Timer = { id: string; owner: string; due: number; period: number | null; text: string }
 type Image = z.output<typeof ImageRef>
 export type AgentCard = { agent_id: string; name: string; description: string; title: string | null }
@@ -71,6 +72,29 @@ export class HamletStore {
                 return this.agent(id)!
             })
             .immediate()
+    }
+    reserveNotification(agent: string, requestId: string, text: string) {
+        const textHash = createHash('sha256').update(text).digest('hex')
+        return this.db.transaction(() => {
+            const existing = this.db.query<NotificationRequest, [string, string]>(
+                'SELECT id,text_hash,status FROM hamlet_notification_requests WHERE agent=? AND request_id=?',
+            ).get(agent, requestId)
+            if (existing) {
+                if (existing.text_hash !== textHash) throw new Error('Notification request_id is already in use with different text')
+                return { id: existing.id, status: existing.status, created: false }
+            }
+            const id = randomUUID()
+            this.db.run(
+                "INSERT INTO hamlet_notification_requests(agent,request_id,id,text_hash,status) VALUES(?,?,?,?,'dispatching')",
+                [agent, requestId, id, textHash],
+            )
+            return { id, status: 'dispatching' as const, created: true }
+        }).immediate()
+    }
+    finishNotification(agent: string, requestId: string, status: 'dispatched' | 'failed') {
+        this.db.run('UPDATE hamlet_notification_requests SET status=? WHERE agent=? AND request_id=?', [
+            status, agent, requestId,
+        ])
     }
     children(actor: Agent, ids?: string[]) {
         return this.db

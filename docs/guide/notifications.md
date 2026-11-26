@@ -6,11 +6,12 @@ Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow 
 
 ## Main Agent browser notifications
 
-Enable browser notifications in Settings → General. HAMLET sends a generic
-system alert for each new main Agent reply to every registered browser endpoint,
-even when another browser has the page open. A shared browser endpoint belongs
-to the account that last registered it. The alert opens HAMLET, where your
-current sign-in determines which replies you can read.
+Enable browser notifications in Settings → General. When the main Agent calls
+`notify` for a reminder, a decision or a time-sensitive update, HAMLET sends a
+generic system alert to every registered browser endpoint for that account.
+Regular replies stay in the chat. A shared browser endpoint belongs to the
+account that last registered it. The alert opens HAMLET, where your current
+sign-in determines what you can read.
 
 For Codex sessions with an active Goal, intermediate turn completions do not
 produce ready-for-input notifications: the Goal is still running automatically.
@@ -21,9 +22,9 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 
 When notification permission is granted, an open HAMLET page can display a
 local alert from its live connection if the push service did not confirm
-acceptance of that reply for the browser's endpoint. This works in visible and
+acceptance of that notification for the browser's endpoint. This works in visible and
 hidden tabs and while viewing a different session. Tabs and the service worker
-share a browser receipt for each reply, including after the alert is dismissed.
+share a browser receipt for each notification, including after the alert is dismissed.
 
 HAMLET uses the service worker for local alerts when available. An open page
 can also show them directly if its browser supports page notifications.

@@ -53,6 +53,10 @@ export const hamletTools = {
     group_list: z.object({}),
     group_members: z.object({ group_id: id }),
     message_to: OutgoingMessage,
+    notify: z.strictObject({
+        text: nonEmpty.max(500).describe('Brief notification text for the signed-in user'),
+        request_id: nonEmpty.max(128).describe('Unique key for this notification. Reuse it with the same text when retrying.'),
+    }),
     timer_create: z.object({
         due_at: z.iso.datetime({ offset: true }).describe('ISO 8601 with an offset, e.g. 2026-11-25T09:00:00-07:00'),
         interval_seconds: z.number().int().positive().optional().describe('Repeat every N seconds; omit for a one-off reminder'),
@@ -149,6 +153,9 @@ export const hamletToolDescriptions: Record<HamletTool | 'wait_message' | 'displ
         'Your ordinary replies are only visible in your own session: your parent and other agents see nothing unless you message them, so report results, blockers and questions here. ' +
         'If the recipient is busy the message waits and arrives with any others as one input at its next turn. ' +
         'Attach images by local path or by an attachment_id you received, each with an optional caption. Reuse request_id when retrying so the message is not sent twice.',
+    notify:
+        'Notify the user of this main Agent. Use for timely reminders, decisions, time-sensitive results, or when the user asks. ' +
+        'Continue ordinary conversation in chat. Reuse the same request_id and text on retry.',
     timer_create:
         'Schedule a reminder for yourself. At due_at, `text` is delivered to you as an input, so write what you should do then ' +
         '(e.g. "Ask the parser agent for its report, which was due at 18:00"). Interpret times such as "tomorrow at 9" in the user\'s time zone (see whoami). ' +
@@ -177,16 +184,18 @@ export const hamletToolDescriptions: Record<HamletTool | 'wait_message' | 'displ
         'To hand a file to another agent, attach it with message_to instead.',
 }
 
+export const mainAgentDelegationGuidance = '创建子 Agent 时，在 agent_create 的 model 参数中明确指定模型。简单日常任务用 gpt-6.2-sol；只要任务有一定难度或需要深入判断，就优先用 gpt-6.2-astra。我的额度充足，无需为了省额度降低模型。'
+
 /** First input of the main agent, written in the user's own voice. */
 export const mainAgentPrompt = `你是我的助理秘书。我会随时把想法、需求和任务告诉你。请记住对后续有用的信息，分清哪些只是想法、哪些需要推进、哪些还在等我决定。意图明确时直接安排，只有缺少会影响结果的关键信息时才问我。
 
 善用文件系统来进行记录，好记性不如烂笔头。你的笔记应当简洁、工整、有层次，明确区分哪些是重要信息、哪些应该归档等等，我会定期提醒你整理笔记。
 
-你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
+你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。${mainAgentDelegationGuidance} 委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
 
 派工后，记下负责人、预期交付和需要跟进的时间。眼下没有其他事，就结束这一轮。到了约定时间还没收到回报，再向负责人询问进展。收到结果后，对照我的原始需求检查是否答全，有缺口就请负责人补齐。
 
-该提醒时主动提醒，该由我决定时把问题说清楚。平时用自然、简洁的话和我交流，优先告诉我结果、交付物，以及有没有需要我做的事。内部是怎么分工和传递消息的，我问起时再展开。`
+我需要及时知道的提醒、需要我决定的事、时效紧的结果，或我明确要求提醒时，主动调用 notify 工具，把要点说清楚。平时用自然、简洁的话和我交流，优先告诉我结果、交付物，以及有没有需要我做的事。内部是怎么分工和传递消息的，我问起时再展开。`
 
 /**
  * When the main agent is reminded to consolidate its notes: daily at `time` in `timezone`.

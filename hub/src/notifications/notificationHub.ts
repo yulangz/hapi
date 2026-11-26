@@ -1,7 +1,6 @@
 import type { Session, SyncEngine, SyncEvent } from '../sync/syncEngine'
 import type { SessionEndReason } from '@hamlet/protocol'
-import { extractAssistantPlainText, stripNotifySummaryFooter, unwrapRoleWrappedRecordEnvelope } from '@hamlet/protocol/messages'
-import type { NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
+import type { AgentNotification, NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
 import type { NotificationSendContext } from './notificationSendContext'
 import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
 
@@ -45,6 +44,20 @@ export class NotificationHub {
         this.pendingGoalReady.clear()
     }
 
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<void> {
+        const channels = this.channels.filter(channel => channel.sendAgentNotification)
+        if (channels.length === 0) throw new Error('No agent notification channel is configured')
+        const results = await Promise.allSettled(channels.map(async channel => {
+            await channel.sendAgentNotification!(session, notification)
+        }))
+        if (results.some(result => result.status === 'rejected')) {
+            console.error('[NotificationHub] Agent notification channel failed')
+        }
+        if (results.every(result => result.status === 'rejected')) {
+            throw new Error('Agent notification dispatch failed')
+        }
+    }
+
     private handleSyncEvent(event: SyncEvent): void {
         if ((event.type === 'session-updated' || event.type === 'session-added') && event.sessionId) {
             const session = this.syncEngine.getSession(event.sessionId)
@@ -72,18 +85,6 @@ export class NotificationHub {
 
         if (event.type === 'message-received' && event.sessionId) {
             const session = this.syncEngine.getSession(event.sessionId)
-            if (session?.hamletMain && event.liveAssistantReply) {
-                const record = unwrapRoleWrappedRecordEnvelope(event.message.content)
-                const body = record?.role === 'agent' ? extractAssistantPlainText(record.content) : null
-                const text = body ? stripNotifySummaryFooter(body).trim() : ''
-                if (text) {
-                    for (const channel of this.channels) {
-                        channel.sendMainAgentReply?.(session, { id: event.message.id, text }).catch((error) => {
-                            console.error('[NotificationHub] Failed to send main agent reply:', error)
-                        })
-                    }
-                }
-            }
             if (session?.metadata?.flavor === 'codex') {
                 const threadId = session.metadata.codexSessionId
                 const status = extractCodexGoalStatus(event.message.content, threadId)

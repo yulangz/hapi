@@ -9,7 +9,7 @@ import {
     putShareTransfer,
 } from './lib/shareTransfer'
 import { shareTargetPathname } from './lib/sharePath'
-import { hasNotificationPermission, MAIN_REPLY_TAG_PREFIX, showReplyOnce } from './lib/replyNotificationReceipts'
+import { hasNotificationPermission, MAIN_AGENT_NOTIFICATION_TAG_PREFIX, showAgentNotificationOnce } from './lib/agentNotificationReceipts'
 
 const sharePath = shareTargetPathname()
 
@@ -104,13 +104,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('push', (event) => {
     const payload = event.data?.json() as PushPayload | undefined
-    if (payload?.data?.type !== 'main-agent-reply') {
+    if (payload?.data?.type !== 'main-agent-notification') {
         return
     }
 
     // An endpoint can outlive a login. Ignore presentation and routing data
     // even from older Hub payloads that are still in flight.
-    const body = self.navigator.language.startsWith('zh') ? '主 Agent 有新回复' : 'New main Agent reply'
+    const body = self.navigator.language.startsWith('zh') ? '主 Agent 发来一条通知' : 'New notification from your main Agent'
     const show = () => self.registration.showNotification('Hamlet', {
         body,
         icon: '/pwa-192x192.png',
@@ -118,10 +118,10 @@ self.addEventListener('push', (event) => {
         data: { url: self.registration.scope },
         tag: payload.tag
     })
-    // The existing Push tag carries the same server-assigned ID as SSE.
-    const id = payload.tag?.startsWith(MAIN_REPLY_TAG_PREFIX) && payload.tag.slice(MAIN_REPLY_TAG_PREFIX.length)
+    // The Push tag carries the same server-assigned notification ID as SSE.
+    const id = payload.tag?.startsWith(MAIN_AGENT_NOTIFICATION_TAG_PREFIX) && payload.tag.slice(MAIN_AGENT_NOTIFICATION_TAG_PREFIX.length)
     if (id) {
-        event.waitUntil(showReplyOnce(id, hasNotificationPermission, show))
+        event.waitUntil(showAgentNotificationOnce(id, hasNotificationPermission, show))
     } else if (hasNotificationPermission()) {
         event.waitUntil(show())
     }

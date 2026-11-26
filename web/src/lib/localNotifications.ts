@@ -1,5 +1,5 @@
 import type { SyncEvent } from '@/types/api'
-import { hasNotificationPermission, MAIN_REPLY_TAG_PREFIX, showReplyOnce } from './replyNotificationReceipts'
+import { hasNotificationPermission, MAIN_AGENT_NOTIFICATION_TAG_PREFIX, showAgentNotificationOnce } from './agentNotificationReceipts'
 
 type NotificationEvent = Extract<SyncEvent, { type: 'toast' }>['data']
 
@@ -12,7 +12,7 @@ export async function showLocalNotification(
     baseUrl: string,
     isCurrentScope: () => boolean
 ): Promise<boolean> {
-    if (event.notificationKind !== 'main-agent-reply' || !event.notificationId
+    if (event.notificationKind !== 'main-agent-notification' || !event.notificationId
         || !Number.isFinite(event.notificationAt)) {
         return false
     }
@@ -41,10 +41,10 @@ export async function showLocalNotification(
             body: localized.body,
             icon: '/pwa-192x192.png',
             badge: '/pwa-64x64.png',
-            tag: MAIN_REPLY_TAG_PREFIX + id,
+            tag: MAIN_AGENT_NOTIFICATION_TAG_PREFIX + id,
             data: { type: 'local-fallback', sessionId: event.sessionId, url: url.toString() }
         }
-        return await showReplyOnce(id, canShow, async () => {
+        return await showAgentNotificationOnce(id, canShow, async () => {
             if (registration?.active && registration.showNotification) {
                 await registration.showNotification(localized.title, options)
                 return

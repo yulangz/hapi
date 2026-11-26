@@ -88,7 +88,9 @@ export function hamletRoutes(get: () => SyncEngine | null) {
     app.post('/tool/:name', async (c) => {
         const name = c.req.param('name')
         if (!Object.hasOwn(hamletTools, name)) return c.json({ error: 'Unknown tool' }, 404)
-        return c.json(await get()!.hamlet.tool(c.get('actor'), name as HamletTool, await c.req.json()))
+        const actor = c.get('actor')
+        if (name === 'notify' && actor.parent_id !== null) return c.json({ error: 'Main agent required' }, 403)
+        return c.json(await get()!.hamlet.tool(actor, name as HamletTool, await c.req.json()))
     })
     app.post('/inbox', (c) => c.json(get()!.hamlet.claimInbox(c.get('actor').id)))
     app.post('/ack/:batch', (c) => {

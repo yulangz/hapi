@@ -1063,7 +1063,7 @@ export class ApiSessionClient extends EventEmitter {
         void this.materialize()
     }
 
-    sendAgentMessage(body: unknown, localId?: string, liveAssistantReply = false): void {
+    sendAgentMessage(body: unknown, localId?: string): void {
         const content = {
             role: 'agent',
             content: {
@@ -1078,8 +1078,7 @@ export class ApiSessionClient extends EventEmitter {
             this.socket.emit('message', {
                 sid: this.sessionId,
                 message: content,
-                localId,
-                ...(liveAssistantReply ? { liveAssistantReply: true } : {})
+                localId
             })
             if (localId) this.socket.emit('messages-consumed', { sid: this.sessionId, localIds: [localId] })
         })

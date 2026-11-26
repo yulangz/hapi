@@ -1,18 +1,18 @@
 import { createHash, webcrypto } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { showLocalNotification } from './localNotifications'
-import { showReplyOnce } from './replyNotificationReceipts'
+import { showAgentNotificationOnce } from './agentNotificationReceipts'
 
-vi.mock('./replyNotificationReceipts', async (importOriginal) => ({
-    ...await importOriginal<typeof import('./replyNotificationReceipts')>(),
-    showReplyOnce: vi.fn()
+vi.mock('./agentNotificationReceipts', async (importOriginal) => ({
+    ...await importOriginal<typeof import('./agentNotificationReceipts')>(),
+    showAgentNotificationOnce: vi.fn()
 }))
 
 const hub = 'https://hub.example.test'
 const text = { title: '等待输入', body: 'Codex is ready' }
 const notification = (id = 'dispatch-1') => ({
     title: 'Ready for input', body: 'Codex is ready', sessionId: 'session-1',
-    url: '/sessions/session-1', notificationKind: 'main-agent-reply' as const, notificationId: id, notificationAt: Date.now()
+    url: '/sessions/session-1', notificationKind: 'main-agent-notification' as const, notificationId: id, notificationAt: Date.now()
 })
 
 describe('local system notification fallback', () => {
@@ -32,7 +32,7 @@ describe('local system notification fallback', () => {
         getRegistration.mockReset().mockResolvedValue({
             active: {}, showNotification, pushManager: { getSubscription }
         })
-        vi.mocked(showReplyOnce).mockReset().mockImplementation(async (_id, canShow, show) => {
+        vi.mocked(showAgentNotificationOnce).mockReset().mockImplementation(async (_id, canShow, show) => {
             if (!canShow()) return false
             await show()
             return true
@@ -58,8 +58,8 @@ describe('local system notification fallback', () => {
     it('uses the reply ID for receipts and honors a receipt from another recipient', async () => {
         const event = notification()
         expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(true)
-        expect(showReplyOnce).toHaveBeenCalledWith(event.notificationId, expect.any(Function), expect.any(Function))
-        vi.mocked(showReplyOnce).mockResolvedValueOnce(false)
+        expect(showAgentNotificationOnce).toHaveBeenCalledWith(event.notificationId, expect.any(Function), expect.any(Function))
+        vi.mocked(showAgentNotificationOnce).mockResolvedValueOnce(false)
         expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(false)
         expect(showNotification).toHaveBeenCalledTimes(1)
         expect(showNotification).toHaveBeenCalledWith(text.title, expect.objectContaining({

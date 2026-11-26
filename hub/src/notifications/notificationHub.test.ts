@@ -104,24 +104,28 @@ function goalEvent(status: string | null, threadId = 'root'): Extract<SyncEvent,
 
 const readyMessage = () => messageEvent({ role: 'agent', content: { type: 'event', data: { type: 'ready' } } })
 
-describe('main Agent browser replies', () => {
-    it('accepts only live assistant text from the main Agent', () => {
+describe('explicit agent notifications', () => {
+    it('leaves chat events alone, including old Runner reply markers', async () => {
         const engine = new FakeSyncEngine()
-        const replies: string[] = []
+        const delivered: string[] = []
         const channel = Object.assign(new StubChannel(), {
-            sendMainAgentReply: async (_session: Session, reply: { text: string }) => { replies.push(reply.text) }
+            sendAgentNotification: async (_session: Session, notification: { text: string }) => {
+                delivered.push(notification.text)
+            }
         })
         const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])
-        const text = messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'message', message: 'New reply' } } })
+        const session = createSession({ hamletMain: true })
+        engine.setSession(session)
         try {
-            engine.setSession(createSession())
-            engine.emit({ ...text, liveAssistantReply: true })
-            engine.setSession(createSession({ hamletMain: true }))
-            engine.emit(text)
-            engine.emit({ ...messageEvent({ role: 'user', content: { type: 'text', text: 'User' } }), liveAssistantReply: true })
-            engine.emit({ ...messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'tool-call-result' } } }), liveAssistantReply: true })
-            engine.emit({ ...text, liveAssistantReply: true })
-            expect(replies).toEqual(['New reply'])
+            const event = messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'message', message: 'Routine reply' } } })
+            engine.emit(event)
+            const legacyEvent = { ...event, liveAssistantReply: true }
+            engine.emit(legacyEvent)
+            engine.emit(messageEvent({ role: 'user', content: { type: 'text', text: 'User' } }))
+            engine.emit(messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'tool-call-result' } } }))
+            expect(delivered).toEqual([])
+            await hub.sendAgentNotification(session, { id: 'notice', text: 'Decision needed' })
+            expect(delivered).toEqual(['Decision needed'])
         } finally { hub.stop() }
     })
 })

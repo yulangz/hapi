@@ -565,7 +565,6 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
     }),
     SessionChangedSchema.extend({
         type: z.literal('message-received'),
-        liveAssistantReply: z.literal(true).optional(),
         message: DecryptedMessageSchema
     }),
     SessionChangedSchema.extend({
@@ -600,7 +599,7 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             sessionId: z.string(),
             url: z.string(),
             // One live dispatch, shared across tabs; never replay old alerts.
-            notificationKind: z.literal('main-agent-reply').optional(),
+            notificationKind: z.literal('main-agent-notification').optional(),
             notificationId: z.string().optional(),
             notificationAt: z.number().optional(),
             // SHA-256 of notification ID, NUL, and endpoint for each HTTP-accepted push.

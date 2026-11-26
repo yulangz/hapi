@@ -207,7 +207,10 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
         onMessagesConsumed: (sessionId) => syncEngine?.clearQueuedThinkingGrace(sessionId)
     })
 
-    syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager)
+    syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager, async (session, notification) => {
+        if (!notificationHub) throw new Error('Agent notification channel unavailable')
+        await notificationHub.sendAgentNotification(session, notification)
+    })
     syncEngine.hamlet.start()
     // Accountable principal for A2A work-graph notify ingest (P3).
     syncEngine.setHubOwnerUserId(await getOrCreateOwnerId())

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { Session } from '../sync/syncEngine'
-import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
+import type { AgentNotification, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
@@ -99,22 +99,22 @@ export class PushNotificationChannel implements NotificationChannel {
         await this.deliverWebOrToast(session, payload, ctx, 'task')
     }
 
-    async sendMainAgentReply(session: Session, reply: { id: string; text: string }): Promise<void> {
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<void> {
         if (!session.hamletMain) return
-        const body = reply.text.replace(/\s+/gu, ' ')
+        const body = notification.text.replace(/\s+/gu, ' ')
         await this.deliverWebOrToast(session, {
             title: getSessionName(session),
             body: body.length > 180 ? body.slice(0, 179) + '…' : body,
-            tag: `hamlet-main-agent-${reply.id}`,
-            data: { type: 'main-agent-reply', sessionId: session.id, url: this.buildSessionPath(session.id) }
-        }, undefined, 'reply', reply.id)
+            tag: `hamlet-main-agent-${notification.id}`,
+            data: { type: 'main-agent-notification', sessionId: session.id, url: this.buildSessionPath(session.id) }
+        }, undefined, 'notify', notification.id)
     }
 
     private async deliverWebOrToast(
         session: Session,
         payload: PushPayload,
         ctx: NotificationSendContext | undefined,
-        method: 'permission' | 'ready' | 'task' | 'reply',
+        method: 'permission' | 'ready' | 'task' | 'notify',
         notificationId?: string
     ): Promise<void> {
         if (ctx?.nativeGate?.sent) {
@@ -130,11 +130,11 @@ export class PushNotificationChannel implements NotificationChannel {
             this.logBranch(method, session.namespace, 'web-push-fired')
             const accepted = await this.pushService.sendToNamespace(session.namespace, {
                 title: 'Hamlet',
-                body: 'New main Agent reply',
+                body: 'New notification from your main Agent',
                 tag: payload.tag,
-                data: { type: 'main-agent-reply' }
-            }).catch(error => {
-                console.error('[Push.main-agent-reply] Failed to dispatch Web Push:', error)
+                data: { type: 'main-agent-notification' }
+            }).catch(() => {
+                console.error('[Push.notify] Failed to dispatch Web Push')
                 return []
             })
             pushAccepted = accepted.map(endpoint => createHash('sha256')
@@ -151,7 +151,7 @@ export class PushNotificationChannel implements NotificationChannel {
                 sessionId: session.id,
                 url,
                 ...(notificationId ? {
-                    notificationKind: 'main-agent-reply' as const,
+                    notificationKind: 'main-agent-notification' as const,
                     notificationId,
                     notificationAt: Date.now(),
                     pushAccepted
