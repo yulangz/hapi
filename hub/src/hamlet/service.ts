@@ -199,24 +199,29 @@ export class HamletService {
         if (!request.claimed) throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
 
         const work = Promise.resolve().then(async () => {
-            let outcome: AgentNotificationOutcome
             try {
-                outcome = await send(session, { id: request.id, text })
-            } catch {
-                throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+                let outcome: AgentNotificationOutcome
+                try {
+                    outcome = await send(session, { id: request.id, text })
+                } catch {
+                    throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+                }
+                if (outcome === 'unknown') throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+                try {
+                    this.store.finishNotification(actor.id, request_id, outcome === 'dispatched' ? 'dispatched' : 'failed')
+                } catch {
+                    console.error('[Hamlet] Could not persist agent notification outcome')
+                    throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+                }
+                if (outcome === 'retryable') {
+                    throw new Error('No notification route accepted delivery. Retry with the same request_id.')
+                }
+                return result
+            } finally {
+                // A failed row can be reclaimed as soon as it is saved.
+                this.pendingNotifications.delete(request.id)
             }
-            if (outcome === 'unknown') throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
-            try {
-                this.store.finishNotification(actor.id, request_id, outcome === 'dispatched' ? 'dispatched' : 'failed')
-            } catch {
-                console.error('[Hamlet] Could not persist agent notification outcome')
-                throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
-            }
-            if (outcome === 'retryable') {
-                throw new Error('No notification route accepted delivery. Retry with the same request_id.')
-            }
-            return result
-        }).finally(() => this.pendingNotifications.delete(request.id))
+        })
         this.pendingNotifications.set(request.id, work)
         return work
     }

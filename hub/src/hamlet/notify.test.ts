@@ -83,6 +83,63 @@ describe('authenticated notify tool', () => {
         }
     })
 
+    it('starts a new dispatch when a retry arrives immediately after a definite failure is saved', async () => {
+        const directory = mkdtempSync(join(tmpdir(), 'hamlet-notify-retry-'))
+        const dbPath = join(directory, 'hub.db')
+        const store = new Store(dbPath)
+        const disk = new Database(dbPath, { readonly: true })
+        const row = disk.query<{ id: string; status: string }, [string]>(
+            'SELECT id,status FROM hamlet_notification_requests WHERE request_id=?'
+        )
+        store.machines.getOrCreateMachine('machine', {}, null, 'alpha')
+        const send = mock<AgentNotificationSender>(async () => 'dispatched').mockResolvedValueOnce('retryable')
+        const { engine } = start(store, send)
+        const agent = register(store, engine, 'alpha')
+        const attempt = () => engine.hamlet.tool(agent, 'notify', payload)
+
+        type RetryBatch = {
+            before: ReturnType<typeof row.get>
+            results: PromiseSettledResult<unknown>[]
+        }
+        let completeRetry!: (batch: Promise<RetryBatch>) => void
+        const retryBatch = new Promise<RetryBatch>(resolve => { completeRetry = resolve })
+        const finish = store.hamlet.finishNotification.bind(store.hamlet)
+        const persist = spyOn(store.hamlet, 'finishNotification').mockImplementationOnce((owner, requestId, status) => {
+            finish(owner, requestId, status)
+            // Queue the retries after the SQLite write but before the first
+            // dispatch's promise finishes settling.
+            queueMicrotask(() => {
+                const before = row.get(requestId)
+                completeRetry(Promise.allSettled([attempt(), attempt()]).then(results => ({ before, results })))
+            })
+        })
+        try {
+            const first = await Promise.allSettled([attempt(), attempt()])
+            const failure = {
+                status: 'rejected' as const,
+                reason: expect.objectContaining({ message: expect.stringContaining('Retry with the same request_id') })
+            }
+            expect(first).toEqual([failure, failure])
+            const { before, results } = await retryBatch
+            const id = send.mock.calls[0][1].id
+            const delivered = { status: 'dispatched', notification_id: id }
+            expect(before).toEqual({ id, status: 'failed' })
+            expect(results).toEqual([
+                { status: 'fulfilled', value: delivered },
+                { status: 'fulfilled', value: delivered }
+            ])
+            expect(await attempt()).toEqual(delivered)
+            expect(row.get(payload.request_id)).toEqual({ id, status: 'dispatched' })
+            expect(send.mock.calls.map(([, notification]) => notification.id)).toEqual([id, id])
+        } finally {
+            persist.mockRestore()
+            engine.stop()
+            disk.close()
+            store.close()
+            rmSync(directory, { recursive: true, force: true })
+        }
+    })
+
     it('migrates a v29 DB and preserves successful, failed and indeterminate outcomes across restart', async () => {
         const directory = mkdtempSync(join(tmpdir(), 'hamlet-notify-test-'))
         const dbPath = join(directory, 'hub.db')
