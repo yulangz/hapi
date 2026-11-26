@@ -15,7 +15,7 @@ flowchart TB
     H <--> B
 ```
 
-用户默认在主 Agent 的 Hamlet 会话交互，所有 Agent 均在 Hamlet 可见。Hub 的本机 Runner 在 Hub 工作目录下的专属目录启动第一个 Agent。主 Agent 的首轮输入是以用户口吻写的秘书职责说明，其中要求它用文件系统记笔记。Hub 每天北京时间 04:00 向主 Agent 投递一条「整理笔记」提醒（事件类型 dream），由主 Agent 在自己的会话里整理；Hub 在该时刻后 2 小时内恢复也会补发，超过则跳过当天，同一天只投递一次。`POST /api/hamlet/main` 的可选 `prompt` 可替换它。托管会话不额外设置 developer instructions，沿用 Codex 默认指令；Hamlet 的协作约定写在工具描述里，详细说明见 Runner 内置的协作指南。主助理在专属目录记录想法、需求和委派进展，向已有或新建的 Agent 分派工作，并向用户汇总。仅主 Agent 可通过 Hamlet 终端能力在指定在线机器执行 shell 命令。机器离线即返回，命令由主 Agent 视需要重新发起。
+用户默认在主 Agent 的 Hamlet 会话交互，所有 Agent 均在 Hamlet 可见。Hub 的本机 Runner 在 Hub 工作目录下的专属目录启动第一个 Agent。主 Agent 的首轮输入是以用户口吻写的秘书职责说明，其中要求它用文件系统记笔记。Hub 每天北京时间 04:00 向主 Agent 投递一条「整理笔记」提醒（事件类型 dream），由主 Agent 在自己的会话里整理；Hub 在该时刻后 2 小时内恢复也会补发，超过则跳过当天，同一天只投递一次。`POST /api/hamlet/main` 的可选 `prompt` 可替换它。主 Agent 用升级后的 Runner 恢复已有 Codex 线程时，Runner 会把当前默认主 Agent prompt 作为线程指令载入，保留原对话历史。其他托管 Agent 沿用 Codex 默认指令。Hamlet 的协作约定见工具描述和 Runner 内置的协作指南。主助理在专属目录记录想法、需求和委派进展，向已有或新建的 Agent 分派工作，并向用户汇总。仅主 Agent 可通过 Hamlet 终端能力在指定在线机器执行 shell 命令。机器离线即返回，命令由主 Agent 视需要重新发起。
 
 ## 身份与权限
 

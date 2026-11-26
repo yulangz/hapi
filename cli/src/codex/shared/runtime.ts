@@ -383,6 +383,15 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
                 await root.client.request('thread/unarchive', { threadId });
                 response = record(await root.client.request('thread/resume', params));
             }
+            if (launch.resumeMainPrompt) {
+                // Codex keeps the old context on the first resumed turn. Apply
+                // the current instructions once before the root enables input.
+                // The resume override remains the baseline after compaction.
+                await root.client.request('thread/inject_items', {
+                    threadId,
+                    items: [{ type: 'message', role: 'developer', content: [{ type: 'input_text', text: launch.resumeMainPrompt }] }]
+                });
+            }
             await bind(root, response, false, options);
         } else root = await create('thread/start', { ...launch.threadParams, cwd: launch.cwd }, undefined, options);
         assertRunning();
