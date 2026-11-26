@@ -9,7 +9,7 @@ import { Store } from '../../store'
 import { createAuthMiddleware, type WebAppEnv } from '../middleware/auth'
 import { createPushRoutes } from './push'
 
-it('confirms only the current owner and repairs duplicate legacy endpoints on authenticated registration', async () => {
+it('assigns an endpoint to its authenticated owner and repairs ambiguous legacy subscriptions', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hamlet-push-test-'))
     const dbPath = join(dir, 'hub.db')
     const store = new Store(dbPath)
@@ -29,24 +29,20 @@ it('confirms only the current owner and repairs duplicate legacy endpoints on au
             body: JSON.stringify(body)
         })
     }
-    const status = async (namespace: string) => (await request('status', namespace, { endpoint })).json()
     try {
-        expect((await app.request('/api/push/status', { method: 'POST' })).status).toBe(401)
+        expect((await app.request('/api/push/subscribe', { method: 'POST' })).status).toBe(401)
         expect((await request('subscribe', 'alpha', { endpoint, keys })).status).toBe(200)
-        expect(await status('alpha')).toEqual({ registered: true })
-        expect(await status('beta')).toEqual({ registered: false })
+        expect(store.push.getPushSubscriptionsByNamespace('alpha')).toEqual([expect.objectContaining({ endpoint, ...keys })])
+        expect(store.push.getPushSubscriptionsByNamespace('beta')).toEqual([])
 
         legacy.prepare('INSERT INTO push_subscriptions (namespace, endpoint, p256dh, auth, created_at) VALUES (?, ?, ?, ?, ?)')
             .run('beta', endpoint, keys.p256dh, keys.auth, 1)
         for (const namespace of ['alpha', 'beta']) {
-            expect(await status(namespace)).toEqual({ registered: false })
             expect(store.push.getPushSubscriptionsByNamespace(namespace)).toEqual([])
         }
 
         expect((await request('subscribe', 'beta', { endpoint, keys })).status).toBe(200)
         expect((await request('subscribe', 'alpha', { endpoint }, 'DELETE')).status).toBe(200)
-        expect(await status('alpha')).toEqual({ registered: false })
-        expect(await status('beta')).toEqual({ registered: true })
         expect(store.push.getPushSubscriptionsByNamespace('alpha')).toEqual([])
         expect(store.push.getPushSubscriptionsByNamespace('beta')).toEqual([expect.objectContaining({ endpoint, ...keys })])
     } finally {

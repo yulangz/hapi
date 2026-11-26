@@ -85,15 +85,16 @@ it('points the managed tools to the bundled guide and retires only the old Runne
     }
 })
 
-it.each(['1', '0'])('registers main-only notify and model guidance for HAMLET_MAIN=%s', (isMain) => {
+it.each(['1', '0'])('gates notify_user by HAMLET_MAIN=%s', (isMain) => {
     vi.stubEnv('HAMLET_MAIN', isMain)
     try {
         const tools = new Map<string, string>()
         new HamletClient('fixture').register({
             registerTool: (name: string, spec: { description: string }) => tools.set(name, spec.description),
         } as never, {} as never, '/work')
-        expect(tools.has('notify')).toBe(isMain === '1')
-        expect(tools.get('agent_create')?.includes('gpt-6.2-astra')).toBe(isMain === '1')
+        expect(tools.has('notify_user')).toBe(isMain === '1')
+        expect(tools.has('notify')).toBe(false)
+        expect(tools.get('agent_create')).not.toMatch(/gpt-6\.2-(sol|astra)/)
     } finally {
         vi.unstubAllEnvs()
     }

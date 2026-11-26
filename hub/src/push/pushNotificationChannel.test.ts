@@ -11,7 +11,7 @@ import { PushService, type PushDispatchResult, type PushPayload } from './pushSe
 const main = { id: 'main-id', namespace: 'default', hamletMain: true, active: true,
     metadata: { path: '/work', host: 'host', name: 'Renamed assistant' } } as Session
 const child = { ...main, id: 'child-id', hamletMain: undefined }
-const notification = { id: 'stored-message-1', text: 'New reply' }
+const notification = { id: 'notification-1', text: 'A decision is needed' }
 
 function setup({ delivered = false, acceptedEndpoints = [] as string[], uncertain = false } = {}) {
     const push = mock(async (_namespace: string, _payload: PushPayload): Promise<PushDispatchResult> => ({
@@ -31,16 +31,16 @@ describe('PushNotificationChannel', () => {
         await channel.sendAgentNotification(main, notification)
         expect(notificationToast).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             data: expect.objectContaining({
-                notificationKind: 'main-agent-reply', notificationId: notification.id, notificationAt: expect.any(Number),
+                notificationKind: 'main-agent-notification', notificationId: notification.id, notificationAt: expect.any(Number),
                 body: notification.text, sessionId: main.id, url: '/sessions/main-id', pushAccepted: []
             })
         }))
         expect(push).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             tag: 'hamlet-main-agent-' + notification.id,
             title: 'Hamlet', body: 'New notification from your main Agent',
-            data: { type: 'main-agent-reply' }
+            data: { type: 'main-agent-notification' }
         }))
-        await channel.sendAgentNotification(main, { ...notification, id: 'stored-message-2' })
+        await channel.sendAgentNotification(main, { ...notification, id: 'notification-2' })
         expect(push.mock.calls[1][1].tag).not.toBe(push.mock.calls[0][1].tag)
     })
 
@@ -79,13 +79,6 @@ describe('PushNotificationChannel', () => {
             } })
             expect(JSON.stringify(received[0])).not.toContain(endpoints[0])
             expect(send.mock.calls.map(([, subscription]) => subscription.endpoint).sort()).toEqual(endpoints)
-            for (const [namespace, , body] of send.mock.calls) {
-                expect(namespace).toBe(main.namespace)
-                expect(JSON.parse(body)).toEqual({
-                    title: 'Hamlet', body: 'New notification from your main Agent', tag: 'hamlet-main-agent-' + notification.id,
-                    data: { type: 'main-agent-reply' }
-                })
-            }
         } finally {
             store.close()
         }

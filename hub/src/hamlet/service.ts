@@ -185,7 +185,7 @@ export class HamletService {
     }
     private async notifyUser(actor: Agent, input: unknown): Promise<NotificationResult> {
         if (actor.parent_id !== null) throw new Error('Main agent required')
-        const { request_id, text } = hamletTools.notify.parse(input)
+        const { request_id, text } = hamletTools.notify_user.parse(input)
         const session = this.engine.getSessionByNamespace(actor.id, actor.namespace)
         if (!session?.hamletMain) throw new Error('Main agent session unavailable')
         const send = this.sendAgentNotification
@@ -287,7 +287,7 @@ export class HamletService {
                 break
             case 'message_to':
                 return db.send(actor, hamletTools.message_to.parse(input))
-            case 'notify':
+            case 'notify_user':
                 return this.notifyUser(actor, input)
             case 'timer_create': {
                 const p = hamletTools.timer_create.parse(input)

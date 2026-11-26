@@ -6,7 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { configuration } from '@/configuration'
 import { runtimePath } from '@/projectPath'
 import type { ApiSessionClient } from '@/api/apiSession'
-import { hamletToolDescriptions, hasMessageContent, hamletTools, mainAgentDelegationGuidance, steerInput, type HamletBatch } from '@hamlet/protocol/hamlet'
+import { hamletToolDescriptions, hasMessageContent, hamletTools, steerInput, type HamletBatch } from '@hamlet/protocol/hamlet'
 import {
     detectImageMimeType,
     detectDisplayMediaMimeType,
@@ -37,7 +37,7 @@ export const managedTools = {
 }
 export function managedToolNames(isMain = process.env.HAMLET_MAIN === '1'): (keyof typeof managedTools)[] {
     const names = Object.keys(managedTools) as (keyof typeof managedTools)[]
-    return isMain ? names : names.filter(name => name !== 'machine_exec' && name !== 'notify')
+    return isMain ? names : names.filter(name => name !== 'machine_exec' && name !== 'notify_user')
 }
 
 const relationLabel = { 父节点: '你的父节点', 直属子节点: '你的直属子节点', 同群成员: '同群成员', 系统: '系统' } as const
@@ -143,14 +143,13 @@ export class HamletClient {
         return parts
     }
     register(server: McpServer, session: ApiSessionClient, cwd: string) {
-        const isMain = process.env.HAMLET_MAIN === '1'
         const guide = join(runtimePath(), 'skills', 'hamlet-agent', 'SKILL.md')
         const withGuide: Partial<Record<keyof typeof managedTools, string>> = {
             whoami: ` The Hamlet guide (in Chinese: what the system offers, how to brief a child, keeping and consolidating notes, doorbell examples) is at \`${guide}\`; read it before you first create agents, groups or doorbells.`,
-            agent_create: ` See \`${guide}\` for how to write the first task.${isMain ? ' ' + mainAgentDelegationGuidance : ''}`,
+            agent_create: ` See \`${guide}\` for how to write the first task.`,
             doorbell_create: ` See \`${guide}\` for complete scripts.`,
         }
-        for (const name of managedToolNames(isMain)) {
+        for (const name of managedToolNames()) {
             server.registerTool<any, any>(
                 name,
                 {

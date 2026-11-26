@@ -12,7 +12,7 @@ const hub = 'https://hub.example.test'
 const text = { title: '等待输入', body: 'Codex is ready' }
 const notification = (id = 'dispatch-1') => ({
     title: 'Ready for input', body: 'Codex is ready', sessionId: 'session-1',
-    url: '/sessions/session-1', notificationKind: 'main-agent-reply' as const, notificationId: id, notificationAt: Date.now()
+    url: '/sessions/session-1', notificationKind: 'main-agent-notification' as const, notificationId: id, notificationAt: Date.now()
 })
 
 describe('local system notification fallback', () => {
@@ -55,7 +55,7 @@ describe('local system notification fallback', () => {
         vi.unstubAllGlobals()
     })
 
-    it('uses the reply ID for receipts and honors a receipt from another recipient', async () => {
+    it('uses the notification ID for receipts and honors a receipt from another recipient', async () => {
         const event = notification()
         expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(true)
         expect(showAgentNotificationOnce).toHaveBeenCalledWith(event.notificationId, expect.any(Function), expect.any(Function))
@@ -68,7 +68,7 @@ describe('local system notification fallback', () => {
         }))
     })
 
-    it('does not merge separate completions with identical text', async () => {
+    it('does not merge separate notifications with identical text', async () => {
         expect(await showLocalNotification(notification('one'), text, hub, isCurrentScope)).toBe(true)
         expect(await showLocalNotification(notification('two'), text, hub, isCurrentScope)).toBe(true)
         expect(showNotification).toHaveBeenCalledTimes(2)
@@ -81,7 +81,7 @@ describe('local system notification fallback', () => {
         expect(showNotification).not.toHaveBeenCalled()
     })
 
-    it('stops the fallback only for the exact reply and browser endpoint', async () => {
+    it('stops the fallback only for the exact notification and browser endpoint', async () => {
         const endpoint = 'https://push.example.test/channel'
         const event = notification('first')
         const pushAccepted = [createHash('sha256').update(`${event.notificationId}\0${endpoint}`).digest('hex')]

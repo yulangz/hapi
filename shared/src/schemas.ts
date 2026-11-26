@@ -600,7 +600,7 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             url: z.string(),
             // One live dispatch, shared across tabs; never replay old alerts.
             // Retain the browser transport marker understood by earlier PWA assets.
-            notificationKind: z.literal('main-agent-reply').optional(),
+            notificationKind: z.literal('main-agent-notification').optional(),
             notificationId: z.string().optional(),
             notificationAt: z.number().optional(),
             // SHA-256 of notification ID, NUL, and endpoint for each HTTP-accepted push.

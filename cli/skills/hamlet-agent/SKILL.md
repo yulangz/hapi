@@ -14,7 +14,8 @@ description: Hamlet 托管 Agent 的协作指南：系统提供哪些能力、�
 - **子 Agent**：在任意在线机器上创建子 Agent，查看它们的状态，紧急时纠正，用完删除。
 - **消息**：父子之间、同群成员之间可以收发文字和图片。对方忙时消息会排队，等它下一轮开始时和其他积压消息一起送达。
 - **群**：父 Agent 可以把自己的子 Agent（不论在哪台机器）拉进一个群，让它们直接协作。
-- **提醒**：定时唤醒自己，可以一次性，也可以周期重复。主 Agent 可用 `notify` 提醒用户关注需要决定、时效紧或用户要求提醒的事情。日常交流直接在会话内回复。
+- **Timer**：定时唤醒自己，可以一次性，也可以周期重复。
+- **用户通知**：主 Agent 可以提醒用户回到会话查看消息。
 - **doorbell**：用脚本等待任意外部事件，事件发生时唤醒你。
 - **机器**：主 Agent 可以在任意在线机器上执行简短的 shell 命令。
 
@@ -36,8 +37,6 @@ description: Hamlet 托管 Agent 的协作指南：系统提供哪些能力、�
 先看 `agent_list`。如果某个子 Agent 的职责适合新任务，用 `message_to` 把任务发给它，不要再新建。
 
 新建时，用 `machine_list` 选机器，参数里填 `machine_id`，并给出那台机器上的绝对路径作为工作目录。多个 Agent 要同时修改同一个 Git 仓库时，用 `session_type: "worktree"`。调用失败重试时沿用同一个 `request_id`。
-
-主 Agent 创建子 Agent 时，在 `model` 参数里明确指定模型。简单日常任务用 `gpt-6.2-sol`。只要任务有一定难度或需要深入判断，就优先用 `gpt-6.2-astra`，用户额度充足。
 
 子 Agent 看不到你的对话，首轮任务就是它知道的全部。写清下面几点，用不上的删掉：
 
@@ -163,8 +162,8 @@ def check():
 | | `display_media` | 在自己的会话里向用户展示文件 |
 | 群 | `group_create`、`group_update`、`group_delete` | 管理由你的子 Agent 组成的群 |
 | | `group_list`、`group_members` | 你所在的群和群成员 |
-| 提醒 | `notify` | 仅主 Agent，给当前用户发通知。重试沿用同一个 `request_id` 和文本 |
-| | `timer_create`、`timer_list`、`timer_delete` | 定时唤醒自己，一次性或周期重复 |
+| 用户通知 | `notify_user` | 仅主 Agent，提醒当前用户回来查看会话 |
+| Timer | `timer_create`、`timer_list`、`timer_delete` | 定时唤醒自己，一次性或周期重复 |
 | doorbell | `doorbell_create` | 启动监听脚本，可设触发次数上限 |
 | | `doorbell_list`、`doorbell_logs` | 状态、已触发次数和脚本输出 |
 | | `doorbell_enable`、`doorbell_delete` | 暂停、恢复或删除监听 |

@@ -10,8 +10,7 @@ import { composeInputRequestNotification, getFirstPendingRequest } from '../noti
 
 type ToastData = Extract<SyncEvent, { type: 'toast' }>['data']
 const TOAST_WRITE_TIMEOUT_MS = 3_000
-// This wire marker also serves PWA assets that predate the notify tool.
-const BROWSER_NOTIFICATION_KIND = 'main-agent-reply' as const
+const BROWSER_NOTIFICATION_KIND = 'main-agent-notification' as const
 
 export class PushNotificationChannel implements NotificationChannel {
     constructor(
@@ -108,18 +107,18 @@ export class PushNotificationChannel implements NotificationChannel {
         if (!session.hamletMain) return 'retryable'
         const body = notification.text.replace(/\s+/gu, ' ')
         // Keep Push generic because a browser endpoint can outlive its login.
-        this.logBranch('notify', session.namespace, 'web-push-fired')
+        this.logBranch('notify_user', session.namespace, 'web-push-fired')
         const push = await this.pushService.sendToNamespace(session.namespace, {
             title: 'Hamlet',
             body: 'New notification from your main Agent',
             tag: `hamlet-main-agent-${notification.id}`,
             data: { type: BROWSER_NOTIFICATION_KIND }
         }).catch(() => {
-            console.error('[Push.notify] Failed to dispatch Web Push')
+            console.error('[Push.notify_user] Failed to dispatch Web Push')
             return { acceptedEndpoints: [], uncertain: true }
         })
 
-        const toast = this.publishToast(session.namespace, 'notify', {
+        const toast = this.publishToast(session.namespace, 'notify_user', {
             title: getSessionName(session),
             body: body.length > 180 ? body.slice(0, 179) + '…' : body,
             sessionId: session.id,
@@ -160,12 +159,12 @@ export class PushNotificationChannel implements NotificationChannel {
 
     private async publishToast(
         namespace: string,
-        method: 'permission' | 'ready' | 'task' | 'notify',
+        method: 'permission' | 'ready' | 'task' | 'notify_user',
         data: ToastData
     ): Promise<boolean> {
         try {
             const event = { type: 'toast' as const, namespace, data }
-            const written = method === 'notify'
+            const written = method === 'notify_user'
                 ? await this.sseManager.sendNotificationToast(namespace, event)
                 : (await this.sseManager.sendToast(namespace, event)) > 0
             this.logBranch(method, namespace, written ? 'sse-toast-delivered' : 'sse-toast-zero')

@@ -1,6 +1,6 @@
 export const MAIN_AGENT_NOTIFICATION_TAG_PREFIX = 'hamlet-main-agent-'
 
-const DB_NAME = 'hamlet.replyNotifications'
+const DB_NAME = 'hamlet.agentNotifications'
 const STORE = 'receipts'
 // Outlive web-push's default 28-day TTL, including a delayed acceptance.
 const RECEIPT_LIFETIME_MS = 29 * 24 * 60 * 60 * 1000

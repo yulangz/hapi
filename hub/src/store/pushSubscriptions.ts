@@ -57,27 +57,19 @@ export function removePushSubscription(db: Database, namespace: string, endpoint
     ).run(namespace, endpoint)
 }
 
-// A legacy endpoint claimed by multiple accounts cannot be safely attributed.
-const ownedSubscriptions = `
-    FROM push_subscriptions AS subscription
-    WHERE subscription.namespace = ?
-      AND NOT EXISTS (
-          SELECT 1 FROM push_subscriptions AS other
-          WHERE other.endpoint = subscription.endpoint AND other.namespace <> subscription.namespace
-      )
-`
-
-export function hasPushSubscription(db: Database, namespace: string, endpoint: string): boolean {
-    return db.prepare(`SELECT 1 ${ownedSubscriptions} AND subscription.endpoint = ?`)
-        .get(namespace, endpoint) !== null
-}
-
 export function getPushSubscriptionsByNamespace(
     db: Database,
     namespace: string
 ): StoredPushSubscription[] {
-    const rows = db.prepare(
-        `SELECT subscription.* ${ownedSubscriptions} ORDER BY subscription.created_at DESC`
-    ).all(namespace) as DbPushSubscriptionRow[]
+    // A legacy endpoint claimed by multiple accounts cannot be safely attributed.
+    const rows = db.prepare(`
+        SELECT subscription.* FROM push_subscriptions AS subscription
+        WHERE subscription.namespace = ?
+          AND NOT EXISTS (
+              SELECT 1 FROM push_subscriptions AS other
+              WHERE other.endpoint = subscription.endpoint AND other.namespace <> subscription.namespace
+          )
+        ORDER BY subscription.created_at DESC
+    `).all(namespace) as DbPushSubscriptionRow[]
     return rows.map(toStoredPushSubscription)
 }

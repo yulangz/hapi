@@ -1,17 +1,19 @@
 # Notifications
 
-Get notified when sessions need input, request permissions, fail, or complete — via native app notifications, Telegram, Server酱 (ServerChan), Web Push, or voice.
+Get notified when sessions need input, request permissions, fail, or complete through native app notifications, Telegram, Server酱 (ServerChan), or voice. Browser alerts from the main Agent are available separately.
 
 Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow notifications. The channels below are optional.
 
 ## Main Agent browser notifications
 
-Enable browser notifications in Settings → General. When the main Agent calls
-`notify` for a reminder, a decision or a time-sensitive update, HAMLET sends a
-generic system alert to every registered browser endpoint for that account.
-Regular replies stay in the chat. A shared browser endpoint belongs to the
-account that last registered it. The alert opens HAMLET, where your current
-sign-in determines what you can read.
+Enable browser notifications in Settings → General. When you need to act or
+there is an important update, the main Agent first sends the full message in
+your conversation, then calls `notify_user` with a brief summary inviting you
+back. HAMLET sends a generic system alert to each registered browser for your
+account. Regular replies stay in the chat. Timer and doorbell events wake the
+Agent itself. A shared browser endpoint belongs to the account that last
+registered it. The alert opens HAMLET, where your current sign-in determines
+what you can read.
 
 The tool reports `dispatched` when a push service accepts the request or the Hub
 writes the alert to an authorized live browser stream. Device display depends on
