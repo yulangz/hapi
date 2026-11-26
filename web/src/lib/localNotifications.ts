@@ -13,7 +13,8 @@ type Receipt = { id: string; at: number }
 export async function showLocalNotification(
     event: NotificationEvent,
     localized: { title: string; body: string },
-    baseUrl: string
+    baseUrl: string,
+    shouldShow: (endpoint: string | undefined) => Promise<boolean>
 ): Promise<boolean> {
     if (event.notificationKind !== 'main-agent-reply' || typeof Notification === 'undefined' || Notification.permission !== 'granted'
         || !('serviceWorker' in navigator) || !navigator.locks
@@ -33,10 +34,6 @@ export async function showLocalNotification(
 
             const registration = await navigator.serviceWorker.getRegistration()
             if (!registration?.active || !registration.showNotification) return false
-            // Check at delivery time, not a cached React state. When registration
-            // recovers, remote Push takes over without duplicate local alerts.
-            if (registration.pushManager && await registration.pushManager.getSubscription()) return false
-
             const raw: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
             const receipts: Receipt[] = Array.isArray(raw) ? raw.filter(
                 (value): value is Receipt => value !== null && typeof value === 'object'
@@ -44,6 +41,9 @@ export async function showLocalNotification(
                     && now - value.at < MAX_AGE_MS && value.at <= now
             ) : []
             if (receipts.some(receipt => receipt.id === id)) return false
+
+            const subscription = await registration.pushManager?.getSubscription()
+            if (!await shouldShow(subscription?.endpoint)) return false
 
             const hubUrl = new URL(baseUrl || window.location.origin, window.location.origin)
             const url = new URL(event.url, hubUrl)

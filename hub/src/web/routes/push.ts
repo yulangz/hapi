@@ -40,6 +40,15 @@ export function createPushRoutes(store: Store, vapidPublicKey: string): Hono<Web
         return c.json({ ok: true })
     })
 
+    app.post('/push/status', async (c) => {
+        const parsed = unsubscribeSchema.safeParse(await c.req.json().catch(() => null))
+        if (!parsed.success) {
+            return c.json({ error: 'Invalid body' }, 400)
+        }
+
+        return c.json({ registered: store.push.hasPushSubscription(c.get('namespace'), parsed.data.endpoint) })
+    })
+
     app.delete('/push/subscribe', async (c) => {
         const json = await c.req.json().catch(() => null)
         const parsed = unsubscribeSchema.safeParse(json)

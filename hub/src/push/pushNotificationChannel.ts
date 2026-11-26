@@ -3,17 +3,13 @@ import type { NotificationChannel, TaskNotification } from '../notifications/not
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
-import type { VisibilityTracker } from '../visibility/visibilityTracker'
 import type { PushPayload, PushService } from './pushService'
 import { composeInputRequestNotification, getFirstPendingRequest } from '../notifications/inputRequest'
 
 export class PushNotificationChannel implements NotificationChannel {
     constructor(
         private readonly pushService: PushService,
-        private readonly sseManager: SSEManager,
-        private readonly visibilityTracker: VisibilityTracker,
-        _appUrl: string,
-        private readonly pushInForeground = false
+        private readonly sseManager: SSEManager
     ) {}
 
     /**
@@ -126,11 +122,8 @@ export class PushNotificationChannel implements NotificationChannel {
         }
 
         const url = payload.data?.url ?? this.buildSessionPath(session.id)
-        const visible = this.visibilityTracker.hasVisibleConnection(session.namespace)
-        // Send live notification metadata to hidden global streams too: browsers
-        // without a Push subscription can display a local system notification.
-        // sendToast only counts visible recipients for remote-push suppression.
-        const toastDelivery = this.sseManager.sendToast(session.namespace, {
+        // Hidden tabs can also provide a local fallback for their browser.
+        void this.sseManager.sendToast(session.namespace, {
             type: 'toast',
             namespace: session.namespace,
             data: {
@@ -150,22 +143,20 @@ export class PushNotificationChannel implements NotificationChannel {
             } else {
                 this.logBranch(method, session.namespace, 'sse-toast-zero', 'no visible delivery')
             }
-            return delivered
         }).catch(() => {
             this.logBranch(method, session.namespace, 'sse-toast-failed')
-            return 0
         })
-        // A slow visible SSE client must not hold up system notifications
-        // when foreground Web Push is enabled. The toast has its own catch.
-        if (!notificationId || (visible && !this.pushInForeground && (await toastDelivery) > 0)) {
-            return
-        }
-        if (!visible) {
-            this.logBranch(method, session.namespace, 'not-visible')
-        }
+        if (!notificationId) return
 
+        // A visible stream on one browser says nothing about other browsers.
+        // Keep push generic because a browser endpoint can outlive its login.
         this.logBranch(method, session.namespace, 'web-push-fired')
-        await this.pushService.sendToNamespace(session.namespace, payload)
+        await this.pushService.sendToNamespace(session.namespace, {
+            title: 'Hamlet',
+            body: 'New main Agent reply',
+            tag: payload.tag,
+            data: { type: 'main-agent-reply' }
+        })
     }
 
     private buildSessionPath(sessionId: string): string {

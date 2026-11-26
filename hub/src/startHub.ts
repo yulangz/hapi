@@ -244,13 +244,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     }
 
     notificationChannels.push(
-        new PushNotificationChannel(
-            pushService,
-            sseManager,
-            visibilityTracker,
-            config.publicUrl,
-            config.webPushForeground
-        )
+        new PushNotificationChannel(pushService, sseManager)
     )
 
     if (config.serverChanSendKey && config.serverChanNotification) {

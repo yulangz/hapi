@@ -514,6 +514,7 @@ export class Store {
                 UNIQUE(namespace, endpoint)
             );
             CREATE INDEX IF NOT EXISTS idx_push_subscriptions_namespace ON push_subscriptions(namespace);
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions(endpoint);
 
             CREATE TABLE IF NOT EXISTS fcm_devices (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

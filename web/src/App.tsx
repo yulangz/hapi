@@ -22,6 +22,7 @@ import { clearMessageWindow, rewindMessageWindow, syncTailMessages } from '@/lib
 import { useAppGoBack } from '@/hooks/useAppGoBack'
 import { useTranslation } from '@/lib/use-translation'
 import { translateInputRequestTitle } from '@/lib/input-request-toast'
+import { getNamespace } from '@/lib/tokenNamespace'
 import { showLocalNotification } from '@/lib/localNotifications'
 import { VoiceProvider } from '@/lib/voice-context'
 import { requireHubUrlForLogin } from '@/lib/runtime-config'
@@ -177,7 +178,7 @@ function AppInner() {
     const syncTokenRef = useRef(0)
     const isFirstConnectRef = useRef(true)
     const baseUrlRef = useRef(baseUrl)
-    const pushPromptedRef = useRef(false)
+    const pushPromptedRef = useRef<string | null>(null)
     const defaultSessionResolvedFor = useRef<string | null>(null)
     const { appBadgeEnabled: appBadgePreferenceEnabled } = useAppBadgePreference()
     const appBadgeEnabled = Boolean(api && token && appBadgePreferenceEnabled && canUseAppBadging())
@@ -195,7 +196,11 @@ function AppInner() {
         isLoading: appBadgeSessionsLoading,
         hasError: Boolean(appBadgeSessionsError),
     })
-    const { isSupported: isPushSupported, permission: pushPermission, isSubscribed, requestPermission, subscribe } = usePushNotifications(api)
+    const pushScope = token ? JSON.stringify([baseUrl, getNamespace(token) ?? token]) : null
+    const {
+        isSupported: isPushSupported, permission: pushPermission, isSubscribed,
+        requestPermission, subscribe, shouldShowLocalNotification,
+    } = usePushNotifications(api, pushScope)
 
     useEffect(() => {
         if (!api || !token || baseUrlRef.current !== baseUrl || defaultSessionResolvedFor.current === baseUrl || pathname === '/') return
@@ -212,17 +217,17 @@ function AppInner() {
     }, [api, token, baseUrl, pathname, sessionsIndex, appBadgeSessions, appBadgeSessionsLoading, appBadgeSessionsError, router])
 
     const enableBrowserNotifications = useCallback(async () => {
-        pushPromptedRef.current = true
+        pushPromptedRef.current = pushScope
         if (pushPermission !== 'granted' && !await requestPermission()) return false
         return subscribe()
-    }, [pushPermission, requestPermission, subscribe])
+    }, [pushScope, pushPermission, requestPermission, subscribe])
 
     useEffect(() => {
         if (baseUrlRef.current === baseUrl) {
             return
         }
         baseUrlRef.current = baseUrl
-        pushPromptedRef.current = false
+        pushPromptedRef.current = null
         isFirstConnectRef.current = true
         syncTokenRef.current = 0
         queryClient.clear()
@@ -245,20 +250,20 @@ function AppInner() {
     }, [token, api, router])
 
     useEffect(() => {
-        if (!api || !token) {
-            pushPromptedRef.current = false
+        if (!api || !pushScope) {
+            pushPromptedRef.current = null
             return
         }
         if (isTelegramApp() || !isPushSupported || pushPermission !== 'granted') {
             return
         }
-        if (pushPromptedRef.current) {
+        if (pushPromptedRef.current === pushScope) {
             return
         }
-        pushPromptedRef.current = true
+        pushPromptedRef.current = pushScope
 
         void subscribe()
-    }, [api, isPushSupported, pushPermission, subscribe, token])
+    }, [api, isPushSupported, pushPermission, subscribe, pushScope])
 
     const handleSseConnect = useCallback((info: { resumed: boolean }) => {
         // Clear disconnected state on successful connection
@@ -403,8 +408,8 @@ function AppInner() {
                 url: event.data.url
             })
         }
-        void showLocalNotification(event.data, localized, baseUrl)
-    }, [addToast, translateIncomingToast, baseUrl])
+        void showLocalNotification(event.data, localized, baseUrl, shouldShowLocalNotification)
+    }, [addToast, translateIncomingToast, baseUrl, shouldShowLocalNotification])
 
     const globalEventSubscription = useMemo(() => getAppGlobalSseSubscription(), [])
     const sessionEventSubscription = useMemo(

@@ -67,7 +67,7 @@ describe('input-request notification channels', () => {
         } } as never, { sendToast: async (_namespace: string, event: typeof toasts[number]) => {
             toasts.push(event)
             return 1
-        } } as never, { hasVisibleConnection: () => true } as never, '')
+        } } as never)
         await channel.sendPermissionRequest(session, { nativeGate: { sent: nativeSent } })
         expect(pushed).toHaveLength(0)
         expect(toasts).toHaveLength(!nativeSent ? 1 : 0)

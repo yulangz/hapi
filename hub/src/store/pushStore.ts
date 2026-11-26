@@ -1,7 +1,7 @@
 import type { Database } from 'bun:sqlite'
 
 import type { StoredPushSubscription } from './types'
-import { addPushSubscription, getPushSubscriptionsByNamespace, removePushSubscription } from './pushSubscriptions'
+import { addPushSubscription, getPushSubscriptionsByNamespace, hasPushSubscription, removePushSubscription } from './pushSubscriptions'
 
 export class PushStore {
     private readonly db: Database
@@ -16,6 +16,10 @@ export class PushStore {
 
     removePushSubscription(namespace: string, endpoint: string): void {
         removePushSubscription(this.db, namespace, endpoint)
+    }
+
+    hasPushSubscription(namespace: string, endpoint: string): boolean {
+        return hasPushSubscription(this.db, namespace, endpoint)
     }
 
     getPushSubscriptionsByNamespace(namespace: string): StoredPushSubscription[] {

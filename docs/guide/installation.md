@@ -180,7 +180,7 @@ On first run, HAMLET:
 | `HAMLET_RELAY_AUTH` | Per-hub key issued by the relay | `relayAuthKey` | Relay auth key override (set only when an operator provides a key) |
 | `HAMLET_RELAY_FORCE_TCP` | `false` | - | Force TCP mode for relay |
 | `HAMLET_OFFICIAL_WEB_URL` | `https://app.hapi.run` | - | Official web app origin, added to CORS when the relay is enabled |
-| `HAMLET_WEB_PUSH_FOREGROUND` | `false` | `webPushForeground` | Send Web Push alongside foreground in-page notifications; native-delivery deduplication still applies |
+| `HAMLET_WEB_PUSH_FOREGROUND` | `false` | `webPushForeground` | Legacy setting. Main Agent Web Push is delivered per registered browser regardless of page visibility. |
 | `VAPID_SUBJECT` | `mailto:admin@hapi.run` | - | Web Push contact info |
 | `HAMLET_ANDROID_PUSH` | `auto` | `androidPushMode` | Android push: official relay by default, direct FCM when private credentials are configured; also accepts `relay`, `fcm`, `off` |
 | `HAMLET_IOS_PUSH` | `relay` | `iosPushMode` | iOS push: `relay`, direct `apns`, or `off` |

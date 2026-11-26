@@ -17,16 +17,8 @@ declare const self: ServiceWorkerGlobalScope & {
 }
 
 type PushPayload = {
-    title: string
-    body?: string
-    icon?: string
-    badge?: string
     tag?: string
-    data?: {
-        type?: string
-        sessionId?: string
-        url?: string
-    }
+    data?: { type?: string }
 }
 
 precacheAndRoute(self.__WB_MANIFEST)
@@ -115,20 +107,16 @@ self.addEventListener('push', (event) => {
         return
     }
 
-    const title = payload.title || 'Hamlet'
-    const body = payload.body ?? ''
-    const icon = payload.icon ?? '/pwa-192x192.png'
-    const badge = payload.badge ?? '/pwa-64x64.png'
-    const data = payload.data
-    const tag = payload.tag
-
+    // An endpoint can outlive a login. Ignore presentation and routing data
+    // even from older Hub payloads that are still in flight.
+    const body = self.navigator.language.startsWith('zh') ? '主 Agent 有新回复' : 'New main Agent reply'
     event.waitUntil(
-        self.registration.showNotification(title, {
+        self.registration.showNotification('Hamlet', {
             body,
-            icon,
-            badge,
-            data,
-            tag
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-64x64.png',
+            data: { url: self.registration.scope },
+            tag: payload.tag
         })
     )
 })

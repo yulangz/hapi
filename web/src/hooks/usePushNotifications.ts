@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ApiClient } from '@/api/client'
 
 function isPushSupported(): boolean {
@@ -45,44 +45,39 @@ function writeStoredVapidKey(publicKey: string): void {
     }
 }
 
-export function usePushNotifications(api: ApiClient | null) {
+export function usePushNotifications(api: ApiClient | null, scope: string | null) {
     const [isSupported, setIsSupported] = useState(false)
     const [permission, setPermission] = useState<NotificationPermission>('default')
-    const [isSubscribed, setIsSubscribed] = useState(false)
+    const [registeredScope, setRegisteredScope] = useState<string | null>(null)
+    const activeScope = useRef(scope)
 
-    const refreshSubscription = useCallback(async () => {
-        if (!isPushSupported()) {
-            setIsSupported(false)
-            setIsSubscribed(false)
-            return
-        }
-
-        setIsSupported(true)
-        setPermission(Notification.permission)
-
-        if (Notification.permission !== 'granted') {
-            setIsSubscribed(false)
-            return
-        }
-
-        const registration = await navigator.serviceWorker.ready
-        const subscription = await registration.pushManager.getSubscription()
-        let keyMatches = true
-        if (subscription && api) {
-            try {
-                const { publicKey } = await api.getPushVapidPublicKey()
-                keyMatches = readStoredVapidKey() === publicKey
-            } catch {
-                // Key lookup failed — keep the existing subscription benefit of
-                // the doubt rather than showing a false "off" state.
-            }
-        }
-        setIsSubscribed(Boolean(subscription) && keyMatches)
-    }, [api])
+    useLayoutEffect(() => {
+        activeScope.current = scope
+        setRegisteredScope(null)
+        return () => { activeScope.current = null }
+    }, [scope])
 
     useEffect(() => {
-        void refreshSubscription()
-    }, [refreshSubscription])
+        const supported = isPushSupported()
+        setIsSupported(supported)
+        if (supported) setPermission(Notification.permission)
+    }, [])
+
+    const shouldShowLocalNotification = useCallback(async (endpoint: string | undefined): Promise<boolean> => {
+        if (!api || !scope || activeScope.current !== scope) return false
+        if (!endpoint) {
+            setRegisteredScope(null)
+            return true
+        }
+
+        // Another sign-in can claim the endpoint or the Hub can lose its row.
+        const status = await api.getPushSubscriptionStatus({ endpoint }, AbortSignal.timeout(3000))
+            .catch(() => null)
+        if (activeScope.current !== scope) return false
+        const registered = status?.registered === true
+        setRegisteredScope(registered ? scope : null)
+        return !registered
+    }, [api, scope])
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
         if (!isPushSupported()) {
@@ -92,13 +87,13 @@ export function usePushNotifications(api: ApiClient | null) {
         const result = await Notification.requestPermission()
         setPermission(result)
         if (result !== 'granted') {
-            setIsSubscribed(false)
+            setRegisteredScope(null)
         }
         return result === 'granted'
     }, [])
 
     const subscribe = useCallback(async (): Promise<boolean> => {
-        if (!api || !isPushSupported()) {
+        if (!api || !scope || activeScope.current !== scope || !isPushSupported()) {
             return false
         }
 
@@ -107,12 +102,14 @@ export function usePushNotifications(api: ApiClient | null) {
             return false
         }
 
+        setRegisteredScope(null)
         let unregistered: PushSubscription | null = null
         try {
             const registration = await navigator.serviceWorker.ready
             const existing = await registration.pushManager.getSubscription()
             const { publicKey } = await api.getPushVapidPublicKey()
             const applicationServerKey = base64UrlToUint8Array(publicKey).buffer as ArrayBuffer
+            if (activeScope.current !== scope) return false
             // A subscription created against a previous hub or VAPID key can
             // never receive notifications from the current hub. Detect the
             // mismatch via the key recorded at subscribe time and recreate it.
@@ -144,7 +141,7 @@ export function usePushNotifications(api: ApiClient | null) {
 
             const json = subscription.toJSON()
             const keys = json.keys
-            if (!json.endpoint || !keys?.p256dh || !keys.auth) {
+            if (!json.endpoint || !keys?.p256dh || !keys.auth || activeScope.current !== scope) {
                 await unregistered?.unsubscribe()
                 return false
             }
@@ -161,19 +158,20 @@ export function usePushNotifications(api: ApiClient | null) {
             // next load retries the replacement instead of reusing a
             // subscription the hub never learned about.
             writeStoredVapidKey(publicKey)
-            setIsSubscribed(true)
+            if (activeScope.current !== scope) return false
+            setRegisteredScope(scope)
             return true
         } catch (error) {
-            // A subscription the Hub never accepted would suppress the live
-            // local fallback without actually providing remote delivery.
+            // A new endpoint that could not be registered can be recreated
+            // on the next attempt.
             await unregistered?.unsubscribe().catch(() => {})
             console.error('[PushNotifications] Failed to subscribe:', error)
             return false
         }
-    }, [api])
+    }, [api, scope])
 
     const unsubscribe = useCallback(async (): Promise<boolean> => {
-        if (!api || !isPushSupported()) {
+        if (!api || !scope || activeScope.current !== scope || !isPushSupported()) {
             return false
         }
 
@@ -181,7 +179,7 @@ export function usePushNotifications(api: ApiClient | null) {
             const registration = await navigator.serviceWorker.ready
             const subscription = await registration.pushManager.getSubscription()
             if (!subscription) {
-                setIsSubscribed(false)
+                setRegisteredScope(null)
                 return true
             }
 
@@ -189,18 +187,19 @@ export function usePushNotifications(api: ApiClient | null) {
             const success = await subscription.unsubscribe()
             if (!success) return false
             await api.unsubscribePushNotifications({ endpoint })
-            setIsSubscribed(false)
+            setRegisteredScope(null)
             return true
         } catch (error) {
             console.error('[PushNotifications] Failed to unsubscribe:', error)
             return false
         }
-    }, [api])
+    }, [api, scope])
 
     return {
         isSupported,
         permission,
-        isSubscribed,
+        isSubscribed: Boolean(scope && registeredScope === scope && permission === 'granted'),
+        shouldShowLocalNotification,
         requestPermission,
         subscribe,
         unsubscribe

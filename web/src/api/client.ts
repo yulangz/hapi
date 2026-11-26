@@ -266,6 +266,14 @@ export class ApiClient {
         return await this.request<PushVapidPublicKeyResponse>('/api/push/vapid-public-key')
     }
 
+    async getPushSubscriptionStatus(payload: PushUnsubscribePayload, signal?: AbortSignal): Promise<{ registered: boolean }> {
+        return await this.request('/api/push/status', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            signal
+        })
+    }
+
     async subscribePushNotifications(payload: PushSubscriptionPayload): Promise<void> {
         await this.request('/api/push/subscribe', {
             method: 'POST',

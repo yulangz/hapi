@@ -4,22 +4,13 @@ Get notified when sessions need input, request permissions, fail, or complete â€
 
 Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow notifications. The channels below are optional.
 
-## Web Push while HAMLET is visible
+## Main Agent browser notifications
 
-By default, a visible web client in your namespace receives an in-page toast
-instead of a system push notification. To receive both, start the Hub with:
-
-```bash
-export HAMLET_WEB_PUSH_FOREGROUND=true
-hamlet hub
-```
-
-You can also set `"webPushForeground": true` in the Hub's `settings.json` and
-restart the Hub. Environment values override file values and are persisted on
-first use. The default remains `false`. This option does not override browser
-permissions, operating-system Focus/Do Not Disturb, or native-delivery deduplication.
-It applies to ready, permission/input-request, and background-task notifications.
-The Hub still needs to reach the push service in each browser's subscription.
+Enable browser notifications in Settings â†’ General. HAMLET sends a generic
+system alert for each new main Agent reply to every registered browser endpoint,
+even when another browser has the page open. A shared browser endpoint belongs
+to the account that last registered it. The alert opens HAMLET, where your
+current sign-in determines which replies you can read.
 
 For Codex sessions with an active Goal, intermediate turn completions do not
 produce ready-for-input notifications: the Goal is still running automatically.
@@ -28,18 +19,16 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 
 ## Local system notification fallback
 
-When notification permission is already allowed but the browser has no Web Push
-subscription (for example, its push service cannot be reached), an open HAMLET page
-can display system notifications directly from its live Hub connection. This works
-for visible and hidden tabs without minimizing the window. Multiple tabs share
-notification receipts so one event produces one local notification per browser
-profile. Permission requests, ready-for-input, and task notifications are covered.
+When notification permission is granted but the Hub cannot confirm the browser
+endpoint for the current account, an open HAMLET page can display a local alert
+from its live connection. This works in visible and hidden tabs and while
+viewing a different session. Tabs share a receipt for each reply so they show a
+single local alert.
 
-This fallback does not request or override permission and stops displaying local
-alerts once a Web Push subscription exists. It requires an active service worker,
-Web Locks, and local storage. A closed, suspended, sleeping, or disconnected page
-cannot receive live events; remote Web Push is still needed in those cases. Focus /
-Do Not Disturb can still suppress system banners.
+Local alerts require an active service worker, Web Locks, and local storage.
+When the page is closed or disconnected, delivery requires Web Push. The Hub
+must be able to reach the browser's push service. Operating-system Focus or Do
+Not Disturb can suppress system banners.
 
 ## Native app notifications
 

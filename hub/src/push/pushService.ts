@@ -8,8 +8,8 @@ export type PushPayload = {
     tag?: string
     data?: {
         type: string
-        sessionId: string
-        url: string
+        sessionId?: string
+        url?: string
         /** First pending request id; input-request uses it for correlation, never approval. */
         requestId?: string
     }

@@ -44,6 +44,7 @@ function setupPushEnvironment(existing: PushSubscriptionMock | null, replacement
 
 function createApi() {
     return {
+        getPushSubscriptionStatus: vi.fn().mockResolvedValue({ registered: false }),
         getPushVapidPublicKey: vi.fn().mockResolvedValue({ publicKey: CURRENT_VAPID_KEY }),
         subscribePushNotifications: vi.fn().mockResolvedValue(undefined),
         unsubscribePushNotifications: vi.fn().mockResolvedValue(undefined)
@@ -65,7 +66,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const replacement = createSubscription('https://push.test/current', true)
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -87,7 +88,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
         const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -109,7 +110,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const replacement = createSubscription('https://push.test/current', true)
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -134,11 +135,50 @@ describe('usePushNotifications VAPID rotation', () => {
         const api = createApi()
         api.subscribePushNotifications.mockRejectedValue(new Error('Hub unavailable'))
         vi.spyOn(console, 'error').mockImplementation(() => {})
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
         await act(async () => {
             expect(await result.current.subscribe()).toBe(false)
         })
         expect(replacement.unsubscribe).toHaveBeenCalledOnce()
         expect(result.current.isSubscribed).toBe(false)
     })
+    it('falls back after failed registration of an existing same-key endpoint and can retry', async () => {
+        localStorage.setItem(VAPID_STORAGE_KEY, CURRENT_VAPID_KEY)
+        const existing = createSubscription('https://push.test/current', true)
+        const pushManager = setupPushEnvironment(existing, existing)
+        const api = createApi()
+        api.subscribePushNotifications.mockRejectedValueOnce(new Error('Hub registration failed'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const { result, rerender } = renderHook(
+            ({ scope }) => usePushNotifications(api as unknown as ApiClient, scope),
+            { initialProps: { scope: 'alpha' } }
+        )
+
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(false)
+            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(true)
+        })
+        expect(result.current.isSubscribed).toBe(false)
+        expect(existing.unsubscribe).not.toHaveBeenCalled()
+        expect(pushManager.subscribe).not.toHaveBeenCalled()
+        expect(api.getPushSubscriptionStatus).toHaveBeenCalledWith({ endpoint: existing.endpoint }, expect.any(AbortSignal))
+
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(true)
+        })
+        expect(result.current.isSubscribed).toBe(true)
+        api.getPushSubscriptionStatus.mockResolvedValueOnce({ registered: true })
+        await act(async () => {
+            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(false)
+        })
+
+        const staleScope = result.current.shouldShowLocalNotification
+        rerender({ scope: 'beta' })
+        expect(result.current.isSubscribed).toBe(false)
+        expect(await staleScope(existing.endpoint)).toBe(false)
+        await act(async () => {
+            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(true)
+        })
+    })
+
 })
