@@ -86,15 +86,24 @@ def every(*, seconds):
     return decorate
 `
 
-export const supervisor = String.raw`import os, signal, subprocess, sys, threading
+export const supervisor = String.raw`import os, signal, subprocess, sys, threading, traceback
 with open(sys.argv[2], 'ab', buffering=0) as log:
-    command = [sys.argv[1]]
-    if os.name == 'nt':
-        # On Windows scripts supplied to a doorbell use the Python interpreter.
-        command.insert(0, sys.executable)
-    proc = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=os.name != 'nt')
+    script = sys.argv[1]
+    try:
+        command = [sys.executable, script]
+        if os.name != 'nt':
+            # Preserve explicit interpreters while accepting plain Python source.
+            with open(script, 'rb') as monitor:
+                if monitor.read(2) == b'#!':
+                    command = [script]
+        proc = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=os.name != 'nt')
+    except OSError:
+        log.write(traceback.format_exc().encode())
+        sys.exit(1)
     def stop_on_disconnect():
-        sys.stdin.buffer.read()
+        # A blocked buffered read can abort Python at shutdown when the monitor exits first.
+        while os.read(sys.stdin.fileno(), 4096):
+            pass
         try:
             if os.name == 'nt':
                 subprocess.run(['taskkill', '/PID', str(proc.pid), '/T', '/F'], stdout=log, stderr=log)
