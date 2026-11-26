@@ -3,6 +3,9 @@ import type { Store } from '../store'
 import type { VapidKeys } from '../config/vapidKeys'
 
 const PUSH_TIMEOUT_MS = 3_000
+const SAFE_TRANSPORT_ERRORS = new Set([
+    'AbortError', 'TimeoutError', 'TypeError', 'ConnectionRefused', 'ECONNREFUSED'
+])
 
 export type PushPayload = {
     title: string
@@ -83,7 +86,11 @@ export class PushService {
                 console.error('[PushService] Push endpoint returned status:', response.status)
             }
         } catch (error) {
-            console.error('[PushService] Failed to send notification:', error)
+            // Fetch errors can carry the full subscription URL, including its capability path.
+            const code = (error as { code?: unknown } | null)?.code
+            const name = error instanceof Error ? error.name : 'Error'
+            const reason = typeof code === 'string' && SAFE_TRANSPORT_ERRORS.has(code) ? code : name
+            console.error('[PushService] Failed to send notification:', SAFE_TRANSPORT_ERRORS.has(reason) ? reason : 'Error')
         }
         return null
     }

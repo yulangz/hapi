@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createECDH, createHash, randomBytes } from 'node:crypto'
 import { generateVAPIDKeys } from 'web-push'
 import { Store } from '../store'
 import { SSEManager } from '../sse/sseManager'
@@ -102,6 +102,27 @@ describe('PushNotificationChannel', () => {
             expect(toast.mock.calls[0][1].data.pushAccepted).toEqual([])
         } finally {
             log.mockRestore()
+        }
+    })
+
+    it('reports a transport failure without logging subscription details', async () => {
+        const store = new Store(':memory:')
+        const endpoint = 'https://push.example.test/private-capability'
+        const p256dh = createECDH('prime256v1').generateKeys().toString('base64url')
+        const auth = randomBytes(16).toString('base64url')
+        const error = Object.assign(new Error(endpoint), { code: 'ConnectionRefused', path: endpoint })
+        const send = spyOn(globalThis, 'fetch').mockRejectedValueOnce(error)
+        const log = spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            store.push.addPushSubscription(main.namespace, { endpoint, p256dh, auth })
+            const service = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
+            expect(await service.sendToNamespace(main.namespace, { title: 'Hamlet', body: 'New main Agent reply' }))
+                .toEqual([])
+            expect(log.mock.calls).toEqual([['[PushService] Failed to send notification:', 'ConnectionRefused']])
+        } finally {
+            send.mockRestore()
+            log.mockRestore()
+            store.close()
         }
     })
 
