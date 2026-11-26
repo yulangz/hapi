@@ -194,7 +194,7 @@ Reference list sort (web): `globalPinned` > `pinned` > `active` > `pendingReques
 
 Ready, permission and task toasts go to visible web connections unless a native provider accepted the same dispatch. Explicit main Agent notification toasts also reach hidden global streams and carry a notification ID and dispatch time. The Hub sends generic Web Push to the registered endpoints for that account independently of SSE visibility, with a three-second request deadline. The notification toast carries `pushAccepted` fingerprints for endpoints whose push services returned HTTP 2xx for that notification. Each fingerprint is the lowercase hex SHA-256 of the UTF-8 notification ID, a NUL byte, and the endpoint URL. A browser with notification permission can display a local alert when its endpoint has no matching fingerprint.
 
-Native rule: report `visible` on foreground and `hidden` on background, every time. A stale `visible` report can divert the namespace's Web Push fallback into unseen toast frames; it does not disable native push. The native app separately suppresses its local notification when the corresponding chat is already open in the foreground.
+Native rule: report `visible` on foreground and `hidden` on background, every time. The native app separately suppresses its local notification when the corresponding chat is already open in the foreground.
 
 ---
 

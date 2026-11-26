@@ -5,7 +5,7 @@ import type { AgentNotification, AgentNotificationOutcome, NotificationChannel, 
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
-import type { PushPayload, PushService } from './pushService'
+import type { PushService } from './pushService'
 import { composeInputRequestNotification, getFirstPendingRequest } from '../notifications/inputRequest'
 
 type ToastData = Extract<SyncEvent, { type: 'toast' }>['data']
@@ -36,23 +36,14 @@ export class PushNotificationChannel implements NotificationChannel {
 
         const name = getSessionName(session)
         const pending = getFirstPendingRequest(session)
-        const { requestId, request } = pending ?? {}
         const inputNotification = composeInputRequestNotification(session, pending)
-        const toolName = request?.tool ? ` (${request.tool})` : ''
+        const tool = pending?.request.tool
+        const toolName = tool ? ` (${tool})` : ''
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: inputNotification?.title ?? 'Permission Request',
-            body: inputNotification?.body ?? `${name}${toolName}`,
-            tag: inputNotification?.tag ?? `permission-${session.id}`,
-            data: {
-                type: inputNotification?.type ?? 'permission-request',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id),
-                requestId
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'permission')
+            body: inputNotification?.body ?? `${name}${toolName}`
+        }, ctx, 'permission')
     }
 
     async sendReady(session: Session, ctx?: NotificationSendContext): Promise<void> {
@@ -63,18 +54,10 @@ export class PushNotificationChannel implements NotificationChannel {
         const agentName = getAgentName(session)
         const name = getSessionName(session)
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: 'Ready for input',
-            body: `${agentName} is waiting in ${name}`,
-            tag: `ready-${session.id}`,
-            data: {
-                type: 'ready',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id)
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'ready')
+            body: `${agentName} is waiting in ${name}`
+        }, ctx, 'ready')
     }
 
     async sendTaskNotification(session: Session, notification: TaskNotification, ctx?: NotificationSendContext): Promise<void> {
@@ -90,17 +73,10 @@ export class PushNotificationChannel implements NotificationChannel {
             || normalizedStatus === 'killed'
             || normalizedStatus === 'aborted'
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: isFailure ? 'Task failed' : 'Task completed',
-            body: `${agentName} · ${name} · ${notification.summary}`,
-            data: {
-                type: 'task-notification',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id)
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'task')
+            body: `${agentName} · ${name} · ${notification.summary}`
+        }, ctx, 'task')
     }
 
     async sendAgentNotification(session: Session, notification: AgentNotification): Promise<AgentNotificationOutcome> {
@@ -139,9 +115,9 @@ export class PushNotificationChannel implements NotificationChannel {
         return written === null || push.uncertain ? 'unknown' : 'retryable'
     }
 
-    private async deliverWebOrToast(
+    private async deliverInAppToast(
         session: Session,
-        payload: PushPayload,
+        message: Pick<ToastData, 'title' | 'body'>,
         ctx: NotificationSendContext | undefined,
         method: 'permission' | 'ready' | 'task'
     ): Promise<void> {
@@ -150,10 +126,9 @@ export class PushNotificationChannel implements NotificationChannel {
             return
         }
         void this.publishToast(session.namespace, method, {
-            title: payload.title,
-            body: payload.body,
+            ...message,
             sessionId: session.id,
-            url: payload.data?.url ?? this.buildSessionPath(session.id)
+            url: this.buildSessionPath(session.id)
         }).catch(() => {})
     }
 
