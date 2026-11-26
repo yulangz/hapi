@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { generateVAPIDKeys } from 'web-push'
 import { Store } from '../store'
 import { SSEManager } from '../sse/sseManager'
@@ -13,7 +14,7 @@ const child = { ...main, id: 'child-id', hamletMain: undefined }
 const reply = { id: 'stored-message-1', text: 'New reply' }
 
 function setup({ delivered = 0 } = {}) {
-    const push = mock(async (_namespace: string, _payload: PushPayload) => {})
+    const push = mock(async (_namespace: string, _payload: PushPayload): Promise<string[]> => [])
     const toast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>, _options: { includeHidden: boolean }) => delivered)
     const channel = new PushNotificationChannel(
         { sendToNamespace: push } as never, { sendToast: toast } as never
@@ -28,7 +29,7 @@ describe('PushNotificationChannel', () => {
         expect(toast).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             data: expect.objectContaining({
                 notificationKind: 'main-agent-reply', notificationId: reply.id, notificationAt: expect.any(Number),
-                body: reply.text, sessionId: main.id, url: '/sessions/main-id'
+                body: reply.text, sessionId: main.id, url: '/sessions/main-id', pushAccepted: []
             })
         }), { includeHidden: true })
         expect(push).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
@@ -60,13 +61,20 @@ describe('PushNotificationChannel', () => {
             }
             const push = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
             const send = spyOn(push as unknown as {
-                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<void>
-            }, 'sendToSubscription').mockResolvedValue(undefined)
+                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<string | null>
+            }, 'sendToSubscription').mockImplementation(async (_namespace, subscription) =>
+                subscription.endpoint === endpoints[0] ? subscription.endpoint : null
+            )
             expect(tracker.hasVisibleConnection(main.namespace)).toBe(true)
             await new PushNotificationChannel(push, sse).sendMainAgentReply(main, reply)
 
             expect(received).toHaveLength(1)
-            expect(received[0]).toMatchObject({ type: 'toast', data: { body: reply.text, notificationId: reply.id } })
+            expect(received[0]).toMatchObject({ type: 'toast', data: {
+                body: reply.text,
+                notificationId: reply.id,
+                pushAccepted: [createHash('sha256').update(`${reply.id}\0${endpoints[0]}`).digest('hex')]
+            } })
+            expect(JSON.stringify(received[0])).not.toContain(endpoints[0])
             expect(send.mock.calls.map(([, subscription]) => subscription.endpoint).sort()).toEqual(endpoints)
             for (const [namespace, , body] of send.mock.calls) {
                 expect(namespace).toBe(main.namespace)
@@ -77,6 +85,23 @@ describe('PushNotificationChannel', () => {
             }
         } finally {
             store.close()
+        }
+    })
+
+    it('publishes fallback after the send settles, including when dispatch fails', async () => {
+        const { channel, push, toast } = setup()
+        const log = spyOn(console, 'error').mockImplementation(() => {})
+        let rejectPush!: (error: Error) => void
+        push.mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectPush = reject }))
+        try {
+            const pending = channel.sendMainAgentReply(main, reply)
+            expect(push).toHaveBeenCalledTimes(1)
+            expect(toast).not.toHaveBeenCalled()
+            rejectPush(new Error('Push unavailable'))
+            await pending
+            expect(toast.mock.calls[0][1].data.pushAccepted).toEqual([])
+        } finally {
+            log.mockRestore()
         }
     })
 

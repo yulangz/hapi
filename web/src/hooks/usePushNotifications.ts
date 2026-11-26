@@ -63,20 +63,8 @@ export function usePushNotifications(api: ApiClient | null, scope: string | null
         if (supported) setPermission(Notification.permission)
     }, [])
 
-    const shouldShowLocalNotification = useCallback(async (endpoint: string | undefined): Promise<boolean> => {
-        if (!api || !scope || activeScope.current !== scope) return false
-        if (!endpoint) {
-            setRegisteredScope(null)
-            return true
-        }
-
-        // Another sign-in can claim the endpoint or the Hub can lose its row.
-        const status = await api.getPushSubscriptionStatus({ endpoint }, AbortSignal.timeout(3000))
-            .catch(() => null)
-        if (activeScope.current !== scope) return false
-        const registered = status?.registered === true
-        setRegisteredScope(registered ? scope : null)
-        return !registered
+    const isCurrentScope = useCallback((): boolean => {
+        return Boolean(api && scope && activeScope.current === scope)
     }, [api, scope])
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
@@ -199,7 +187,7 @@ export function usePushNotifications(api: ApiClient | null, scope: string | null
         isSupported,
         permission,
         isSubscribed: Boolean(scope && registeredScope === scope && permission === 'granted'),
-        shouldShowLocalNotification,
+        isCurrentScope,
         requestPermission,
         subscribe,
         unsubscribe

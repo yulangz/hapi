@@ -602,7 +602,9 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             // One live dispatch, shared across tabs; never replay old alerts.
             notificationKind: z.literal('main-agent-reply').optional(),
             notificationId: z.string().optional(),
-            notificationAt: z.number().optional()
+            notificationAt: z.number().optional(),
+            // SHA-256 of notification ID, NUL, and endpoint for each HTTP-accepted push.
+            pushAccepted: z.array(z.string()).optional()
         })
     }),
     SessionChangedSchema.extend({

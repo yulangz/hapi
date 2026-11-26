@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { Session } from '../sync/syncEngine'
 import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
@@ -122,6 +123,24 @@ export class PushNotificationChannel implements NotificationChannel {
         }
 
         const url = payload.data?.url ?? this.buildSessionPath(session.id)
+        let pushAccepted: string[] = []
+        if (notificationId) {
+            // A visible stream on one browser says nothing about other browsers.
+            // Keep push generic because a browser endpoint can outlive its login.
+            this.logBranch(method, session.namespace, 'web-push-fired')
+            const accepted = await this.pushService.sendToNamespace(session.namespace, {
+                title: 'Hamlet',
+                body: 'New main Agent reply',
+                tag: payload.tag,
+                data: { type: 'main-agent-reply' }
+            }).catch(error => {
+                console.error('[Push.main-agent-reply] Failed to dispatch Web Push:', error)
+                return []
+            })
+            pushAccepted = accepted.map(endpoint => createHash('sha256')
+                .update(`${notificationId}\0${endpoint}`).digest('hex'))
+        }
+
         // Hidden tabs can also provide a local fallback for their browser.
         void this.sseManager.sendToast(session.namespace, {
             type: 'toast',
@@ -134,7 +153,8 @@ export class PushNotificationChannel implements NotificationChannel {
                 ...(notificationId ? {
                     notificationKind: 'main-agent-reply' as const,
                     notificationId,
-                    notificationAt: Date.now()
+                    notificationAt: Date.now(),
+                    pushAccepted
                 } : {})
             }
         }, { includeHidden: Boolean(notificationId) }).then(delivered => {
@@ -145,17 +165,6 @@ export class PushNotificationChannel implements NotificationChannel {
             }
         }).catch(() => {
             this.logBranch(method, session.namespace, 'sse-toast-failed')
-        })
-        if (!notificationId) return
-
-        // A visible stream on one browser says nothing about other browsers.
-        // Keep push generic because a browser endpoint can outlive its login.
-        this.logBranch(method, session.namespace, 'web-push-fired')
-        await this.pushService.sendToNamespace(session.namespace, {
-            title: 'Hamlet',
-            body: 'New main Agent reply',
-            tag: payload.tag,
-            data: { type: 'main-agent-reply' }
         })
     }
 

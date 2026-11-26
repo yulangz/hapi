@@ -14,7 +14,7 @@ export async function showLocalNotification(
     event: NotificationEvent,
     localized: { title: string; body: string },
     baseUrl: string,
-    shouldShow: (endpoint: string | undefined) => Promise<boolean>
+    isCurrentScope: () => boolean
 ): Promise<boolean> {
     if (event.notificationKind !== 'main-agent-reply' || typeof Notification === 'undefined' || Notification.permission !== 'granted'
         || !('serviceWorker' in navigator) || !navigator.locks
@@ -30,7 +30,7 @@ export async function showLocalNotification(
         return await navigator.locks.request(LOCK_NAME, async () => {
             const now = Date.now()
             if (now - at > MAX_AGE_MS || at - now > MAX_AGE_MS
-                || Notification.permission !== 'granted') return false
+                || Notification.permission !== 'granted' || !isCurrentScope()) return false
 
             const registration = await navigator.serviceWorker.getRegistration()
             if (!registration?.active || !registration.showNotification) return false
@@ -42,12 +42,20 @@ export async function showLocalNotification(
             ) : []
             if (receipts.some(receipt => receipt.id === id)) return false
 
-            const subscription = await registration.pushManager?.getSubscription()
-            if (!await shouldShow(subscription?.endpoint)) return false
+            if (event.pushAccepted?.length && crypto.subtle) {
+                const subscription = await registration.pushManager?.getSubscription().catch(() => null)
+                if (subscription) {
+                    const input = new TextEncoder().encode(`${id}\0${subscription.endpoint}`)
+                    const digest = await crypto.subtle.digest('SHA-256', input)
+                    const receipt = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+                    if (event.pushAccepted.includes(receipt)) return false
+                }
+            }
 
             const hubUrl = new URL(baseUrl || window.location.origin, window.location.origin)
             const url = new URL(event.url, hubUrl)
             if (!['http:', 'https:'].includes(url.protocol) || url.origin !== hubUrl.origin) return false
+            if (!isCurrentScope() || Notification.permission !== 'granted') return false
 
             // Fail closed if shared storage is unavailable; without a receipt,
             // simultaneous tabs could each show a banner for the same event.

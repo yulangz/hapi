@@ -19,11 +19,11 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 
 ## Local system notification fallback
 
-When notification permission is granted but the Hub cannot confirm the browser
-endpoint for the current account, an open HAMLET page can display a local alert
-from its live connection. This works in visible and hidden tabs and while
-viewing a different session. Tabs share a receipt for each reply so they show a
-single local alert.
+When notification permission is granted, an open HAMLET page can display a
+local alert from its live connection if the push service did not confirm
+acceptance of that reply for the browser's endpoint. This works in visible and
+hidden tabs and while viewing a different session. Tabs share a receipt for
+each reply so they show a single local alert.
 
 Local alerts require an active service worker, Web Locks, and local storage.
 When the page is closed or disconnected, delivery requires Web Push. The Hub

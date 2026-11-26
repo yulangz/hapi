@@ -199,7 +199,7 @@ function AppInner() {
     const pushScope = token ? JSON.stringify([baseUrl, getNamespace(token) ?? token]) : null
     const {
         isSupported: isPushSupported, permission: pushPermission, isSubscribed,
-        requestPermission, subscribe, shouldShowLocalNotification,
+        requestPermission, subscribe, isCurrentScope,
     } = usePushNotifications(api, pushScope)
 
     useEffect(() => {
@@ -408,8 +408,8 @@ function AppInner() {
                 url: event.data.url
             })
         }
-        void showLocalNotification(event.data, localized, baseUrl, shouldShowLocalNotification)
-    }, [addToast, translateIncomingToast, baseUrl, shouldShowLocalNotification])
+        void showLocalNotification(event.data, localized, baseUrl, isCurrentScope)
+    }, [addToast, translateIncomingToast, baseUrl, isCurrentScope])
 
     const globalEventSubscription = useMemo(() => getAppGlobalSseSubscription(), [])
     const sessionEventSubscription = useMemo(

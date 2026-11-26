@@ -44,7 +44,6 @@ function setupPushEnvironment(existing: PushSubscriptionMock | null, replacement
 
 function createApi() {
     return {
-        getPushSubscriptionStatus: vi.fn().mockResolvedValue({ registered: false }),
         getPushVapidPublicKey: vi.fn().mockResolvedValue({ publicKey: CURRENT_VAPID_KEY }),
         subscribePushNotifications: vi.fn().mockResolvedValue(undefined),
         unsubscribePushNotifications: vi.fn().mockResolvedValue(undefined)
@@ -142,7 +141,7 @@ describe('usePushNotifications VAPID rotation', () => {
         expect(replacement.unsubscribe).toHaveBeenCalledOnce()
         expect(result.current.isSubscribed).toBe(false)
     })
-    it('falls back after failed registration of an existing same-key endpoint and can retry', async () => {
+    it('can retry failed registration of an existing same-key endpoint', async () => {
         localStorage.setItem(VAPID_STORAGE_KEY, CURRENT_VAPID_KEY)
         const existing = createSubscription('https://push.test/current', true)
         const pushManager = setupPushEnvironment(existing, existing)
@@ -156,29 +155,21 @@ describe('usePushNotifications VAPID rotation', () => {
 
         await act(async () => {
             expect(await result.current.subscribe()).toBe(false)
-            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(true)
+            expect(result.current.isCurrentScope()).toBe(true)
         })
         expect(result.current.isSubscribed).toBe(false)
         expect(existing.unsubscribe).not.toHaveBeenCalled()
         expect(pushManager.subscribe).not.toHaveBeenCalled()
-        expect(api.getPushSubscriptionStatus).toHaveBeenCalledWith({ endpoint: existing.endpoint }, expect.any(AbortSignal))
 
         await act(async () => {
             expect(await result.current.subscribe()).toBe(true)
         })
         expect(result.current.isSubscribed).toBe(true)
-        api.getPushSubscriptionStatus.mockResolvedValueOnce({ registered: true })
-        await act(async () => {
-            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(false)
-        })
-
-        const staleScope = result.current.shouldShowLocalNotification
+        const staleScope = result.current.isCurrentScope
         rerender({ scope: 'beta' })
         expect(result.current.isSubscribed).toBe(false)
-        expect(await staleScope(existing.endpoint)).toBe(false)
-        await act(async () => {
-            expect(await result.current.shouldShowLocalNotification(existing.endpoint)).toBe(true)
-        })
+        expect(staleScope()).toBe(false)
+        expect(result.current.isCurrentScope()).toBe(true)
     })
 
 })

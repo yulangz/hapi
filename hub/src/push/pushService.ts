@@ -2,6 +2,8 @@ import * as webPush from 'web-push'
 import type { Store } from '../store'
 import type { VapidKeys } from '../config/vapidKeys'
 
+const PUSH_TIMEOUT_MS = 3_000
+
 export type PushPayload = {
     title: string
     body: string
@@ -38,23 +40,20 @@ export class PushService {
         webPush.setVapidDetails(this.subject, this.vapidKeys.publicKey, this.vapidKeys.privateKey)
     }
 
-    async sendToNamespace(namespace: string, payload: PushPayload): Promise<void> {
+    async sendToNamespace(namespace: string, payload: PushPayload): Promise<string[]> {
         const subscriptions = this.store.push.getPushSubscriptionsByNamespace(namespace)
-        if (subscriptions.length === 0) {
-            return
-        }
-
         const body = JSON.stringify(payload)
-        await Promise.all(subscriptions.map((subscription) => {
-            return this.sendToSubscription(namespace, subscription, body)
-        }))
+        const accepted = await Promise.all(subscriptions.map(subscription =>
+            this.sendToSubscription(namespace, subscription, body)
+        ))
+        return accepted.filter(endpoint => endpoint !== null)
     }
 
     private async sendToSubscription(
         namespace: string,
         subscription: StoredSubscription,
         body: string
-    ): Promise<void> {
+    ): Promise<string | null> {
         const pushSubscription: PushSubscription = {
             endpoint: subscription.endpoint,
             keys: {
@@ -64,18 +63,28 @@ export class PushService {
         }
 
         try {
-            await webPush.sendNotification(pushSubscription, body)
-        } catch (error) {
-            const statusCode = typeof (error as { statusCode?: unknown }).statusCode === 'number'
-                ? (error as { statusCode: number }).statusCode
-                : null
+            const request = webPush.generateRequestDetails(pushSubscription, body)
+            const endpoint = new URL(request.endpoint)
+            if (endpoint.protocol !== 'https:') return null
 
-            if (statusCode === 410) {
+            // Bound the wait for acceptance, including connection setup.
+            const response = await fetch(endpoint, {
+                method: request.method,
+                headers: request.headers,
+                body: request.body ? new Uint8Array(request.body) : undefined,
+                redirect: 'manual',
+                signal: AbortSignal.timeout(PUSH_TIMEOUT_MS)
+            })
+            void response.body?.cancel().catch(() => {})
+            if (response.ok) return subscription.endpoint
+            if (response.status === 410) {
                 this.store.push.removePushSubscription(namespace, subscription.endpoint)
-                return
+            } else {
+                console.error('[PushService] Push endpoint returned status:', response.status)
             }
-
+        } catch (error) {
             console.error('[PushService] Failed to send notification:', error)
         }
+        return null
     }
 }
