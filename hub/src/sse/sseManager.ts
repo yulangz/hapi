@@ -218,21 +218,37 @@ export class SSEManager {
         namespace: string,
         event: Extract<SyncEvent, { type: 'toast' }>,
         options: { includeHidden?: boolean } = {}
-    ): Promise<boolean> {
-        const deliveries: Promise<void>[] = []
+    ): Promise<number> {
+        const results = await Promise.allSettled(this.writeToast(namespace, event, options.includeHidden ?? false))
+        return results.filter(result => result.status === 'fulfilled' && result.value.visible).length
+    }
+
+    async sendNotificationToast(namespace: string, event: Extract<SyncEvent, { type: 'toast' }>): Promise<boolean> {
+        // Any write qualifies, including hidden global streams. A slow tab
+        // must not hold up confirmation of a write to another tab.
+        return Promise.any(this.writeToast(namespace, event, true)).then(() => true, () => false)
+    }
+
+    private writeToast(
+        namespace: string,
+        event: Extract<SyncEvent, { type: 'toast' }>,
+        includeHidden: boolean
+    ): Array<Promise<{ visible: boolean }>> {
+        const writes: Array<Promise<{ visible: boolean }>> = []
         for (const connection of this.connections.values()) {
             if (connection.namespace !== namespace) continue
             const visible = this.visibilityTracker.isVisibleConnection(connection.id)
-            // Hidden global streams keep the local notification fallback alive.
-            if (!visible && !(options.includeHidden && connection.all)) continue
+            if (!visible && !(includeHidden && connection.all)) continue
 
-            deliveries.push(Promise.resolve().then(() => connection.send(event)).catch(error => {
-                this.unsubscribe(connection.id)
-                throw error
-            }))
+            writes.push(Promise.resolve()
+                .then(() => connection.send(event))
+                .then(() => ({ visible }))
+                .catch(error => {
+                    this.unsubscribe(connection.id)
+                    throw error
+                }))
         }
-        // One acknowledged write is enough, even if another tab is backpressured.
-        return Promise.any(deliveries).then(() => true, () => false)
+        return writes
     }
 
     broadcast(event: SyncEvent): void {

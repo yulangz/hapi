@@ -170,10 +170,10 @@ describe('GET /api/events replay', () => {
         const response = await openStream(buildApp(manager), '')
         const reader = response.body!.getReader()
         await reader.read()
-        const toast = manager.sendToast('ns-test', {
+        const toast = manager.sendNotificationToast('ns-test', {
             type: 'toast', namespace: 'ns-test',
             data: { title: 'Test', body: 'Body', sessionId: 's1', url: '/sessions/s1' }
-        }, { includeHidden: true })
+        })
         await reader.cancel()
         expect(await toast).toBe(false)
     })

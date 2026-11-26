@@ -129,7 +129,7 @@ export class PushNotificationChannel implements NotificationChannel {
             notificationAt: Date.now(),
             pushAccepted: push.acceptedEndpoints.map(endpoint => createHash('sha256')
                 .update(`${notification.id}\0${endpoint}`).digest('hex'))
-        }, true).catch(() => null)
+        }).catch(() => null)
 
         if (push.acceptedEndpoints.length > 0) return 'dispatched'
         const deadline = new AbortController()
@@ -160,12 +160,14 @@ export class PushNotificationChannel implements NotificationChannel {
 
     private async publishToast(
         namespace: string,
-        method: string,
-        data: ToastData,
-        includeHidden = false
+        method: 'permission' | 'ready' | 'task' | 'notify',
+        data: ToastData
     ): Promise<boolean> {
         try {
-            const written = await this.sseManager.sendToast(namespace, { type: 'toast', namespace, data }, { includeHidden })
+            const event = { type: 'toast' as const, namespace, data }
+            const written = method === 'notify'
+                ? await this.sseManager.sendNotificationToast(namespace, event)
+                : (await this.sseManager.sendToast(namespace, event)) > 0
             this.logBranch(method, namespace, written ? 'sse-toast-delivered' : 'sse-toast-zero')
             return written
         } catch (error) {

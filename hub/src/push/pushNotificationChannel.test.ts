@@ -17,23 +17,24 @@ function setup({ delivered = false, acceptedEndpoints = [] as string[], uncertai
     const push = mock(async (_namespace: string, _payload: PushPayload): Promise<PushDispatchResult> => ({
         acceptedEndpoints, uncertain
     }))
-    const toast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>, _options: { includeHidden: boolean }) => delivered)
+    const toast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>) => delivered ? 1 : 0)
+    const notificationToast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>) => delivered)
     const channel = new PushNotificationChannel(
-        { sendToNamespace: push } as never, { sendToast: toast } as never
+        { sendToNamespace: push } as never, { sendToast: toast, sendNotificationToast: notificationToast } as never
     )
-    return { channel, push, toast }
+    return { channel, push, toast, notificationToast }
 }
 
 describe('PushNotificationChannel', () => {
     it('sends the same agent notification to hidden global streams and Web Push', async () => {
-        const { channel, push, toast } = setup()
+        const { channel, push, notificationToast } = setup()
         await channel.sendAgentNotification(main, notification)
-        expect(toast).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
+        expect(notificationToast).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             data: expect.objectContaining({
                 notificationKind: 'main-agent-reply', notificationId: notification.id, notificationAt: expect.any(Number),
                 body: notification.text, sessionId: main.id, url: '/sessions/main-id', pushAccepted: []
             })
-        }), { includeHidden: true })
+        }))
         expect(push).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             tag: 'hamlet-main-agent-' + notification.id,
             title: 'Hamlet', body: 'New notification from your main Agent',
@@ -91,17 +92,17 @@ describe('PushNotificationChannel', () => {
     })
 
     it('publishes fallback after the send settles, including when dispatch fails', async () => {
-        const { channel, push, toast } = setup()
+        const { channel, push, notificationToast } = setup()
         const log = spyOn(console, 'error').mockImplementation(() => {})
         let rejectPush!: (error: Error) => void
         push.mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectPush = reject }))
         try {
             const pending = channel.sendAgentNotification(main, notification)
             expect(push).toHaveBeenCalledTimes(1)
-            expect(toast).not.toHaveBeenCalled()
+            expect(notificationToast).not.toHaveBeenCalled()
             rejectPush(new Error('Push unavailable'))
             expect(await pending).toBe('unknown')
-            expect(toast.mock.calls[0][1].data.pushAccepted).toEqual([])
+            expect(notificationToast.mock.calls[0][1].data.pushAccepted).toEqual([])
         } finally {
             log.mockRestore()
         }
@@ -129,9 +130,9 @@ describe('PushNotificationChannel', () => {
     })
 
     it('can send foreground Web Push without waiting for the SSE toast', async () => {
-        const { channel, push, toast } = setup({ acceptedEndpoints: ['https://push.example.test/accepted'] })
+        const { channel, push, notificationToast } = setup({ acceptedEndpoints: ['https://push.example.test/accepted'] })
         let release!: (written: boolean) => void
-        toast.mockImplementation(() => new Promise(resolve => { release = resolve }))
+        notificationToast.mockImplementation(() => new Promise(resolve => { release = resolve }))
         try {
             await channel.sendAgentNotification(main, notification)
             expect(push).toHaveBeenCalledTimes(1)
@@ -141,17 +142,17 @@ describe('PushNotificationChannel', () => {
     })
 
     it('does not send an agent notification for a child, and keeps status and permission toasts in-app', async () => {
-        const { channel, push, toast } = setup({ delivered: true })
+        const { channel, push, toast, notificationToast } = setup({ delivered: true })
         await channel.sendAgentNotification(child, notification)
         expect(toast).not.toHaveBeenCalled()
+        expect(notificationToast).not.toHaveBeenCalled()
         await channel.sendReady(child)
         await channel.sendPermissionRequest(main)
         await channel.sendTaskNotification(main, { summary: 'Tool finished' })
         expect(toast).toHaveBeenCalledTimes(3)
-        for (const [, event, options] of toast.mock.calls) {
+        for (const [, event] of toast.mock.calls) {
             expect(event.data.notificationKind).toBeUndefined()
             expect(event.data.notificationId).toBeUndefined()
-            expect(options).toEqual({ includeHidden: false })
         }
         expect(push).not.toHaveBeenCalled()
     })
