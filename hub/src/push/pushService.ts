@@ -20,6 +20,10 @@ export type PushPayload = {
     }
 }
 
+export type PushDispatchResult = { acceptedEndpoints: string[]; uncertain: boolean }
+
+type PushDelivery = 'accepted' | 'rejected' | 'unknown'
+
 type StoredSubscription = {
     endpoint: string
     p256dh: string
@@ -43,20 +47,24 @@ export class PushService {
         webPush.setVapidDetails(this.subject, this.vapidKeys.publicKey, this.vapidKeys.privateKey)
     }
 
-    async sendToNamespace(namespace: string, payload: PushPayload): Promise<string[]> {
+    async sendToNamespace(namespace: string, payload: PushPayload): Promise<PushDispatchResult> {
         const subscriptions = this.store.push.getPushSubscriptionsByNamespace(namespace)
         const body = JSON.stringify(payload)
-        const accepted = await Promise.all(subscriptions.map(subscription =>
+        const deliveries = await Promise.all(subscriptions.map(subscription =>
             this.sendToSubscription(namespace, subscription, body)
         ))
-        return accepted.filter(endpoint => endpoint !== null)
+        return {
+            acceptedEndpoints: subscriptions.filter((_, index) => deliveries[index] === 'accepted')
+                .map(subscription => subscription.endpoint),
+            uncertain: deliveries.includes('unknown')
+        }
     }
 
     private async sendToSubscription(
         namespace: string,
         subscription: StoredSubscription,
         body: string
-    ): Promise<string | null> {
+    ): Promise<PushDelivery> {
         const pushSubscription: PushSubscription = {
             endpoint: subscription.endpoint,
             keys: {
@@ -65,33 +73,46 @@ export class PushService {
             }
         }
 
+        let request: webPush.RequestDetails
+        let endpoint: URL
         try {
-            const request = webPush.generateRequestDetails(pushSubscription, body)
-            const endpoint = new URL(request.endpoint)
-            if (endpoint.protocol !== 'https:') return null
+            request = webPush.generateRequestDetails(pushSubscription, body)
+            endpoint = new URL(request.endpoint)
+        } catch {
+            console.error('[PushService] Invalid push subscription')
+            return 'rejected'
+        }
+        if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password) return 'rejected'
 
+        let response: Response
+        try {
             // Bound the wait for acceptance, including connection setup.
-            const response = await fetch(endpoint, {
+            response = await fetch(endpoint, {
                 method: request.method,
                 headers: request.headers,
                 body: request.body ? new Uint8Array(request.body) : undefined,
                 redirect: 'manual',
                 signal: AbortSignal.timeout(PUSH_TIMEOUT_MS)
             })
-            void response.body?.cancel().catch(() => {})
-            if (response.ok) return subscription.endpoint
-            if (response.status === 410) {
-                this.store.push.removePushSubscription(namespace, subscription.endpoint)
-            } else {
-                console.error('[PushService] Push endpoint returned status:', response.status)
-            }
         } catch (error) {
             // Fetch errors can carry the full subscription URL, including its capability path.
             const code = (error as { code?: unknown } | null)?.code
             const name = error instanceof Error ? error.name : 'Error'
             const reason = typeof code === 'string' && SAFE_TRANSPORT_ERRORS.has(code) ? code : name
             console.error('[PushService] Failed to send notification:', SAFE_TRANSPORT_ERRORS.has(reason) ? reason : 'Error')
+            return code === 'ConnectionRefused' || code === 'ECONNREFUSED' ? 'rejected' : 'unknown'
         }
-        return null
+        void response.body?.cancel().catch(() => {})
+        if (response.ok) return 'accepted'
+        if (response.status === 410) {
+            try {
+                this.store.push.removePushSubscription(namespace, subscription.endpoint)
+            } catch {
+                console.error('[PushService] Could not remove expired subscription')
+            }
+        } else {
+            console.error('[PushService] Push endpoint returned status:', response.status)
+        }
+        return 'rejected'
     }
 }

@@ -114,14 +114,14 @@ describe('SSEManager namespace filtering', () => {
 
         const delivered = await manager.sendToast('alpha', toastEvent)
 
-        expect(delivered).toBe(1)
+        expect(delivered).toBe(true)
         expect(received).toHaveLength(1)
         expect(received[0]?.id).toBe('visible')
     })
 })
 
 describe('SSEManager local notifications', () => {
-    it('reaches hidden global streams in the same namespace without counting them as visible delivery', async () => {
+    it('acknowledges hidden global streams in the same namespace', async () => {
         const manager = new SSEManager(0, new VisibilityTracker())
         const received: string[] = []
         for (const [id, namespace, all] of [
@@ -136,13 +136,27 @@ describe('SSEManager local notifications', () => {
             title: 'Ready', body: 'Done', sessionId: 's1', url: '/sessions/s1',
             notificationId: 'dispatch-1', notificationAt: Date.now()
         } }
-        expect(await manager.sendToast('alpha', event, { includeHidden: true })).toBe(0)
+        expect(await manager.sendToast('alpha', event, { includeHidden: true })).toBe(true)
         expect(received).toEqual(['hidden-global'])
         // Toasts remain live-only, so reconnect cannot replay an old banner.
         const resumed = manager.subscribe({ id: 'fresh', namespace: 'alpha', all: true,
             send: () => {}, sendHeartbeat: () => {} })
         expect(resumed.replay).toEqual([])
     })
+    it('acknowledges a successful write even if another tab is backpressured', async () => {
+        const manager = new SSEManager(0, new VisibilityTracker())
+        let release!: () => void
+        const blocked = new Promise<void>(resolve => { release = resolve })
+        const targets = { namespace: 'alpha', all: true, visibility: 'hidden' as const, sendHeartbeat: () => {} }
+        manager.subscribe({ ...targets, id: 'blocked', send: () => blocked })
+        manager.subscribe({ ...targets, id: 'healthy', send: () => {} })
+        const event = { type: 'toast' as const, namespace: 'alpha',
+            data: { title: 'Test', body: 'Done', sessionId: 's1', url: '/sessions/s1' } }
+        try {
+            expect(await manager.sendToast('alpha', event, { includeHidden: true })).toBe(true)
+        } finally { release() }
+    })
+
 })
 
 describe('SSEManager reconnect replay', () => {

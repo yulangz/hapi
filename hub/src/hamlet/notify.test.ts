@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from 'bun:test'
+import { describe, expect, it, mock, spyOn } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -38,10 +38,13 @@ describe('authenticated notify tool', () => {
     it('blocks children and invalid recipients, joins concurrent retries and isolates accounts', async () => {
         const store = new Store(':memory:')
         store.machines.getOrCreateMachine('machine', {}, null, 'alpha')
-        const send = mock<AgentNotificationSender>(async () => {})
+        const send = mock<AgentNotificationSender>(async () => 'dispatched')
         let release!: () => void
         const held = new Promise<void>(resolve => { release = resolve })
-        send.mockImplementationOnce(() => held)
+        send.mockImplementationOnce(async () => {
+            await held
+            return 'dispatched'
+        })
         const { engine, notify } = start(store, send)
         try {
             const alpha = register(store, engine, 'alpha')
@@ -90,20 +93,31 @@ describe('authenticated notify tool', () => {
         store.close()
         store = new Store(dbPath)
         store.machines.getOrCreateMachine('machine', {}, null, 'alpha')
-        const send = mock<AgentNotificationSender>(async () => {})
+        const send = mock<AgentNotificationSender>(async () => 'dispatched')
         const first = start(store, send)
         const failed = { request_id: 'failed', text: 'Unable to dispatch' }
         const interrupted = { request_id: 'interrupted', text: 'Interrupted dispatch' }
+        const timedOut = { request_id: 'timed-out', text: 'Unknown transport outcome' }
+        const unknown = { error: expect.stringContaining('outcome is unknown') }
         try {
             const agent = register(store, first.engine, 'alpha')
             const initial = await first.notify(agent.token)
             expect(initial.status).toBe(200)
             const delivered = await initial.json()
 
-            send.mockRejectedValueOnce(new Error('private transport detail'))
+            send.mockResolvedValueOnce('retryable')
             const failure = await first.notify(agent.token, failed)
-            expect(await failure.json()).toEqual({ error: 'Agent notification dispatch failed' })
-            store.hamlet.reserveNotification(agent.id, interrupted.request_id, interrupted.text)
+            expect(await failure.json()).toEqual({ error: 'No notification route accepted delivery. Retry with the same request_id.' })
+            const failedId = send.mock.calls[1][1].id
+            send.mockResolvedValueOnce('unknown')
+            expect(await (await first.notify(agent.token, timedOut)).json()).toEqual(unknown)
+
+            const persist = spyOn(store.hamlet, 'finishNotification').mockImplementationOnce(() => {
+                throw new Error('simulated DB write interruption')
+            })
+            try {
+                expect(await (await first.notify(agent.token, interrupted)).json()).toEqual(unknown)
+            } finally { persist.mockRestore() }
             first.engine.stop()
             store.close()
 
@@ -111,9 +125,13 @@ describe('authenticated notify tool', () => {
             const second = start(store, send)
             try {
                 expect(await (await second.notify(agent.token)).json()).toEqual(delivered)
-                expect(await (await second.notify(agent.token, failed)).json()).toEqual({ error: 'Agent notification dispatch failed' })
-                expect(await (await second.notify(agent.token, interrupted)).json()).toEqual({ error: 'Agent notification dispatch outcome is unknown' })
-                expect(send.mock.calls).toHaveLength(2)
+                expect(await (await second.notify(agent.token, timedOut)).json()).toEqual(unknown)
+                expect(await (await second.notify(agent.token, interrupted)).json()).toEqual(unknown)
+                const retries = await Promise.all([second.notify(agent.token, failed), second.notify(agent.token, failed)])
+                const retried = { status: 'dispatched', notification_id: failedId }
+                for (const response of retries) expect(await response.json()).toEqual(retried)
+                expect(await (await second.notify(agent.token, failed)).json()).toEqual(retried)
+                expect(send.mock.calls).toHaveLength(5)
             } finally { second.engine.stop() }
         } finally {
             first.engine.stop()

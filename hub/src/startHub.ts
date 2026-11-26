@@ -208,8 +208,8 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     })
 
     syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager, async (session, notification) => {
-        if (!notificationHub) throw new Error('Agent notification channel unavailable')
-        await notificationHub.sendAgentNotification(session, notification)
+        if (!notificationHub) return 'retryable'
+        return notificationHub.sendAgentNotification(session, notification)
     })
     syncEngine.hamlet.start()
     // Accountable principal for A2A work-graph notify ingest (P3).

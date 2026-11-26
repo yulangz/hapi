@@ -1,10 +1,11 @@
 import { hamletTools, mainAgentDreamPrompt, mainAgentDreamSchedule, type HamletTool, type AgentConfig, type HamletBatch, type HamletTurn } from '@hamlet/protocol/hamlet'
 import type { SyncEngine } from '../sync/syncEngine'
-import type { AgentNotificationSender } from '../notifications/notificationTypes'
+import type { AgentNotificationOutcome, AgentNotificationSender } from '../notifications/notificationTypes'
 import { RpcTargetMissingError, type RpcGateway } from '../sync/rpcGateway'
 import type { HamletStore, Agent, AgentCard } from './store'
 
 type NotificationResult = { status: 'dispatched'; notification_id: string }
+const NOTIFICATION_OUTCOME_UNKNOWN = 'Agent notification outcome is unknown. It may have been delivered, so this request will not be resent.'
 
 export class HamletService {
     private readonly waking = new Map<string, Promise<void>>()
@@ -192,20 +193,28 @@ export class HamletService {
         const request = this.store.reserveNotification(actor.id, request_id, text)
         const result = { status: 'dispatched', notification_id: request.id } as const
         if (request.status === 'dispatched') return result
-        if (request.status === 'failed') throw new Error('Agent notification dispatch failed')
         const pending = this.pendingNotifications.get(request.id)
         if (pending) return pending
         // If a Hub dies after starting delivery, retrying the send can alert twice.
-        if (!request.created) throw new Error('Agent notification dispatch outcome is unknown')
+        if (!request.claimed) throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
 
         const work = Promise.resolve().then(async () => {
+            let outcome: AgentNotificationOutcome
             try {
-                await send(session, { id: request.id, text })
+                outcome = await send(session, { id: request.id, text })
             } catch {
-                this.store.finishNotification(actor.id, request_id, 'failed')
-                throw new Error('Agent notification dispatch failed')
+                throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
             }
-            this.store.finishNotification(actor.id, request_id, 'dispatched')
+            if (outcome === 'unknown') throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+            try {
+                this.store.finishNotification(actor.id, request_id, outcome === 'dispatched' ? 'dispatched' : 'failed')
+            } catch {
+                console.error('[Hamlet] Could not persist agent notification outcome')
+                throw new Error(NOTIFICATION_OUTCOME_UNKNOWN)
+            }
+            if (outcome === 'retryable') {
+                throw new Error('No notification route accepted delivery. Retry with the same request_id.')
+            }
             return result
         }).finally(() => this.pendingNotifications.delete(request.id))
         this.pendingNotifications.set(request.id, work)

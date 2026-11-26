@@ -8,7 +8,8 @@ export type TaskNotification = {
 }
 
 export type AgentNotification = { id: string; text: string }
-export type AgentNotificationSender = (session: Session, notification: AgentNotification) => Promise<void>
+export type AgentNotificationOutcome = 'dispatched' | 'retryable' | 'unknown'
+export type AgentNotificationSender = (session: Session, notification: AgentNotification) => Promise<AgentNotificationOutcome>
 
 export type NotificationChannel = {
     sendReady: (session: Session, ctx?: NotificationSendContext) => Promise<void>

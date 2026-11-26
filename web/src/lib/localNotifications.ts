@@ -12,7 +12,7 @@ export async function showLocalNotification(
     baseUrl: string,
     isCurrentScope: () => boolean
 ): Promise<boolean> {
-    if (event.notificationKind !== 'main-agent-notification' || !event.notificationId
+    if (event.notificationKind !== 'main-agent-reply' || !event.notificationId
         || !Number.isFinite(event.notificationAt)) {
         return false
     }

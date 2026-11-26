@@ -13,6 +13,13 @@ Regular replies stay in the chat. A shared browser endpoint belongs to the
 account that last registered it. The alert opens HAMLET, where your current
 sign-in determines what you can read.
 
+The tool reports `dispatched` when a push service accepts the request or the Hub
+writes the alert to an authorized live browser stream. Device display depends on
+the browser and its permissions. If every route refused or none was available,
+retry with the same `request_id` and text. An unknown outcome can mean a request
+reached a push service without an acknowledgement, or delivery occurred before
+the Hub could save its result. Reusing that request ID will not send it again.
+
 For Codex sessions with an active Goal, intermediate turn completions do not
 produce ready-for-input notifications: the Goal is still running automatically.
 Ready notifications resume after the Goal completes, pauses, becomes blocked, or

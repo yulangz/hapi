@@ -6,15 +6,17 @@ import { VisibilityTracker } from '../visibility/visibilityTracker'
 import { describe, expect, it, mock, spyOn } from 'bun:test'
 import type { Session, SyncEvent } from '../sync/syncEngine'
 import { PushNotificationChannel } from './pushNotificationChannel'
-import { PushService, type PushPayload } from './pushService'
+import { PushService, type PushDispatchResult, type PushPayload } from './pushService'
 
 const main = { id: 'main-id', namespace: 'default', hamletMain: true, active: true,
     metadata: { path: '/work', host: 'host', name: 'Renamed assistant' } } as Session
 const child = { ...main, id: 'child-id', hamletMain: undefined }
 const notification = { id: 'stored-message-1', text: 'New reply' }
 
-function setup({ delivered = 0 } = {}) {
-    const push = mock(async (_namespace: string, _payload: PushPayload): Promise<string[]> => [])
+function setup({ delivered = false, acceptedEndpoints = [] as string[], uncertain = false } = {}) {
+    const push = mock(async (_namespace: string, _payload: PushPayload): Promise<PushDispatchResult> => ({
+        acceptedEndpoints, uncertain
+    }))
     const toast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>, _options: { includeHidden: boolean }) => delivered)
     const channel = new PushNotificationChannel(
         { sendToNamespace: push } as never, { sendToast: toast } as never
@@ -28,14 +30,14 @@ describe('PushNotificationChannel', () => {
         await channel.sendAgentNotification(main, notification)
         expect(toast).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             data: expect.objectContaining({
-                notificationKind: 'main-agent-notification', notificationId: notification.id, notificationAt: expect.any(Number),
+                notificationKind: 'main-agent-reply', notificationId: notification.id, notificationAt: expect.any(Number),
                 body: notification.text, sessionId: main.id, url: '/sessions/main-id', pushAccepted: []
             })
         }), { includeHidden: true })
         expect(push).toHaveBeenCalledWith(main.namespace, expect.objectContaining({
             tag: 'hamlet-main-agent-' + notification.id,
             title: 'Hamlet', body: 'New notification from your main Agent',
-            data: { type: 'main-agent-notification' }
+            data: { type: 'main-agent-reply' }
         }))
         await channel.sendAgentNotification(main, { ...notification, id: 'stored-message-2' })
         expect(push.mock.calls[1][1].tag).not.toBe(push.mock.calls[0][1].tag)
@@ -61,12 +63,12 @@ describe('PushNotificationChannel', () => {
             }
             const push = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
             const send = spyOn(push as unknown as {
-                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<string | null>
+                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<'accepted' | 'rejected'>
             }, 'sendToSubscription').mockImplementation(async (_namespace, subscription) =>
-                subscription.endpoint === endpoints[0] ? subscription.endpoint : null
+                subscription.endpoint === endpoints[0] ? 'accepted' : 'rejected'
             )
             expect(tracker.hasVisibleConnection(main.namespace)).toBe(true)
-            await new PushNotificationChannel(push, sse).sendAgentNotification(main, notification)
+            expect(await new PushNotificationChannel(push, sse).sendAgentNotification(main, notification)).toBe('dispatched')
 
             expect(received).toHaveLength(1)
             expect(received[0]).toMatchObject({ type: 'toast', data: {
@@ -80,7 +82,7 @@ describe('PushNotificationChannel', () => {
                 expect(namespace).toBe(main.namespace)
                 expect(JSON.parse(body)).toEqual({
                     title: 'Hamlet', body: 'New notification from your main Agent', tag: 'hamlet-main-agent-' + notification.id,
-                    data: { type: 'main-agent-notification' }
+                    data: { type: 'main-agent-reply' }
                 })
             }
         } finally {
@@ -98,7 +100,7 @@ describe('PushNotificationChannel', () => {
             expect(push).toHaveBeenCalledTimes(1)
             expect(toast).not.toHaveBeenCalled()
             rejectPush(new Error('Push unavailable'))
-            await pending
+            expect(await pending).toBe('unknown')
             expect(toast.mock.calls[0][1].data.pushAccepted).toEqual([])
         } finally {
             log.mockRestore()
@@ -117,7 +119,7 @@ describe('PushNotificationChannel', () => {
             store.push.addPushSubscription(main.namespace, { endpoint, p256dh, auth })
             const service = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
             expect(await service.sendToNamespace(main.namespace, { title: 'Hamlet', body: 'New notification from your main Agent' }))
-                .toEqual([])
+                .toEqual({ acceptedEndpoints: [], uncertain: false })
             expect(log.mock.calls).toEqual([['[PushService] Failed to send notification:', 'ConnectionRefused']])
         } finally {
             send.mockRestore()
@@ -127,19 +129,19 @@ describe('PushNotificationChannel', () => {
     })
 
     it('can send foreground Web Push without waiting for the SSE toast', async () => {
-        const { channel, push, toast } = setup()
-        let release!: (count: number) => void
+        const { channel, push, toast } = setup({ acceptedEndpoints: ['https://push.example.test/accepted'] })
+        let release!: (written: boolean) => void
         toast.mockImplementation(() => new Promise(resolve => { release = resolve }))
         try {
             await channel.sendAgentNotification(main, notification)
             expect(push).toHaveBeenCalledTimes(1)
         } finally {
-            release(1)
+            release(true)
         }
     })
 
     it('does not send an agent notification for a child, and keeps status and permission toasts in-app', async () => {
-        const { channel, push, toast } = setup({ delivered: 1 })
+        const { channel, push, toast } = setup({ delivered: true })
         await channel.sendAgentNotification(child, notification)
         expect(toast).not.toHaveBeenCalled()
         await channel.sendReady(child)
@@ -152,6 +154,15 @@ describe('PushNotificationChannel', () => {
             expect(options).toEqual({ includeHidden: false })
         }
         expect(push).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        { delivered: false, uncertain: false, result: 'retryable' },
+        { delivered: false, uncertain: true, result: 'unknown' },
+        { delivered: true, uncertain: true, result: 'dispatched' },
+    ])('uses SSE and unacknowledged Push outcomes to return $result', async ({ delivered, uncertain, result }) => {
+        const { channel } = setup({ delivered, uncertain })
+        expect(await channel.sendAgentNotification(main, notification)).toBe(result)
     })
 
     it('retains in-page toast deduplication when the native companion delivered', async () => {

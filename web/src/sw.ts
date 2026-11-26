@@ -104,7 +104,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('push', (event) => {
     const payload = event.data?.json() as PushPayload | undefined
-    if (payload?.data?.type !== 'main-agent-notification') {
+    if (payload?.data?.type !== 'main-agent-reply') {
         return
     }
 

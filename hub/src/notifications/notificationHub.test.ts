@@ -111,6 +111,7 @@ describe('explicit agent notifications', () => {
         const channel = Object.assign(new StubChannel(), {
             sendAgentNotification: async (_session: Session, notification: { text: string }) => {
                 delivered.push(notification.text)
+                return 'dispatched' as const
             }
         })
         const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])

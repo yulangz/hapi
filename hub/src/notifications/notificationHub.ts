@@ -1,6 +1,6 @@
 import type { Session, SyncEngine, SyncEvent } from '../sync/syncEngine'
 import type { SessionEndReason } from '@hamlet/protocol'
-import type { AgentNotification, NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
+import type { AgentNotification, AgentNotificationOutcome, NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
 import type { NotificationSendContext } from './notificationSendContext'
 import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
 
@@ -44,18 +44,18 @@ export class NotificationHub {
         this.pendingGoalReady.clear()
     }
 
-    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<void> {
-        const channels = this.channels.filter(channel => channel.sendAgentNotification)
-        if (channels.length === 0) throw new Error('No agent notification channel is configured')
-        const results = await Promise.allSettled(channels.map(async channel => {
-            await channel.sendAgentNotification!(session, notification)
-        }))
-        if (results.some(result => result.status === 'rejected')) {
-            console.error('[NotificationHub] Agent notification channel failed')
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<AgentNotificationOutcome> {
+        const deliveries = this.channels.flatMap(channel => channel.sendAgentNotification
+            ? [Promise.resolve().then(() => channel.sendAgentNotification!(session, notification))]
+            : [])
+        const results = await Promise.allSettled(deliveries)
+        if (results.some(result => result.status === 'fulfilled' && result.value === 'dispatched')) {
+            return 'dispatched'
         }
-        if (results.every(result => result.status === 'rejected')) {
-            throw new Error('Agent notification dispatch failed')
+        if (results.some(result => result.status === 'rejected' || result.value === 'unknown')) {
+            return 'unknown'
         }
+        return 'retryable'
     }
 
     private handleSyncEvent(event: SyncEvent): void {

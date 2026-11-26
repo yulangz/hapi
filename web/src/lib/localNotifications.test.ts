@@ -12,7 +12,7 @@ const hub = 'https://hub.example.test'
 const text = { title: '等待输入', body: 'Codex is ready' }
 const notification = (id = 'dispatch-1') => ({
     title: 'Ready for input', body: 'Codex is ready', sessionId: 'session-1',
-    url: '/sessions/session-1', notificationKind: 'main-agent-notification' as const, notificationId: id, notificationAt: Date.now()
+    url: '/sessions/session-1', notificationKind: 'main-agent-reply' as const, notificationId: id, notificationAt: Date.now()
 })
 
 describe('local system notification fallback', () => {

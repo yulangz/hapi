@@ -1,11 +1,17 @@
 import { createHash } from 'node:crypto'
-import type { Session } from '../sync/syncEngine'
-import type { AgentNotification, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
+import { setTimeout as delay } from 'node:timers/promises'
+import type { Session, SyncEvent } from '../sync/syncEngine'
+import type { AgentNotification, AgentNotificationOutcome, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
 import type { PushPayload, PushService } from './pushService'
 import { composeInputRequestNotification, getFirstPendingRequest } from '../notifications/inputRequest'
+
+type ToastData = Extract<SyncEvent, { type: 'toast' }>['data']
+const TOAST_WRITE_TIMEOUT_MS = 3_000
+// This wire marker also serves PWA assets that predate the notify tool.
+const BROWSER_NOTIFICATION_KIND = 'main-agent-reply' as const
 
 export class PushNotificationChannel implements NotificationChannel {
     constructor(
@@ -19,10 +25,9 @@ export class PushNotificationChannel implements NotificationChannel {
      * getting PWA notifications" reports without committing permanent log
      * spam to the hub journal.
      */
-    private logBranch(method: string, namespace: string, branch: string, extra: string = ''): void {
+    private logBranch(method: string, namespace: string, branch: string): void {
         if (process.env.HAMLET_NOTIFY_DEBUG !== '1') return
-        const note = extra ? ` ${extra}` : ''
-        console.log(`[Push.${method}] ns=${namespace} ${branch}${note}`)
+        console.log(`[Push.${method}] ns=${namespace} ${branch}`)
     }
 
     async sendPermissionRequest(session: Session, ctx?: NotificationSendContext): Promise<void> {
@@ -99,73 +104,74 @@ export class PushNotificationChannel implements NotificationChannel {
         await this.deliverWebOrToast(session, payload, ctx, 'task')
     }
 
-    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<void> {
-        if (!session.hamletMain) return
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<AgentNotificationOutcome> {
+        if (!session.hamletMain) return 'retryable'
         const body = notification.text.replace(/\s+/gu, ' ')
-        await this.deliverWebOrToast(session, {
+        // Keep Push generic because a browser endpoint can outlive its login.
+        this.logBranch('notify', session.namespace, 'web-push-fired')
+        const push = await this.pushService.sendToNamespace(session.namespace, {
+            title: 'Hamlet',
+            body: 'New notification from your main Agent',
+            tag: `hamlet-main-agent-${notification.id}`,
+            data: { type: BROWSER_NOTIFICATION_KIND }
+        }).catch(() => {
+            console.error('[Push.notify] Failed to dispatch Web Push')
+            return { acceptedEndpoints: [], uncertain: true }
+        })
+
+        const toast = this.publishToast(session.namespace, 'notify', {
             title: getSessionName(session),
             body: body.length > 180 ? body.slice(0, 179) + '…' : body,
-            tag: `hamlet-main-agent-${notification.id}`,
-            data: { type: 'main-agent-notification', sessionId: session.id, url: this.buildSessionPath(session.id) }
-        }, undefined, 'notify', notification.id)
+            sessionId: session.id,
+            url: this.buildSessionPath(session.id),
+            notificationKind: BROWSER_NOTIFICATION_KIND,
+            notificationId: notification.id,
+            notificationAt: Date.now(),
+            pushAccepted: push.acceptedEndpoints.map(endpoint => createHash('sha256')
+                .update(`${notification.id}\0${endpoint}`).digest('hex'))
+        }, true).catch(() => null)
+
+        if (push.acceptedEndpoints.length > 0) return 'dispatched'
+        const deadline = new AbortController()
+        const written = await Promise.race([
+            toast, delay(TOAST_WRITE_TIMEOUT_MS, null, { signal: deadline.signal, ref: false })
+        ]).finally(() => deadline.abort())
+        if (written) return 'dispatched'
+        return written === null || push.uncertain ? 'unknown' : 'retryable'
     }
 
     private async deliverWebOrToast(
         session: Session,
         payload: PushPayload,
         ctx: NotificationSendContext | undefined,
-        method: 'permission' | 'ready' | 'task' | 'notify',
-        notificationId?: string
+        method: 'permission' | 'ready' | 'task'
     ): Promise<void> {
         if (ctx?.nativeGate?.sent) {
-            this.logBranch(method, session.namespace, 'defer-to-native', 'fcm-delivered-this-dispatch')
+            this.logBranch(method, session.namespace, 'defer-to-native')
             return
         }
+        void this.publishToast(session.namespace, method, {
+            title: payload.title,
+            body: payload.body,
+            sessionId: session.id,
+            url: payload.data?.url ?? this.buildSessionPath(session.id)
+        }).catch(() => {})
+    }
 
-        const url = payload.data?.url ?? this.buildSessionPath(session.id)
-        let pushAccepted: string[] = []
-        if (notificationId) {
-            // A visible stream on one browser says nothing about other browsers.
-            // Keep push generic because a browser endpoint can outlive its login.
-            this.logBranch(method, session.namespace, 'web-push-fired')
-            const accepted = await this.pushService.sendToNamespace(session.namespace, {
-                title: 'Hamlet',
-                body: 'New notification from your main Agent',
-                tag: payload.tag,
-                data: { type: 'main-agent-notification' }
-            }).catch(() => {
-                console.error('[Push.notify] Failed to dispatch Web Push')
-                return []
-            })
-            pushAccepted = accepted.map(endpoint => createHash('sha256')
-                .update(`${notificationId}\0${endpoint}`).digest('hex'))
+    private async publishToast(
+        namespace: string,
+        method: string,
+        data: ToastData,
+        includeHidden = false
+    ): Promise<boolean> {
+        try {
+            const written = await this.sseManager.sendToast(namespace, { type: 'toast', namespace, data }, { includeHidden })
+            this.logBranch(method, namespace, written ? 'sse-toast-delivered' : 'sse-toast-zero')
+            return written
+        } catch (error) {
+            this.logBranch(method, namespace, 'sse-toast-failed')
+            throw error
         }
-
-        // Hidden tabs can also provide a local fallback for their browser.
-        void this.sseManager.sendToast(session.namespace, {
-            type: 'toast',
-            namespace: session.namespace,
-            data: {
-                title: payload.title,
-                body: payload.body,
-                sessionId: session.id,
-                url,
-                ...(notificationId ? {
-                    notificationKind: 'main-agent-notification' as const,
-                    notificationId,
-                    notificationAt: Date.now(),
-                    pushAccepted
-                } : {})
-            }
-        }, { includeHidden: Boolean(notificationId) }).then(delivered => {
-            if (delivered > 0) {
-                this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
-            } else {
-                this.logBranch(method, session.namespace, 'sse-toast-zero', 'no visible delivery')
-            }
-        }).catch(() => {
-            this.logBranch(method, session.namespace, 'sse-toast-failed')
-        })
     }
 
     private buildSessionPath(sessionId: string): string {

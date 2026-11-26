@@ -81,20 +81,28 @@ export class HamletStore {
             ).get(agent, requestId)
             if (existing) {
                 if (existing.text_hash !== textHash) throw new Error('Notification request_id is already in use with different text')
-                return { id: existing.id, status: existing.status, created: false }
+                if (existing.status === 'failed') {
+                    this.db.run("UPDATE hamlet_notification_requests SET status='dispatching' WHERE agent=? AND request_id=?", [
+                        agent, requestId
+                    ])
+                    return { id: existing.id, status: 'dispatching' as const, claimed: true }
+                }
+                return { id: existing.id, status: existing.status, claimed: false }
             }
             const id = randomUUID()
             this.db.run(
                 "INSERT INTO hamlet_notification_requests(agent,request_id,id,text_hash,status) VALUES(?,?,?,?,'dispatching')",
                 [agent, requestId, id, textHash],
             )
-            return { id, status: 'dispatching' as const, created: true }
+            return { id, status: 'dispatching' as const, claimed: true }
         }).immediate()
     }
     finishNotification(agent: string, requestId: string, status: 'dispatched' | 'failed') {
-        this.db.run('UPDATE hamlet_notification_requests SET status=? WHERE agent=? AND request_id=?', [
-            status, agent, requestId,
-        ])
+        const { changes } = this.db.run(
+            "UPDATE hamlet_notification_requests SET status=? WHERE agent=? AND request_id=? AND status='dispatching'",
+            [status, agent, requestId],
+        )
+        if (changes !== 1) throw new Error('Notification dispatch reservation unavailable')
     }
     children(actor: Agent, ids?: string[]) {
         return this.db

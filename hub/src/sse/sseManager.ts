@@ -218,42 +218,21 @@ export class SSEManager {
         namespace: string,
         event: Extract<SyncEvent, { type: 'toast' }>,
         options: { includeHidden?: boolean } = {}
-    ): Promise<number> {
-        const deliveries: Array<Promise<{ id: string; ok: boolean; visible: boolean }>> = []
+    ): Promise<boolean> {
+        const deliveries: Promise<void>[] = []
         for (const connection of this.connections.values()) {
-            if (connection.namespace !== namespace) {
-                continue
-            }
+            if (connection.namespace !== namespace) continue
             const visible = this.visibilityTracker.isVisibleConnection(connection.id)
             // Hidden global streams keep the local notification fallback alive.
-            // Detail streams do not need a second copy of the same alert.
-            if (!visible && !(options.includeHidden && connection.all)) {
-                continue
-            }
+            if (!visible && !(options.includeHidden && connection.all)) continue
 
-            deliveries.push(
-                Promise.resolve(connection.send(event))
-                    .then(() => ({ id: connection.id, ok: true, visible }))
-                    .catch(() => ({ id: connection.id, ok: false, visible }))
-            )
+            deliveries.push(Promise.resolve().then(() => connection.send(event)).catch(error => {
+                this.unsubscribe(connection.id)
+                throw error
+            }))
         }
-
-        if (deliveries.length === 0) {
-            return 0
-        }
-
-        const results = await Promise.all(deliveries)
-        let successCount = 0
-        for (const result of results) {
-            if (result.ok) {
-                // A hidden SSE recipient must never suppress remote Web Push.
-                if (result.visible) successCount += 1
-                continue
-            }
-            this.unsubscribe(result.id)
-        }
-
-        return successCount
+        // One acknowledged write is enough, even if another tab is backpressured.
+        return Promise.any(deliveries).then(() => true, () => false)
     }
 
     broadcast(event: SyncEvent): void {
