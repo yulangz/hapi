@@ -9,6 +9,7 @@ import {
     putShareTransfer,
 } from './lib/shareTransfer'
 import { shareTargetPathname } from './lib/sharePath'
+import { hasNotificationPermission, MAIN_REPLY_TAG_PREFIX, showReplyOnce } from './lib/replyNotificationReceipts'
 
 const sharePath = shareTargetPathname()
 
@@ -110,15 +111,20 @@ self.addEventListener('push', (event) => {
     // An endpoint can outlive a login. Ignore presentation and routing data
     // even from older Hub payloads that are still in flight.
     const body = self.navigator.language.startsWith('zh') ? '主 Agent 有新回复' : 'New main Agent reply'
-    event.waitUntil(
-        self.registration.showNotification('Hamlet', {
-            body,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-64x64.png',
-            data: { url: self.registration.scope },
-            tag: payload.tag
-        })
-    )
+    const show = () => self.registration.showNotification('Hamlet', {
+        body,
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-64x64.png',
+        data: { url: self.registration.scope },
+        tag: payload.tag
+    })
+    // The existing Push tag carries the same server-assigned ID as SSE.
+    const id = payload.tag?.startsWith(MAIN_REPLY_TAG_PREFIX) && payload.tag.slice(MAIN_REPLY_TAG_PREFIX.length)
+    if (id) {
+        event.waitUntil(showReplyOnce(id, hasNotificationPermission, show))
+    } else if (hasNotificationPermission()) {
+        event.waitUntil(show())
+    }
 })
 
 self.addEventListener('notificationclick', (event) => {

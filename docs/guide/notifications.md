@@ -22,10 +22,11 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 When notification permission is granted, an open HAMLET page can display a
 local alert from its live connection if the push service did not confirm
 acceptance of that reply for the browser's endpoint. This works in visible and
-hidden tabs and while viewing a different session. Tabs share a receipt for
-each reply so they show a single local alert.
+hidden tabs and while viewing a different session. Tabs and the service worker
+share a browser receipt for each reply, including after the alert is dismissed.
 
-Local alerts require an active service worker, Web Locks, and local storage.
+HAMLET uses the service worker for local alerts when available. An open page
+can also show them directly if its browser supports page notifications.
 When the page is closed or disconnected, delivery requires Web Push. The Hub
 must be able to reach the browser's push service. Operating-system Focus or Do
 Not Disturb can suppress system banners.

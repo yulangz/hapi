@@ -1,6 +1,12 @@
 import { createHash, webcrypto } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { showLocalNotification } from './localNotifications'
+import { showReplyOnce } from './replyNotificationReceipts'
+
+vi.mock('./replyNotificationReceipts', async (importOriginal) => ({
+    ...await importOriginal<typeof import('./replyNotificationReceipts')>(),
+    showReplyOnce: vi.fn()
+}))
 
 const hub = 'https://hub.example.test'
 const text = { title: '等待输入', body: 'Codex is ready' }
@@ -12,29 +18,36 @@ const notification = (id = 'dispatch-1') => ({
 describe('local system notification fallback', () => {
     const showNotification = vi.fn()
     const getSubscription = vi.fn()
+    const getRegistration = vi.fn()
+    const pageNotification = vi.fn()
     const isCurrentScope = vi.fn()
     let permission: NotificationPermission
 
     beforeEach(() => {
-        localStorage.clear()
         permission = 'granted'
         isCurrentScope.mockReset().mockReturnValue(true)
         vi.stubGlobal('crypto', webcrypto)
         showNotification.mockReset().mockResolvedValue(undefined)
         getSubscription.mockReset().mockResolvedValue(null)
-        let pending = Promise.resolve<unknown>(undefined)
-        vi.stubGlobal('navigator', {
-            serviceWorker: { getRegistration: vi.fn().mockResolvedValue({
-                active: {}, showNotification, pushManager: { getSubscription }
-            }) },
-            // All recipients share one exclusive browser lock, as real tabs do.
-            locks: { request: (_name: string, callback: () => Promise<unknown>) => {
-                const result = pending.then(callback)
-                pending = result.catch(() => undefined)
-                return result
-            } }
+        getRegistration.mockReset().mockResolvedValue({
+            active: {}, showNotification, pushManager: { getSubscription }
         })
-        vi.stubGlobal('Notification', { get permission() { return permission } })
+        vi.mocked(showReplyOnce).mockReset().mockImplementation(async (_id, canShow, show) => {
+            if (!canShow()) return false
+            await show()
+            return true
+        })
+        pageNotification.mockReset()
+        vi.stubGlobal('navigator', { serviceWorker: { getRegistration } })
+        vi.stubGlobal('Notification', class {
+            static get permission() { return permission }
+            onshow: (() => void) | undefined
+
+            constructor(title: string, options: NotificationOptions) {
+                pageNotification(title, options)
+                queueMicrotask(() => this.onshow?.())
+            }
+        })
     })
 
     afterEach(() => {
@@ -42,13 +55,11 @@ describe('local system notification fallback', () => {
         vi.unstubAllGlobals()
     })
 
-    it('shows one localized system notification across simultaneous recipients, even after dismissal', async () => {
+    it('uses the reply ID for receipts and honors a receipt from another recipient', async () => {
         const event = notification()
-        expect(await Promise.all([
-            showLocalNotification(event, text, hub, isCurrentScope),
-            showLocalNotification(event, text, hub, isCurrentScope),
-            showLocalNotification(event, text, hub, isCurrentScope)
-        ])).toEqual([true, false, false])
+        expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(true)
+        expect(showReplyOnce).toHaveBeenCalledWith(event.notificationId, expect.any(Function), expect.any(Function))
+        vi.mocked(showReplyOnce).mockResolvedValueOnce(false)
         expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(false)
         expect(showNotification).toHaveBeenCalledTimes(1)
         expect(showNotification).toHaveBeenCalledWith(text.title, expect.objectContaining({
@@ -77,7 +88,6 @@ describe('local system notification fallback', () => {
         getSubscription.mockResolvedValue({ endpoint })
         expect(await showLocalNotification(event, text, hub, isCurrentScope)).toBe(true)
 
-        localStorage.clear()
         expect(await showLocalNotification({ ...event, pushAccepted }, text, hub, isCurrentScope)).toBe(false)
         expect(await showLocalNotification({ ...notification('second'), pushAccepted }, text, hub, isCurrentScope)).toBe(true)
         getSubscription.mockResolvedValue({ endpoint: 'https://push.example.test/other' })
@@ -107,10 +117,10 @@ describe('local system notification fallback', () => {
         expect(showNotification).not.toHaveBeenCalled()
     })
 
-    it('fails closed when cross-tab receipts cannot be persisted', async () => {
-        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('Storage blocked') })
-        vi.spyOn(console, 'warn').mockImplementation(() => {})
-        expect(await showLocalNotification(notification(), text, hub, isCurrentScope)).toBe(false)
+    it('displays a page notification when there is no active service worker', async () => {
+        getRegistration.mockResolvedValue(undefined)
+        expect(await showLocalNotification(notification(), text, hub, isCurrentScope)).toBe(true)
+        expect(pageNotification).toHaveBeenCalledWith(text.title, expect.objectContaining({ body: text.body }))
         expect(showNotification).not.toHaveBeenCalled()
     })
 
