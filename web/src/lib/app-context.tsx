@@ -6,6 +6,11 @@ type AppContextValue = {
     token: string
     baseUrl: string
     titleSuggestionAvailable?: boolean
+    browserNotifications?: {
+        permission: NotificationPermission
+        isSubscribed: boolean
+        enable: () => Promise<boolean>
+    }
 }
 
 const AppContext = createContext<AppContextValue | null>(null)

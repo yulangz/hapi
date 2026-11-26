@@ -15,7 +15,7 @@ export async function showLocalNotification(
     localized: { title: string; body: string },
     baseUrl: string
 ): Promise<boolean> {
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted'
+    if (event.notificationKind !== 'main-agent-reply' || typeof Notification === 'undefined' || Notification.permission !== 'granted'
         || !('serviceWorker' in navigator) || !navigator.locks
         || !event.notificationId || !Number.isFinite(event.notificationAt)) {
         return false
@@ -59,7 +59,7 @@ export async function showLocalNotification(
                     body: localized.body,
                     icon: '/pwa-192x192.png',
                     badge: '/pwa-64x64.png',
-                    tag: `hamlet-local-${id}`,
+                    tag: `hamlet-main-agent-${id}`,
                     data: { type: 'local-fallback', sessionId: event.sessionId, url: url.toString() }
                 })
             } catch (error) {

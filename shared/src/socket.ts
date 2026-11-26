@@ -256,7 +256,7 @@ export interface ClientToServerEvents {
     // own origin time (e.g. a Claude transcript entry's timestamp). Currently
     // only honored by the hub for agent messages (no localId) — see
     // messages.ts addMessage. Absent -> hub falls back to Date.now().
-    message: (data: { sid: string; message: unknown; localId?: string; createdAt?: number }) => void
+    message: (data: { sid: string; message: unknown; localId?: string; createdAt?: number; liveAssistantReply?: true }) => void
     'session-alive': (data: {
         sid: string
         time: number

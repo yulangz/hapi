@@ -58,12 +58,7 @@ describe('input-request notification channels', () => {
         }
     })
 
-    it.each([
-        { visible: false, toastCount: 0, nativeSent: false, delivery: 'push' },
-        { visible: true, toastCount: 1, nativeSent: false, delivery: 'toast' },
-        { visible: true, toastCount: 0, nativeSent: false, delivery: 'push' },
-        { visible: true, toastCount: 1, nativeSent: true, delivery: 'native' }
-    ])('keeps Web fallback and toast routing for $delivery (visible=$visible, count=$toastCount)', async ({ visible, toastCount, nativeSent, delivery }) => {
+    it.each([false, true])('keeps input requests as in-app toasts when nativeSent=%s', async (nativeSent) => {
         const pushed: PushPayload[] = []
         const toasts: Array<Extract<SyncEvent, { type: 'toast' }>> = []
         const channel = new PushNotificationChannel({ sendToNamespace: async (namespace: string, payload: PushPayload) => {
@@ -71,18 +66,13 @@ describe('input-request notification channels', () => {
             pushed.push(payload)
         } } as never, { sendToast: async (_namespace: string, event: typeof toasts[number]) => {
             toasts.push(event)
-            return toastCount
-        } } as never, { hasVisibleConnection: () => visible } as never, '')
+            return 1
+        } } as never, { hasVisibleConnection: () => true } as never, '')
         await channel.sendPermissionRequest(session, { nativeGate: { sent: nativeSent } })
-        expect(pushed).toHaveLength(delivery === 'push' ? 1 : 0)
-        // Hidden global web streams now receive the local-notification fallback
-        // too; only the manager's visible delivery count suppresses remote Push.
+        expect(pushed).toHaveLength(0)
         expect(toasts).toHaveLength(!nativeSent ? 1 : 0)
-        if (pushed[0]) expect(pushed[0]).toEqual({ title: expected.title, body: expected.body, tag: expected.tag,
-            data: { type: 'input-request', sessionId: session.id, requestId: 'request-input', url: expected.url } })
         if (toasts[0]) expect(toasts[0].data).toEqual({ title: expected.title, body: expected.body,
-            sessionId: session.id, url: expected.url,
-            notificationId: expect.any(String), notificationAt: expect.any(Number) })
+            sessionId: session.id, url: expected.url })
     })
 
     it('gives Telegram the same summary with only an Open Session button', () => {

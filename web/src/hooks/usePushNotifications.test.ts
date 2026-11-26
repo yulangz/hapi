@@ -25,7 +25,7 @@ function createSubscription(endpoint: string, unsubscribeResult: boolean | Error
     }
 }
 
-function setupPushEnvironment(existing: PushSubscriptionMock, replacement: PushSubscriptionMock) {
+function setupPushEnvironment(existing: PushSubscriptionMock | null, replacement: PushSubscriptionMock) {
     const pushManager = {
         getSubscription: vi.fn().mockResolvedValue(existing),
         subscribe: vi.fn().mockResolvedValue(replacement)
@@ -126,5 +126,19 @@ describe('usePushNotifications VAPID rotation', () => {
             keys: { p256dh: 'p256dh', auth: 'auth' }
         })
         expect(localStorage.getItem(VAPID_STORAGE_KEY)).toBe(CURRENT_VAPID_KEY)
+    })
+
+    it('removes a new browser subscription if the Hub could not register it', async () => {
+        const replacement = createSubscription('https://push.test/current', true)
+        setupPushEnvironment(null, replacement)
+        const api = createApi()
+        api.subscribePushNotifications.mockRejectedValue(new Error('Hub unavailable'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(false)
+        })
+        expect(replacement.unsubscribe).toHaveBeenCalledOnce()
+        expect(result.current.isSubscribed).toBe(false)
     })
 })

@@ -46,6 +46,17 @@ describe('SessionRowSummary background status', () => {
         localStorage.clear()
     })
 
+    it('marks the main Agent by identity even when a child has the same title', () => {
+        const main = makeSummary({ hamletMain: true, active: false })
+        const child = makeSummary({ id: 'child' })
+        render(<I18nProvider>
+            <SessionRowSummary session={main} />
+            <SessionRowSummary session={child} />
+        </I18nProvider>)
+        expect(screen.getAllByText('Background demo')).toHaveLength(2)
+        expect(screen.getAllByText('Main', { exact: true })).toHaveLength(1)
+    })
+
     it('shows the basic running label in Basic mode', () => {
         renderSummary(false)
 

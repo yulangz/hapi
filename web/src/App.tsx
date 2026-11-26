@@ -178,13 +178,16 @@ function AppInner() {
     const isFirstConnectRef = useRef(true)
     const baseUrlRef = useRef(baseUrl)
     const pushPromptedRef = useRef(false)
+    const defaultSessionResolvedFor = useRef<string | null>(null)
     const { appBadgeEnabled: appBadgePreferenceEnabled } = useAppBadgePreference()
     const appBadgeEnabled = Boolean(api && token && appBadgePreferenceEnabled && canUseAppBadging())
+    const sessionsIndex = pathname === '/sessions' || pathname === '/sessions/'
+    const needsDefaultSession = sessionsIndex && defaultSessionResolvedFor.current !== baseUrl
     const {
         sessions: appBadgeSessions,
         isLoading: appBadgeSessionsLoading,
         error: appBadgeSessionsError,
-    } = useSessions(api, { enabled: appBadgeEnabled })
+    } = useSessions(api, { enabled: appBadgeEnabled || needsDefaultSession })
     useAppBadge({
         enabled: appBadgeEnabled,
         scope: baseUrl,
@@ -192,13 +195,34 @@ function AppInner() {
         isLoading: appBadgeSessionsLoading,
         hasError: Boolean(appBadgeSessionsError),
     })
-    const { isSupported: isPushSupported, permission: pushPermission, requestPermission, subscribe } = usePushNotifications(api)
+    const { isSupported: isPushSupported, permission: pushPermission, isSubscribed, requestPermission, subscribe } = usePushNotifications(api)
+
+    useEffect(() => {
+        if (!api || !token || baseUrlRef.current !== baseUrl || defaultSessionResolvedFor.current === baseUrl || pathname === '/') return
+        if (!sessionsIndex) {
+            defaultSessionResolvedFor.current = baseUrl
+            return
+        }
+        if (appBadgeSessionsLoading || appBadgeSessionsError) return
+        defaultSessionResolvedFor.current = baseUrl
+        const main = appBadgeSessions.find(session => session.hamletMain)
+        if (main) {
+            void router.navigate({ to: '/sessions/$sessionId', params: { sessionId: main.id }, replace: true })
+        }
+    }, [api, token, baseUrl, pathname, sessionsIndex, appBadgeSessions, appBadgeSessionsLoading, appBadgeSessionsError, router])
+
+    const enableBrowserNotifications = useCallback(async () => {
+        pushPromptedRef.current = true
+        if (pushPermission !== 'granted' && !await requestPermission()) return false
+        return subscribe()
+    }, [pushPermission, requestPermission, subscribe])
 
     useEffect(() => {
         if (baseUrlRef.current === baseUrl) {
             return
         }
         baseUrlRef.current = baseUrl
+        pushPromptedRef.current = false
         isFirstConnectRef.current = true
         syncTokenRef.current = 0
         queryClient.clear()
@@ -225,7 +249,7 @@ function AppInner() {
             pushPromptedRef.current = false
             return
         }
-        if (isTelegramApp() || !isPushSupported) {
+        if (isTelegramApp() || !isPushSupported || pushPermission !== 'granted') {
             return
         }
         if (pushPromptedRef.current) {
@@ -233,21 +257,8 @@ function AppInner() {
         }
         pushPromptedRef.current = true
 
-        const run = async () => {
-            if (pushPermission === 'granted') {
-                await subscribe()
-                return
-            }
-            if (pushPermission === 'default') {
-                const granted = await requestPermission()
-                if (granted) {
-                    await subscribe()
-                }
-            }
-        }
-
-        void run()
-    }, [api, isPushSupported, pushPermission, requestPermission, subscribe, token])
+        void subscribe()
+    }, [api, isPushSupported, pushPermission, subscribe, token])
 
     const handleSseConnect = useCallback((info: { resumed: boolean }) => {
         // Clear disconnected state on successful connection
@@ -516,7 +527,12 @@ function AppInner() {
     }
 
     return (
-        <AppContextProvider value={{ api, token, baseUrl, titleSuggestionAvailable }}>
+        <AppContextProvider value={{
+            api, token, baseUrl, titleSuggestionAvailable,
+            browserNotifications: !isTelegramApp() && isPushSupported
+                ? { permission: pushPermission, isSubscribed, enable: enableBrowserNotifications }
+                : undefined
+        }}>
             <VoiceProvider>
                 <PwaUpdateBannerWithStatusOffset
                     isSyncing={isSyncing}

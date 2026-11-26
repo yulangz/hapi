@@ -88,12 +88,13 @@ describe('cli session handlers', () => {
                 resolveSessionAccess: () => ({ ok: true, value: session as StoredSession }),
                 emitAccessError: () => {}, onWebappEvent: event => { events.push(event) } })
             const message = { role: 'agent', content: { type: AGENT_MESSAGE_PAYLOAD_TYPE, data: { type: 'message', message: 'final answer' } } }
-            const packet = { sid: session.id, localId: 'codex:root:stable-final', message }
+            const packet = { sid: session.id, localId: 'codex:root:stable-final', message, liveAssistantReply: true }
             socket.trigger('message', packet)
             socket.trigger('messages-consumed', { sid: session.id, localIds: [packet.localId] })
             for (let i = 0; i < 20; i++) socket.trigger('message', packet)
             socket.trigger('messages-consumed', { sid: session.id, localIds: [packet.localId] })
             expect(events.filter(event => event.type === 'message-received')).toHaveLength(1)
+            expect(events).toContainEqual(expect.objectContaining({ type: 'message-received', liveAssistantReply: true }))
             expect(socket.roomEvents.filter(event => event.event === 'update')).toHaveLength(1)
             expect(store.messages.getMessages(session.id)).toHaveLength(1)
             expect(store.messages.getMessages(session.id)[0].invokedAt).not.toBeNull()

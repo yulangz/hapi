@@ -5,7 +5,7 @@ const hub = 'https://hub.example.test'
 const text = { title: '等待输入', body: 'Codex is ready' }
 const notification = (id = 'dispatch-1') => ({
     title: 'Ready for input', body: 'Codex is ready', sessionId: 'session-1',
-    url: '/sessions/session-1', notificationId: id, notificationAt: Date.now()
+    url: '/sessions/session-1', notificationKind: 'main-agent-reply' as const, notificationId: id, notificationAt: Date.now()
 })
 
 describe('local system notification fallback', () => {
@@ -71,6 +71,11 @@ describe('local system notification fallback', () => {
         getSubscription.mockResolvedValue({ endpoint: 'https://push.example.test/channel' })
         expect(await showLocalNotification(notification('after'), text, hub)).toBe(false)
         expect(showNotification).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores legacy browser alerts and tool toasts', async () => {
+        expect(await showLocalNotification({ ...notification(), notificationKind: undefined }, text, hub)).toBe(false)
+        expect(showNotification).not.toHaveBeenCalled()
     })
 
     it('ignores stale or uncorrelated events instead of replaying old notifications', async () => {

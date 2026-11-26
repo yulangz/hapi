@@ -48,14 +48,16 @@ export class SharedCodexProjection {
 
     turnFor(id: string): string | undefined { return this.turns.get(id); }
     reset(): void { this.converter = new AppServerEventConverter(); this.emitted.clear(); }
-    private send(body: Record<string, unknown>, key: string): void {
+    private send(body: Record<string, unknown>, key: string, liveAssistantReply = false): void {
         if (this.emitted.has(key)) return;
         this.emitted.add(key);
         const id = `codex:${this.threadId}:${key}`;
-        this.session.sendAgentMessage(this.parentThreadId && !String(body.type).startsWith('agent-run-') ? {
+        const message = this.parentThreadId && !String(body.type).startsWith('agent-run-') ? {
             type: 'agent-run-trace', agentId: this.threadId, cardId: `codex-agent:${this.threadId}`, message: { ...body, id }, id,
             scope: { role: 'child', threadId: this.threadId, parentThreadId: this.parentThreadId }, scope_role: 'child'
-        } : { ...body, id }, id);
+        } : { ...body, id };
+        if (liveAssistantReply) this.session.sendAgentMessage(message, id, true);
+        else this.session.sendAgentMessage(message, id);
     }
 
     async notification(method: string, params: unknown, modelAtReceipt?: string): Promise<void> {
@@ -79,10 +81,10 @@ export class SharedCodexProjection {
                 }
             }
         }
-        await this.project(method, params, modelAtReceipt);
+        await this.project(method, params, modelAtReceipt, true);
     }
 
-    private async project(method: string, params: unknown, modelAtReceipt?: string): Promise<void> {
+    private async project(method: string, params: unknown, modelAtReceipt?: string, live = false): Promise<void> {
         if (method.startsWith('codex/event/')) return;
         const p = record(params);
         const item = record(p.item);
@@ -140,7 +142,9 @@ export class SharedCodexProjection {
                     this.send({ type: 'tool-call-result', callId, output: { status: 'non-blocking' } }, `${key}:async-question:result`);
                 } else this.send({ type: 'message', message: event.message,
                     ...(typeof event.phase === 'string' ? { phase: event.phase } : {}),
-                    ...(questions.length ? { questions, questionCallId: itemId } : {}) }, key);
+                    ...(questions.length ? { questions, questionCallId: itemId } : {}) }, key,
+                    live && !this.parentThreadId && this.session.getMetadata()?.hamletAgent === true
+                    && event.phase !== 'commentary' && questions.length === 0);
             }
             else if (event.type === 'agent_reasoning') this.send({ type: 'reasoning', message: event.text }, key);
             else if (event.type === 'exec_command_begin' && callId) {

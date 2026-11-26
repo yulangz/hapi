@@ -175,7 +175,9 @@ export class SessionCache {
             return parsed.success ? parsed.data : undefined
         })()
 
+        const managedAgent = this.store.hamlet?.agent(stored.id)
         const session: Session = {
+            ...(managedAgent?.namespace === stored.namespace && managedAgent.parent_id === null ? { hamletMain: true } : {}),
             hasConversationContent: this.store.messages.hasConversationContent(sessionId),
             id: stored.id,
             namespace: stored.namespace,

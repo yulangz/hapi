@@ -107,6 +107,7 @@ export function usePushNotifications(api: ApiClient | null) {
             return false
         }
 
+        let unregistered: PushSubscription | null = null
         try {
             const registration = await navigator.serviceWorker.ready
             const existing = await registration.pushManager.getSubscription()
@@ -138,11 +139,13 @@ export function usePushNotifications(api: ApiClient | null) {
                     userVisibleOnly: true,
                     applicationServerKey
                 })
+                unregistered = subscription
             }
 
             const json = subscription.toJSON()
             const keys = json.keys
             if (!json.endpoint || !keys?.p256dh || !keys.auth) {
+                await unregistered?.unsubscribe()
                 return false
             }
 
@@ -161,6 +164,9 @@ export function usePushNotifications(api: ApiClient | null) {
             setIsSubscribed(true)
             return true
         } catch (error) {
+            // A subscription the Hub never accepted would suppress the live
+            // local fallback without actually providing remote delivery.
+            await unregistered?.unsubscribe().catch(() => {})
             console.error('[PushNotifications] Failed to subscribe:', error)
             return false
         }

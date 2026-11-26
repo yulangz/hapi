@@ -317,6 +317,7 @@ export const DecryptedMessageSchema = z.object({
 export type DecryptedMessage = z.infer<typeof DecryptedMessageSchema>
 
 export const SessionSchema = z.object({
+    hamletMain: z.literal(true).optional(),
     hasConversationContent: z.boolean().optional(),
     id: z.string(),
     namespace: z.string(),
@@ -564,6 +565,7 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
     }),
     SessionChangedSchema.extend({
         type: z.literal('message-received'),
+        liveAssistantReply: z.literal(true).optional(),
         message: DecryptedMessageSchema
     }),
     SessionChangedSchema.extend({
@@ -598,6 +600,7 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             sessionId: z.string(),
             url: z.string(),
             // One live dispatch, shared across tabs; never replay old alerts.
+            notificationKind: z.literal('main-agent-reply').optional(),
             notificationId: z.string().optional(),
             notificationAt: z.number().optional()
         })

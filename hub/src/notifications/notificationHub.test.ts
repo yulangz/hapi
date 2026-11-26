@@ -104,6 +104,28 @@ function goalEvent(status: string | null, threadId = 'root'): Extract<SyncEvent,
 
 const readyMessage = () => messageEvent({ role: 'agent', content: { type: 'event', data: { type: 'ready' } } })
 
+describe('main Agent browser replies', () => {
+    it('accepts only live assistant text from the main Agent', () => {
+        const engine = new FakeSyncEngine()
+        const replies: string[] = []
+        const channel = Object.assign(new StubChannel(), {
+            sendMainAgentReply: async (_session: Session, reply: { text: string }) => { replies.push(reply.text) }
+        })
+        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])
+        const text = messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'message', message: 'New reply' } } })
+        try {
+            engine.setSession(createSession())
+            engine.emit({ ...text, liveAssistantReply: true })
+            engine.setSession(createSession({ hamletMain: true }))
+            engine.emit(text)
+            engine.emit({ ...messageEvent({ role: 'user', content: { type: 'text', text: 'User' } }), liveAssistantReply: true })
+            engine.emit({ ...messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'tool-call-result' } } }), liveAssistantReply: true })
+            engine.emit({ ...text, liveAssistantReply: true })
+            expect(replies).toEqual(['New reply'])
+        } finally { hub.stop() }
+    })
+})
+
 describe('Codex Goal ready notifications', () => {
     it('suppresses repeated intermediate completions while the Goal remains active, without a history scan per update', () => {
         const engine = new FakeSyncEngine(), channel = new StubChannel()

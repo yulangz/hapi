@@ -4,6 +4,22 @@ import { SharedCodexProjection, inputText } from './projection';
 import { codexPlanProposalId } from './plan';
 
 describe('shared history projection', () => {
+    it('marks live managed assistant replies for delivery and excludes backfill and progress', async () => {
+        const send = vi.fn();
+        const session = { getMetadata: () => ({ hamletAgent: true }), sendAgentMessage: send } as unknown as ApiSessionClient;
+        const projection = new SharedCodexProjection(session, 'thread', async () => {});
+        const answer = { id: 'answer', type: 'agentMessage', phase: 'finalAnswer', text: 'New reply' };
+        const progress = { ...answer, id: 'progress', phase: 'commentary', text: 'Working' };
+        const params = { threadId: 'thread', turnId: 'turn' };
+        await projection.history({ turns: [{ id: 'old', status: 'completed', items: [{ ...answer, id: 'old-answer' }] }] });
+        await projection.notification('item/completed', { ...params, item: progress });
+        await projection.notification('item/completed', { ...params, item: answer });
+        await projection.notification('item/completed', { ...params, item: answer });
+        expect(send.mock.calls.map(([message, , live]) => [message.message, live])).toEqual([
+            ['New reply', undefined], ['Working', undefined], ['New reply', true]
+        ]);
+    });
+
     it('persists agent message phases through live delivery and replay', async () => {
         const send = vi.fn();
         const session = { getMetadata: () => ({}), sendAgentMessage: send } as unknown as ApiSessionClient;

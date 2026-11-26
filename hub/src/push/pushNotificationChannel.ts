@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto'
 import type { Session } from '../sync/syncEngine'
 import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
@@ -103,11 +102,23 @@ export class PushNotificationChannel implements NotificationChannel {
         await this.deliverWebOrToast(session, payload, ctx, 'task')
     }
 
+    async sendMainAgentReply(session: Session, reply: { id: string; text: string }): Promise<void> {
+        if (!session.hamletMain) return
+        const body = reply.text.replace(/\s+/gu, ' ')
+        await this.deliverWebOrToast(session, {
+            title: getSessionName(session),
+            body: body.length > 180 ? body.slice(0, 179) + '…' : body,
+            tag: `hamlet-main-agent-${reply.id}`,
+            data: { type: 'main-agent-reply', sessionId: session.id, url: this.buildSessionPath(session.id) }
+        }, undefined, 'reply', reply.id)
+    }
+
     private async deliverWebOrToast(
         session: Session,
         payload: PushPayload,
         ctx: NotificationSendContext | undefined,
-        method: 'permission' | 'ready' | 'task'
+        method: 'permission' | 'ready' | 'task' | 'reply',
+        notificationId?: string
     ): Promise<void> {
         if (ctx?.nativeGate?.sent) {
             this.logBranch(method, session.namespace, 'defer-to-native', 'fcm-delivered-this-dispatch')
@@ -127,10 +138,13 @@ export class PushNotificationChannel implements NotificationChannel {
                 body: payload.body,
                 sessionId: session.id,
                 url,
-                notificationId: randomUUID(),
-                notificationAt: Date.now()
+                ...(notificationId ? {
+                    notificationKind: 'main-agent-reply' as const,
+                    notificationId,
+                    notificationAt: Date.now()
+                } : {})
             }
-        }, { includeHidden: true }).then(delivered => {
+        }, { includeHidden: Boolean(notificationId) }).then(delivered => {
             if (delivered > 0) {
                 this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
             } else {
@@ -143,7 +157,7 @@ export class PushNotificationChannel implements NotificationChannel {
         })
         // A slow visible SSE client must not hold up system notifications
         // when foreground Web Push is enabled. The toast has its own catch.
-        if (visible && !this.pushInForeground && (await toastDelivery) > 0) {
+        if (!notificationId || (visible && !this.pushInForeground && (await toastDelivery) > 0)) {
             return
         }
         if (!visible) {
