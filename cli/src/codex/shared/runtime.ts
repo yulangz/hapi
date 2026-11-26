@@ -1,7 +1,7 @@
 import { spawn, execFileSync, type ChildProcess } from 'node:child_process';
 import { createServer } from 'node:net';
 import { mkdir, mkdtemp, chmod, rm, realpath } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
 import { configuration } from '@/configuration';
@@ -12,6 +12,7 @@ import { logger } from '@/ui/logger';
 import { CodexAppServerClient, isIndeterminateError } from '../codexAppServerClient';
 import { codexHome, saveRuntime, runtimeDirectory, runtimeAuthHash, findColdBinding, withThreadOwnership, type CodexRuntimeRecord } from './registry';
 import { startCodexGateway, record, string, type Envelope } from './gateway';
+import { rolloutHasDeveloperPrompt } from './history';
 import { resolveSharedCodex, sharedLaunchConfig, initializeSharedClient, checkSharedCapabilities, newThreadParams, type SharedLaunchOptions } from './launch';
 import { SharedCodexRoot } from './root';
 
@@ -384,13 +385,20 @@ export async function runSharedRuntime(options: SharedLaunchOptions, onReady?: (
                 response = record(await root.client.request('thread/resume', params));
             }
             if (launch.resumeMainPrompt) {
-                // Codex keeps the old context on the first resumed turn. Apply
-                // the current instructions once before the root enables input.
-                // The resume override remains the baseline after compaction.
-                await root.client.request('thread/inject_items', {
-                    threadId,
-                    items: [{ type: 'message', role: 'developer', content: [{ type: 'input_text', text: launch.resumeMainPrompt }] }]
-                });
+                const path = string(record(response.thread).path) ?? string(thread.path);
+                const present = path && isAbsolute(path) && path.endsWith('.jsonl')
+                    ? await rolloutHasDeveloperPrompt(path, launch.resumeMainPrompt).catch(() => undefined)
+                    : undefined;
+                if (present === false) {
+                    // Resume overrides can miss the first model request. Fill
+                    // the gap only when the native history lacks this prompt.
+                    await root.client.request('thread/inject_items', {
+                        threadId,
+                        items: [{ type: 'message', role: 'developer', content: [{ type: 'input_text', text: launch.resumeMainPrompt }] }]
+                    });
+                } else if (present === undefined) {
+                    logger.warn('[Codex shared] Could not verify main Agent prompt in the native rollout');
+                }
             }
             await bind(root, response, false, options);
         } else root = await create('thread/start', { ...launch.threadParams, cwd: launch.cwd }, undefined, options);

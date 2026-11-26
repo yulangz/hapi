@@ -1,3 +1,5 @@
+import { createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { record, string } from './gateway';
 
 type HistoryClient = { request(method: string, params: Record<string, unknown>): Promise<unknown> };
@@ -67,4 +69,33 @@ export async function readPagedTurns(client: HistoryClient, threadId: string): P
         cursor = string(page.nextCursor);
     } while (cursor);
     return turns;
+}
+
+/** Codex's display history omits developer items. Read the native rollout so
+ * an injection already persisted by a previous process can be reused. */
+export async function rolloutHasDeveloperPrompt(path: string, prompt: string): Promise<boolean> {
+    const isPrompt = (item: unknown): boolean => {
+        const message = record(item);
+        return message.type === 'message' && message.role === 'developer' && Array.isArray(message.content)
+            && message.content.some(part => record(part).type === 'input_text' && record(part).text === prompt);
+    };
+
+    const input = createReadStream(path);
+    const lines = createInterface({ input, crlfDelay: Infinity });
+    let present = false;
+    try {
+        for await (const line of lines) {
+            if (!line) continue;
+            const entry = record(JSON.parse(line));
+            const payload = record(entry.payload);
+            if (entry.type === 'response_item' && isPrompt(payload)) present = true;
+            if (entry.type === 'compacted') {
+                present = Array.isArray(payload.replacement_history) && payload.replacement_history.some(isPrompt);
+            }
+        }
+        return present;
+    } finally {
+        lines.close();
+        input.destroy();
+    }
 }
