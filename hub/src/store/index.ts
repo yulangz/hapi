@@ -58,7 +58,8 @@ const REQUIRED_TABLES = [
     'usage_scan_state',
     'events',
     'event_links',
-    'hamlet_notification_requests'
+    'hamlet_notifications',
+    'hamlet_notification_deliveries'
 ] as const
 
 export class Store {

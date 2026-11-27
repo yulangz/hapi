@@ -6,21 +6,22 @@ Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow 
 
 ## Main Agent browser notifications
 
-Enable browser notifications in Settings → General. When you need to act or
-there is an important update, the main Agent first sends the full message in
-your conversation, then calls `notify_user` with a brief summary inviting you
-back. HAMLET sends a generic system alert to each registered browser for your
-account. Regular replies stay in the chat. Timer and doorbell events wake the
-Agent itself. A shared browser endpoint belongs to the account that last
-registered it. The alert opens HAMLET, where your current sign-in determines
-what you can read.
+Enable browser notifications in Settings → General. When you need to act,
+there is an important update, or you requested a reminder, the main Agent calls
+`notify_user` first with a one-sentence summary of up to 60 characters, then
+writes the full details in the conversation. It sends at most one notification
+per turn. Replies to your latest message, routine progress and child tasks that
+finish as planned without needing your input stay in chat. Timers and doorbells
+wake the Agent itself.
 
-The tool reports `dispatched` when a push service accepts the request or the Hub
-writes the alert to an authorized live browser stream. Device display depends on
-the browser and its permissions. If every route refused or none was available,
-retry with the same `request_id` and text. An unknown outcome can mean a request
-reached a push service without an acknowledgement, or delivery occurred before
-the Hub could save its result. Reusing that request ID will not send it again.
+The tool confirms that the Hub queued the notification. The Hub tries each
+configured channel independently and stops retrying a channel once it accepts
+delivery. Failed attempts are retried after 10 seconds, then 20, 40, 80, 160,
+320, 640, 1,280 and 2,560 seconds from the start of the last attempt. The first
+attempt counts toward the limit of 10. No new attempt starts two hours after
+queueing. Restarting the Hub preserves the attempt count and deadline. Browser delivery and display
+depend on your devices and permissions. A shared browser endpoint belongs to the
+account that last registered it.
 
 For Codex sessions with an active Goal, intermediate turn completions do not
 produce ready-for-input notifications: the Goal is still running automatically.

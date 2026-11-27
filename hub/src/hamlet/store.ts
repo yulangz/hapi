@@ -18,7 +18,10 @@ export type Agent = {
     token: string
 }
 export type Doorbell = { id: string; owner: string; name: string; script: string; token: string; directory: string }
-type NotificationRequest = { id: string; text_hash: string; status: 'dispatching' | 'dispatched' | 'failed' }
+export type NotificationDelivery = {
+    notification_id: string; channel: string; text: string; attempts: number
+    agent: string; namespace: string; created_at: number
+}
 type Timer = { id: string; owner: string; due: number; period: number | null; text: string }
 type Image = z.output<typeof ImageRef>
 export type AgentCard = { agent_id: string; name: string; description: string; title: string | null }
@@ -73,36 +76,44 @@ export class HamletStore {
             })
             .immediate()
     }
-    reserveNotification(agent: string, requestId: string, text: string) {
+    enqueueNotification(agent: string, requestId: string, text: string, channels: readonly string[], now = Date.now()): string {
         const textHash = createHash('sha256').update(text).digest('hex')
         return this.db.transaction(() => {
-            const existing = this.db.query<NotificationRequest, [string, string]>(
-                'SELECT id,text_hash,status FROM hamlet_notification_requests WHERE agent=? AND request_id=?',
+            const existing = this.db.query<{ id: string; text_hash: string }, [string, string]>(
+                'SELECT id,text_hash FROM hamlet_notifications WHERE agent=? AND request_id=?',
             ).get(agent, requestId)
             if (existing) {
                 if (existing.text_hash !== textHash) throw new Error('Notification request_id is already in use with different text')
-                if (existing.status === 'failed') {
-                    this.db.run("UPDATE hamlet_notification_requests SET status='dispatching' WHERE agent=? AND request_id=?", [
-                        agent, requestId
-                    ])
-                    return { id: existing.id, status: 'dispatching' as const, claimed: true }
-                }
-                return { id: existing.id, status: existing.status, claimed: false }
+                return existing.id
             }
             const id = randomUUID()
-            this.db.run(
-                "INSERT INTO hamlet_notification_requests(agent,request_id,id,text_hash,status) VALUES(?,?,?,?,'dispatching')",
-                [agent, requestId, id, textHash],
-            )
-            return { id, status: 'dispatching' as const, claimed: true }
+            this.db.run('INSERT INTO hamlet_notifications(id,agent,request_id,text_hash,created_at) VALUES(?,?,?,?,?)',
+                [id, agent, requestId, textHash, now])
+            for (const channel of channels) {
+                this.db.run('INSERT INTO hamlet_notification_deliveries(notification_id,channel,text,next_attempt_at) VALUES(?,?,?,?)',
+                    [id, channel, text, now])
+            }
+            return id
         }).immediate()
     }
-    finishNotification(agent: string, requestId: string, status: 'dispatched' | 'failed') {
-        const { changes } = this.db.run(
-            "UPDATE hamlet_notification_requests SET status=? WHERE agent=? AND request_id=? AND status='dispatching'",
-            [status, agent, requestId],
-        )
-        if (changes !== 1) throw new Error('Notification dispatch reservation unavailable')
+    dueNotifications(now: number): NotificationDelivery[] {
+        return this.db.query<NotificationDelivery, [number]>(
+            `SELECT d.notification_id,d.channel,d.text,d.attempts,n.agent,n.created_at,a.namespace
+             FROM hamlet_notification_deliveries d JOIN hamlet_notifications n ON n.id=d.notification_id
+             JOIN hamlet_agents a ON a.id=n.agent WHERE d.next_attempt_at<=?
+             ORDER BY d.next_attempt_at LIMIT 32`,
+        ).all(now)
+    }
+    claimNotification(delivery: NotificationDelivery, now: number, nextAttemptAt: number): boolean {
+        return this.db.run(
+            `UPDATE hamlet_notification_deliveries SET attempts=attempts+1,next_attempt_at=?
+             WHERE notification_id=? AND channel=? AND attempts=? AND next_attempt_at<=?`,
+            [nextAttemptAt, delivery.notification_id, delivery.channel, delivery.attempts, now],
+        ).changes === 1
+    }
+    finishNotification(delivery: NotificationDelivery, attempts: number): void {
+        this.db.run('DELETE FROM hamlet_notification_deliveries WHERE notification_id=? AND channel=? AND attempts=?',
+            [delivery.notification_id, delivery.channel, attempts])
     }
     children(actor: Agent, ids?: string[]) {
         return this.db

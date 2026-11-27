@@ -104,33 +104,6 @@ function goalEvent(status: string | null, threadId = 'root'): Extract<SyncEvent,
 
 const readyMessage = () => messageEvent({ role: 'agent', content: { type: 'event', data: { type: 'ready' } } })
 
-describe('explicit agent notifications', () => {
-    it('leaves chat events alone, including old Runner reply markers', async () => {
-        const engine = new FakeSyncEngine()
-        const delivered: string[] = []
-        const channel = Object.assign(new StubChannel(), {
-            sendAgentNotification: async (_session: Session, notification: { text: string }) => {
-                delivered.push(notification.text)
-                return 'dispatched' as const
-            }
-        })
-        const hub = new NotificationHub(engine as unknown as SyncEngine, [channel])
-        const session = createSession({ hamletMain: true })
-        engine.setSession(session)
-        try {
-            const event = messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'message', message: 'Routine reply' } } })
-            engine.emit(event)
-            const legacyEvent = { ...event, liveAssistantReply: true }
-            engine.emit(legacyEvent)
-            engine.emit(messageEvent({ role: 'user', content: { type: 'text', text: 'User' } }))
-            engine.emit(messageEvent({ role: 'agent', content: { type: 'codex', data: { type: 'tool-call-result' } } }))
-            expect(delivered).toEqual([])
-            await hub.sendAgentNotification(session, { id: 'notice', text: 'Decision needed' })
-            expect(delivered).toEqual(['Decision needed'])
-        } finally { hub.stop() }
-    })
-})
-
 describe('Codex Goal ready notifications', () => {
     it('suppresses repeated intermediate completions while the Goal remains active, without a history scan per update', () => {
         const engine = new FakeSyncEngine(), channel = new StubChannel()

@@ -1,6 +1,6 @@
 import type { Session, SyncEngine, SyncEvent } from '../sync/syncEngine'
 import type { SessionEndReason } from '@hamlet/protocol'
-import type { AgentNotification, AgentNotificationOutcome, NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
+import type { NotificationChannel, NotificationHubOptions, TaskNotification } from './notificationTypes'
 import type { NotificationSendContext } from './notificationSendContext'
 import { extractCodexGoalStatus, extractMessageEventType, extractTaskNotification } from './eventParsing'
 
@@ -42,20 +42,6 @@ export class NotificationHub {
         this.lastReadyNotificationAt.clear()
         this.codexGoals.clear()
         this.pendingGoalReady.clear()
-    }
-
-    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<AgentNotificationOutcome> {
-        const deliveries = this.channels.flatMap(channel => channel.sendAgentNotification
-            ? [Promise.resolve().then(() => channel.sendAgentNotification!(session, notification))]
-            : [])
-        const results = await Promise.allSettled(deliveries)
-        if (results.some(result => result.status === 'fulfilled' && result.value === 'dispatched')) {
-            return 'dispatched'
-        }
-        if (results.some(result => result.status === 'rejected' || result.value === 'unknown')) {
-            return 'unknown'
-        }
-        return 'retryable'
     }
 
     private handleSyncEvent(event: SyncEvent): void {

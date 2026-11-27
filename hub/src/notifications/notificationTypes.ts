@@ -8,14 +8,12 @@ export type TaskNotification = {
 }
 
 export type AgentNotification = { id: string; text: string }
-export type AgentNotificationOutcome = 'dispatched' | 'retryable' | 'unknown'
-export type AgentNotificationSender = (session: Session, notification: AgentNotification) => Promise<AgentNotificationOutcome>
+export type AgentNotificationSender = (session: Session, notification: AgentNotification) => Promise<boolean>
 
 export type NotificationChannel = {
     sendReady: (session: Session, ctx?: NotificationSendContext) => Promise<void>
     sendPermissionRequest: (session: Session, ctx?: NotificationSendContext) => Promise<void>
     sendTaskNotification: (session: Session, notification: TaskNotification, ctx?: NotificationSendContext) => Promise<void>
-    sendAgentNotification?: AgentNotificationSender
     sendSessionCompletion?: (session: Session, reason: SessionEndReason) => Promise<void>
 }
 

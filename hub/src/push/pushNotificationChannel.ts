@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
 import type { Session, SyncEvent } from '../sync/syncEngine'
-import type { AgentNotification, AgentNotificationOutcome, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
+import type { AgentNotification, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
@@ -79,40 +79,40 @@ export class PushNotificationChannel implements NotificationChannel {
         }, ctx, 'task')
     }
 
-    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<AgentNotificationOutcome> {
-        if (!session.hamletMain) return 'retryable'
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<boolean> {
+        if (!session.hamletMain) return false
         const body = notification.text.replace(/\s+/gu, ' ')
         // Keep Push generic because a browser endpoint can outlive its login.
         this.logBranch('notify_user', session.namespace, 'web-push-fired')
-        const push = await this.pushService.sendToNamespace(session.namespace, {
+        const acceptedEndpoints = await this.pushService.sendToNamespace(session.namespace, {
             title: 'Hamlet',
             body: 'New notification from your main Agent',
             tag: `hamlet-main-agent-${notification.id}`,
             data: { type: BROWSER_NOTIFICATION_KIND }
         }).catch(() => {
             console.error('[Push.notify_user] Failed to dispatch Web Push')
-            return { acceptedEndpoints: [], uncertain: true }
+            return []
         })
 
         const toast = this.publishToast(session.namespace, 'notify_user', {
             title: getSessionName(session),
-            body: body.length > 180 ? body.slice(0, 179) + '…' : body,
+            body,
             sessionId: session.id,
             url: this.buildSessionPath(session.id),
             notificationKind: BROWSER_NOTIFICATION_KIND,
             notificationId: notification.id,
             notificationAt: Date.now(),
-            pushAccepted: push.acceptedEndpoints.map(endpoint => createHash('sha256')
+            pushAccepted: acceptedEndpoints.map(endpoint => createHash('sha256')
                 .update(`${notification.id}\0${endpoint}`).digest('hex'))
         }).catch(() => null)
 
-        if (push.acceptedEndpoints.length > 0) return 'dispatched'
+        if (acceptedEndpoints.length > 0) return true
         const deadline = new AbortController()
         const written = await Promise.race([
             toast, delay(TOAST_WRITE_TIMEOUT_MS, null, { signal: deadline.signal, ref: false })
         ]).finally(() => deadline.abort())
-        if (written) return 'dispatched'
-        return written === null || push.uncertain ? 'unknown' : 'retryable'
+        if (written === null) console.warn('[Push.notify_user] SSE delivery did not complete', notification.id)
+        return written === true
     }
 
     private async deliverInAppToast(

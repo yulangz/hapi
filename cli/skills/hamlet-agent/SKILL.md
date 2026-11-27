@@ -162,7 +162,7 @@ def check():
 | | `display_media` | 在自己的会话里向用户展示文件 |
 | 群 | `group_create`、`group_update`、`group_delete` | 管理由你的子 Agent 组成的群 |
 | | `group_list`、`group_members` | 你所在的群和群成员 |
-| 用户通知 | `notify_user` | 仅主 Agent，提醒当前用户回来查看会话 |
+| 用户通知 | `notify_user` | 仅主 Agent。先用一句不超过 60 字的摘要通知用户，再在会话里写完整内容。同一轮合并为一条，回复用户刚发的消息、普通进度和无需用户处理的子 Agent 完成情况直接在会话里说。Hub 负责投递和重试 |
 | Timer | `timer_create`、`timer_list`、`timer_delete` | 定时唤醒自己，一次性或周期重复 |
 | doorbell | `doorbell_create` | 启动监听脚本，可设触发次数上限 |
 | | `doorbell_list`、`doorbell_logs` | 状态、已触发次数和脚本输出 |

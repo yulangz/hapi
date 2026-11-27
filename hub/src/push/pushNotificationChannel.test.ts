@@ -6,17 +6,15 @@ import { VisibilityTracker } from '../visibility/visibilityTracker'
 import { describe, expect, it, mock, spyOn } from 'bun:test'
 import type { Session, SyncEvent } from '../sync/syncEngine'
 import { PushNotificationChannel } from './pushNotificationChannel'
-import { PushService, type PushDispatchResult, type PushPayload } from './pushService'
+import { PushService, type PushPayload } from './pushService'
 
 const main = { id: 'main-id', namespace: 'default', hamletMain: true, active: true,
     metadata: { path: '/work', host: 'host', name: 'Renamed assistant' } } as Session
 const child = { ...main, id: 'child-id', hamletMain: undefined }
 const notification = { id: 'notification-1', text: 'A decision is needed' }
 
-function setup({ delivered = false, acceptedEndpoints = [] as string[], uncertain = false } = {}) {
-    const push = mock(async (_namespace: string, _payload: PushPayload): Promise<PushDispatchResult> => ({
-        acceptedEndpoints, uncertain
-    }))
+function setup({ delivered = false, acceptedEndpoints = [] as string[] } = {}) {
+    const push = mock(async (_namespace: string, _payload: PushPayload) => acceptedEndpoints)
     const toast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>) => delivered ? 1 : 0)
     const notificationToast = mock(async (_namespace: string, _event: Extract<SyncEvent, { type: 'toast' }>) => delivered)
     const channel = new PushNotificationChannel(
@@ -64,12 +62,12 @@ describe('PushNotificationChannel', () => {
             }
             const push = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
             const send = spyOn(push as unknown as {
-                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<'accepted' | 'rejected'>
+                sendToSubscription(namespace: string, subscription: { endpoint: string }, body: string): Promise<boolean>
             }, 'sendToSubscription').mockImplementation(async (_namespace, subscription) =>
-                subscription.endpoint === endpoints[0] ? 'accepted' : 'rejected'
+                subscription.endpoint === endpoints[0]
             )
             expect(tracker.hasVisibleConnection(main.namespace)).toBe(true)
-            expect(await new PushNotificationChannel(push, sse).sendAgentNotification(main, notification)).toBe('dispatched')
+            expect(await new PushNotificationChannel(push, sse).sendAgentNotification(main, notification)).toBe(true)
 
             expect(received).toHaveLength(1)
             expect(received[0]).toMatchObject({ type: 'toast', data: {
@@ -94,7 +92,7 @@ describe('PushNotificationChannel', () => {
             expect(push).toHaveBeenCalledTimes(1)
             expect(notificationToast).not.toHaveBeenCalled()
             rejectPush(new Error('Push unavailable'))
-            expect(await pending).toBe('unknown')
+            expect(await pending).toBe(false)
             expect(notificationToast.mock.calls[0][1].data.pushAccepted).toEqual([])
         } finally {
             log.mockRestore()
@@ -113,7 +111,7 @@ describe('PushNotificationChannel', () => {
             store.push.addPushSubscription(main.namespace, { endpoint, p256dh, auth })
             const service = new PushService(generateVAPIDKeys(), 'mailto:notifications@example.test', store)
             expect(await service.sendToNamespace(main.namespace, { title: 'Hamlet', body: 'New notification from your main Agent' }))
-                .toEqual({ acceptedEndpoints: [], uncertain: false })
+                .toEqual([])
             expect(log.mock.calls).toEqual([['[PushService] Failed to send notification:', 'ConnectionRefused']])
         } finally {
             send.mockRestore()
@@ -148,15 +146,6 @@ describe('PushNotificationChannel', () => {
             expect(event.data.notificationId).toBeUndefined()
         }
         expect(push).not.toHaveBeenCalled()
-    })
-
-    it.each([
-        { delivered: false, uncertain: false, result: 'retryable' },
-        { delivered: false, uncertain: true, result: 'unknown' },
-        { delivered: true, uncertain: true, result: 'dispatched' },
-    ])('uses SSE and unacknowledged Push outcomes to return $result', async ({ delivered, uncertain, result }) => {
-        const { channel } = setup({ delivered, uncertain })
-        expect(await channel.sendAgentNotification(main, notification)).toBe(result)
     })
 
     it('retains in-page toast deduplication when the native companion delivered', async () => {
