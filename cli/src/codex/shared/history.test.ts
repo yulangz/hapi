@@ -1,8 +1,5 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { readPagedTurns, rolloutHasDeveloperPrompt } from './history';
+import { readPagedTurns } from './history';
 
 describe('paged native history', () => {
     it('restarts with full one-turn pages when a legacy server rejects item paging', async () => {
@@ -74,33 +71,4 @@ describe('paged native history', () => {
         const request = vi.fn().mockResolvedValueOnce({ data: [{ id: 'turn' }] }).mockResolvedValueOnce({ data: [{ id: 'bare-item', type: 'agentMessage' }] });
         await expect(readPagedTurns({ request }, 'root')).rejects.toThrow('item history entry');
     });
-});
-
-it('detects the exact developer prompt in the current native history', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'hamlet-rollout-prompt-'));
-    const path = join(directory, 'rollout.jsonl');
-    const prompt = 'Current main Agent instructions';
-    const message = (role: string, text: string) => ({
-        type: 'message', role, content: [{ type: 'input_text', text }]
-    });
-    const item = (role: string, text: string) => ({ type: 'response_item', payload: message(role, text) });
-    const compact = (...items: unknown[]) => ({ type: 'compacted', payload: { replacement_history: items } });
-    async function write(...entries: unknown[]) {
-        await writeFile(path, entries.map(entry => JSON.stringify(entry)).join('\n') + '\n');
-    }
-    try {
-        await expect(rolloutHasDeveloperPrompt(path, prompt)).rejects.toMatchObject({ code: 'ENOENT' });
-        const old = [item('developer', prompt + ' (previous revision)'), item('user', prompt), item('assistant', prompt)];
-        await write(...old);
-        expect(await rolloutHasDeveloperPrompt(path, prompt)).toBe(false);
-        const current = item('developer', prompt);
-        await write(...old, current, item('user', 'Follow-up'));
-        expect(await rolloutHasDeveloperPrompt(path, prompt)).toBe(true);
-        await write(...old, current, compact(message('user', prompt)));
-        expect(await rolloutHasDeveloperPrompt(path, prompt)).toBe(false);
-        await write(...old, current, compact(message('developer', prompt)));
-        expect(await rolloutHasDeveloperPrompt(path, prompt)).toBe(true);
-    } finally {
-        await rm(directory, { recursive: true, force: true });
-    }
 });

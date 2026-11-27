@@ -1,6 +1,5 @@
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { mainAgentPrompt } from '@hamlet/protocol/hamlet';
 import { z } from 'zod';
 import { resolveCodexCommand, type CodexCommand } from '../utils/codexExecutable';
 import { parseCodexCliOverrides, stripCodexCliOverrides } from '../utils/codexCliOverrides';
@@ -40,7 +39,7 @@ export function resolveSharedCodex(): CodexCommand {
 }
 
 export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
-    cwd: string; serverArgs: string[]; tuiArgs: string[]; threadParams: Record<string, unknown>; resumeMainPrompt?: string;
+    cwd: string; serverArgs: string[]; tuiArgs: string[]; threadParams: Record<string, unknown>;
 } {
     if (options.permissionMode === 'safe-yolo') throw new Error('safe-yolo is not a native shared permission mode. Choose default, read-only, yolo, or native --approve-for-me.');
     const args = options.codexArgs ?? [];
@@ -136,12 +135,8 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
     // Launch-wide flags also apply to later native /new roots, not just the
     // initial HAMLET-created root. Explicit config layers keep their order.
     for (const [key, value] of Object.entries(config)) serverArgs.push('-c', `${key}=${JSON.stringify(value)}`);
-    // New main threads already receive this as their first input from the Hub.
-    const resumeMainPrompt = options.resumeSessionId && options.existingSessionId
-        && options.existingSessionId === process.env.HAMLET_AGENT_ID && process.env.HAMLET_MAIN === '1'
-        ? mainAgentPrompt : undefined;
     return {
-        cwd: directory, serverArgs, tuiArgs, resumeMainPrompt,
+        cwd: directory, serverArgs, tuiArgs,
         threadParams: {
             ...(model ? { model } : {}),
             ...(provider ? { modelProvider: provider } : {}),
@@ -151,7 +146,7 @@ export function sharedLaunchConfig(options: SharedLaunchOptions, cwd: string): {
             ...(autoReview ? { approvalPolicy: 'on-request', approvalsReviewer: 'auto_review', sandbox: 'workspace-write' } : {}),
             ...(permission ? { approvalPolicy: permission.approvalPolicy, approvalsReviewer: 'user', sandbox: permission.sandbox } : {}),
             config: { ...config, ...(options.modelReasoningEffort ? { model_reasoning_effort: options.modelReasoningEffort } : {}) },
-            developerInstructions: resumeMainPrompt ?? (getCodexSystemPrompt() || undefined)
+            developerInstructions: getCodexSystemPrompt() || undefined
         }
     };
 }

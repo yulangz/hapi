@@ -1,5 +1,4 @@
-import { mainAgentPrompt } from '@hamlet/protocol/hamlet';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { sharedLaunchConfig } from './launch';
 import { parseCodexCliOverrides } from '../utils/codexCliOverrides';
 import { resolveCodexPermissionModeConfig } from '../utils/permissionModeConfig';
@@ -25,18 +24,6 @@ describe('shared launch configuration', () => {
                 '-c', `sandbox_mode=${JSON.stringify(sandbox)}`, '-c', 'approvals_reviewer="user"'
             ]);
         }
-    });
-    it('refreshes the canonical prompt only when the managed main thread resumes', () => {
-        const binding = { existingSessionId: 'main', resumeSessionId: 'native-thread' };
-        vi.stubEnv('HAMLET_AGENT_ID', binding.existingSessionId);
-        vi.stubEnv('HAMLET_MAIN', '1');
-        try {
-            expect(sharedLaunchConfig(binding, '/tmp').threadParams.developerInstructions).toBe(mainAgentPrompt);
-            expect(sharedLaunchConfig({ existingSessionId: binding.existingSessionId }, '/tmp').threadParams.developerInstructions).toBeUndefined();
-            expect(sharedLaunchConfig({ ...binding, existingSessionId: 'other' }, '/tmp').threadParams.developerInstructions).toBeUndefined();
-            vi.stubEnv('HAMLET_MAIN', '0');
-            expect(sharedLaunchConfig(binding, '/tmp').threadParams.developerInstructions).toBeUndefined();
-        } finally { vi.unstubAllEnvs(); }
     });
     it('keeps unspecified settings inherited and explicit Standard distinct', () => {
         expect(sharedLaunchConfig({}, '/tmp').threadParams).not.toHaveProperty('serviceTier');
