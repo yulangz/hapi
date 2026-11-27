@@ -9,6 +9,7 @@ import {
     putShareTransfer,
 } from './lib/shareTransfer'
 import { shareTargetPathname } from './lib/sharePath'
+import { openNotificationWindow } from './lib/notificationWindow'
 import { hasNotificationPermission, MAIN_AGENT_NOTIFICATION_TAG_PREFIX, showAgentNotificationOnce } from './lib/agentNotificationReceipts'
 
 const sharePath = shareTargetPathname()
@@ -130,8 +131,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close()
     const data = event.notification.data as { url?: string } | undefined
-    const url = data?.url ?? '/'
-    event.waitUntil(self.clients.openWindow(url))
+    event.waitUntil(openNotificationWindow(self.clients, self.registration.scope, data?.url))
 })
 
 // Web Share Target — manifest declares POST /share, Android Chrome posts a

@@ -53,9 +53,12 @@ export async function showLocalNotification(
                 const notification = new Notification(localized.title, options)
                 notification.onshow = () => resolve()
                 notification.onerror = () => reject(new Error('Browser could not show notification'))
-                notification.onclick = () => {
-                    if (isCurrentScope()) window.location.assign(url)
+                notification.onclick = click => {
+                    click.preventDefault()
                     notification.close()
+                    if (!isCurrentScope()) return
+                    window.focus()
+                    if (url.href !== window.location.href) window.location.assign(url)
                 }
             })
         })
