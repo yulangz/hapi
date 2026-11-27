@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { expect, it, vi } from 'vitest'
 import { getCodexSystemPrompt } from '@/codex/utils/systemPrompt'
 import { HamletClient, managedTools } from './client'
-import { hamletToolDescriptions } from '@hamlet/protocol/hamlet'
+import { hamletToolDescriptions, mainAgentPrompt } from '@hamlet/protocol/hamlet'
 import { removeLegacyManagedSkill } from './legacySkill'
 import { runtimePath } from '@/projectPath'
 
@@ -40,9 +40,11 @@ it('labels every header field for timers, doorbells, group messages and images',
 it('gives the main agent the user\'s brief without a Hamlet header', async () => {
     const parts = await new HamletClient('fixture').input({ id: 'batch', events: [{
         kind: 'initial', seq: 1, sender: 'system', sender_name: null, relation: '系统',
-        created_at: Date.UTC(2026, 6, 1, 16), due_at: null, group_id: null, images: [], text: '你是我的助理秘书。',
+        created_at: Date.UTC(2026, 6, 1, 16), due_at: null, group_id: null, images: [], text: mainAgentPrompt,
     }] }, 'main-id')
-    expect(parts[0].text).toBe('你是我的助理秘书。')
+    expect(parts[0].text).toBe(mainAgentPrompt)
+    expect(parts[0].text).toContain('gpt-6.2-sol')
+    expect(parts[0].text).toContain('gpt-6.2-astra')
 })
 
 it('leaves managed sessions on Codex defaults and carries the protocol in tool descriptions', () => {
@@ -80,5 +82,20 @@ it('points the managed tools to the bundled guide and retires only the old Runne
         expect(await readFile(file, 'utf8')).toContain('custom')
     } finally {
         await rm(home, { recursive: true, force: true })
+    }
+})
+
+it.each(['1', '0'])('gates notify_user by HAMLET_MAIN=%s', (isMain) => {
+    vi.stubEnv('HAMLET_MAIN', isMain)
+    try {
+        const tools = new Map<string, string>()
+        new HamletClient('fixture').register({
+            registerTool: (name: string, spec: { description: string }) => tools.set(name, spec.description),
+        } as never, {} as never, '/work')
+        expect(tools.has('notify_user')).toBe(isMain === '1')
+        expect(tools.has('notify')).toBe(false)
+        expect(tools.get('agent_create')).not.toMatch(/gpt-6\.2-(sol|astra)/)
+    } finally {
+        vi.unstubAllEnvs()
     }
 })

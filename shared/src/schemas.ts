@@ -317,6 +317,7 @@ export const DecryptedMessageSchema = z.object({
 export type DecryptedMessage = z.infer<typeof DecryptedMessageSchema>
 
 export const SessionSchema = z.object({
+    hamletMain: z.literal(true).optional(),
     hasConversationContent: z.boolean().optional(),
     id: z.string(),
     namespace: z.string(),
@@ -598,8 +599,12 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
             sessionId: z.string(),
             url: z.string(),
             // One live dispatch, shared across tabs; never replay old alerts.
+            // Retain the browser transport marker understood by earlier PWA assets.
+            notificationKind: z.literal('main-agent-notification').optional(),
             notificationId: z.string().optional(),
-            notificationAt: z.number().optional()
+            notificationAt: z.number().optional(),
+            // SHA-256 of notification ID, NUL, and endpoint for each HTTP-accepted push.
+            pushAccepted: z.array(z.string()).optional()
         })
     }),
     SessionChangedSchema.extend({

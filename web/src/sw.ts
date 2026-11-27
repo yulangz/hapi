@@ -9,6 +9,7 @@ import {
     putShareTransfer,
 } from './lib/shareTransfer'
 import { shareTargetPathname } from './lib/sharePath'
+import { hasNotificationPermission, MAIN_AGENT_NOTIFICATION_TAG_PREFIX, showAgentNotificationOnce } from './lib/agentNotificationReceipts'
 
 const sharePath = shareTargetPathname()
 
@@ -17,16 +18,8 @@ declare const self: ServiceWorkerGlobalScope & {
 }
 
 type PushPayload = {
-    title: string
-    body?: string
-    icon?: string
-    badge?: string
     tag?: string
-    data?: {
-        type?: string
-        sessionId?: string
-        url?: string
-    }
+    data?: { type?: string }
 }
 
 precacheAndRoute(self.__WB_MANIFEST)
@@ -111,26 +104,27 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('push', (event) => {
     const payload = event.data?.json() as PushPayload | undefined
-    if (!payload) {
+    if (payload?.data?.type !== 'main-agent-notification') {
         return
     }
 
-    const title = payload.title || 'Hamlet'
-    const body = payload.body ?? ''
-    const icon = payload.icon ?? '/pwa-192x192.png'
-    const badge = payload.badge ?? '/pwa-64x64.png'
-    const data = payload.data
-    const tag = payload.tag
-
-    event.waitUntil(
-        self.registration.showNotification(title, {
-            body,
-            icon,
-            badge,
-            data,
-            tag
-        })
-    )
+    // An endpoint can outlive a login. Ignore presentation and routing data
+    // even from older Hub payloads that are still in flight.
+    const body = self.navigator.language.startsWith('zh') ? '主 Agent 发来一条通知' : 'New notification from your main Agent'
+    const show = () => self.registration.showNotification('Hamlet', {
+        body,
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-64x64.png',
+        data: { url: self.registration.scope },
+        tag: payload.tag
+    })
+    // The Push tag carries the same server-assigned notification ID as SSE.
+    const id = payload.tag?.startsWith(MAIN_AGENT_NOTIFICATION_TAG_PREFIX) && payload.tag.slice(MAIN_AGENT_NOTIFICATION_TAG_PREFIX.length)
+    if (id) {
+        event.waitUntil(showAgentNotificationOnce(id, hasNotificationPermission, show))
+    } else if (hasNotificationPermission()) {
+        event.waitUntil(show())
+    }
 })
 
 self.addEventListener('notificationclick', (event) => {

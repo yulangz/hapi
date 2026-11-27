@@ -3,7 +3,7 @@
  * Provides HAMLET CLI specific tools including chat session title management
  */
 
-import { forSession, managedTools } from '@/hamlet/client';
+import { forSession, managedToolNames } from '@/hamlet/client';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createServer, type IncomingMessage } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -547,7 +547,7 @@ export async function startHappyServer(client: ApiSessionClient, options: StartH
         hamletMcpUrl: mcpUrl,
     }));
 
-    const toolNames = managed ? ['change_title', ...Object.keys(managedTools).filter(n => n !== 'machine_exec' || process.env.HAMLET_MAIN === '1')] : enableChangeTitle
+    const toolNames = managed ? ['change_title', ...managedToolNames()] : enableChangeTitle
         ? ['change_title', 'display_image', 'display_video', 'display_media', 'list_peers', 'ping_peer', 'inspect_peer']
         : ['display_image', 'display_video', 'display_media', 'list_peers', 'ping_peer', 'inspect_peer'];
     if (!managed && options.skillLookup) {

@@ -14,7 +14,8 @@ description: Hamlet 托管 Agent 的协作指南：系统提供哪些能力、�
 - **子 Agent**：在任意在线机器上创建子 Agent，查看它们的状态，紧急时纠正，用完删除。
 - **消息**：父子之间、同群成员之间可以收发文字和图片。对方忙时消息会排队，等它下一轮开始时和其他积压消息一起送达。
 - **群**：父 Agent 可以把自己的子 Agent（不论在哪台机器）拉进一个群，让它们直接协作。
-- **提醒**：定时唤醒自己，可以一次性，也可以周期重复。
+- **Timer**：定时唤醒自己，可以一次性，也可以周期重复。
+- **用户通知**：主 Agent 可以提醒用户回到会话查看消息。
 - **doorbell**：用脚本等待任意外部事件，事件发生时唤醒你。
 - **机器**：主 Agent 可以在任意在线机器上执行简短的 shell 命令。
 
@@ -161,7 +162,8 @@ def check():
 | | `display_media` | 在自己的会话里向用户展示文件 |
 | 群 | `group_create`、`group_update`、`group_delete` | 管理由你的子 Agent 组成的群 |
 | | `group_list`、`group_members` | 你所在的群和群成员 |
-| 提醒 | `timer_create`、`timer_list`、`timer_delete` | 定时唤醒自己，一次性或周期重复 |
+| 用户通知 | `notify_user` | 仅主 Agent。先用一句不超过 60 字的摘要通知用户，再在会话里写完整内容。同一轮合并为一条，回复用户刚发的消息、普通进度和无需用户处理的子 Agent 完成情况直接在会话里说。Hub 负责投递和重试 |
+| Timer | `timer_create`、`timer_list`、`timer_delete` | 定时唤醒自己，一次性或周期重复 |
 | doorbell | `doorbell_create` | 启动监听脚本，可设触发次数上限 |
 | | `doorbell_list`、`doorbell_logs` | 状态、已触发次数和脚本输出 |
 | | `doorbell_enable`、`doorbell_delete` | 暂停、恢复或删除监听 |

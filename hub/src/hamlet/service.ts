@@ -3,6 +3,8 @@ import type { SyncEngine } from '../sync/syncEngine'
 import { RpcTargetMissingError, type RpcGateway } from '../sync/rpcGateway'
 import type { HamletStore, Agent, AgentCard } from './store'
 
+export type EnqueueAgentNotification = (agent: string, requestId: string, text: string) => string
+
 export class HamletService {
     private readonly waking = new Map<string, Promise<void>>()
     private readonly retryAt = new Map<string, number>()
@@ -12,6 +14,7 @@ export class HamletService {
         readonly store: HamletStore,
         private readonly engine: SyncEngine,
         private readonly rpc: RpcGateway,
+        private readonly enqueueAgentNotification?: EnqueueAgentNotification,
     ) {}
     start() {
         this.store.restoreInitialInputs()
@@ -177,6 +180,15 @@ export class HamletService {
         }
         return { ...card, status: 'working', running: true, turn_id: turn.turn_id, processing, hidden_input_count: hidden }
     }
+    private notifyUser(actor: Agent, input: unknown) {
+        if (actor.parent_id !== null) throw new Error('Main agent required')
+        const { request_id, text } = hamletTools.notify_user.parse(input)
+        const session = this.engine.getSessionByNamespace(actor.id, actor.namespace)
+        if (!session?.hamletMain) throw new Error('Main agent session unavailable')
+        if (!this.enqueueAgentNotification) throw new Error('Agent notification queue unavailable')
+        const notificationId = this.enqueueAgentNotification(actor.id, request_id, text)
+        return { status: 'queued' as const, notification_id: notificationId }
+    }
     async tool(actor: Agent, name: HamletTool, input: unknown): Promise<unknown> {
         const db = this.store
         switch (name) {
@@ -239,6 +251,8 @@ export class HamletService {
                 break
             case 'message_to':
                 return db.send(actor, hamletTools.message_to.parse(input))
+            case 'notify_user':
+                return this.notifyUser(actor, input)
             case 'timer_create': {
                 const p = hamletTools.timer_create.parse(input)
                 return db.addTimer(

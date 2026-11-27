@@ -1,3 +1,4 @@
+import { MainAgentBadge } from '@/components/MainAgentBadge'
 import { useMemo } from 'react'
 import type { SessionSummary } from '@/types/api'
 import { AgentFlavorIcon } from '@/components/AgentFlavorIcon'
@@ -165,7 +166,7 @@ export function SessionRowSummary(props: {
 
     return (
         <div className={`flex w-full min-w-0 flex-col gap-1 ${className ?? ''}`}>
-            <div className={`grid grid-cols-[minmax(9rem,1fr)_minmax(0,max-content)] items-center gap-2 ${!s.active ? 'opacity-50' : ''}`}>
+            <div className={`grid grid-cols-[minmax(9rem,1fr)_minmax(0,max-content)] items-center gap-2 ${!s.active && !s.hamletMain ? 'opacity-50' : ''}`}>
                 <div className="flex min-w-0 items-center gap-2">
                     <AgentFlavorIcon flavor={s.metadata?.flavor} className="h-4 w-4 shrink-0 -translate-y-px" />
                     <div
@@ -174,6 +175,7 @@ export function SessionRowSummary(props: {
                     >
                         {sessionName}
                     </div>
+                    {s.hamletMain ? <MainAgentBadge /> : null}
                     {attention?.kind === 'unread' && nestedTooltips && attentionId ? (
                         <SessionAttentionIndicator
                             attention={attention}

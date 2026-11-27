@@ -165,6 +165,19 @@ describe('GET /api/events replay', () => {
         expect(frames[1]?.data.sessionId).toBe('e3')
     })
 
+    it('does not acknowledge a toast when the response stream cancels an in-flight write', async () => {
+        const manager = new SSEManager(0, new VisibilityTracker())
+        const response = await openStream(buildApp(manager), '')
+        const reader = response.body!.getReader()
+        await reader.read()
+        const toast = manager.sendNotificationToast('ns-test', {
+            type: 'toast', namespace: 'ns-test',
+            data: { title: 'Test', body: 'Body', sessionId: 's1', url: '/sessions/s1' }
+        })
+        await reader.cancel()
+        expect(await toast).toBe(false)
+    })
+
     it('releases the subscription when the client disconnects', async () => {
         const manager = new SSEManager(0, new VisibilityTracker())
         const app = buildApp(manager)

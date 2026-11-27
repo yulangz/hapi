@@ -7,7 +7,7 @@
  * - No E2E encryption; data is stored as JSON in SQLite
  */
 
-import { HamletService } from '../hamlet/service'
+import { HamletService, type EnqueueAgentNotification } from '../hamlet/service'
 import { isKnownFlavor, isSteeringSupportedForSession, type LocalResumeTarget, type ResumableSession, type SessionEndReason } from '@hamlet/protocol'
 import {
     cliBinaryUpdatedOnDisk,
@@ -213,6 +213,7 @@ export class SyncEngine {
         private readonly io: Server,
         rpcRegistry: RpcRegistry,
         sseManager: SSEManager,
+        enqueueAgentNotification?: EnqueueAgentNotification,
     ) {
         this.eventPublisher = new EventPublisher(sseManager, (event) => this.resolveNamespace(event))
         this.sessionCache = new SessionCache(store, this.eventPublisher)
@@ -238,7 +239,7 @@ export class SyncEngine {
             const agent = store.hamlet?.agent(id)
             return agent && { ...agent, timezone: store.hamlet.userTimezone(agent.namespace) }
         })
-        this.hamlet = new HamletService(store.hamlet, this, this.rpcGateway)
+        this.hamlet = new HamletService(store.hamlet, this, this.rpcGateway, enqueueAgentNotification)
         this.reloadAll()
         this.inactivityTimer = setInterval(() => this.expireInactive(), 5_000)
     }

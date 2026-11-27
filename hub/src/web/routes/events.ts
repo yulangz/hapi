@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import type { SSEManager } from '../../sse/sseManager'
@@ -84,62 +83,51 @@ export function createEventsRoutes(
             }
         }
 
-        const response = streamSSE(c, async (stream) => {
-            // Reconnects supply the last SSE id they saw; when the manager
-            // still has everything after it, the missed events are replayed
-            // here and the client skips its REST resync (`resume: 'ok'`).
-            const { resume, replay } = manager.subscribe({
-                id: subscriptionId,
-                namespace,
-                all,
-                sessionId: resolvedSessionId,
-                machineId,
-                visibility,
-                resumeFrom,
-                send: (event, eventId) => stream.writeSSE({ data: JSON.stringify(event), id: eventId }),
-                sendHeartbeat: async () => {
-                    await stream.writeSSE({
-                        data: JSON.stringify({
-                            type: 'heartbeat',
-                            namespace,
-                            data: {
-                                timestamp: Date.now()
-                            }
-                        })
-                    })
-                }
-            })
-
-            try {
-                // Verdict first, replay second, live traffic third: the client
-                // decides whether to resync from the verdict, so it must never
-                // see replayed or live events before it.
-                await stream.writeSSE({
-                    data: JSON.stringify({
-                        type: 'connection-changed',
-                        data: {
-                            status: 'connected',
-                            subscriptionId,
-                            resume
-                        }
-                    })
-                })
-
-                for (const item of replay) {
-                    await stream.writeSSE({ data: JSON.stringify(item.event), id: item.eventId })
-                }
-                await manager.drainPending(subscriptionId)
-
-                await new Promise<void>((resolve) => {
-                    const done = () => resolve()
-                    c.req.raw.signal.addEventListener('abort', done, { once: true })
-                    stream.onAbort(done)
-                })
-            } finally {
-                manager.unsubscribe(subscriptionId)
-            }
+        // Hono's streaming helper swallows failed writes. Use a writer whose
+        // result can distinguish a response-stream write from a disconnected tab.
+        const { readable, writable } = new TransformStream<Uint8Array>()
+        const writer = writable.getWriter()
+        const encoder = new TextEncoder()
+        const write = (event: unknown, eventId?: string) =>
+            writer.write(encoder.encode(`data: ${JSON.stringify(event)}\n${eventId ? `id: ${eventId}\n` : ''}\n`))
+        const { resume, replay } = manager.subscribe({
+            id: subscriptionId,
+            namespace,
+            all,
+            sessionId: resolvedSessionId,
+            machineId,
+            visibility,
+            resumeFrom,
+            send: write,
+            sendHeartbeat: () => write({ type: 'heartbeat', namespace, data: { timestamp: Date.now() } })
         })
 
+        const signal = c.req.raw.signal
+        const cleanup = () => {
+            manager.unsubscribe(subscriptionId)
+            signal.removeEventListener('abort', cleanup)
+        }
+        signal.addEventListener('abort', cleanup, { once: true })
+        void writer.closed.then(cleanup, cleanup)
+        if (signal.aborted) cleanup()
+
+        void (async () => {
+            // Verdict first, then replay, then any live events queued during replay.
+            await write({ type: 'connection-changed', data: { status: 'connected', subscriptionId, resume } })
+            for (const { event, eventId } of replay) await write(event, eventId)
+            await manager.drainPending(subscriptionId)
+        })().catch(() => {
+            cleanup()
+            void writer.close().catch(() => {})
+        })
+        const response = c.newResponse(readable, {
+            headers: {
+                'Transfer-Encoding': 'chunked',
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive'
+            }
+        })
         return compressSseResponse(response, c.req.header('Accept-Encoding'))
     })
 

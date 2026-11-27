@@ -7,6 +7,8 @@ import type { EmbeddedAsset } from '#embedded-assets';
 import { isBunCompiled, runtimePath } from '@/projectPath';
 
 const RUNTIME_MARKER = '.runtime-version';
+// Refresh changed embedded assets even in rebuilt binaries at the same release version.
+const RUNTIME_ASSET_VERSION = `${packageJson.version}:2`;
 
 function ensureDirectory(path: string): void {
     mkdirSync(path, { recursive: true });
@@ -146,7 +148,7 @@ export async function ensureRuntimeAssets(): Promise<void> {
     const markerPath = join(runtimeRoot, RUNTIME_MARKER);
     if (existsSync(markerPath)) {
         const markerVersion = readFileSync(markerPath, 'utf-8').trim();
-        if (markerVersion === packageJson.version && runtimeAssetsReady(runtimeRoot)) {
+        if (markerVersion === RUNTIME_ASSET_VERSION && runtimeAssetsReady(runtimeRoot)) {
             return;
         }
     }
@@ -162,7 +164,7 @@ export async function ensureRuntimeAssets(): Promise<void> {
 
     unpackTools(runtimeRoot);
     ensureTunwgExecutable(runtimeRoot);
-    writeFileSync(markerPath, packageJson.version, 'utf-8');
+    writeFileSync(markerPath, RUNTIME_ASSET_VERSION, 'utf-8');
 }
 
 export function getTunwgPath(): string {

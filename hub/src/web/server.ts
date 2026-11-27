@@ -266,7 +266,7 @@ function createWebApp(options: {
     // twice (the SNI proxy copies in both directions), and API payloads are
     // repetitive JSON that compresses to roughly a quarter of its size.
     //
-    // This deliberately does not touch /api/events: streamSSE sets
+    // This deliberately does not touch /api/events: the SSE route sets
     // Transfer-Encoding, which hono's compress() skips, and that stream is
     // already gzipped by compressSseResponse with an explicit sync flush.
     // Binary uploads/downloads are skipped too - compress() only handles

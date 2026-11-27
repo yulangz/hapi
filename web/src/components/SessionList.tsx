@@ -242,7 +242,7 @@ export function isSidebarEmptySessionStub(session: SessionSummary): boolean {
 }
 
 export function shouldShowSessionInSidebar(session: SessionSummary, selectedSessionId?: string | null): boolean {
-    if (session.id === selectedSessionId) return true
+    if (session.id === selectedSessionId || session.hamletMain) return true
     if (session.active || session.pinned || session.globalPinned) return true
     return !isSidebarEmptySessionStub(session)
 }

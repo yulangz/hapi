@@ -44,7 +44,7 @@ export {
     WorkGraphValidationError
 } from './workGraph'
 
-const SCHEMA_VERSION: number = 29
+const SCHEMA_VERSION: number = 31
 const REQUIRED_TABLES = [
     'sessions',
     'machines',
@@ -57,7 +57,9 @@ const REQUIRED_TABLES = [
     'usage_events',
     'usage_scan_state',
     'events',
-    'event_links'
+    'event_links',
+    'hamlet_notifications',
+    'hamlet_notification_deliveries'
 ] as const
 
 export class Store {
@@ -362,6 +364,8 @@ export class Store {
             26: () => this.db.exec(hamletSchema),
             27: () => this.db.exec(hamletSchema),
             28: () => this.migrateHamletColumns(),
+            29: () => this.db.exec(hamletSchema),
+            30: () => this.migrateHamletNotificationReceipts(),
         })
 
         if (currentVersion === 0) {
@@ -413,6 +417,26 @@ export class Store {
             const columns = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
             if (!columns.some((c) => c.name === column)) this.db.exec(ddl)
         }
+    }
+
+    /** V30 receipts contain no notification text or enqueue timestamp. */
+    private migrateHamletNotificationReceipts(): void {
+        this.db.transaction(() => {
+            this.db.exec(hamletSchema)
+            const legacy = this.db.query(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'hamlet_notification_requests'"
+            ).get()
+            if (!legacy) return
+
+            // Keep the legacy table for its status history. Copy the
+            // idempotency keys and IDs with an unknown timestamp (0), and
+            // leave deliveries empty for migrated requests.
+            this.db.exec(`
+                INSERT INTO hamlet_notifications(id,agent,request_id,text_hash,created_at)
+                SELECT id,agent,request_id,text_hash,0 FROM hamlet_notification_requests WHERE true
+                ON CONFLICT(agent,request_id) DO NOTHING
+            `)
+        }).immediate()
     }
 
     private createSchema(): void {
@@ -514,6 +538,7 @@ export class Store {
                 UNIQUE(namespace, endpoint)
             );
             CREATE INDEX IF NOT EXISTS idx_push_subscriptions_namespace ON push_subscriptions(namespace);
+            CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions(endpoint);
 
             CREATE TABLE IF NOT EXISTS fcm_devices (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

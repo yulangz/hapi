@@ -53,6 +53,11 @@ export const hamletTools = {
     group_list: z.object({}),
     group_members: z.object({ group_id: id }),
     message_to: OutgoingMessage,
+    notify_user: z.strictObject({
+        text: nonEmpty.refine(text => Array.from(text).length <= 60, 'Use at most 60 Unicode characters')
+            .describe('One sentence summarizing the update, up to 60 Unicode characters'),
+        request_id: nonEmpty.max(128).describe('Unique key for this request. Duplicate calls with the same key and text queue one notification.'),
+    }),
     timer_create: z.object({
         due_at: z.iso.datetime({ offset: true }).describe('ISO 8601 with an offset, e.g. 2026-11-25T09:00:00-07:00'),
         interval_seconds: z.number().int().positive().optional().describe('Repeat every N seconds; omit for a one-off reminder'),
@@ -149,6 +154,10 @@ export const hamletToolDescriptions: Record<HamletTool | 'wait_message' | 'displ
         'Your ordinary replies are only visible in your own session: your parent and other agents see nothing unless you message them, so report results, blockers and questions here. ' +
         'If the recipient is busy the message waits and arrives with any others as one input at its next turn. ' +
         'Attach images by local path or by an attachment_id you received, each with an optional caption. Reuse request_id when retrying so the message is not sent twice.',
+    notify_user:
+        'When the user needs to act or decide, has an important update to read, or asked to be notified, call this tool first, then write the full details in the current conversation. ' +
+        'Use one sentence of at most 60 Unicode characters and combine updates from the same turn. Use chat alone when replying to the user\'s latest message, for ordinary progress, or when a child finishes as planned and needs no user action. ' +
+        'The tool confirms queue acceptance. The Hub handles delivery and retries.',
     timer_create:
         'Schedule a reminder for yourself. At due_at, `text` is delivered to you as an input, so write what you should do then ' +
         '(e.g. "Ask the parser agent for its report, which was due at 18:00"). Interpret times such as "tomorrow at 9" in the user\'s time zone (see whoami). ' +
@@ -182,11 +191,11 @@ export const mainAgentPrompt = `你是我的助理秘书。我会随时把想法
 
 善用文件系统来进行记录，好记性不如烂笔头。你的笔记应当简洁、工整、有层次，明确区分哪些是重要信息、哪些应该归档等等，我会定期提醒你整理笔记。
 
-你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
+你负责记录、委派、跟进、提醒和汇总。具体工作优先交给合适的已有子 Agent，没有合适的再创建。创建子 Agent 时，在 agent_create 的 model 参数中明确指定模型。简单日常任务用 gpt-6.2-sol。有一定难度或需要深入判断的任务，优先用 gpt-6.2-astra。我的额度充足，无需为了省额度降低模型。委派时，说清楚目标、约束和要交回的结果，把从现在到交付的整个任务交给它。如果开工还要等文件到达、收到工单或其他条件满足，也由负责的子 Agent 留意条件，时机到了就行动，遇到阻碍及时告诉你。
 
 派工后，记下负责人、预期交付和需要跟进的时间。眼下没有其他事，就结束这一轮。到了约定时间还没收到回报，再向负责人询问进展。收到结果后，对照我的原始需求检查是否答全，有缺口就请负责人补齐。
 
-该提醒时主动提醒，该由我决定时把问题说清楚。平时用自然、简洁的话和我交流，优先告诉我结果、交付物，以及有没有需要我做的事。内部是怎么分工和传递消息的，我问起时再展开。`
+需要我介入或决定、有重要信息要告诉我，或我明确要求提醒时，用 notify_user 叫我回来：先调用 notify_user 通知我，再在会话里把完整内容写清楚。通知文本用一句简述内容，不超过 60 字。如果这一轮是在回复我刚发来的消息，我就在会话里，不必通知。同一轮的多件事合并成一条通知。普通进度、子 Agent 按计划完成且不需要我处理的，只在会话里说。`
 
 /**
  * When the main agent is reminded to consolidate its notes: daily at `time` in `timezone`.

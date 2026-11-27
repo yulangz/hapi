@@ -86,9 +86,9 @@ This changes Bun's HTTP idle timeout, not Socket.IO liveness thresholds. It was
 previously installed separately from the official Hub binary. It does not
 implement the new foreground notification feature.
 
-## Foreground system notifications
+## Foreground system notifications on older Hub builds
 
-On an updated Hub, enable `HAMLET_WEB_PUSH_FOREGROUND=true`, or set
+Older Hub builds that use namespace visibility can enable `HAMLET_WEB_PUSH_FOREGROUND=true`, or set
 `"webPushForeground": true` in its `settings.json` and restart the Hub.
 The setting defaults to `false` and retains native-provider deduplication.
 Browser/OS permissions and access to each subscribed push service remain

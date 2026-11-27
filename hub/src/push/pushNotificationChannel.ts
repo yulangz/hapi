@@ -1,20 +1,21 @@
-import { randomUUID } from 'node:crypto'
-import type { Session } from '../sync/syncEngine'
-import type { NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
+import { createHash } from 'node:crypto'
+import { setTimeout as delay } from 'node:timers/promises'
+import type { Session, SyncEvent } from '../sync/syncEngine'
+import type { AgentNotification, NotificationChannel, TaskNotification } from '../notifications/notificationTypes'
 import type { NotificationSendContext } from '../notifications/notificationSendContext'
 import { getAgentName, getSessionName } from '../notifications/sessionInfo'
 import type { SSEManager } from '../sse/sseManager'
-import type { VisibilityTracker } from '../visibility/visibilityTracker'
-import type { PushPayload, PushService } from './pushService'
+import type { PushService } from './pushService'
 import { composeInputRequestNotification, getFirstPendingRequest } from '../notifications/inputRequest'
+
+type ToastData = Extract<SyncEvent, { type: 'toast' }>['data']
+const TOAST_WRITE_TIMEOUT_MS = 3_000
+const BROWSER_NOTIFICATION_KIND = 'main-agent-notification' as const
 
 export class PushNotificationChannel implements NotificationChannel {
     constructor(
         private readonly pushService: PushService,
-        private readonly sseManager: SSEManager,
-        private readonly visibilityTracker: VisibilityTracker,
-        _appUrl: string,
-        private readonly pushInForeground = false
+        private readonly sseManager: SSEManager
     ) {}
 
     /**
@@ -23,10 +24,9 @@ export class PushNotificationChannel implements NotificationChannel {
      * getting PWA notifications" reports without committing permanent log
      * spam to the hub journal.
      */
-    private logBranch(method: string, namespace: string, branch: string, extra: string = ''): void {
+    private logBranch(method: string, namespace: string, branch: string): void {
         if (process.env.HAMLET_NOTIFY_DEBUG !== '1') return
-        const note = extra ? ` ${extra}` : ''
-        console.log(`[Push.${method}] ns=${namespace} ${branch}${note}`)
+        console.log(`[Push.${method}] ns=${namespace} ${branch}`)
     }
 
     async sendPermissionRequest(session: Session, ctx?: NotificationSendContext): Promise<void> {
@@ -36,23 +36,14 @@ export class PushNotificationChannel implements NotificationChannel {
 
         const name = getSessionName(session)
         const pending = getFirstPendingRequest(session)
-        const { requestId, request } = pending ?? {}
         const inputNotification = composeInputRequestNotification(session, pending)
-        const toolName = request?.tool ? ` (${request.tool})` : ''
+        const tool = pending?.request.tool
+        const toolName = tool ? ` (${tool})` : ''
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: inputNotification?.title ?? 'Permission Request',
-            body: inputNotification?.body ?? `${name}${toolName}`,
-            tag: inputNotification?.tag ?? `permission-${session.id}`,
-            data: {
-                type: inputNotification?.type ?? 'permission-request',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id),
-                requestId
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'permission')
+            body: inputNotification?.body ?? `${name}${toolName}`
+        }, ctx, 'permission')
     }
 
     async sendReady(session: Session, ctx?: NotificationSendContext): Promise<void> {
@@ -63,18 +54,10 @@ export class PushNotificationChannel implements NotificationChannel {
         const agentName = getAgentName(session)
         const name = getSessionName(session)
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: 'Ready for input',
-            body: `${agentName} is waiting in ${name}`,
-            tag: `ready-${session.id}`,
-            data: {
-                type: 'ready',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id)
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'ready')
+            body: `${agentName} is waiting in ${name}`
+        }, ctx, 'ready')
     }
 
     async sendTaskNotification(session: Session, notification: TaskNotification, ctx?: NotificationSendContext): Promise<void> {
@@ -90,68 +73,81 @@ export class PushNotificationChannel implements NotificationChannel {
             || normalizedStatus === 'killed'
             || normalizedStatus === 'aborted'
 
-        const payload: PushPayload = {
+        await this.deliverInAppToast(session, {
             title: isFailure ? 'Task failed' : 'Task completed',
-            body: `${agentName} · ${name} · ${notification.summary}`,
-            data: {
-                type: 'task-notification',
-                sessionId: session.id,
-                url: this.buildSessionPath(session.id)
-            }
-        }
-
-        await this.deliverWebOrToast(session, payload, ctx, 'task')
+            body: `${agentName} · ${name} · ${notification.summary}`
+        }, ctx, 'task')
     }
 
-    private async deliverWebOrToast(
+    async sendAgentNotification(session: Session, notification: AgentNotification): Promise<boolean> {
+        if (!session.hamletMain) return false
+        const body = notification.text.replace(/\s+/gu, ' ')
+        // Keep Push generic because a browser endpoint can outlive its login.
+        this.logBranch('notify_user', session.namespace, 'web-push-fired')
+        const acceptedEndpoints = await this.pushService.sendToNamespace(session.namespace, {
+            title: 'Hamlet',
+            body: 'New notification from your main Agent',
+            tag: `hamlet-main-agent-${notification.id}`,
+            data: { type: BROWSER_NOTIFICATION_KIND }
+        }).catch(() => {
+            console.error('[Push.notify_user] Failed to dispatch Web Push')
+            return []
+        })
+
+        const toast = this.publishToast(session.namespace, 'notify_user', {
+            title: getSessionName(session),
+            body,
+            sessionId: session.id,
+            url: this.buildSessionPath(session.id),
+            notificationKind: BROWSER_NOTIFICATION_KIND,
+            notificationId: notification.id,
+            notificationAt: Date.now(),
+            pushAccepted: acceptedEndpoints.map(endpoint => createHash('sha256')
+                .update(`${notification.id}\0${endpoint}`).digest('hex'))
+        }).catch(() => null)
+
+        if (acceptedEndpoints.length > 0) return true
+        const deadline = new AbortController()
+        const written = await Promise.race([
+            toast, delay(TOAST_WRITE_TIMEOUT_MS, null, { signal: deadline.signal, ref: false })
+        ]).finally(() => deadline.abort())
+        if (written === null) console.warn('[Push.notify_user] SSE delivery did not complete', notification.id)
+        return written === true
+    }
+
+    private async deliverInAppToast(
         session: Session,
-        payload: PushPayload,
+        message: Pick<ToastData, 'title' | 'body'>,
         ctx: NotificationSendContext | undefined,
         method: 'permission' | 'ready' | 'task'
     ): Promise<void> {
         if (ctx?.nativeGate?.sent) {
-            this.logBranch(method, session.namespace, 'defer-to-native', 'fcm-delivered-this-dispatch')
+            this.logBranch(method, session.namespace, 'defer-to-native')
             return
         }
+        void this.publishToast(session.namespace, method, {
+            ...message,
+            sessionId: session.id,
+            url: this.buildSessionPath(session.id)
+        }).catch(() => {})
+    }
 
-        const url = payload.data?.url ?? this.buildSessionPath(session.id)
-        const visible = this.visibilityTracker.hasVisibleConnection(session.namespace)
-        // Send live notification metadata to hidden global streams too: browsers
-        // without a Push subscription can display a local system notification.
-        // sendToast only counts visible recipients for remote-push suppression.
-        const toastDelivery = this.sseManager.sendToast(session.namespace, {
-            type: 'toast',
-            namespace: session.namespace,
-            data: {
-                title: payload.title,
-                body: payload.body,
-                sessionId: session.id,
-                url,
-                notificationId: randomUUID(),
-                notificationAt: Date.now()
-            }
-        }, { includeHidden: true }).then(delivered => {
-            if (delivered > 0) {
-                this.logBranch(method, session.namespace, 'sse-toast-delivered', `count=${delivered}`)
-            } else {
-                this.logBranch(method, session.namespace, 'sse-toast-zero', 'no visible delivery')
-            }
-            return delivered
-        }).catch(() => {
-            this.logBranch(method, session.namespace, 'sse-toast-failed')
-            return 0
-        })
-        // A slow visible SSE client must not hold up system notifications
-        // when foreground Web Push is enabled. The toast has its own catch.
-        if (visible && !this.pushInForeground && (await toastDelivery) > 0) {
-            return
+    private async publishToast(
+        namespace: string,
+        method: 'permission' | 'ready' | 'task' | 'notify_user',
+        data: ToastData
+    ): Promise<boolean> {
+        try {
+            const event = { type: 'toast' as const, namespace, data }
+            const written = method === 'notify_user'
+                ? await this.sseManager.sendNotificationToast(namespace, event)
+                : (await this.sseManager.sendToast(namespace, event)) > 0
+            this.logBranch(method, namespace, written ? 'sse-toast-delivered' : 'sse-toast-zero')
+            return written
+        } catch (error) {
+            this.logBranch(method, namespace, 'sse-toast-failed')
+            throw error
         }
-        if (!visible) {
-            this.logBranch(method, session.namespace, 'not-visible')
-        }
-
-        this.logBranch(method, session.namespace, 'web-push-fired')
-        await this.pushService.sendToNamespace(session.namespace, payload)
     }
 
     private buildSessionPath(sessionId: string): string {

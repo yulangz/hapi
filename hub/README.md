@@ -51,7 +51,7 @@ Dictation and voice-assistant provider keys can also be added from **Settings â†
 - `HAMLET_RELAY_AUTH` - Explicit relay auth key. By default the hub obtains and persists an individually revocable key from the relay. A persisted key rejected with HTTP 403 is discarded and reissued once; an explicitly configured environment key must be updated manually.
 - `HAMLET_RELAY_FORCE_TCP` - Force TCP relay mode (true/1).
 - `VAPID_SUBJECT` - Contact email/URL for Web Push.
-- `HAMLET_WEB_PUSH_FOREGROUND` - Also send Web Push while any web client is visible (`true`/`false`, default `false`; persisted as `webPushForeground`). Native-delivery deduplication remains in effect.
+- `HAMLET_WEB_PUSH_FOREGROUND` - Legacy setting. Main Agent Web Push is delivered per registered browser regardless of page visibility.
 - `HAMLET_ANDROID_PUSH` - `auto` (default: direct FCM when credentials are configured, otherwise relay), `relay`, `fcm`, or `off`.
 - `FCM_SERVICE_ACCOUNT_PATH` - Service-account JSON for private Firebase builds; the app must use the same project. Invalid configured credentials disable Android push instead of switching projects.
 - `HAMLET_IOS_PUSH` - `relay` (default), `apns`, or `off`.

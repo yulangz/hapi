@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { toSessionSummary, type SyncEvent } from '@hamlet/protocol'
 import { SessionSchema } from '@hamlet/protocol/schemas'
+import { AgentConfig } from '@hamlet/protocol/hamlet'
 import { Store } from '../store'
 import { RpcRegistry } from '../socket/rpcRegistry'
 import { SyncEngine } from './syncEngine'
@@ -13,6 +14,26 @@ function createEngine(store: Store, events: SyncEvent[]) {
 }
 
 describe('session conversation content', () => {
+    it('identifies the main Agent from stored ownership on reload', () => {
+        const store = new Store(':memory:')
+        store.machines.getOrCreateMachine('machine', {}, null, 'default')
+        const config = AgentConfig.parse({ name: 'Renamed', description: 'Agent', machine_id: 'machine', directory: '/work', prompt: 'Hello' })
+        const root = store.hamlet.register('default', null, 'main', config)
+        const child = store.hamlet.register('default', root.id, 'child', config)
+        for (const [agent, name] of [[root, 'Renamed'], [child, '主 Agent']] as const) {
+            store.sessions.getOrCreateSession('hamlet:' + agent.id,
+                { path: '/work', host: 'test', name, hamletAgent: true }, null, 'default', undefined, undefined, undefined, agent.id)
+        }
+        const engine = createEngine(store, [])
+        try {
+            expect(toSessionSummary(SessionSchema.parse(engine.getSession(root.id))).hamletMain).toBe(true)
+            expect(toSessionSummary(SessionSchema.parse(engine.getSession(child.id))).hamletMain).toBeUndefined()
+        } finally {
+            engine.stop()
+            store.close()
+        }
+    })
+
     it('derives content from stored transcripts on reload, independently of titles', () => {
         const store = new Store(':memory:')
         const empty = store.sessions.getOrCreateSession('empty', { path: '/work', host: 'test', name: 'Named stub' }, null, 'default')

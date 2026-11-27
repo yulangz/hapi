@@ -7,6 +7,9 @@ export type TaskNotification = {
     status?: string
 }
 
+export type AgentNotification = { id: string; text: string }
+export type AgentNotificationSender = (session: Session, notification: AgentNotification) => Promise<boolean>
+
 export type NotificationChannel = {
     sendReady: (session: Session, ctx?: NotificationSendContext) => Promise<void>
     sendPermissionRequest: (session: Session, ctx?: NotificationSendContext) => Promise<void>

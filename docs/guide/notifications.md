@@ -1,25 +1,27 @@
 # Notifications
 
-Get notified when sessions need input, request permissions, fail, or complete — via native app notifications, Telegram, Server酱 (ServerChan), Web Push, or voice.
+Get notified when sessions need input, request permissions, fail, or complete through native app notifications, Telegram, Server酱 (ServerChan), or voice. Browser alerts from the main Agent are available separately.
 
 Web Push needs no provider configuration: [install the PWA](./pwa.md) and allow notifications. The channels below are optional.
 
-## Web Push while HAMLET is visible
+## Main Agent browser notifications
 
-By default, a visible web client in your namespace receives an in-page toast
-instead of a system push notification. To receive both, start the Hub with:
+Enable browser notifications in Settings → General. When you need to act,
+there is an important update, or you requested a reminder, the main Agent calls
+`notify_user` first with a one-sentence summary of up to 60 characters, then
+writes the full details in the conversation. It sends at most one notification
+per turn. Replies to your latest message, routine progress and child tasks that
+finish as planned without needing your input stay in chat. Timers and doorbells
+wake the Agent itself.
 
-```bash
-export HAMLET_WEB_PUSH_FOREGROUND=true
-hamlet hub
-```
-
-You can also set `"webPushForeground": true` in the Hub's `settings.json` and
-restart the Hub. Environment values override file values and are persisted on
-first use. The default remains `false`. This option does not override browser
-permissions, operating-system Focus/Do Not Disturb, or native-delivery deduplication.
-It applies to ready, permission/input-request, and background-task notifications.
-The Hub still needs to reach the push service in each browser's subscription.
+The tool confirms that the Hub queued the notification. The Hub tries each
+configured channel independently and stops retrying a channel once it accepts
+delivery. Failed attempts are retried after 10 seconds, then 20, 40, 80, 160,
+320, 640, 1,280 and 2,560 seconds from the start of the last attempt. The first
+attempt counts toward the limit of 10. No new attempt starts two hours after
+queueing. Restarting the Hub preserves the attempt count and deadline. Browser delivery and display
+depend on your devices and permissions. A shared browser endpoint belongs to the
+account that last registered it.
 
 For Codex sessions with an active Goal, intermediate turn completions do not
 produce ready-for-input notifications: the Goal is still running automatically.
@@ -28,18 +30,17 @@ reaches a budget/usage limit. Permission and user-input requests are unaffected.
 
 ## Local system notification fallback
 
-When notification permission is already allowed but the browser has no Web Push
-subscription (for example, its push service cannot be reached), an open HAMLET page
-can display system notifications directly from its live Hub connection. This works
-for visible and hidden tabs without minimizing the window. Multiple tabs share
-notification receipts so one event produces one local notification per browser
-profile. Permission requests, ready-for-input, and task notifications are covered.
+When notification permission is granted, an open HAMLET page can display a
+local alert from its live connection if the push service did not confirm
+acceptance of that notification for the browser's endpoint. This works in visible and
+hidden tabs and while viewing a different session. Tabs and the service worker
+share a browser receipt for each notification, including after the alert is dismissed.
 
-This fallback does not request or override permission and stops displaying local
-alerts once a Web Push subscription exists. It requires an active service worker,
-Web Locks, and local storage. A closed, suspended, sleeping, or disconnected page
-cannot receive live events; remote Web Push is still needed in those cases. Focus /
-Do Not Disturb can still suppress system banners.
+HAMLET uses the service worker for local alerts when available. An open page
+can also show them directly if its browser supports page notifications.
+When the page is closed or disconnected, delivery requires Web Push. The Hub
+must be able to reach the browser's push service. Operating-system Focus or Do
+Not Disturb can suppress system banners.
 
 ## Native app notifications
 

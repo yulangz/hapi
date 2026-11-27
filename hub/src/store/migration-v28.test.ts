@@ -30,7 +30,7 @@ describe('Store V28->V29 migration: doorbell ring limits', () => {
 
             expect(columns).toContain('rings')
             expect(columns).toContain('max_rings')
-            expect(version.user_version).toBe(29)
+            expect(version.user_version).toBe(31)
         } finally {
             store?.close()
             rmSync(directory, { recursive: true, force: true })

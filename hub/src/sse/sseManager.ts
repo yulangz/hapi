@@ -219,41 +219,36 @@ export class SSEManager {
         event: Extract<SyncEvent, { type: 'toast' }>,
         options: { includeHidden?: boolean } = {}
     ): Promise<number> {
-        const deliveries: Array<Promise<{ id: string; ok: boolean; visible: boolean }>> = []
+        const results = await Promise.allSettled(this.writeToast(namespace, event, options.includeHidden ?? false))
+        return results.filter(result => result.status === 'fulfilled' && result.value.visible).length
+    }
+
+    async sendNotificationToast(namespace: string, event: Extract<SyncEvent, { type: 'toast' }>): Promise<boolean> {
+        // Any write qualifies, including hidden global streams. A slow tab
+        // must not hold up confirmation of a write to another tab.
+        return Promise.any(this.writeToast(namespace, event, true)).then(() => true, () => false)
+    }
+
+    private writeToast(
+        namespace: string,
+        event: Extract<SyncEvent, { type: 'toast' }>,
+        includeHidden: boolean
+    ): Array<Promise<{ visible: boolean }>> {
+        const writes: Array<Promise<{ visible: boolean }>> = []
         for (const connection of this.connections.values()) {
-            if (connection.namespace !== namespace) {
-                continue
-            }
+            if (connection.namespace !== namespace) continue
             const visible = this.visibilityTracker.isVisibleConnection(connection.id)
-            // Hidden global streams keep the local notification fallback alive.
-            // Detail streams do not need a second copy of the same alert.
-            if (!visible && !(options.includeHidden && connection.all)) {
-                continue
-            }
+            if (!visible && !(includeHidden && connection.all)) continue
 
-            deliveries.push(
-                Promise.resolve(connection.send(event))
-                    .then(() => ({ id: connection.id, ok: true, visible }))
-                    .catch(() => ({ id: connection.id, ok: false, visible }))
-            )
+            writes.push(Promise.resolve()
+                .then(() => connection.send(event))
+                .then(() => ({ visible }))
+                .catch(error => {
+                    this.unsubscribe(connection.id)
+                    throw error
+                }))
         }
-
-        if (deliveries.length === 0) {
-            return 0
-        }
-
-        const results = await Promise.all(deliveries)
-        let successCount = 0
-        for (const result of results) {
-            if (result.ok) {
-                // A hidden SSE recipient must never suppress remote Web Push.
-                if (result.visible) successCount += 1
-                continue
-            }
-            this.unsubscribe(result.id)
-        }
-
-        return successCount
+        return writes
     }
 
     broadcast(event: SyncEvent): void {

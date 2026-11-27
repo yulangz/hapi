@@ -1,6 +1,7 @@
 import { createConfiguration, type ConfigSource } from './configuration'
 import { Store } from './store'
 import { SyncEngine, type SyncEvent } from './sync/syncEngine'
+import { AgentNotificationQueue } from './notifications/agentNotificationQueue'
 import { NotificationHub } from './notifications/notificationHub'
 import type { NotificationChannel } from './notifications/notificationTypes'
 import { HappyBot } from './telegram/bot'
@@ -116,6 +117,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     let sseManager: SSEManager | null = null
     let visibilityTracker: VisibilityTracker | null = null
     let notificationHub: NotificationHub | null = null
+    let agentNotifications: AgentNotificationQueue
     let tunnelManager: TunnelManager | null = null
 
     // Load configuration (async - loads from env/file with persistence)
@@ -207,7 +209,8 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
         onMessagesConsumed: (sessionId) => syncEngine?.clearQueuedThinkingGrace(sessionId)
     })
 
-    syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager)
+    syncEngine = new SyncEngine(store, socketServer.io, socketServer.rpcRegistry, sseManager,
+        (agent, requestId, text) => agentNotifications.enqueue(agent, requestId, text))
     syncEngine.hamlet.start()
     // Accountable principal for A2A work-graph notify ingest (P3).
     syncEngine.setHubOwnerUserId(await getOrCreateOwnerId())
@@ -243,15 +246,11 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
         console.log(`[Hub] iOS push: off (${iosPushConfig.reason})`)
     }
 
-    notificationChannels.push(
-        new PushNotificationChannel(
-            pushService,
-            sseManager,
-            visibilityTracker,
-            config.publicUrl,
-            config.webPushForeground
-        )
-    )
+    const browserNotifications = new PushNotificationChannel(pushService, sseManager)
+    notificationChannels.push(browserNotifications)
+    agentNotifications = new AgentNotificationQueue(store.hamlet, syncEngine, new Map([
+        ['browser', (session, notification) => browserNotifications.sendAgentNotification(session, notification)]
+    ]))
 
     if (config.serverChanSendKey && config.serverChanNotification) {
         notificationChannels.push(new ServerChanChannel(
@@ -277,6 +276,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
     }
 
     notificationHub = new NotificationHub(syncEngine, notificationChannels)
+    agentNotifications.start()
 
     // Start HTTP service first (before tunnel, so tunnel has something to forward to)
     webServer = await startWebServer({
@@ -395,6 +395,7 @@ export async function startHub(options: StartHubOptions = {}): Promise<HubInstan
             await tunnelManager?.stop()
             await happyBot?.stop()
             notificationHub?.stop()
+            await agentNotifications.stop()
             syncEngine?.stop()
             sseManager?.stop()
             webServer?.stop()

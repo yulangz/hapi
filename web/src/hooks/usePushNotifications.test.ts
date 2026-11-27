@@ -25,7 +25,7 @@ function createSubscription(endpoint: string, unsubscribeResult: boolean | Error
     }
 }
 
-function setupPushEnvironment(existing: PushSubscriptionMock, replacement: PushSubscriptionMock) {
+function setupPushEnvironment(existing: PushSubscriptionMock | null, replacement: PushSubscriptionMock) {
     const pushManager = {
         getSubscription: vi.fn().mockResolvedValue(existing),
         subscribe: vi.fn().mockResolvedValue(replacement)
@@ -65,7 +65,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const replacement = createSubscription('https://push.test/current', true)
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -87,7 +87,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
         const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -109,7 +109,7 @@ describe('usePushNotifications VAPID rotation', () => {
         const replacement = createSubscription('https://push.test/current', true)
         const pushManager = setupPushEnvironment(existing, replacement)
         const api = createApi()
-        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient))
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
 
         await waitFor(() => expect(result.current.isSupported).toBe(true))
 
@@ -127,4 +127,49 @@ describe('usePushNotifications VAPID rotation', () => {
         })
         expect(localStorage.getItem(VAPID_STORAGE_KEY)).toBe(CURRENT_VAPID_KEY)
     })
+
+    it('removes a new browser subscription if the Hub could not register it', async () => {
+        const replacement = createSubscription('https://push.test/current', true)
+        setupPushEnvironment(null, replacement)
+        const api = createApi()
+        api.subscribePushNotifications.mockRejectedValue(new Error('Hub unavailable'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const { result } = renderHook(() => usePushNotifications(api as unknown as ApiClient, 'alpha'))
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(false)
+        })
+        expect(replacement.unsubscribe).toHaveBeenCalledOnce()
+        expect(result.current.isSubscribed).toBe(false)
+    })
+    it('can retry failed registration of an existing same-key endpoint', async () => {
+        localStorage.setItem(VAPID_STORAGE_KEY, CURRENT_VAPID_KEY)
+        const existing = createSubscription('https://push.test/current', true)
+        const pushManager = setupPushEnvironment(existing, existing)
+        const api = createApi()
+        api.subscribePushNotifications.mockRejectedValueOnce(new Error('Hub registration failed'))
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        const { result, rerender } = renderHook(
+            ({ scope }) => usePushNotifications(api as unknown as ApiClient, scope),
+            { initialProps: { scope: 'alpha' } }
+        )
+
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(false)
+            expect(result.current.isCurrentScope()).toBe(true)
+        })
+        expect(result.current.isSubscribed).toBe(false)
+        expect(existing.unsubscribe).not.toHaveBeenCalled()
+        expect(pushManager.subscribe).not.toHaveBeenCalled()
+
+        await act(async () => {
+            expect(await result.current.subscribe()).toBe(true)
+        })
+        expect(result.current.isSubscribed).toBe(true)
+        const staleScope = result.current.isCurrentScope
+        rerender({ scope: 'beta' })
+        expect(result.current.isSubscribed).toBe(false)
+        expect(staleScope()).toBe(false)
+        expect(result.current.isCurrentScope()).toBe(true)
+    })
+
 })
